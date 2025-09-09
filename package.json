@@ -1,0 +1,16 @@
+{
+  "name": "ai-gym-trainer",
+  "version": "1.0.0",
+  "description": "AI-powered gym training application",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "test": "jest"
+  },
+  "keywords": ["fitness", "gym", "ai", "trainer", "workout"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {}
+}
