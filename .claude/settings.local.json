@@ -5,7 +5,19 @@
       "Bash(git branch:*)",
       "Bash(gh repo create:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git remote add:*)",
+      "Bash(git push:*)",
+      "Bash(rm:*)",
+      "Bash(npx create-expo-app:*)",
+      "Bash(npm init:*)",
+      "Bash(npm install:*)",
+      "Bash(npx expo install:*)",
+      "Bash(npm start)",
+      "Bash(npx expo start:*)",
+      "Read(//c/Users/User/**)",
+      "WebSearch",
+      "Bash(npx expo:*)"
     ],
     "deny": [],
     "ask": []

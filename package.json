@@ -1,16 +1,43 @@
 {
   "name": "ai-gym-trainer",
   "version": "1.0.0",
-  "description": "AI-powered gym training application",
-  "main": "index.js",
+  "main": "node_modules/expo/AppEntry.js",
   "scripts": {
-    "start": "node src/index.js",
-    "dev": "nodemon src/index.js",
-    "test": "jest"
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web"
   },
-  "keywords": ["fitness", "gym", "ai", "trainer", "workout"],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Lucagamerbest/AI-Gym-Trainer.git"
+  },
+  "keywords": [],
   "author": "",
-  "license": "MIT",
-  "dependencies": {},
-  "devDependencies": {}
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Lucagamerbest/AI-Gym-Trainer/issues"
+  },
+  "homepage": "https://github.com/Lucagamerbest/AI-Gym-Trainer#readme",
+  "description": "",
+  "dependencies": {
+    "@expo/metro-runtime": "~5.0.4",
+    "@react-navigation/bottom-tabs": "^7.4.7",
+    "@react-navigation/native": "^7.1.17",
+    "@react-navigation/stack": "^7.4.8",
+    "babel-preset-expo": "~13.0.0",
+    "expo": "~53.0.0",
+    "expo-status-bar": "~2.2.3",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "react-native": "0.79.5",
+    "react-native-gesture-handler": "^2.28.0",
+    "react-native-safe-area-context": "^5.6.1",
+    "react-native-screens": "^4.16.0",
+    "react-native-web": "^0.20.0",
+    "expo-auth-session": "~6.2.1",
+    "expo-crypto": "~14.1.5",
+    "expo-web-browser": "~14.2.0",
+    "@react-native-async-storage/async-storage": "2.1.2"
+  }
 }
