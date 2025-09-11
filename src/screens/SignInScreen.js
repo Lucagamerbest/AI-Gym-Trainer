@@ -39,8 +39,13 @@ export default function SignInScreen({ navigation }) {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
 
+  // Check if we're on Android emulator
+  const isAndroidEmulator = Platform.OS === 'web' && 
+    typeof window !== 'undefined' &&
+    (window.location.hostname === '10.0.2.2' || window.location.hostname === '10.0.3.2');
+
   // Google Sign-In configuration
-  const [request, response, promptAsync] = Google.useAuthRequest({
+  const [request, response, promptAsync] = isAndroidEmulator ? [null, null, null] : Google.useAuthRequest({
     expoClientId: '1011295206743-8jkfemcg0fcss02fgm14b9lhv282uk33.apps.googleusercontent.com',
     iosClientId: '1011295206743-rl70k9ibahkkgkf41j8qr6vfneedgb8s.apps.googleusercontent.com',
     androidClientId: '1011295206743-ab4i5hlk0qoh9ojqm9itmp932peacv4q.apps.googleusercontent.com',
@@ -353,6 +358,32 @@ export default function SignInScreen({ navigation }) {
               style={styles.socialButton} 
               activeOpacity={0.8}
               onPress={() => {
+                // Development bypass for Android emulator
+                if (isAndroidEmulator) {
+                  Alert.alert(
+                    'Android Emulator Detected',
+                    'Google Sign-In is not available on the Android emulator due to redirect URI restrictions.\n\nPlease use one of these options:',
+                    [
+                      { text: 'Cancel', style: 'cancel' },
+                      { 
+                        text: 'Use Demo Account', 
+                        onPress: () => {
+                          setShowEmailForm(true);
+                          setEmail('demo@gymtrainer.com');
+                          setPassword('demo123');
+                          setTimeout(() => {
+                            Alert.alert('Demo Account', 'Email: demo@gymtrainer.com\nPassword: demo123\n\nThese credentials are pre-filled. Click Sign In to continue.');
+                          }, 100);
+                        }
+                      },
+                      {
+                        text: 'Use Email Sign In',
+                        onPress: () => setShowEmailForm(true)
+                      }
+                    ]
+                  );
+                  return;
+                }
                 if (request) {
                   promptAsync();
                 } else {

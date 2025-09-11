@@ -12,6 +12,7 @@ import SignInScreen from './src/screens/SignInScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import NutritionScreen from './src/screens/NutritionScreen';
 import TrainingScreen from './src/screens/TrainingScreen';
+import AIScreen from './src/screens/AIScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import FoodScanScreen from './src/screens/FoodScanScreen';
 import MealsHistoryScreen from './src/screens/MealsHistoryScreen';
@@ -19,6 +20,10 @@ import SearchFoodScreen from './src/screens/SearchFoodScreen';
 import StartWorkoutScreen from './src/screens/StartWorkoutScreen';
 import AIAssistantScreen from './src/screens/AIAssistantScreen';
 import DebugScreen from './src/screens/DebugScreen';
+import ExerciseListScreen from './src/screens/ExerciseListScreen';
+import ExerciseDetailScreen from './src/screens/ExerciseDetailScreen';
+import ProfessionalExerciseListScreen from './src/screens/ProfessionalExerciseListScreen';
+import ProfessionalExerciseDetailScreen from './src/screens/ProfessionalExerciseDetailScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -26,6 +31,7 @@ const Tab = createBottomTabNavigator();
 function TabNavigator() {
   return (
     <Tab.Navigator
+      initialRouteName="Home"
       screenOptions={{
         tabBarStyle: {
           backgroundColor: Colors.surface,
@@ -40,11 +46,11 @@ function TabNavigator() {
       }}
     >
       <Tab.Screen 
-        name="Training" 
-        component={TrainingScreen}
+        name="AI" 
+        component={AIScreen}
         options={{
           tabBarIcon: ({ color, size }) => (
-            <Text style={{ fontSize: 24 }}>💪</Text>
+            <Text style={{ fontSize: 24 }}>🤖</Text>
           ),
         }}
       />
@@ -53,7 +59,7 @@ function TabNavigator() {
         component={HomeScreen}
         options={{
           tabBarIcon: ({ color, size }) => (
-            <Text style={{ fontSize: 24 }}>〰️</Text>
+            <Text style={{ fontSize: 24 }}>🏠</Text>
           ),
         }}
       />
@@ -101,6 +107,11 @@ function AppNavigator() {
             <Stack.Screen name="SearchFood" component={SearchFoodScreen} />
             <Stack.Screen name="StartWorkout" component={StartWorkoutScreen} />
             <Stack.Screen name="AIAssistant" component={AIAssistantScreen} />
+            <Stack.Screen name="Training" component={TrainingScreen} />
+            <Stack.Screen name="ExerciseList" component={ExerciseListScreen} />
+            <Stack.Screen name="ExerciseDetail" component={ExerciseDetailScreen} />
+            <Stack.Screen name="ProfessionalExerciseList" component={ProfessionalExerciseListScreen} />
+            <Stack.Screen name="ProfessionalExerciseDetail" component={ProfessionalExerciseDetailScreen} />
             <Stack.Screen name="Debug" component={DebugScreen} />
           </>
         )}

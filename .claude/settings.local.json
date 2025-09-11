@@ -17,7 +17,10 @@
       "Bash(npx expo start:*)",
       "Read(//c/Users/User/**)",
       "WebSearch",
-      "Bash(npx expo:*)"
+      "Bash(npx expo:*)",
+      "WebFetch(domain:airtable.com)",
+      "WebFetch(domain:www.bestusedgymequipment.com)",
+      "Bash(node:*)"
     ],
     "deny": [],
     "ask": []

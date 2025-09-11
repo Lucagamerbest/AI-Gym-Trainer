@@ -6,7 +6,7 @@ export default function StyledButton({
   title, 
   onPress, 
   variant = 'primary', // primary, secondary, ghost, card
-  size = 'md', // sm, md, lg
+  size = 'md', // sm, md, lg, xl
   icon,
   iconPosition = 'left',
   loading = false,
@@ -47,6 +47,9 @@ export default function StyledButton({
         break;
       case 'lg':
         baseStyles.push(styles.lg);
+        break;
+      case 'xl':
+        baseStyles.push(styles.xl);
         break;
     }
     
@@ -93,6 +96,9 @@ export default function StyledButton({
       case 'lg':
         baseTextStyles.push(styles.lgText);
         break;
+      case 'xl':
+        baseTextStyles.push(styles.xlText);
+        break;
     }
     
     if (textStyle) {
@@ -118,11 +124,11 @@ export default function StyledButton({
       ) : (
         <View style={styles.content}>
           {icon && iconPosition === 'left' && (
-            <Text style={[styles.icon, { marginRight: Spacing.sm }]}>{icon}</Text>
+            <Text style={[size === 'xl' ? styles.xlIcon : styles.icon, { marginRight: Spacing.sm }]}>{icon}</Text>
           )}
           <Text style={getTextStyles()}>{title}</Text>
           {icon && iconPosition === 'right' && (
-            <Text style={[styles.icon, { marginLeft: Spacing.sm }]}>{icon}</Text>
+            <Text style={[size === 'xl' ? styles.xlIcon : styles.icon, { marginLeft: Spacing.sm }]}>{icon}</Text>
           )}
         </View>
       )}
@@ -176,6 +182,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xxl,
     minHeight: 56,
   },
+  xl: {
+    paddingVertical: Spacing.xl,
+    paddingHorizontal: Spacing.xxl * 1.5,
+    minHeight: 80,
+  },
   
   fullWidth: {
     width: '100%',
@@ -213,8 +224,14 @@ const styles = StyleSheet.create({
   lgText: {
     fontSize: Typography.fontSize.lg,
   },
+  xlText: {
+    fontSize: Typography.fontSize.xl,
+  },
   
   icon: {
     fontSize: Typography.fontSize.xl,
+  },
+  xlIcon: {
+    fontSize: Typography.fontSize.xxl || 32,
   },
 });
