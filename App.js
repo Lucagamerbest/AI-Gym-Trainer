@@ -18,12 +18,13 @@ import FoodScanScreen from './src/screens/FoodScanScreen';
 import MealsHistoryScreen from './src/screens/MealsHistoryScreen';
 import SearchFoodScreen from './src/screens/SearchFoodScreen';
 import StartWorkoutScreen from './src/screens/StartWorkoutScreen';
-import AIAssistantScreen from './src/screens/AIAssistantScreen';
-import DebugScreen from './src/screens/DebugScreen';
+import MuscleGroupSelectionScreen from './src/screens/MuscleGroupSelectionScreen';
 import ExerciseListScreen from './src/screens/ExerciseListScreen';
 import ExerciseDetailScreen from './src/screens/ExerciseDetailScreen';
-import ProfessionalExerciseListScreen from './src/screens/ProfessionalExerciseListScreen';
-import ProfessionalExerciseDetailScreen from './src/screens/ProfessionalExerciseDetailScreen';
+import WorkoutScreen from './src/screens/WorkoutScreen';
+import WorkoutSummaryScreen from './src/screens/WorkoutSummaryScreen';
+import AIAssistantScreen from './src/screens/AIAssistantScreen';
+import DebugScreen from './src/screens/DebugScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -106,12 +107,13 @@ function AppNavigator() {
             <Stack.Screen name="MealsHistory" component={MealsHistoryScreen} />
             <Stack.Screen name="SearchFood" component={SearchFoodScreen} />
             <Stack.Screen name="StartWorkout" component={StartWorkoutScreen} />
-            <Stack.Screen name="AIAssistant" component={AIAssistantScreen} />
-            <Stack.Screen name="Training" component={TrainingScreen} />
+            <Stack.Screen name="MuscleGroupSelection" component={MuscleGroupSelectionScreen} />
             <Stack.Screen name="ExerciseList" component={ExerciseListScreen} />
             <Stack.Screen name="ExerciseDetail" component={ExerciseDetailScreen} />
-            <Stack.Screen name="ProfessionalExerciseList" component={ProfessionalExerciseListScreen} />
-            <Stack.Screen name="ProfessionalExerciseDetail" component={ProfessionalExerciseDetailScreen} />
+            <Stack.Screen name="Workout" component={WorkoutScreen} />
+            <Stack.Screen name="WorkoutSummary" component={WorkoutSummaryScreen} />
+            <Stack.Screen name="AIAssistant" component={AIAssistantScreen} />
+            <Stack.Screen name="Training" component={TrainingScreen} />
             <Stack.Screen name="Debug" component={DebugScreen} />
           </>
         )}

@@ -20,7 +20,13 @@
       "Bash(npx expo:*)",
       "WebFetch(domain:airtable.com)",
       "WebFetch(domain:www.bestusedgymequipment.com)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(taskkill:*)",
+      "Read(//c/Users/lucar/AppData/Local/**)",
+      "Bash(echo $ANDROID_HOME)",
+      "Bash(java:*)",
+      "Read(//c/Program Files/Android/Android Studio/**)",
+      "Read(//c/Users/lucar/**)"
     ],
     "deny": [],
     "ask": []

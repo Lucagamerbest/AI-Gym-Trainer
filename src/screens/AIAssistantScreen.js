@@ -11,7 +11,7 @@ export default function AIAssistantScreen({ navigation }) {
     { id: 2, title: 'Find a Recipe', subtitle: 'Discover healthy recipes', icon: '📖', category: 'nutrition' },
     { id: 3, title: 'Create a Meal Plan', subtitle: 'Weekly meal planning', icon: '📅', category: 'nutrition' },
     { id: 4, title: 'Generate Workout Plan', subtitle: 'Custom fitness routine', icon: '💪', category: 'fitness' },
-    { id: 5, title: 'Modify Current Workout', subtitle: 'Adjust your exercises', icon: '✏️', category: 'fitness' },
+    { id: 5, title: 'Modify Current Workout', subtitle: 'Adjust your routine', icon: '✏️', category: 'fitness' },
     { id: 6, title: 'Ask AI Anything', subtitle: 'General fitness help', icon: '🤖', category: 'general' },
   ];
 

@@ -1,178 +1,358 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView, Platform } from 'react-native';
 import ScreenLayout from '../components/ScreenLayout';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { LinearGradient } from 'expo-linear-gradient';
-import { getExercisesByMuscleGroup, searchExercises, getAllExercises } from '../data/exerciseDatabase';
+import { getExercisesByMuscleGroup } from '../data/exerciseDatabase';
+
 
 export default function ExerciseListScreen({ navigation, route }) {
-  const { muscleGroup, searchQuery: initialSearch, title } = route.params || {};
-  const [searchQuery, setSearchQuery] = useState(initialSearch || '');
+  const { selectedMuscleGroups } = route.params || { selectedMuscleGroups: [] };
   const [exercises, setExercises] = useState([]);
-  const [filteredExercises, setFilteredExercises] = useState([]);
+  const [selectedDifficulty, setSelectedDifficulty] = useState('all');
 
   useEffect(() => {
-    // Load exercises based on muscle group or search
-    if (muscleGroup) {
-      const muscleExercises = getExercisesByMuscleGroup(muscleGroup);
-      setExercises(muscleExercises);
-      setFilteredExercises(muscleExercises);
-    } else if (initialSearch) {
-      const searchResults = searchExercises(initialSearch);
-      setExercises(searchResults);
-      setFilteredExercises(searchResults);
-    } else {
-      const allExercises = getAllExercises();
-      setExercises(allExercises);
-      setFilteredExercises(allExercises);
+    loadExercises();
+  }, [selectedMuscleGroups, selectedDifficulty]);
+
+  // Add scrollbar styles for web
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      const styleId = 'custom-scrollbar-style';
+      if (!document.getElementById(styleId)) {
+        const style = document.createElement('style');
+        style.id = styleId;
+        style.textContent = `
+          .web-scroll-container {
+            overflow-y: scroll !important;
+            scrollbar-width: thin;
+            scrollbar-color: #888 #f1f1f1;
+          }
+          .web-scroll-container::-webkit-scrollbar {
+            width: 12px;
+          }
+          .web-scroll-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+          }
+          .web-scroll-container::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+          }
+          .web-scroll-container::-webkit-scrollbar-thumb:hover {
+            background: #555;
+          }
+        `;
+        document.head.appendChild(style);
+      }
     }
-  }, [muscleGroup, initialSearch]);
+  }, []);
 
-  useEffect(() => {
-    // Filter exercises based on search query
-    if (searchQuery) {
-      const filtered = exercises.filter(exercise =>
-        exercise.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        exercise.equipment.toLowerCase().includes(searchQuery.toLowerCase())
+  const loadExercises = () => {
+    console.log('🔍 [DEBUG] Loading exercises for muscle groups:', selectedMuscleGroups);
+    console.log('🔍 [DEBUG] Platform:', Platform.OS);
+    console.log('🔍 [DEBUG] Selected difficulty:', selectedDifficulty);
+    
+    let filteredExercises = [];
+    
+    selectedMuscleGroups.forEach(muscleGroup => {
+      console.log(`🔍 [DEBUG] Processing muscle group: ${muscleGroup}`);
+      try {
+        const groupExercises = getExercisesByMuscleGroup(muscleGroup);
+        console.log(`🔍 [DEBUG] Raw result for ${muscleGroup}:`, groupExercises);
+        console.log(`🔍 [DEBUG] Type of result:`, typeof groupExercises);
+        console.log(`🔍 [DEBUG] Is Array:`, Array.isArray(groupExercises));
+        console.log(`🔍 [DEBUG] Length:`, groupExercises ? groupExercises.length : 'null/undefined');
+        
+        if (groupExercises && Array.isArray(groupExercises) && groupExercises.length > 0) {
+          console.log(`🔍 [DEBUG] Adding ${groupExercises.length} exercises for ${muscleGroup}`);
+          console.log(`🔍 [DEBUG] First exercise:`, groupExercises[0]);
+          filteredExercises = [...filteredExercises, ...groupExercises];
+        } else {
+          console.warn(`⚠️ [WARNING] No exercises found for muscle group: ${muscleGroup}`);
+        }
+      } catch (error) {
+        console.error(`❌ [ERROR] Error loading exercises for ${muscleGroup}:`, error);
+      }
+    });
+
+    console.log('🔍 [DEBUG] Total exercises before difficulty filter:', filteredExercises.length);
+    console.log('🔍 [DEBUG] Sample exercise:', filteredExercises[0]);
+
+    if (selectedDifficulty !== 'all') {
+      const beforeFilter = filteredExercises.length;
+      filteredExercises = filteredExercises.filter(exercise => 
+        exercise.difficulty === selectedDifficulty
       );
-      setFilteredExercises(filtered);
-    } else {
-      setFilteredExercises(exercises);
+      console.log(`🔍 [DEBUG] After difficulty filter (${selectedDifficulty}): ${filteredExercises.length} (was ${beforeFilter})`);
     }
-  }, [searchQuery, exercises]);
+
+    console.log('🔍 [DEBUG] Final filtered exercises:', filteredExercises.length);
+    console.log('🔍 [DEBUG] Setting exercises to state...');
+    setExercises(filteredExercises);
+  };
+
+
+  const startWorkoutWithExercise = (exercise) => {
+    console.log('Starting workout with exercise:', exercise.name);
+    navigation.navigate('Workout', { exercise });
+  };
+
+  const getEquipmentIcon = (equipment) => {
+    switch (equipment) {
+      case 'Bodyweight': return '🤸‍♂️';
+      case 'Dumbbells': return '🏋️‍♂️';
+      case 'Barbell': return '🏋️';
+      case 'Machine': return '⚙️';
+      case 'Cable': return '🔗';
+      case 'Cable Machine': return '🔗';
+      default: return '💪';
+    }
+  };
 
   const getDifficultyColor = (difficulty) => {
-    switch(difficulty) {
-      case 'Beginner': return '#10B981';
-      case 'Intermediate': return '#F59E0B';
-      case 'Advanced': return '#EF4444';
+    switch (difficulty) {
+      case 'Beginner': return '#4CAF50';
+      case 'Intermediate': return '#FF9800';
+      case 'Advanced': return '#F44336';
       default: return Colors.primary;
     }
   };
 
+  const renderExercise = ({ item }) => {
+    console.log('📱 [RENDER] Rendering exercise:', item.name);
+    console.log('📱 [RENDER] Item data:', item);
+    
+    return (
+      <View style={{
+        backgroundColor: '#FF0000', // Bright red for debugging
+        margin: 10,
+        padding: 20,
+        borderWidth: 3,
+        borderColor: '#00FF00', // Bright green border
+        minHeight: 150,
+      }}>
+        <Text style={{
+          fontSize: 18,
+          fontWeight: 'bold',
+          color: '#000000',
+          backgroundColor: '#FFFF00', // Yellow background for text
+          padding: 5,
+        }}>
+          {item.name || 'NO NAME'}
+        </Text>
+        
+        <Text style={{
+          fontSize: 14,
+          color: '#000000',
+          backgroundColor: '#FFFFFF',
+          padding: 5,
+          marginTop: 10,
+        }}>
+          Equipment: {item.equipment || 'Unknown'}
+        </Text>
+        
+        <Text style={{
+          fontSize: 14,
+          color: '#000000',
+          backgroundColor: '#FFFFFF',
+          padding: 5,
+          marginTop: 5,
+        }}>
+          Difficulty: {item.difficulty || 'Unknown'}
+        </Text>
+        
+        <TouchableOpacity
+          style={{
+            backgroundColor: '#0000FF',
+            padding: 10,
+            marginTop: 10,
+            borderRadius: 5,
+          }}
+          onPress={() => {
+            console.log('📱 [PRESS] Info button pressed for:', item.name);
+            navigation.navigate('ExerciseDetail', { exercise: item, fromWorkout: false });
+          }}
+        >
+          <Text style={{
+            color: '#FFFFFF',
+            fontSize: 16,
+            textAlign: 'center',
+            fontWeight: 'bold',
+          }}>
+            INFO BUTTON
+          </Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
+  const difficultyOptions = [
+    { id: 'all', name: 'All Levels' },
+    { id: 'Beginner', name: 'Beginner' },
+    { id: 'Intermediate', name: 'Intermediate' },
+    { id: 'Advanced', name: 'Advanced' },
+  ];
+
+  const renderDifficultyFilter = ({ item }) => (
+    <TouchableOpacity
+      style={[
+        styles.filterButton,
+        selectedDifficulty === item.id && styles.selectedFilterButton
+      ]}
+      onPress={() => setSelectedDifficulty(item.id)}
+      activeOpacity={0.8}
+    >
+      <Text style={[
+        styles.filterButtonText,
+        selectedDifficulty === item.id && styles.selectedFilterButtonText
+      ]}>
+        {item.name}
+      </Text>
+    </TouchableOpacity>
+  );
+
   return (
     <ScreenLayout
-      title={title || 'Exercises'}
-      subtitle={`${filteredExercises.length} exercises found`}
+      title="Exercise Library"
+      subtitle={`${exercises.length} exercises for ${selectedMuscleGroups.length} muscle groups`}
       navigation={navigation}
       showBack={true}
+      scrollable={true}
+      style={{ paddingHorizontal: 0 }}
     >
-      <View style={styles.container}>
-        {/* Search Bar */}
-        <View style={styles.searchContainer}>
-          <Text style={styles.searchIcon}>🔍</Text>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Filter exercises..."
-            placeholderTextColor={Colors.textMuted}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-        </View>
+      {/* Difficulty Filter */}
+      <View style={styles.filterSection}>
+        <FlatList
+          data={difficultyOptions}
+          renderItem={renderDifficultyFilter}
+          keyExtractor={item => item.id}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterContainer}
+        />
+      </View>
 
-        {/* Exercise List */}
-        <ScrollView showsVerticalScrollIndicator={false}>
-          {filteredExercises.map((exercise) => (
-            <TouchableOpacity
-              key={exercise.id}
-              style={styles.exerciseCard}
-              onPress={() => navigation.navigate('ExerciseDetail', { exercise })}
-              activeOpacity={0.9}
-            >
+      {/* Exercise List */}
+      <View style={styles.listContainer}>
+        {exercises.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyIcon}>🤷‍♂️</Text>
+            <Text style={styles.emptyTitle}>No exercises found</Text>
+            <Text style={styles.emptySubtitle}>
+              Try adjusting your difficulty filter or selecting different muscle groups
+            </Text>
+          </View>
+        ) : (
+          exercises.map((exercise, index) => (
+            <View key={`exercise-${index}-${exercise.id || exercise.name}`} style={styles.exerciseCard}>
               <View style={styles.exerciseContent}>
-                <View style={styles.exerciseHeader}>
-                  <View style={styles.exerciseInfo}>
-                    <Text style={styles.exerciseName}>{exercise.name}</Text>
-                    <View style={styles.exerciseMeta}>
-                      <View style={styles.equipmentTag}>
-                        <Text style={styles.equipmentText}>{exercise.equipment}</Text>
-                      </View>
-                      <View style={[styles.difficultyTag, { backgroundColor: getDifficultyColor(exercise.difficulty) + '20' }]}>
-                        <Text style={[styles.difficultyText, { color: getDifficultyColor(exercise.difficulty) }]}>
-                          {exercise.difficulty}
-                        </Text>
-                      </View>
-                    </View>
+                {/* Exercise Name */}
+                <Text style={styles.exerciseName}>{exercise.name}</Text>
+                
+                {/* Exercise Meta */}
+                <View style={styles.exerciseMeta}>
+                  <View style={styles.equipmentTag}>
+                    <Text style={styles.equipmentIcon}>{getEquipmentIcon(exercise.equipment)}</Text>
+                    <Text style={styles.equipmentText}>{exercise.equipment}</Text>
                   </View>
-                  <Text style={styles.arrow}>→</Text>
+                  <View style={[
+                    styles.difficultyBadge,
+                    { backgroundColor: getDifficultyColor(exercise.difficulty) + '20' }
+                  ]}>
+                    <Text style={[
+                      styles.difficultyText,
+                      { color: getDifficultyColor(exercise.difficulty) }
+                    ]}>
+                      {exercise.difficulty}
+                    </Text>
+                  </View>
                 </View>
                 
-                <View style={styles.muscleGroups}>
-                  {exercise.targetMuscles.slice(0, 3).map((muscle, index) => (
-                    <View key={index} style={styles.muscleTag}>
-                      <Text style={styles.muscleText}>{muscle}</Text>
-                    </View>
-                  ))}
-                </View>
+                {/* Instructions */}
+                <Text style={styles.instructionsText} numberOfLines={3}>
+                  {exercise.instructions}
+                </Text>
                 
-                <View style={styles.exerciseStats}>
-                  <View style={styles.stat}>
-                    <Text style={styles.statLabel}>Sets</Text>
-                    <Text style={styles.statValue}>{exercise.sets}</Text>
-                  </View>
-                  <View style={styles.statDivider} />
-                  <View style={styles.stat}>
-                    <Text style={styles.statLabel}>Reps</Text>
-                    <Text style={styles.statValue}>{exercise.reps}</Text>
-                  </View>
-                  <View style={styles.statDivider} />
-                  <View style={styles.stat}>
-                    <Text style={styles.statLabel}>Primary</Text>
-                    <Text style={styles.statValue}>{exercise.primaryMuscle}</Text>
-                  </View>
+                {/* Action Buttons */}
+                <View style={styles.actionButtons}>
+                  <TouchableOpacity
+                    style={styles.infoButton}
+                    onPress={() => {
+                      navigation.navigate('ExerciseDetail', { exercise: exercise, fromWorkout: false });
+                    }}
+                  >
+                    <Text style={styles.infoButtonText}>Info</Text>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity
+                    style={styles.addButton}
+                    onPress={() => startWorkoutWithExercise(exercise)}
+                  >
+                    <Text style={styles.addButtonText}>Start</Text>
+                  </TouchableOpacity>
                 </View>
               </View>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+            </View>
+          ))
+        )}
       </View>
+
     </ScreenLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: Spacing.lg,
+  filterSection: {
+    paddingVertical: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    backgroundColor: Colors.background,
   },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.lg,
+  filterContainer: {
+    paddingHorizontal: Spacing.lg,
+  },
+  filterButton: {
     paddingHorizontal: Spacing.md,
-    marginBottom: Spacing.xl,
+    paddingVertical: Spacing.sm,
+    marginRight: Spacing.sm,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.surface,
     borderWidth: 1,
     borderColor: Colors.border,
   },
-  searchIcon: {
-    fontSize: 20,
-    marginRight: Spacing.sm,
+  selectedFilterButton: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
   },
-  searchInput: {
+  filterButtonText: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+  },
+  selectedFilterButtonText: {
+    color: Colors.background,
+  },
+  listContainer: {
     flex: 1,
-    paddingVertical: Spacing.md,
-    fontSize: Typography.fontSize.md,
-    color: Colors.text,
+  },
+  webScrollView: {
+    flex: 1,
+  },
+  exerciseListContainer: {
+    padding: Spacing.lg,
+    paddingBottom: Spacing.xxl,
   },
   exerciseCard: {
     backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.lg,
     marginBottom: Spacing.md,
+    borderRadius: BorderRadius.lg,
     borderWidth: 1,
     borderColor: Colors.border,
-    overflow: 'hidden',
+    padding: Spacing.lg,
+    minHeight: 120,
   },
   exerciseContent: {
-    padding: Spacing.lg,
-  },
-  exerciseHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: Spacing.md,
-  },
-  exerciseInfo: {
     flex: 1,
   },
   exerciseName: {
@@ -181,74 +361,95 @@ const styles = StyleSheet.create({
     color: Colors.text,
     marginBottom: Spacing.sm,
   },
+  actionButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: Spacing.md,
+  },
+  infoButton: {
+    backgroundColor: Colors.primary,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
+    flex: 1,
+    marginRight: Spacing.sm,
+    alignItems: 'center',
+  },
+  infoButtonText: {
+    color: Colors.background,
+    fontWeight: 'bold',
+    fontSize: Typography.fontSize.sm,
+  },
   exerciseMeta: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    alignItems: 'center',
     gap: Spacing.sm,
   },
   equipmentTag: {
-    backgroundColor: Colors.card,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.primary + '15',
     paddingHorizontal: Spacing.sm,
     paddingVertical: 4,
     borderRadius: BorderRadius.sm,
   },
+  equipmentIcon: {
+    fontSize: 16,
+    marginRight: 4,
+  },
   equipmentText: {
     fontSize: Typography.fontSize.xs,
-    color: Colors.text,
+    color: Colors.primary,
+    fontWeight: '600',
   },
-  difficultyTag: {
+  difficultyBadge: {
     paddingHorizontal: Spacing.sm,
     paddingVertical: 4,
     borderRadius: BorderRadius.sm,
   },
   difficultyText: {
     fontSize: Typography.fontSize.xs,
-    fontWeight: '600',
+    fontWeight: 'bold',
   },
-  arrow: {
-    fontSize: 24,
-    color: Colors.primary,
-  },
-  muscleGroups: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.xs,
-    marginBottom: Spacing.md,
-  },
-  muscleTag: {
-    backgroundColor: Colors.primary + '10',
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-    borderRadius: BorderRadius.sm,
-  },
-  muscleText: {
-    fontSize: Typography.fontSize.xs,
-    color: Colors.primary,
-  },
-  exerciseStats: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingTop: Spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-  },
-  stat: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  statLabel: {
-    fontSize: Typography.fontSize.xs,
-    color: Colors.textMuted,
-    marginBottom: 2,
-  },
-  statValue: {
+  instructionsText: {
     fontSize: Typography.fontSize.sm,
-    fontWeight: '600',
-    color: Colors.text,
+    color: Colors.textSecondary,
+    lineHeight: 20,
+    marginTop: Spacing.sm,
   },
-  statDivider: {
-    width: 1,
-    height: 30,
-    backgroundColor: Colors.border,
+  emptyContainer: {
+    alignItems: 'center',
+    paddingVertical: Spacing.xxl,
+    marginTop: Spacing.xxl,
+  },
+  emptyIcon: {
+    fontSize: 64,
+    marginBottom: Spacing.lg,
+  },
+  emptyTitle: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: 'bold',
+    color: Colors.text,
+    marginBottom: Spacing.sm,
+  },
+  emptySubtitle: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    paddingHorizontal: Spacing.xl,
+  },
+  addButton: {
+    backgroundColor: '#4CAF50',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
+    flex: 1,
+    marginLeft: Spacing.sm,
+    alignItems: 'center',
+  },
+  addButtonText: {
+    color: Colors.background,
+    fontWeight: 'bold',
+    fontSize: Typography.fontSize.sm,
   },
 });

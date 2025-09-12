@@ -34,7 +34,8 @@ export default function ScreenLayout({
 
   const handleGoHome = () => {
     if (navigation) {
-      navigation.navigate('Home');
+      // Navigate to the Main tab navigator, then to Home tab
+      navigation.navigate('Main', { screen: 'Home' });
     }
   };
 

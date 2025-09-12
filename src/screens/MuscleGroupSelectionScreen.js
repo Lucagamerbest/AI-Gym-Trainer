@@ -1,0 +1,227 @@
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import ScreenLayout from '../components/ScreenLayout';
+import StyledButton from '../components/StyledButton';
+import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
+import { LinearGradient } from 'expo-linear-gradient';
+
+export default function MuscleGroupSelectionScreen({ navigation }) {
+  const [selectedMuscleGroups, setSelectedMuscleGroups] = useState([]);
+
+  const muscleGroups = [
+    { id: 'chest', name: 'Chest', icon: '🎯', color: '#FF6B6B' },
+    { id: 'back', name: 'Back', icon: '🔺', color: '#4ECDC4' },
+    { id: 'legs', name: 'Legs', icon: '🦵', color: '#45B7D1' },
+    { id: 'biceps', name: 'Biceps', icon: '💪', color: '#FFEAA7' },
+    { id: 'triceps', name: 'Triceps', icon: '🔥', color: '#FF7675' },
+    { id: 'shoulders', name: 'Shoulders', icon: '🤲', color: '#96CEB4' },
+    { id: 'abs', name: 'Abs', icon: '🎯', color: '#DDA0DD' },
+  ];
+
+  const toggleMuscleGroup = (muscleGroupId) => {
+    setSelectedMuscleGroups(prev => {
+      if (prev.includes(muscleGroupId)) {
+        return prev.filter(id => id !== muscleGroupId);
+      } else {
+        return [...prev, muscleGroupId];
+      }
+    });
+  };
+
+  const handleContinue = () => {
+    if (selectedMuscleGroups.length === 0) {
+      return; // Don't continue if no muscle groups selected
+    }
+    
+    // Navigate to exercise list with selected muscle groups
+    navigation.navigate('ExerciseList', { selectedMuscleGroups });
+  };
+
+  const handleSelectAll = () => {
+    if (selectedMuscleGroups.length === muscleGroups.length) {
+      setSelectedMuscleGroups([]); // Deselect all
+    } else {
+      setSelectedMuscleGroups(muscleGroups.map(group => group.id)); // Select all
+    }
+  };
+
+  return (
+    <ScreenLayout
+      title="Select Muscle Groups"
+      subtitle={`Choose muscle groups to target (${selectedMuscleGroups.length} selected)`}
+      navigation={navigation}
+      showBack={true}
+    >
+      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        {/* Select All Button */}
+        <View style={styles.section}>
+          <TouchableOpacity
+            style={styles.selectAllButton}
+            onPress={handleSelectAll}
+            activeOpacity={0.9}
+          >
+            <Text style={styles.selectAllText}>
+              {selectedMuscleGroups.length === muscleGroups.length ? 'Deselect All' : 'Select All'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Muscle Groups Grid */}
+        <View style={styles.section}>
+          <View style={styles.muscleGroupGrid}>
+            {muscleGroups.map((group) => {
+              const isSelected = selectedMuscleGroups.includes(group.id);
+              return (
+                <TouchableOpacity
+                  key={group.id}
+                  style={[
+                    styles.muscleGroupCard,
+                    isSelected && styles.selectedCard
+                  ]}
+                  onPress={() => toggleMuscleGroup(group.id)}
+                  activeOpacity={0.9}
+                >
+                  <LinearGradient
+                    colors={
+                      isSelected 
+                        ? [group.color + '40', group.color + '20']
+                        : [group.color + '20', group.color + '10']
+                    }
+                    style={[
+                      styles.muscleGroupGradient,
+                      isSelected && styles.selectedGradient
+                    ]}
+                  >
+                    <View style={[
+                      styles.muscleGroupIcon, 
+                      { backgroundColor: group.color + (isSelected ? '60' : '30') }
+                    ]}>
+                      <Text style={styles.muscleGroupEmoji}>{group.icon}</Text>
+                    </View>
+                    <Text style={[
+                      styles.muscleGroupName,
+                      isSelected && styles.selectedText
+                    ]}>
+                      {group.name}
+                    </Text>
+                    {isSelected && (
+                      <View style={styles.checkmark}>
+                        <Text style={styles.checkmarkText}>✓</Text>
+                      </View>
+                    )}
+                  </LinearGradient>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
+        {/* Continue Button */}
+        <View style={styles.section}>
+          <StyledButton
+            title={`Continue with ${selectedMuscleGroups.length} muscle groups`}
+            subtitle={selectedMuscleGroups.length === 0 ? "Select at least one muscle group" : "Ready to start your workout"}
+            onPress={handleContinue}
+            disabled={selectedMuscleGroups.length === 0}
+            style={[
+              styles.continueButton,
+              selectedMuscleGroups.length === 0 && styles.disabledButton
+            ]}
+          />
+        </View>
+      </ScrollView>
+    </ScreenLayout>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: Spacing.lg,
+  },
+  section: {
+    marginBottom: Spacing.xl,
+  },
+  selectAllButton: {
+    backgroundColor: Colors.surface,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+  },
+  selectAllText: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+    color: Colors.primary,
+  },
+  muscleGroupGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  muscleGroupCard: {
+    width: '48%',
+    marginBottom: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    overflow: 'hidden',
+  },
+  selectedCard: {
+    transform: [{ scale: 1.02 }],
+  },
+  muscleGroupGradient: {
+    padding: Spacing.lg,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.lg,
+    position: 'relative',
+  },
+  selectedGradient: {
+    borderColor: Colors.primary,
+    borderWidth: 2,
+  },
+  muscleGroupIcon: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.sm,
+  },
+  muscleGroupEmoji: {
+    fontSize: 28,
+  },
+  muscleGroupName: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: 'bold',
+    color: Colors.text,
+    textAlign: 'center',
+  },
+  selectedText: {
+    color: Colors.primary,
+  },
+  checkmark: {
+    position: 'absolute',
+    top: Spacing.sm,
+    right: Spacing.sm,
+    backgroundColor: Colors.primary,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkmarkText: {
+    color: Colors.background,
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  continueButton: {
+    marginBottom: Spacing.xl,
+  },
+  disabledButton: {
+    opacity: 0.5,
+  },
+});

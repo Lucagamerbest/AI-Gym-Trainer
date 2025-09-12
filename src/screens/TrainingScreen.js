@@ -7,15 +7,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 export default function TrainingScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
 
-  const muscleGroups = [
-    { id: 'chest', name: 'Chest', icon: '🎯', color: '#FF6B6B' },
-    { id: 'back', name: 'Back', icon: '🔙', color: '#4ECDC4' },
-    { id: 'legs', name: 'Legs', icon: '🦵', color: '#45B7D1' },
-    { id: 'shoulders', name: 'Shoulders', icon: '💪', color: '#96CEB4' },
-    { id: 'arms', name: 'Arms', icon: '💪', color: '#FFEAA7' },
-    { id: 'core', name: 'Core', icon: '🎯', color: '#DDA0DD' },
-  ];
-
   const workoutTypes = [
     { id: 'strength', name: 'Strength Training', icon: '🏋️', description: 'Build muscle and strength' },
     { id: 'cardio', name: 'Cardio', icon: '🏃', description: 'Improve endurance' },
@@ -31,24 +22,6 @@ export default function TrainingScreen({ navigation }) {
       showBack={true}
     >
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        {/* Search Bar */}
-        <View style={styles.searchContainer}>
-          <Text style={styles.searchIcon}>🔍</Text>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search exercises..."
-            placeholderTextColor={Colors.textMuted}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            onSubmitEditing={() => {
-              if (searchQuery.trim()) {
-                navigation.navigate('ExerciseList', { 
-                  searchQuery: searchQuery.trim() 
-                });
-              }
-            }}
-          />
-        </View>
 
         {/* Quick Start Section */}
         <View style={styles.section}>
@@ -74,41 +47,6 @@ export default function TrainingScreen({ navigation }) {
           </ScrollView>
         </View>
 
-        {/* Muscle Groups Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Target Muscle Groups</Text>
-          <View style={styles.muscleGroupGrid}>
-            {muscleGroups.map((group) => (
-              <TouchableOpacity
-                key={group.id}
-                style={styles.muscleGroupCard}
-                onPress={() => navigation.navigate('ExerciseList', { 
-                  muscleGroup: group.id,
-                  title: `${group.name} Exercises`
-                })}
-                activeOpacity={0.9}
-              >
-                <LinearGradient
-                  colors={[group.color + '20', group.color + '10']}
-                  style={styles.muscleGroupGradient}
-                >
-                  <View style={[styles.muscleGroupIcon, { backgroundColor: group.color + '30' }]}>
-                    <Text style={styles.muscleGroupEmoji}>{group.icon}</Text>
-                  </View>
-                  <Text style={styles.muscleGroupName}>{group.name}</Text>
-                  <Text style={styles.exerciseCount}>
-                    {group.id === 'chest' ? '4 exercises' : 
-                     group.id === 'back' ? '4 exercises' :
-                     group.id === 'legs' ? '4 exercises' :
-                     group.id === 'shoulders' ? '3 exercises' :
-                     group.id === 'arms' ? '4 exercises' :
-                     '4 exercises'}
-                  </Text>
-                </LinearGradient>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
 
         {/* Recent Workouts */}
         <View style={styles.section}>
@@ -160,26 +98,6 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: Spacing.lg,
   },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.lg,
-    paddingHorizontal: Spacing.md,
-    marginBottom: Spacing.xl,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  searchIcon: {
-    fontSize: 20,
-    marginRight: Spacing.sm,
-  },
-  searchInput: {
-    flex: 1,
-    paddingVertical: Spacing.md,
-    fontSize: Typography.fontSize.md,
-    color: Colors.text,
-  },
   section: {
     marginBottom: Spacing.xxl,
   },
@@ -216,45 +134,6 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.xs,
     color: Colors.textSecondary,
     textAlign: 'center',
-  },
-  muscleGroupGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  muscleGroupCard: {
-    width: '48%',
-    marginBottom: Spacing.md,
-    borderRadius: BorderRadius.lg,
-    overflow: 'hidden',
-  },
-  muscleGroupGradient: {
-    padding: Spacing.lg,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: BorderRadius.lg,
-  },
-  muscleGroupIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: Spacing.sm,
-  },
-  muscleGroupEmoji: {
-    fontSize: 28,
-  },
-  muscleGroupName: {
-    fontSize: Typography.fontSize.md,
-    fontWeight: 'bold',
-    color: Colors.text,
-    marginBottom: 4,
-  },
-  exerciseCount: {
-    fontSize: Typography.fontSize.xs,
-    color: Colors.textSecondary,
   },
   recentCard: {
     flexDirection: 'row',
