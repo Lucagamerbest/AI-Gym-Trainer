@@ -26,7 +26,8 @@
       "Bash(echo $ANDROID_HOME)",
       "Bash(java:*)",
       "Read(//c/Program Files/Android/Android Studio/**)",
-      "Read(//c/Users/lucar/**)"
+      "Read(//c/Users/lucar/**)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []

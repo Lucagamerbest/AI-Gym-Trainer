@@ -1,3 +1,8 @@
+// ⚠️ PROTECTED FILE - DO NOT MODIFY ⚠️
+// This database is working correctly with ExerciseListScreen
+// Only modify if absolutely critical and with explicit user permission
+// Last working version: 2025-09-13
+
 // Comprehensive Exercise Database
 // Total: 60+ exercises across all muscle groups and equipment types
 

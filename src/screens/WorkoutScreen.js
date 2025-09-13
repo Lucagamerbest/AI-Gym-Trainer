@@ -6,14 +6,23 @@ import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function WorkoutScreen({ navigation, route }) {
-  const { exercise } = route.params || {};
-  const [workoutStartTime] = useState(new Date());
+  const { exercise, addToExistingWorkout, existingWorkoutExercises, workoutStartTime: existingStartTime } = route.params || {};
+  const [workoutStartTime] = useState(existingStartTime || new Date());
   const [currentTime, setCurrentTime] = useState(new Date());
   const [restTimer, setRestTimer] = useState(0);
   const [isRestTimerRunning, setIsRestTimerRunning] = useState(false);
   const [restTargetSeconds, setRestTargetSeconds] = useState(60);
   const restIntervalRef = useRef(null);
-  const [workoutExercises, setWorkoutExercises] = useState([exercise]);
+  const [workoutExercises, setWorkoutExercises] = useState(
+    addToExistingWorkout && existingWorkoutExercises
+      ? [...existingWorkoutExercises, exercise]
+      : [exercise]
+  );
+  const [currentExerciseIndex, setCurrentExerciseIndex] = useState(
+    addToExistingWorkout && existingWorkoutExercises
+      ? existingWorkoutExercises.length
+      : 0
+  );
   const [isWorkoutPaused, setIsWorkoutPaused] = useState(false);
   const [pausedDuration, setPausedDuration] = useState(0);
   const [pauseStartTime, setPauseStartTime] = useState(null);
@@ -139,13 +148,29 @@ export default function WorkoutScreen({ navigation, route }) {
     setShowTimerPicker(false);
   };
 
+  // Get current exercise
+  const currentExercise = workoutExercises[currentExerciseIndex] || exercise;
+
   // Add another exercise
   const addAnotherExercise = () => {
-    navigation.navigate('ExerciseList', { 
-      selectedMuscleGroups: [exercise.muscleGroup.toLowerCase()],
-      returnToWorkout: true,
-      currentWorkoutExercises: workoutExercises
+    navigation.navigate('AddExercise', {
+      selectedMuscleGroups: [currentExercise.muscleGroup.toLowerCase()],
+      currentWorkoutExercises: workoutExercises,
+      workoutStartTime: workoutStartTime
     });
+  };
+
+  // Navigate between exercises
+  const goToNextExercise = () => {
+    if (currentExerciseIndex < workoutExercises.length - 1) {
+      setCurrentExerciseIndex(currentExerciseIndex + 1);
+    }
+  };
+
+  const goToPreviousExercise = () => {
+    if (currentExerciseIndex > 0) {
+      setCurrentExerciseIndex(currentExerciseIndex - 1);
+    }
   };
 
   const getEquipmentIcon = (equipment) => {
@@ -168,7 +193,7 @@ export default function WorkoutScreen({ navigation, route }) {
     }
   };
 
-  if (!exercise) {
+  if (!currentExercise) {
     return (
       <View style={styles.screenContainer}>
         <View style={styles.fixedTimerHeader}>
@@ -181,7 +206,7 @@ export default function WorkoutScreen({ navigation, route }) {
             </View>
           </LinearGradient>
         </View>
-        
+
         <ScreenLayout
           title="Workout"
           subtitle="No exercise selected"
@@ -278,63 +303,48 @@ export default function WorkoutScreen({ navigation, route }) {
         </LinearGradient>
       </View>
 
-      {/* Current Exercise Section */}
-          {/* Current Exercise Card */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Current Exercise</Text>
-            <View style={styles.exerciseCardContainer}>
-              <LinearGradient
-                colors={[Colors.surface, Colors.background]}
-                style={styles.exerciseCard}
+      {/* All Workout Exercises */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Workout Exercises ({workoutExercises.length})</Text>
+        <ScrollView style={styles.exerciseList} showsVerticalScrollIndicator={false}>
+          {workoutExercises.map((ex, index) => (
+            <View
+              key={`workout-ex-${index}`}
+              style={styles.exerciseListItem}
+            >
+              <TouchableOpacity
+                style={styles.exerciseMainContent}
+                onPress={() => setCurrentExerciseIndex(index)}
               >
-                <View style={styles.exerciseContent}>
-                  <View style={styles.exerciseHeader}>
-                    <Text style={styles.exerciseName}>{exercise.name}</Text>
-                    <TouchableOpacity 
-                      style={styles.infoButton}
-                      onPress={() => {
-                        navigation.navigate('ExerciseDetail', { 
-                          exercise: exercise,
-                          fromWorkout: true 
-                        });
-                      }}
-                    >
-                      <Text style={styles.infoButtonText}>ℹ️</Text>
-                    </TouchableOpacity>
-                  </View>
-                  <View style={styles.exerciseMeta}>
-                    <View style={styles.equipmentTag}>
-                      <Text style={styles.equipmentIcon}>{getEquipmentIcon(exercise.equipment)}</Text>
-                      <Text style={styles.equipmentText}>{exercise.equipment}</Text>
-                    </View>
-                    <View style={[
-                      styles.difficultyBadge,
-                      { backgroundColor: getDifficultyColor(exercise.difficulty) + '20' }
-                    ]}>
-                      <Text style={[
-                        styles.difficultyText,
-                        { color: getDifficultyColor(exercise.difficulty) }
-                      ]}>
-                        {exercise.difficulty}
-                      </Text>
-                    </View>
-                  </View>
-                  
-                  <View style={styles.muscleInfo}>
-                    <Text style={styles.muscleTitle}>Target Muscles</Text>
-                    <Text style={styles.muscleText}>
-                      Primary: {exercise.primaryMuscles ? exercise.primaryMuscles.join(', ') : 'Unknown'}
-                    </Text>
-                    {exercise.secondaryMuscles && exercise.secondaryMuscles.length > 0 && (
-                      <Text style={styles.muscleSecondary}>
-                        Secondary: {exercise.secondaryMuscles.join(', ')}
-                      </Text>
-                    )}
-                  </View>
+                <View style={styles.exerciseListHeader}>
+                  <Text style={styles.exerciseListNumber}>
+                    {index + 1}
+                  </Text>
                 </View>
-              </LinearGradient>
+                <Text style={styles.exerciseListName}>
+                  {ex.name}
+                </Text>
+                <Text style={styles.exerciseListMeta}>
+                  {ex.equipment} • {ex.difficulty}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.infoButton}
+                onPress={() => {
+                  navigation.navigate('ExerciseDetail', {
+                    exercise: ex,
+                    fromWorkout: true
+                  });
+                }}
+              >
+                <Text style={styles.infoButtonText}>ℹ️</Text>
+              </TouchableOpacity>
             </View>
-          </View>
+          ))}
+        </ScrollView>
+      </View>
+
 
 
           {/* Action Buttons */}
@@ -524,11 +534,67 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: Spacing.xl,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
   sectionTitle: {
     fontSize: Typography.fontSize.lg,
     fontWeight: 'bold',
     color: Colors.text,
-    marginBottom: Spacing.md,
+  },
+  exerciseList: {
+    marginTop: Spacing.sm,
+    maxHeight: 400, // Increased height since this is now the main content
+  },
+  exerciseListItem: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    marginBottom: Spacing.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  exerciseMainContent: {
+    flex: 1,
+    padding: Spacing.md,
+  },
+  exerciseListHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.xs,
+  },
+  exerciseListNumber: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: 'bold',
+    color: Colors.textSecondary,
+  },
+  exerciseListName: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: 'bold',
+    color: Colors.text,
+    marginBottom: Spacing.xs,
+  },
+  exerciseListMeta: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+  },
+  infoButton: {
+    padding: Spacing.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 36,
+    height: 36,
+    marginRight: Spacing.sm,
+  },
+  infoButtonText: {
+    fontSize: 14,
+    color: Colors.primary,
+    fontWeight: 'bold',
   },
   exerciseCardContainer: {
     alignItems: 'center',

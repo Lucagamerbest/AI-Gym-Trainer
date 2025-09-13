@@ -1,8 +1,5 @@
-// ⚠️ PROTECTED FILE - DO NOT MODIFY ⚠️
-// This file is working correctly on both localhost and Expo Go
-// Only modify if absolutely critical and with explicit user permission
-// Last working version: 2025-09-13
-// Status: WORKING - Exercise Library displays correctly on all platforms
+// AddExerciseScreen - For adding exercises to existing workouts
+// Clone of ExerciseListScreen but specialized for workout additions
 
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView, Platform } from 'react-native';
@@ -11,9 +8,8 @@ import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { LinearGradient } from 'expo-linear-gradient';
 import { getExercisesByMuscleGroup } from '../data/exerciseDatabase';
 
-
-export default function ExerciseListScreen({ navigation, route }) {
-  const { selectedMuscleGroups, returnToWorkout, currentWorkoutExercises } = route.params || { selectedMuscleGroups: [] };
+export default function AddExerciseScreen({ navigation, route }) {
+  const { selectedMuscleGroups, currentWorkoutExercises, workoutStartTime } = route.params || { selectedMuscleGroups: [] };
   const [exercises, setExercises] = useState([]);
   const [selectedDifficulty, setSelectedDifficulty] = useState('all');
 
@@ -55,66 +51,45 @@ export default function ExerciseListScreen({ navigation, route }) {
   }, []);
 
   const loadExercises = () => {
-    console.log('🔍 [DEBUG] Loading exercises for muscle groups:', selectedMuscleGroups);
-    console.log('🔍 [DEBUG] Platform:', Platform.OS);
-    console.log('🔍 [DEBUG] Selected difficulty:', selectedDifficulty);
-    
+    console.log('🔍 [ADD-EXERCISE] Loading exercises for muscle groups:', selectedMuscleGroups);
+    console.log('🔍 [ADD-EXERCISE] Current workout has:', currentWorkoutExercises?.length || 0, 'exercises');
+
     let filteredExercises = [];
-    
+
     selectedMuscleGroups.forEach(muscleGroup => {
-      console.log(`🔍 [DEBUG] Processing muscle group: ${muscleGroup}`);
       try {
         const groupExercises = getExercisesByMuscleGroup(muscleGroup);
-        console.log(`🔍 [DEBUG] Raw result for ${muscleGroup}:`, groupExercises);
-        console.log(`🔍 [DEBUG] Type of result:`, typeof groupExercises);
-        console.log(`🔍 [DEBUG] Is Array:`, Array.isArray(groupExercises));
-        console.log(`🔍 [DEBUG] Length:`, groupExercises ? groupExercises.length : 'null/undefined');
-        
+
         if (groupExercises && Array.isArray(groupExercises) && groupExercises.length > 0) {
-          console.log(`🔍 [DEBUG] Adding ${groupExercises.length} exercises for ${muscleGroup}`);
-          console.log(`🔍 [DEBUG] First exercise:`, groupExercises[0]);
           filteredExercises = [...filteredExercises, ...groupExercises];
-        } else {
-          console.warn(`⚠️ [WARNING] No exercises found for muscle group: ${muscleGroup}`);
         }
       } catch (error) {
-        console.error(`❌ [ERROR] Error loading exercises for ${muscleGroup}:`, error);
+        console.error(`❌ [ADD-EXERCISE] Error loading exercises for ${muscleGroup}:`, error);
       }
     });
 
-    console.log('🔍 [DEBUG] Total exercises before difficulty filter:', filteredExercises.length);
-    console.log('🔍 [DEBUG] Sample exercise:', filteredExercises[0]);
-
     if (selectedDifficulty !== 'all') {
-      const beforeFilter = filteredExercises.length;
-      filteredExercises = filteredExercises.filter(exercise => 
+      filteredExercises = filteredExercises.filter(exercise =>
         exercise.difficulty === selectedDifficulty
       );
-      console.log(`🔍 [DEBUG] After difficulty filter (${selectedDifficulty}): ${filteredExercises.length} (was ${beforeFilter})`);
     }
 
-    console.log('🔍 [DEBUG] Final filtered exercises:', filteredExercises.length);
-    console.log('🔍 [DEBUG] Setting exercises to state...');
+    console.log('🔍 [ADD-EXERCISE] Final filtered exercises:', filteredExercises.length);
     setExercises(filteredExercises);
   };
 
+  const addExerciseToWorkout = (exercise) => {
+    console.log('🔥 [ADD-EXERCISE] Adding exercise to workout:', exercise.name);
+    console.log('🔥 [ADD-EXERCISE] Current workout exercises:', currentWorkoutExercises?.length || 0);
+    console.log('🔥 [ADD-EXERCISE] Preserving workout start time:', workoutStartTime);
 
-  const startWorkoutWithExercise = (exercise) => {
-    console.log('Starting workout with exercise:', exercise.name);
-    console.log('Return to workout:', returnToWorkout);
-    console.log('Current workout exercises:', currentWorkoutExercises?.length || 0);
-
-    if (returnToWorkout && currentWorkoutExercises) {
-      // Add exercise to existing workout
-      navigation.navigate('Workout', {
-        exercise,
-        addToExistingWorkout: true,
-        existingWorkoutExercises: currentWorkoutExercises
-      });
-    } else {
-      // Start new workout
-      navigation.navigate('Workout', { exercise });
-    }
+    // Add exercise to existing workout
+    navigation.navigate('Workout', {
+      exercise,
+      addToExistingWorkout: true,
+      existingWorkoutExercises: currentWorkoutExercises || [],
+      workoutStartTime: workoutStartTime
+    });
   };
 
   const getEquipmentIcon = (equipment) => {
@@ -136,74 +111,6 @@ export default function ExerciseListScreen({ navigation, route }) {
       case 'Advanced': return '#F44336';
       default: return Colors.primary;
     }
-  };
-
-  const renderExercise = ({ item }) => {
-    console.log('📱 [RENDER] Rendering exercise:', item.name);
-    console.log('📱 [RENDER] Item data:', item);
-    
-    return (
-      <View style={{
-        backgroundColor: '#FF0000', // Bright red for debugging
-        margin: 10,
-        padding: 20,
-        borderWidth: 3,
-        borderColor: '#00FF00', // Bright green border
-        minHeight: 150,
-      }}>
-        <Text style={{
-          fontSize: 18,
-          fontWeight: 'bold',
-          color: '#000000',
-          backgroundColor: '#FFFF00', // Yellow background for text
-          padding: 5,
-        }}>
-          {item.name || 'NO NAME'}
-        </Text>
-        
-        <Text style={{
-          fontSize: 14,
-          color: '#000000',
-          backgroundColor: '#FFFFFF',
-          padding: 5,
-          marginTop: 10,
-        }}>
-          Equipment: {item.equipment || 'Unknown'}
-        </Text>
-        
-        <Text style={{
-          fontSize: 14,
-          color: '#000000',
-          backgroundColor: '#FFFFFF',
-          padding: 5,
-          marginTop: 5,
-        }}>
-          Difficulty: {item.difficulty || 'Unknown'}
-        </Text>
-        
-        <TouchableOpacity
-          style={{
-            backgroundColor: '#0000FF',
-            padding: 10,
-            marginTop: 10,
-            borderRadius: 5,
-          }}
-          onPress={() => {
-            console.log('📱 [PRESS] Info button pressed for:', item.name);
-            navigation.navigate('ExerciseDetail', { exercise: item, fromWorkout: false });
-          }}
-        >
-          <Text style={{
-            color: '#FFFFFF',
-            fontSize: 16,
-            textAlign: 'center',
-            fontWeight: 'bold',
-          }}>
-            INFO BUTTON
-          </Text>
-        </TouchableOpacity>
-      </View>
-    );
   };
 
   const difficultyOptions = [
@@ -233,8 +140,8 @@ export default function ExerciseListScreen({ navigation, route }) {
 
   return (
     <ScreenLayout
-      title="Exercise Library"
-      subtitle={`${exercises.length} exercises for ${selectedMuscleGroups.length} muscle groups`}
+      title="Add Exercise"
+      subtitle={`Add to your workout (${currentWorkoutExercises?.length || 0} exercises)`}
       navigation={navigation}
       showBack={true}
       scrollable={true}
@@ -268,7 +175,7 @@ export default function ExerciseListScreen({ navigation, route }) {
               <View style={styles.exerciseContent}>
                 {/* Exercise Name */}
                 <Text style={styles.exerciseName}>{exercise.name}</Text>
-                
+
                 {/* Exercise Meta */}
                 <View style={styles.exerciseMeta}>
                   <View style={styles.equipmentTag}>
@@ -287,28 +194,28 @@ export default function ExerciseListScreen({ navigation, route }) {
                     </Text>
                   </View>
                 </View>
-                
+
                 {/* Instructions */}
                 <Text style={styles.instructionsText} numberOfLines={3}>
                   {exercise.instructions}
                 </Text>
-                
+
                 {/* Action Buttons */}
                 <View style={styles.actionButtons}>
                   <TouchableOpacity
                     style={styles.infoButton}
                     onPress={() => {
-                      navigation.navigate('ExerciseDetail', { exercise: exercise, fromWorkout: false });
+                      navigation.navigate('ExerciseDetail', { exercise: exercise, fromWorkout: true });
                     }}
                   >
                     <Text style={styles.infoButtonText}>Info</Text>
                   </TouchableOpacity>
-                  
+
                   <TouchableOpacity
                     style={styles.addButton}
-                    onPress={() => startWorkoutWithExercise(exercise)}
+                    onPress={() => addExerciseToWorkout(exercise)}
                   >
-                    <Text style={styles.addButtonText}>Start</Text>
+                    <Text style={styles.addButtonText}>Add</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -316,7 +223,6 @@ export default function ExerciseListScreen({ navigation, route }) {
           ))
         )}
       </View>
-
     </ScreenLayout>
   );
 }
@@ -354,13 +260,6 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     flex: 1,
-  },
-  webScrollView: {
-    flex: 1,
-  },
-  exerciseListContainer: {
-    padding: Spacing.lg,
-    paddingBottom: Spacing.xxl,
   },
   exerciseCard: {
     backgroundColor: Colors.surface,
@@ -458,7 +357,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
   },
   addButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#FF6B35', // Orange color to distinguish from "Start"
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.md,

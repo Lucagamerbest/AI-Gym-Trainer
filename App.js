@@ -20,6 +20,7 @@ import SearchFoodScreen from './src/screens/SearchFoodScreen';
 import StartWorkoutScreen from './src/screens/StartWorkoutScreen';
 import MuscleGroupSelectionScreen from './src/screens/MuscleGroupSelectionScreen';
 import ExerciseListScreen from './src/screens/ExerciseListScreen';
+import AddExerciseScreen from './src/screens/AddExerciseScreen';
 import ExerciseDetailScreen from './src/screens/ExerciseDetailScreen';
 import WorkoutScreen from './src/screens/WorkoutScreen';
 import WorkoutSummaryScreen from './src/screens/WorkoutSummaryScreen';
@@ -109,6 +110,7 @@ function AppNavigator() {
             <Stack.Screen name="StartWorkout" component={StartWorkoutScreen} />
             <Stack.Screen name="MuscleGroupSelection" component={MuscleGroupSelectionScreen} />
             <Stack.Screen name="ExerciseList" component={ExerciseListScreen} />
+            <Stack.Screen name="AddExercise" component={AddExerciseScreen} />
             <Stack.Screen name="ExerciseDetail" component={ExerciseDetailScreen} />
             <Stack.Screen name="Workout" component={WorkoutScreen} />
             <Stack.Screen name="WorkoutSummary" component={WorkoutSummaryScreen} />
