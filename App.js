@@ -43,34 +43,34 @@ function TabNavigator() {
           paddingTop: 10,
         },
         tabBarActiveTintColor: Colors.primary,
-        tabBarInactiveTintColor: Colors.textMuted,
+        tabBarInactiveTintColor: Colors.primary,
         headerShown: false,
       }}
     >
-      <Tab.Screen 
-        name="AI" 
+      <Tab.Screen
+        name="AI"
         component={AIScreen}
         options={{
           tabBarIcon: ({ color, size }) => (
-            <Text style={{ fontSize: 24 }}>🤖</Text>
+            <Text style={{ fontSize: 24, color: Colors.primary }}>🤖</Text>
           ),
         }}
       />
-      <Tab.Screen 
-        name="Home" 
+      <Tab.Screen
+        name="Home"
         component={HomeScreen}
         options={{
           tabBarIcon: ({ color, size }) => (
-            <Text style={{ fontSize: 24 }}>🏠</Text>
+            <Text style={{ fontSize: 24, color: Colors.primary }}>🏠</Text>
           ),
         }}
       />
-      <Tab.Screen 
-        name="Profile" 
+      <Tab.Screen
+        name="Profile"
         component={ProfileScreen}
         options={{
           tabBarIcon: ({ color, size }) => (
-            <Text style={{ fontSize: 24 }}>👤</Text>
+            <Text style={{ fontSize: 24, color: Colors.primary }}>👤</Text>
           ),
         }}
       />

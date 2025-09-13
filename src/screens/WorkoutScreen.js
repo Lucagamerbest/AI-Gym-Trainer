@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Vibration, Modal } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
 import ScreenLayout from '../components/ScreenLayout';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
@@ -30,6 +31,8 @@ export default function WorkoutScreen({ navigation, route }) {
   const [showExerciseInfo, setShowExerciseInfo] = useState(false);
   const [pickerMinutes, setPickerMinutes] = useState(1);
   const [pickerSeconds, setPickerSeconds] = useState(0);
+  const [showFinishConfirmation, setShowFinishConfirmation] = useState(false);
+  const [showBackWarning, setShowBackWarning] = useState(false);
 
   // Update workout timer every second
   useEffect(() => {
@@ -39,6 +42,23 @@ export default function WorkoutScreen({ navigation, route }) {
 
     return () => clearInterval(timer);
   }, []);
+
+  // Prevent navigation away from workout screen
+  useFocusEffect(
+    React.useCallback(() => {
+      const beforeRemove = (e) => {
+        // Prevent default behavior of leaving the screen
+        e.preventDefault();
+
+        // Show custom themed modal instead of system alert
+        setShowBackWarning(true);
+      };
+
+      navigation.addListener('beforeRemove', beforeRemove);
+
+      return () => navigation.removeListener('beforeRemove', beforeRemove);
+    }, [navigation])
+  );
 
   // Rest timer logic
   useEffect(() => {
@@ -146,6 +166,27 @@ export default function WorkoutScreen({ navigation, route }) {
     const totalSeconds = (pickerMinutes * 60) + pickerSeconds;
     setRestTargetSeconds(totalSeconds);
     setShowTimerPicker(false);
+  };
+
+  // Handle finish workout confirmation
+  const handleFinishWorkout = () => {
+    setShowFinishConfirmation(true);
+  };
+
+  const confirmFinishWorkout = () => {
+    const workoutData = {
+      duration: getElapsedTime(),
+      exercisesCompleted: workoutExercises.length,
+      exercises: workoutExercises,
+      startTime: workoutStartTime,
+      endTime: new Date()
+    };
+
+    // Remove the navigation listener before navigating away
+    navigation.removeListener('beforeRemove', () => {});
+
+    setShowFinishConfirmation(false);
+    navigation.navigate('WorkoutSummary', { workoutData });
   };
 
   // Get current exercise
@@ -350,28 +391,19 @@ export default function WorkoutScreen({ navigation, route }) {
           {/* Action Buttons */}
           <View style={styles.buttonSection}>
             <TouchableOpacity
-              style={styles.actionButton}
+              style={[styles.actionButton, styles.addExerciseButton]}
               activeOpacity={0.8}
               onPress={addAnotherExercise}
             >
-              <Text style={styles.actionButtonText}>➕ Add Another Exercise</Text>
+              <Text style={[styles.actionButtonText, styles.addExerciseButtonText]}>➕ Add Another Exercise</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={[styles.actionButton, styles.finishButton]}
               activeOpacity={0.8}
-              onPress={() => {
-                const workoutData = {
-                  duration: getElapsedTime(),
-                  exercisesCompleted: workoutExercises.length,
-                  exercises: workoutExercises,
-                  startTime: workoutStartTime,
-                  endTime: new Date()
-                };
-                navigation.navigate('WorkoutSummary', { workoutData });
-              }}
+              onPress={handleFinishWorkout}
             >
-              <Text style={styles.actionButtonText}>✅ Finish Workout</Text>
+              <Text style={styles.actionButtonText}>Finish Workout</Text>
             </TouchableOpacity>
           </View>
       </ScreenLayout>
@@ -423,6 +455,60 @@ export default function WorkoutScreen({ navigation, route }) {
                 onPress={applyTimerSelection}
               >
                 <Text style={[styles.modalButtonText, styles.modalButtonTextPrimary]}>Set Timer</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Finish Workout Confirmation Modal */}
+      <Modal
+        visible={showFinishConfirmation}
+        transparent={true}
+        animationType="slide"
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Finish Workout?</Text>
+            <Text style={styles.confirmationText}>
+              Are you sure you want to finish your workout? This will end your current session and show your workout summary.
+            </Text>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={styles.modalButton}
+                onPress={() => setShowFinishConfirmation(false)}
+              >
+                <Text style={styles.modalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonPrimary]}
+                onPress={confirmFinishWorkout}
+              >
+                <Text style={[styles.modalButtonText, styles.modalButtonTextPrimary]}>Finish Workout</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Back Navigation Warning Modal */}
+      <Modal
+        visible={showBackWarning}
+        transparent={true}
+        animationType="slide"
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Workout in Progress</Text>
+            <Text style={styles.confirmationText}>
+              You have an active workout session. To complete your workout, please use the "Finish Workout" button below.
+            </Text>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonPrimary]}
+                onPress={() => setShowBackWarning(false)}
+              >
+                <Text style={[styles.modalButtonText, styles.modalButtonTextPrimary]}>Continue Workout</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -749,7 +835,6 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.xl,
   },
   actionButton: {
-    backgroundColor: Colors.primary,
     padding: Spacing.md,
     borderRadius: BorderRadius.lg,
     alignItems: 'center',
@@ -759,13 +844,21 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
   },
+  addExerciseButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
   finishButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: Colors.primary,
   },
   actionButtonText: {
     color: Colors.background,
     fontSize: Typography.fontSize.md,
     fontWeight: 'bold',
+  },
+  addExerciseButtonText: {
+    color: Colors.text,
   },
   errorContainer: {
     flex: 1,
@@ -801,6 +894,13 @@ const styles = StyleSheet.create({
     color: '#4CAF50',
     textAlign: 'center',
     marginBottom: Spacing.lg,
+  },
+  confirmationText: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.text,
+    textAlign: 'center',
+    marginBottom: Spacing.lg,
+    lineHeight: 22,
   },
   pickerContainer: {
     flexDirection: 'row',

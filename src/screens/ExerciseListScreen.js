@@ -263,57 +263,60 @@ export default function ExerciseListScreen({ navigation, route }) {
             </Text>
           </View>
         ) : (
-          exercises.map((exercise, index) => (
-            <View key={`exercise-${index}-${exercise.id || exercise.name}`} style={styles.exerciseCard}>
-              <View style={styles.exerciseContent}>
-                {/* Exercise Name */}
-                <Text style={styles.exerciseName}>{exercise.name}</Text>
-                
-                {/* Exercise Meta */}
-                <View style={styles.exerciseMeta}>
-                  <View style={styles.equipmentTag}>
-                    <Text style={styles.equipmentIcon}>{getEquipmentIcon(exercise.equipment)}</Text>
-                    <Text style={styles.equipmentText}>{exercise.equipment}</Text>
+          <FlatList
+            data={exercises}
+            renderItem={({ item, index }) => (
+              <View style={styles.exerciseCard}>
+                <View style={styles.exerciseContent}>
+                  {/* Exercise Name */}
+                  <Text style={styles.exerciseName}>{item.name}</Text>
+
+                  {/* Exercise Meta */}
+                  <View style={styles.exerciseMeta}>
+                    <View style={styles.equipmentTag}>
+                      <Text style={styles.equipmentIcon}>{getEquipmentIcon(item.equipment)}</Text>
+                      <Text style={styles.equipmentText}>{item.equipment}</Text>
+                    </View>
+                    {item.difficulty === 'Beginner' && (
+                      <View style={[styles.difficultyShape, styles.beginnerCircle]} />
+                    )}
+                    {item.difficulty === 'Intermediate' && (
+                      <Text style={styles.intermediateTriangle}>🔸</Text>
+                    )}
+                    {item.difficulty === 'Advanced' && (
+                      <View style={[styles.difficultyShape, styles.advancedSquare]} />
+                    )}
                   </View>
-                  <View style={[
-                    styles.difficultyBadge,
-                    { backgroundColor: getDifficultyColor(exercise.difficulty) + '20' }
-                  ]}>
-                    <Text style={[
-                      styles.difficultyText,
-                      { color: getDifficultyColor(exercise.difficulty) }
-                    ]}>
-                      {exercise.difficulty}
-                    </Text>
+
+                  {/* Instructions - Removed to save space */}
+
+                  {/* Action Buttons */}
+                  <View style={styles.actionButtons}>
+                    <TouchableOpacity
+                      style={styles.infoButton}
+                      onPress={() => {
+                        navigation.navigate('ExerciseDetail', { exercise: item, fromWorkout: false });
+                      }}
+                    >
+                      <Text style={styles.infoButtonText}>Info</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={styles.addButton}
+                      onPress={() => startWorkoutWithExercise(item)}
+                    >
+                      <Text style={styles.addButtonText}>Start</Text>
+                    </TouchableOpacity>
                   </View>
-                </View>
-                
-                {/* Instructions */}
-                <Text style={styles.instructionsText} numberOfLines={3}>
-                  {exercise.instructions}
-                </Text>
-                
-                {/* Action Buttons */}
-                <View style={styles.actionButtons}>
-                  <TouchableOpacity
-                    style={styles.infoButton}
-                    onPress={() => {
-                      navigation.navigate('ExerciseDetail', { exercise: exercise, fromWorkout: false });
-                    }}
-                  >
-                    <Text style={styles.infoButtonText}>Info</Text>
-                  </TouchableOpacity>
-                  
-                  <TouchableOpacity
-                    style={styles.addButton}
-                    onPress={() => startWorkoutWithExercise(exercise)}
-                  >
-                    <Text style={styles.addButtonText}>Start</Text>
-                  </TouchableOpacity>
                 </View>
               </View>
-            </View>
-          ))
+            )}
+            numColumns={2}
+            keyExtractor={(item, index) => `exercise-${index}-${item.id || item.name}`}
+            columnWrapperStyle={styles.gridRow}
+            contentContainerStyle={styles.gridContainer}
+            showsVerticalScrollIndicator={false}
+          />
         )}
       </View>
 
@@ -368,30 +371,39 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
     borderColor: Colors.border,
-    padding: Spacing.lg,
-    minHeight: 120,
+    padding: Spacing.sm,
+    height: 140,
+    flex: 1,
+    marginHorizontal: Spacing.sm,
+  },
+  gridRow: {
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.lg,
+  },
+  gridContainer: {
+    paddingBottom: Spacing.xxl,
   },
   exerciseContent: {
     flex: 1,
   },
   exerciseName: {
-    fontSize: Typography.fontSize.lg,
+    fontSize: Typography.fontSize.md,
     fontWeight: 'bold',
     color: Colors.text,
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.xs,
   },
   actionButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: Spacing.md,
+    marginTop: 'auto',
+    gap: Spacing.xs,
   },
   infoButton: {
     backgroundColor: Colors.primary,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.xs,
+    paddingVertical: 6,
+    borderRadius: BorderRadius.sm,
     flex: 1,
-    marginRight: Spacing.sm,
     alignItems: 'center',
   },
   infoButtonText: {
@@ -402,7 +414,9 @@ const styles = StyleSheet.create({
   exerciseMeta: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.sm,
+    justifyContent: 'space-between',
+    marginBottom: Spacing.sm,
+    height: 24,
   },
   equipmentTag: {
     flexDirection: 'row',
@@ -413,7 +427,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.sm,
   },
   equipmentIcon: {
-    fontSize: 16,
+    fontSize: 14,
     marginRight: 4,
   },
   equipmentText: {
@@ -421,14 +435,21 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     fontWeight: '600',
   },
-  difficultyBadge: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-    borderRadius: BorderRadius.sm,
+  difficultyShape: {
+    width: 14,
+    height: 14,
   },
-  difficultyText: {
-    fontSize: Typography.fontSize.xs,
-    fontWeight: 'bold',
+  beginnerCircle: {
+    backgroundColor: '#4CAF50',
+    borderRadius: 7,
+  },
+  intermediateTriangle: {
+    fontSize: 14,
+    color: '#FF9800',
+  },
+  advancedSquare: {
+    backgroundColor: '#F44336',
+    borderRadius: 0,
   },
   instructionsText: {
     fontSize: Typography.fontSize.sm,
@@ -459,11 +480,10 @@ const styles = StyleSheet.create({
   },
   addButton: {
     backgroundColor: '#4CAF50',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.xs,
+    paddingVertical: 6,
+    borderRadius: BorderRadius.sm,
     flex: 1,
-    marginLeft: Spacing.sm,
     alignItems: 'center',
   },
   addButtonText: {

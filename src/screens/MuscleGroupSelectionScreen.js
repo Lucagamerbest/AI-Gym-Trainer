@@ -53,37 +53,62 @@ export default function MuscleGroupSelectionScreen({ navigation }) {
       showBack={true}
     >
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        {/* Select All Button */}
+        {/* Top Buttons Row */}
         <View style={styles.section}>
-          <TouchableOpacity
-            style={styles.selectAllButton}
-            onPress={handleSelectAll}
-            activeOpacity={0.9}
-          >
-            <Text style={styles.selectAllText}>
-              {selectedMuscleGroups.length === muscleGroups.length ? 'Deselect All' : 'Select All'}
-            </Text>
-          </TouchableOpacity>
+          <View style={styles.topButtonsRow}>
+            <TouchableOpacity
+              style={[styles.selectAllButton, styles.halfWidthButton]}
+              onPress={handleSelectAll}
+              activeOpacity={0.9}
+            >
+              <Text style={styles.selectAllText}>
+                {selectedMuscleGroups.length === muscleGroups.length ? 'Deselect All' : 'Select All'}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.selectAllButton,
+                styles.halfWidthButton,
+                styles.continueButtonTop,
+                selectedMuscleGroups.length === 0 && styles.disabledButton
+              ]}
+              onPress={handleContinue}
+              disabled={selectedMuscleGroups.length === 0}
+              activeOpacity={0.9}
+            >
+              <Text style={[
+                styles.selectAllText,
+                selectedMuscleGroups.length > 0 ? styles.continueButtonText : styles.disabledText
+              ]}>
+                Continue ({selectedMuscleGroups.length})
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Muscle Groups Grid */}
         <View style={styles.section}>
           <View style={styles.muscleGroupGrid}>
-            {muscleGroups.map((group) => {
+            {muscleGroups.map((group, index) => {
               const isSelected = selectedMuscleGroups.includes(group.id);
+              const isLastItem = index === muscleGroups.length - 1;
+              const isOddTotalItems = muscleGroups.length % 2 !== 0;
+
               return (
                 <TouchableOpacity
                   key={group.id}
                   style={[
                     styles.muscleGroupCard,
-                    isSelected && styles.selectedCard
+                    isSelected && styles.selectedCard,
+                    isLastItem && isOddTotalItems && styles.centeredCard
                   ]}
                   onPress={() => toggleMuscleGroup(group.id)}
                   activeOpacity={0.9}
                 >
                   <LinearGradient
                     colors={
-                      isSelected 
+                      isSelected
                         ? [group.color + '40', group.color + '20']
                         : [group.color + '20', group.color + '10']
                     }
@@ -93,7 +118,7 @@ export default function MuscleGroupSelectionScreen({ navigation }) {
                     ]}
                   >
                     <View style={[
-                      styles.muscleGroupIcon, 
+                      styles.muscleGroupIcon,
                       { backgroundColor: group.color + (isSelected ? '60' : '30') }
                     ]}>
                       <Text style={styles.muscleGroupEmoji}>{group.icon}</Text>
@@ -115,20 +140,6 @@ export default function MuscleGroupSelectionScreen({ navigation }) {
             })}
           </View>
         </View>
-
-        {/* Continue Button */}
-        <View style={styles.section}>
-          <StyledButton
-            title={`Continue with ${selectedMuscleGroups.length} muscle groups`}
-            subtitle={selectedMuscleGroups.length === 0 ? "Select at least one muscle group" : "Ready to start your workout"}
-            onPress={handleContinue}
-            disabled={selectedMuscleGroups.length === 0}
-            style={[
-              styles.continueButton,
-              selectedMuscleGroups.length === 0 && styles.disabledButton
-            ]}
-          />
-        </View>
       </ScrollView>
     </ScreenLayout>
   );
@@ -142,6 +153,11 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: Spacing.xl,
   },
+  topButtonsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: Spacing.md,
+  },
   selectAllButton: {
     backgroundColor: Colors.surface,
     paddingVertical: Spacing.md,
@@ -151,10 +167,24 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     alignItems: 'center',
   },
+  halfWidthButton: {
+    flex: 1,
+    paddingHorizontal: Spacing.md,
+  },
+  continueButtonTop: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
   selectAllText: {
     fontSize: Typography.fontSize.md,
     fontWeight: '600',
     color: Colors.primary,
+  },
+  continueButtonText: {
+    color: Colors.background,
+  },
+  disabledText: {
+    color: Colors.textMuted,
   },
   muscleGroupGrid: {
     flexDirection: 'row',
@@ -166,6 +196,9 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
     borderRadius: BorderRadius.lg,
     overflow: 'hidden',
+  },
+  centeredCard: {
+    marginLeft: '26%',
   },
   selectedCard: {
     transform: [{ scale: 1.02 }],

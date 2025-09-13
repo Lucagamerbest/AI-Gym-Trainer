@@ -7,12 +7,16 @@ import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function StartWorkoutScreen({ navigation }) {
+  const [showAllPrograms, setShowAllPrograms] = useState(false);
+
   const workoutPrograms = [
     { id: 'beginner', name: 'Beginner Program', duration: '4 weeks', focus: 'Foundation Building' },
     { id: 'strength', name: 'Strength Builder', duration: '8 weeks', focus: 'Maximum Strength' },
     { id: 'muscle', name: 'Muscle Mass', duration: '12 weeks', focus: 'Hypertrophy' },
     { id: 'athletic', name: 'Athletic Performance', duration: '6 weeks', focus: 'Performance' },
   ];
+
+  const displayedPrograms = showAllPrograms ? workoutPrograms : workoutPrograms.slice(0, 2);
 
   const handleStartWorkout = (program) => {
     // For now, just navigate back or show a success message
@@ -28,10 +32,33 @@ export default function StartWorkoutScreen({ navigation }) {
       showBack={true}
     >
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        {/* Quick Start */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Quick Start</Text>
+          <StyledButton
+            title="Free Workout"
+            subtitle="Choose your own muscle groups"
+            onPress={() => navigation.navigate('MuscleGroupSelection')}
+            icon="🏃"
+            style={styles.quickStartButton}
+          />
+        </View>
+
         {/* Workout Programs */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Workout Programs</Text>
-          {workoutPrograms.map((program) => (
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Workout Programs</Text>
+            <TouchableOpacity
+              style={styles.expandButton}
+              onPress={() => setShowAllPrograms(!showAllPrograms)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.expandButtonText}>
+                {showAllPrograms ? 'Show Less ↑' : 'Show More ↓'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+          {displayedPrograms.map((program) => (
             <TouchableOpacity
               key={program.id}
               style={styles.programCard}
@@ -56,18 +83,6 @@ export default function StartWorkoutScreen({ navigation }) {
             </TouchableOpacity>
           ))}
         </View>
-
-        {/* Quick Start */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Quick Start</Text>
-          <StyledButton
-            title="Free Workout"
-            subtitle="Choose your own muscle groups"
-            onPress={() => navigation.navigate('MuscleGroupSelection')}
-            icon="🏃"
-            style={styles.quickStartButton}
-          />
-        </View>
       </ScrollView>
     </ScreenLayout>
   );
@@ -81,11 +96,29 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: Spacing.xxl,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
   sectionTitle: {
     fontSize: Typography.fontSize.lg,
     fontWeight: 'bold',
     color: Colors.text,
-    marginBottom: Spacing.md,
+  },
+  expandButton: {
+    backgroundColor: Colors.primary + '15',
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
+    borderColor: Colors.primary + '30',
+  },
+  expandButtonText: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.primary,
+    fontWeight: '600',
   },
   programCard: {
     marginBottom: Spacing.md,
