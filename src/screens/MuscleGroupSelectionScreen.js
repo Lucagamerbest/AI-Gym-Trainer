@@ -34,26 +34,8 @@ export default function MuscleGroupSelectionScreen({ navigation }) {
       return; // Don't continue if no muscle groups selected
     }
 
-    try {
-      // Check display preference
-      const displayMode = await AsyncStorage.getItem('exerciseDisplayMode');
-
-      // Navigate based on display preference
-      if (displayMode === 'detailed') {
-        // Use AddExerciseScreen which supports both display modes
-        navigation.navigate('AddExercise', {
-          selectedMuscleGroups,
-          fromFreeWorkout: true  // Flag to indicate this is from free workout
-        });
-      } else {
-        // Default to original ExerciseListScreen for compact view
-        navigation.navigate('ExerciseList', { selectedMuscleGroups });
-      }
-    } catch (error) {
-      console.error('Error reading display mode:', error);
-      // Fallback to default behavior
-      navigation.navigate('ExerciseList', { selectedMuscleGroups });
-    }
+    // Always navigate to ExerciseList - it now handles both display modes properly
+    navigation.navigate('ExerciseList', { selectedMuscleGroups });
   };
 
   const handleSelectAll = () => {

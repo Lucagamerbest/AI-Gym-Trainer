@@ -6,6 +6,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView, Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import ScreenLayout from '../components/ScreenLayout';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -16,10 +17,32 @@ export default function ExerciseListScreen({ navigation, route }) {
   const { selectedMuscleGroups, returnToWorkout, currentWorkoutExercises } = route.params || { selectedMuscleGroups: [] };
   const [exercises, setExercises] = useState([]);
   const [selectedDifficulty, setSelectedDifficulty] = useState('all');
+  const [displayMode, setDisplayMode] = useState('compact');
+
+  console.log('🚀 [EXERCISE-LIST] Component mounted/updated');
+  console.log('🚀 [EXERCISE-LIST] Platform:', Platform.OS);
+  console.log('🚀 [EXERCISE-LIST] Current exercises in state:', exercises.length);
+  console.log('🚀 [EXERCISE-LIST] Display mode:', displayMode);
 
   useEffect(() => {
     loadExercises();
   }, [selectedMuscleGroups, selectedDifficulty]);
+
+  useEffect(() => {
+    loadDisplayMode();
+  }, []);
+
+  const loadDisplayMode = async () => {
+    try {
+      const saved = await AsyncStorage.getItem('exerciseDisplayMode');
+      console.log('📱 [EXERCISE-LIST] Loaded display mode from storage:', saved);
+      if (saved) {
+        setDisplayMode(saved);
+      }
+    } catch (error) {
+      console.error('Error loading display mode:', error);
+    }
+  };
 
   // Add scrollbar styles for web
   useEffect(() => {
@@ -164,41 +187,116 @@ export default function ExerciseListScreen({ navigation, route }) {
     </TouchableOpacity>
   );
 
+  console.log('🎨 [EXERCISE-LIST] About to render, exercises count:', exercises.length);
+  console.log('🎨 [EXERCISE-LIST] First exercise:', exercises[0]);
+
   return (
     <ScreenLayout
       title="Exercise Library"
       subtitle={`${exercises.length} exercises for ${selectedMuscleGroups.length} muscle groups`}
       navigation={navigation}
       showBack={true}
-      scrollable={true}
+      scrollable={false}
       style={{ paddingHorizontal: 0 }}
     >
-      {/* Difficulty Filter */}
-      <View style={styles.filterSection}>
-        <FlatList
-          data={difficultyOptions}
-          renderItem={renderDifficultyFilter}
-          keyExtractor={item => item.id}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filterContainer}
-        />
+      {/* DEBUG TEXT - REMOVE AFTER TESTING */}
+      <View style={{ backgroundColor: 'red', padding: 10, margin: 10 }}>
+        <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>
+          DEBUG: Version 2.0 - Changes Applied!
+        </Text>
+        <Text style={{ color: 'white' }}>
+          Platform: {Platform.OS} | Exercises: {exercises.length}
+        </Text>
       </View>
 
-      {/* Exercise List */}
-      <View style={styles.listContainer}>
-        {exercises.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>🤷‍♂️</Text>
-            <Text style={styles.emptyTitle}>No exercises found</Text>
-            <Text style={styles.emptySubtitle}>
-              Try adjusting your difficulty filter or selecting different muscle groups
-            </Text>
-          </View>
-        ) : (
-          <FlatList
-            data={exercises}
-            renderItem={({ item, index }) => (
+      {/* Exercise List with integrated header */}
+      {exercises.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyIcon}>🤷‍♂️</Text>
+          <Text style={styles.emptyTitle}>No exercises found</Text>
+          <Text style={styles.emptySubtitle}>
+            Try adjusting your difficulty filter or selecting different muscle groups
+          </Text>
+        </View>
+      ) : (
+        <FlatList
+          data={exercises}
+          ListHeaderComponent={() => {
+            console.log('📋 [FLATLIST] Rendering ListHeaderComponent');
+            return (
+              <View style={styles.filterSection}>
+                <FlatList
+                  data={difficultyOptions}
+                  renderItem={renderDifficultyFilter}
+                  keyExtractor={item => item.id}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.filterContainer}
+                  scrollEnabled={true}
+                />
+              </View>
+            );
+          }}
+          renderItem={({ item, index }) => {
+            console.log(`🎯 [FLATLIST] Rendering item ${index}:`, item.name, 'Mode:', displayMode);
+
+            // Render detailed view for iOS when display mode is detailed
+            if (displayMode === 'detailed') {
+              return (
+                <View style={styles.detailedExerciseCard}>
+                  <View style={styles.detailedImageContainer}>
+                    <View style={styles.imagePlaceholder}>
+                      <Text style={styles.imagePlaceholderText}>Image Description</Text>
+                    </View>
+                  </View>
+                  <View style={styles.detailedExerciseContent}>
+                {/* Exercise Name */}
+                <Text style={styles.exerciseName}>{item.name}</Text>
+
+                {/* Exercise Meta */}
+                <View style={styles.exerciseMeta}>
+                  <View style={styles.equipmentTag}>
+                    <Text style={styles.equipmentIcon}>{getEquipmentIcon(item.equipment)}</Text>
+                    <Text style={styles.equipmentText}>{item.equipment}</Text>
+                  </View>
+                  {item.difficulty === 'Beginner' && (
+                    <View style={[styles.difficultyShape, styles.beginnerCircle]} />
+                  )}
+                  {item.difficulty === 'Intermediate' && (
+                    <Text style={styles.intermediateTriangle}>🔸</Text>
+                  )}
+                  {item.difficulty === 'Advanced' && (
+                    <View style={[styles.difficultyShape, styles.advancedSquare]} />
+                  )}
+                </View>
+
+                {/* Instructions - Removed to save space */}
+
+                {/* Action Buttons */}
+                <View style={styles.actionButtons}>
+                  <TouchableOpacity
+                    style={styles.infoButton}
+                    onPress={() => {
+                      navigation.navigate('ExerciseDetail', { exercise: item, fromWorkout: false });
+                    }}
+                  >
+                    <Text style={styles.infoButtonText}>Info</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.addButton}
+                    onPress={() => startWorkoutWithExercise(item)}
+                  >
+                    <Text style={styles.addButtonText}>Start</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+                </View>
+              );
+            }
+
+            // Default compact view
+            return (
               <View style={styles.exerciseCard}>
                 <View style={styles.exerciseContent}>
                   {/* Exercise Name */}
@@ -221,8 +319,6 @@ export default function ExerciseListScreen({ navigation, route }) {
                     )}
                   </View>
 
-                  {/* Instructions - Removed to save space */}
-
                   {/* Action Buttons */}
                   <View style={styles.actionButtons}>
                     <TouchableOpacity
@@ -243,15 +339,17 @@ export default function ExerciseListScreen({ navigation, route }) {
                   </View>
                 </View>
               </View>
-            )}
-            numColumns={2}
-            keyExtractor={(item, index) => `exercise-${index}-${item.id || item.name}`}
-            columnWrapperStyle={styles.gridRow}
-            contentContainerStyle={styles.gridContainer}
-            showsVerticalScrollIndicator={false}
-          />
-        )}
-      </View>
+            );
+          }}
+          numColumns={displayMode === 'detailed' ? 1 : 2}
+          key={displayMode}
+          keyExtractor={(item, index) => `exercise-${index}-${item.id || item.name}`}
+          columnWrapperStyle={displayMode === 'detailed' ? null : styles.gridRow}
+          contentContainerStyle={styles.gridContainer}
+          showsVerticalScrollIndicator={false}
+          stickyHeaderIndices={[0]}
+        />
+      )}
 
     </ScreenLayout>
   );
@@ -423,5 +521,37 @@ const styles = StyleSheet.create({
     color: Colors.background,
     fontWeight: 'bold',
     fontSize: Typography.fontSize.sm,
+  },
+
+  // Detailed View Styles
+  detailedExerciseCard: {
+    backgroundColor: Colors.surface,
+    marginHorizontal: Spacing.lg,
+    marginBottom: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: Spacing.md,
+    flexDirection: 'row',
+  },
+  detailedImageContainer: {
+    marginRight: Spacing.md,
+  },
+  imagePlaceholder: {
+    width: 80,
+    height: 80,
+    backgroundColor: Colors.border,
+    borderRadius: BorderRadius.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  imagePlaceholderText: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    paddingHorizontal: Spacing.xs,
+  },
+  detailedExerciseContent: {
+    flex: 1,
   },
 });
