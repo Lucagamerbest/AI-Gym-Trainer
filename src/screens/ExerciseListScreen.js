@@ -19,10 +19,6 @@ export default function ExerciseListScreen({ navigation, route }) {
   const [selectedDifficulty, setSelectedDifficulty] = useState('all');
   const [displayMode, setDisplayMode] = useState('compact');
 
-  console.log('🚀 [EXERCISE-LIST] Component mounted/updated');
-  console.log('🚀 [EXERCISE-LIST] Platform:', Platform.OS);
-  console.log('🚀 [EXERCISE-LIST] Current exercises in state:', exercises.length);
-  console.log('🚀 [EXERCISE-LIST] Display mode:', displayMode);
 
   useEffect(() => {
     loadExercises();
@@ -35,7 +31,6 @@ export default function ExerciseListScreen({ navigation, route }) {
   const loadDisplayMode = async () => {
     try {
       const saved = await AsyncStorage.getItem('exerciseDisplayMode');
-      console.log('📱 [EXERCISE-LIST] Loaded display mode from storage:', saved);
       if (saved) {
         setDisplayMode(saved);
       }
@@ -187,9 +182,6 @@ export default function ExerciseListScreen({ navigation, route }) {
     </TouchableOpacity>
   );
 
-  console.log('🎨 [EXERCISE-LIST] About to render, exercises count:', exercises.length);
-  console.log('🎨 [EXERCISE-LIST] First exercise:', exercises[0]);
-
   return (
     <ScreenLayout
       title="Exercise Library"
@@ -199,16 +191,6 @@ export default function ExerciseListScreen({ navigation, route }) {
       scrollable={false}
       style={{ paddingHorizontal: 0 }}
     >
-      {/* DEBUG TEXT - REMOVE AFTER TESTING */}
-      <View style={{ backgroundColor: 'red', padding: 10, margin: 10 }}>
-        <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>
-          DEBUG: Version 2.0 - Changes Applied!
-        </Text>
-        <Text style={{ color: 'white' }}>
-          Platform: {Platform.OS} | Exercises: {exercises.length}
-        </Text>
-      </View>
-
       {/* Exercise List with integrated header */}
       {exercises.length === 0 ? (
         <View style={styles.emptyContainer}>
@@ -222,7 +204,6 @@ export default function ExerciseListScreen({ navigation, route }) {
         <FlatList
           data={exercises}
           ListHeaderComponent={() => {
-            console.log('📋 [FLATLIST] Rendering ListHeaderComponent');
             return (
               <View style={styles.filterSection}>
                 <FlatList
@@ -238,8 +219,6 @@ export default function ExerciseListScreen({ navigation, route }) {
             );
           }}
           renderItem={({ item, index }) => {
-            console.log(`🎯 [FLATLIST] Rendering item ${index}:`, item.name, 'Mode:', displayMode);
-
             // Render detailed view for iOS when display mode is detailed
             if (displayMode === 'detailed') {
               return (
