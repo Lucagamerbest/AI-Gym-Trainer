@@ -27,7 +27,8 @@
       "Bash(java:*)",
       "Read(//c/Program Files/Android/Android Studio/**)",
       "Read(//c/Users/lucar/**)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(npm run web:*)"
     ],
     "deny": [],
     "ask": []

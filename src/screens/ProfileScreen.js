@@ -185,7 +185,7 @@ export default function ProfileScreen({ navigation }) {
           icon="⚙️"
           title="Settings"
           subtitle="Preferences & account"
-          onPress={() => {}}
+          onPress={() => navigation.navigate('Settings')}
           style={styles.menuItem}
         />
         

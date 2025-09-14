@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import ScreenLayout from '../components/ScreenLayout';
 import StyledButton from '../components/StyledButton';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
@@ -28,13 +29,31 @@ export default function MuscleGroupSelectionScreen({ navigation }) {
     });
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (selectedMuscleGroups.length === 0) {
       return; // Don't continue if no muscle groups selected
     }
-    
-    // Navigate to exercise list with selected muscle groups
-    navigation.navigate('ExerciseList', { selectedMuscleGroups });
+
+    try {
+      // Check display preference
+      const displayMode = await AsyncStorage.getItem('exerciseDisplayMode');
+
+      // Navigate based on display preference
+      if (displayMode === 'detailed') {
+        // Use AddExerciseScreen which supports both display modes
+        navigation.navigate('AddExercise', {
+          selectedMuscleGroups,
+          fromFreeWorkout: true  // Flag to indicate this is from free workout
+        });
+      } else {
+        // Default to original ExerciseListScreen for compact view
+        navigation.navigate('ExerciseList', { selectedMuscleGroups });
+      }
+    } catch (error) {
+      console.error('Error reading display mode:', error);
+      // Fallback to default behavior
+      navigation.navigate('ExerciseList', { selectedMuscleGroups });
+    }
   };
 
   const handleSelectAll = () => {

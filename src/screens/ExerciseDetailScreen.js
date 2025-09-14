@@ -1,65 +1,50 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Platform, TouchableOpacity } from 'react-native';
-import ScreenLayout from '../components/ScreenLayout';
+// ExerciseDetailScreen - Fully Responsive Mobile Version
+import React from 'react';
+import { View, Text, TouchableOpacity, ScrollView, SafeAreaView, Platform, Dimensions } from 'react-native';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
-import { LinearGradient } from 'expo-linear-gradient';
+
+// Get screen dimensions for responsive design
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+const isSmallScreen = screenWidth < 400;
+const isMediumScreen = screenWidth >= 400 && screenWidth < 600;
 
 export default function ExerciseDetailScreen({ navigation, route }) {
-  const { exercise, fromWorkout } = route.params || {};
-  // Add error handling for route params
-  if (!route || !route.params || !route.params.exercise) {
-    return (
-      <ScreenLayout
-        title="Error"
-        subtitle="Exercise not found"
-        navigation={navigation}
-        showBack={true}
-      >
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-          <Text style={{ fontSize: 18, color: Colors.text, textAlign: 'center' }}>
-            ❌ Exercise data not found. Please go back and try again.
-          </Text>
-        </View>
-      </ScreenLayout>
-    );
-  }
+  console.log('🚨 [RESPONSIVE-DETAIL] Screen loading on:', Platform.OS);
+  console.log('🚨 [RESPONSIVE-DETAIL] Screen dimensions:', { width: screenWidth, height: screenHeight });
+  console.log('🚨 [RESPONSIVE-DETAIL] Screen size type:', { isSmallScreen, isMediumScreen });
 
+  const { exercise, fromWorkout } = route?.params || {};
 
-  // Debug logging
-  console.log('ExerciseDetailScreen rendered with exercise:', exercise?.name);
+  console.log('🚨 [RESPONSIVE-DETAIL] Exercise data:', JSON.stringify(exercise, null, 2));
+  console.log('🚨 [RESPONSIVE-DETAIL] FromWorkout:', fromWorkout);
 
-  // Add scrollbar styles for web
-  useEffect(() => {
-    if (Platform.OS === 'web') {
-      const styleId = 'exercise-detail-scrollbar-style';
-      if (!document.getElementById(styleId)) {
-        const style = document.createElement('style');
-        style.id = styleId;
-        style.textContent = `
-          .exercise-detail-scroll {
-            overflow-y: scroll !important;
-            scrollbar-width: thin;
-            scrollbar-color: #888 #f1f1f1;
-          }
-          .exercise-detail-scroll::-webkit-scrollbar {
-            width: 12px;
-          }
-          .exercise-detail-scroll::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-          }
-          .exercise-detail-scroll::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 10px;
-          }
-          .exercise-detail-scroll::-webkit-scrollbar-thumb:hover {
-            background: #555;
-          }
-        `;
-        document.head.appendChild(style);
-      }
+  // Responsive sizing functions
+  const getResponsiveSize = (small, medium, large) => {
+    if (isSmallScreen) return small;
+    if (isMediumScreen) return medium;
+    return large;
+  };
+
+  const getResponsiveSpacing = (factor = 1) => {
+    return isSmallScreen ? Spacing.sm * factor : Spacing.lg * factor;
+  };
+
+  const getResponsiveFontSize = (baseSize) => {
+    const multiplier = isSmallScreen ? 0.85 : isMediumScreen ? 0.95 : 1;
+    return baseSize * multiplier;
+  };
+
+  const getEquipmentIcon = (equipment) => {
+    switch (equipment) {
+      case 'Bodyweight': return '🤸‍♂️';
+      case 'Dumbbells': return '🏋️‍♂️';
+      case 'Barbell': return '🏋️';
+      case 'Machine': return '⚙️';
+      case 'Cable': return '🔗';
+      case 'Cable Machine': return '🔗';
+      default: return '💪';
     }
-  }, []);
+  };
 
   const getDifficultyColor = (difficulty) => {
     switch (difficulty) {
@@ -70,245 +55,252 @@ export default function ExerciseDetailScreen({ navigation, route }) {
     }
   };
 
-  const getEquipmentIcon = (equipment) => {
-    switch (equipment) {
-      case 'Bodyweight': return '🤸‍♂️';
-      case 'Dumbbells': return '🏋️‍♂️';
-      case 'Barbell': return '🏋️';
-      case 'Machine': return '⚙️';
-      case 'Cable': return '🔗';
-      default: return '💪';
-    }
-  };
-
-
-  const getDetailedInstructions = (exercise) => {
-    const baseInstructions = exercise?.instructions || 'Follow proper form for this exercise';
-    return [
-      "Setup: " + baseInstructions,
-      "Keep your core engaged throughout the movement",
-      "Control the weight on both the up and down phases",
-      "Breathe out during the exertion phase",
-      "Start with lighter weight to master the form"
-    ];
-  };
-
-  const detailedInstructions = getDetailedInstructions(exercise);
-
-  const renderContent = () => (
-    <>
-      {/* Exercise Header */}
-      <LinearGradient
-        colors={[Colors.primary + '20', Colors.primary + '10']}
-        style={styles.headerCard}
-      >
-        <View style={styles.headerContent}>
-          <View style={styles.exerciseMeta}>
-            <View style={styles.equipmentTag}>
-              <Text style={styles.equipmentIcon}>{getEquipmentIcon(exercise?.equipment || 'Unknown')}</Text>
-              <Text style={styles.equipmentText}>{exercise?.equipment || 'Unknown'}</Text>
-            </View>
-            <View style={[
-              styles.difficultyBadge,
-              { backgroundColor: getDifficultyColor(exercise?.difficulty || 'Beginner') + '20' }
-            ]}>
-              <Text style={[
-                styles.difficultyText,
-                { color: getDifficultyColor(exercise?.difficulty || 'Beginner') }
-              ]}>
-                {exercise?.difficulty || 'Beginner'}
-              </Text>
-            </View>
-          </View>
-
-          <Text style={styles.sectionTitle}>Target Muscles</Text>
-          <Text style={styles.musclesText}>
-            Primary: {exercise?.primaryMuscles ? exercise.primaryMuscles.join(', ') : 'Unknown'}
+  return (
+    <SafeAreaView style={{
+      flex: 1,
+      backgroundColor: Colors.background,
+    }}>
+      {/* Responsive Header */}
+      <View style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: getResponsiveSpacing(1),
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.border,
+        backgroundColor: Colors.surface,
+        minHeight: getResponsiveSize(60, 70, 80),
+      }}>
+        <TouchableOpacity
+          onPress={() => {
+            console.log('🚨 [RESPONSIVE-DETAIL] Back pressed');
+            navigation.goBack();
+          }}
+          style={{
+            marginRight: getResponsiveSpacing(0.5),
+            padding: getResponsiveSpacing(0.5),
+            minWidth: getResponsiveSize(40, 45, 50),
+            minHeight: getResponsiveSize(40, 45, 50),
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <Text style={{
+            fontSize: getResponsiveSize(20, 22, 24),
+            color: Colors.primary
+          }}>←</Text>
+        </TouchableOpacity>
+        <View style={{ flex: 1 }}>
+          <Text style={{
+            fontSize: getResponsiveFontSize(Typography.fontSize.lg),
+            fontWeight: 'bold',
+            color: Colors.text,
+            numberOfLines: 1,
+          }}>
+            {exercise?.name || "Exercise Detail"}
           </Text>
-          {exercise?.secondaryMuscles && exercise.secondaryMuscles.length > 0 && (
-            <Text style={styles.musclesSecondary}>
-              Secondary: {exercise.secondaryMuscles.join(', ')}
+          <Text style={{
+            fontSize: getResponsiveFontSize(Typography.fontSize.sm),
+            color: Colors.textSecondary,
+          }}>
+            Exercise Information
+          </Text>
+        </View>
+      </View>
+
+      {/* Responsive Content */}
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          paddingBottom: getResponsiveSpacing(2),
+        }}
+      >
+        <View style={{
+          backgroundColor: Colors.surface,
+          margin: getResponsiveSpacing(1),
+          padding: getResponsiveSpacing(1),
+          borderRadius: BorderRadius.lg,
+          borderWidth: 1,
+          borderColor: Colors.border,
+          minHeight: screenHeight * 0.6, // Ensure minimum content height
+        }}>
+          {/* Exercise Name - Responsive Size */}
+          <Text style={{
+            fontSize: getResponsiveSize(20, 24, 28),
+            fontWeight: 'bold',
+            color: Colors.text,
+            textAlign: 'center',
+            marginBottom: getResponsiveSpacing(1),
+            paddingHorizontal: getResponsiveSpacing(0.5),
+            flexWrap: 'wrap',
+          }}>
+            {exercise?.name || 'NO NAME'}
+          </Text>
+
+        {/* Equipment and Difficulty - Responsive Layout */}
+        <View style={{
+          flexDirection: isSmallScreen ? 'column' : 'row',
+          justifyContent: 'center',
+          alignItems: 'center',
+          marginBottom: getResponsiveSpacing(1),
+          gap: getResponsiveSpacing(0.5),
+        }}>
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: Colors.primary + '15',
+            paddingHorizontal: getResponsiveSpacing(0.75),
+            paddingVertical: getResponsiveSpacing(0.5),
+            borderRadius: BorderRadius.md,
+            minHeight: getResponsiveSize(36, 40, 44),
+          }}>
+            <Text style={{
+              fontSize: getResponsiveSize(16, 18, 20),
+              marginRight: getResponsiveSpacing(0.25)
+            }}>
+              {getEquipmentIcon(exercise?.equipment)}
             </Text>
-          )}
-        </View>
-      </LinearGradient>
-
-
-      {/* Detailed Instructions */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Step-by-Step Instructions</Text>
-        {detailedInstructions.map((instruction, index) => (
-          <View key={index} style={styles.instructionItem}>
-            <View style={styles.stepNumber}>
-              <Text style={styles.stepNumberText}>{index + 1}</Text>
-            </View>
-            <Text style={styles.instructionText}>{instruction}</Text>
+            <Text style={{
+              fontSize: getResponsiveFontSize(Typography.fontSize.md),
+              color: Colors.primary,
+              fontWeight: '600',
+            }}>
+              {exercise?.equipment || 'Unknown'}
+            </Text>
           </View>
-        ))}
-      </View>
 
-      {/* Tips & Safety */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Tips & Safety</Text>
-        <View style={styles.tipsCard}>
-          <Text style={styles.tipItem}>⚠️ Always warm up before exercising</Text>
-          <Text style={styles.tipItem}>🎯 Focus on proper form over heavy weight</Text>
-          <Text style={styles.tipItem}>⏱️ Allow adequate rest between sets</Text>
-          <Text style={styles.tipItem}>💧 Stay hydrated throughout your workout</Text>
+          <View style={{
+            backgroundColor: getDifficultyColor(exercise?.difficulty) + '20',
+            paddingHorizontal: getResponsiveSpacing(0.75),
+            paddingVertical: getResponsiveSpacing(0.5),
+            borderRadius: BorderRadius.md,
+            minHeight: getResponsiveSize(36, 40, 44),
+            justifyContent: 'center',
+          }}>
+            <Text style={{
+              fontSize: getResponsiveFontSize(Typography.fontSize.md),
+              color: getDifficultyColor(exercise?.difficulty),
+              fontWeight: 'bold',
+              textAlign: 'center',
+            }}>
+              {exercise?.difficulty || 'Unknown'}
+            </Text>
+          </View>
         </View>
-      </View>
 
-      {/* Back to Workout Button */}
-      {fromWorkout && (
-        <View style={styles.section}>
+        {/* Instructions - Responsive */}
+        <Text style={{
+          fontSize: getResponsiveFontSize(Typography.fontSize.lg),
+          fontWeight: 'bold',
+          color: Colors.text,
+          marginBottom: getResponsiveSpacing(0.5),
+        }}>
+          Instructions:
+        </Text>
+
+        <Text style={{
+          fontSize: getResponsiveFontSize(Typography.fontSize.md),
+          color: Colors.textSecondary,
+          lineHeight: getResponsiveSize(18, 20, 22),
+          marginBottom: getResponsiveSpacing(1.5),
+          paddingHorizontal: getResponsiveSpacing(0.25),
+        }}>
+          {exercise?.instructions || 'No instructions available'}
+        </Text>
+
+        {/* Muscle Groups - Responsive */}
+        {exercise?.primaryMuscles && (
+          <>
+            <Text style={{
+              fontSize: getResponsiveFontSize(Typography.fontSize.lg),
+              fontWeight: 'bold',
+              color: Colors.text,
+              marginBottom: getResponsiveSpacing(0.5),
+            }}>
+              Target Muscles:
+            </Text>
+
+            <Text style={{
+              fontSize: getResponsiveFontSize(Typography.fontSize.md),
+              color: Colors.primary,
+              fontWeight: '600',
+              marginBottom: getResponsiveSpacing(0.5),
+              paddingHorizontal: getResponsiveSpacing(0.25),
+            }}>
+              Primary: {exercise.primaryMuscles.join(', ')}
+            </Text>
+
+            {exercise?.secondaryMuscles && exercise.secondaryMuscles.length > 0 && (
+              <Text style={{
+                fontSize: getResponsiveFontSize(Typography.fontSize.sm),
+                color: Colors.textSecondary,
+                marginBottom: getResponsiveSpacing(1),
+                paddingHorizontal: getResponsiveSpacing(0.25),
+              }}>
+                Secondary: {exercise.secondaryMuscles.join(', ')}
+              </Text>
+            )}
+          </>
+        )}
+
+        {/* Responsive Action Buttons */}
+        <View style={{
+          flexDirection: isSmallScreen ? 'column' : 'row',
+          gap: getResponsiveSpacing(0.5),
+          marginTop: getResponsiveSpacing(1),
+        }}>
           <TouchableOpacity
-            style={styles.backToWorkoutButton}
-            onPress={() => navigation.goBack()}
-            activeOpacity={0.8}
+            style={{
+              backgroundColor: Colors.primary,
+              padding: getResponsiveSpacing(0.75),
+              borderRadius: BorderRadius.md,
+              alignItems: 'center',
+              flex: isSmallScreen ? 0 : 1,
+              minHeight: getResponsiveSize(44, 48, 52),
+              justifyContent: 'center',
+            }}
+            onPress={() => {
+              console.log('🚨 [RESPONSIVE-DETAIL] Back pressed');
+              navigation.goBack();
+            }}
           >
-            <Text style={styles.backToWorkoutButtonText}>
-              ← Back to Workout
+            <Text style={{
+              color: Colors.background,
+              fontSize: getResponsiveFontSize(Typography.fontSize.md),
+              fontWeight: 'bold',
+            }}>
+              ← Back to Exercises
             </Text>
           </TouchableOpacity>
-        </View>
-      )}
-    </>
-  );
 
-  return (
-    <ScreenLayout
-      title={exercise?.name || 'Exercise'}
-      subtitle="Exercise Guide"
-      navigation={navigation}
-      showBack={true}
-      scrollable={true}
-    >
-      <View style={styles.container}>
-        {renderContent()}
-      </View>
-    </ScreenLayout>
+          {/* Continue Workout Button */}
+          {fromWorkout && (
+            <TouchableOpacity
+              style={{
+                backgroundColor: '#FF6B35',
+                padding: getResponsiveSpacing(0.75),
+                borderRadius: BorderRadius.md,
+                alignItems: 'center',
+                flex: isSmallScreen ? 0 : 1,
+                minHeight: getResponsiveSize(44, 48, 52),
+                justifyContent: 'center',
+              }}
+              onPress={() => {
+                console.log('🚨 [RESPONSIVE-DETAIL] Continue workout');
+                navigation.goBack();
+              }}
+            >
+              <Text style={{
+                color: Colors.background,
+                fontSize: getResponsiveFontSize(Typography.fontSize.md),
+                fontWeight: 'bold',
+              }}>
+                Continue Workout
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: Spacing.lg,
-  },
-  headerCard: {
-    padding: Spacing.lg,
-    borderRadius: BorderRadius.lg,
-    marginBottom: Spacing.lg,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  headerContent: {
-    gap: Spacing.md,
-  },
-  exerciseMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-  },
-  equipmentTag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.primary + '15',
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-    borderRadius: BorderRadius.sm,
-  },
-  equipmentIcon: {
-    fontSize: 16,
-    marginRight: 4,
-  },
-  equipmentText: {
-    fontSize: Typography.fontSize.xs,
-    color: Colors.primary,
-    fontWeight: '600',
-  },
-  difficultyBadge: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-    borderRadius: BorderRadius.sm,
-  },
-  difficultyText: {
-    fontSize: Typography.fontSize.xs,
-    fontWeight: 'bold',
-  },
-  section: {
-    marginBottom: Spacing.xl,
-  },
-  sectionTitle: {
-    fontSize: Typography.fontSize.lg,
-    fontWeight: 'bold',
-    color: Colors.text,
-    marginBottom: Spacing.md,
-  },
-  musclesText: {
-    fontSize: Typography.fontSize.md,
-    color: Colors.primary,
-    fontWeight: '600',
-  },
-  musclesSecondary: {
-    fontSize: Typography.fontSize.sm,
-    color: Colors.textSecondary,
-    marginTop: Spacing.xs,
-  },
-  instructionItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: Spacing.md,
-    paddingRight: Spacing.md,
-  },
-  stepNumber: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: Colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: Spacing.md,
-    marginTop: 2,
-  },
-  stepNumberText: {
-    fontSize: Typography.fontSize.sm,
-    fontWeight: 'bold',
-    color: Colors.background,
-  },
-  instructionText: {
-    flex: 1,
-    fontSize: Typography.fontSize.sm,
-    color: Colors.text,
-    lineHeight: 20,
-  },
-  tipsCard: {
-    backgroundColor: Colors.surface,
-    padding: Spacing.lg,
-    borderRadius: BorderRadius.lg,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    gap: Spacing.sm,
-  },
-  tipItem: {
-    fontSize: Typography.fontSize.sm,
-    color: Colors.textSecondary,
-    lineHeight: 20,
-  },
-  backToWorkoutButton: {
-    backgroundColor: Colors.primary,
-    padding: Spacing.md,
-    borderRadius: BorderRadius.lg,
-    alignItems: 'center',
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-  },
-  backToWorkoutButtonText: {
-    color: Colors.background,
-    fontSize: Typography.fontSize.md,
-    fontWeight: 'bold',
-  },
-});
