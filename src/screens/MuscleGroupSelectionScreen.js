@@ -6,7 +6,8 @@ import StyledButton from '../components/StyledButton';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { LinearGradient } from 'expo-linear-gradient';
 
-export default function MuscleGroupSelectionScreen({ navigation }) {
+export default function MuscleGroupSelectionScreen({ navigation, route }) {
+  const { fromWorkout, currentWorkoutExercises, workoutStartTime } = route.params || {};
   const [selectedMuscleGroups, setSelectedMuscleGroups] = useState([]);
 
   const muscleGroups = [
@@ -34,8 +35,13 @@ export default function MuscleGroupSelectionScreen({ navigation }) {
       return; // Don't continue if no muscle groups selected
     }
 
-    // Always navigate to ExerciseList - it now handles both display modes properly
-    navigation.navigate('ExerciseList', { selectedMuscleGroups });
+    // Always navigate to ExerciseList with appropriate parameters
+    navigation.navigate('ExerciseList', { 
+      selectedMuscleGroups,
+      fromWorkout: fromWorkout,
+      currentWorkoutExercises: currentWorkoutExercises,
+      workoutStartTime: workoutStartTime
+    });
   };
 
   const handleSelectAll = () => {
