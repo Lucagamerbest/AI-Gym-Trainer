@@ -1,13 +1,111 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Vibration, Modal } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Vibration, Modal, TextInput, PanResponder, Animated } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
 import ScreenLayout from '../components/ScreenLayout';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { LinearGradient } from 'expo-linear-gradient';
 
+// Exercise Card Component
+const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exerciseSets, onUpdateSet, onAddSet, onDeleteSet }) => {
+  return (
+    <View
+      style={[
+        styles.exerciseCard,
+        isSelected && styles.currentExerciseCard
+      ]}
+    >
+        {/* Exercise Header */}
+        <View style={styles.exerciseHeader}>
+          <TouchableOpacity
+            style={styles.exerciseMainContent}
+            onPress={() => onPress(index)}
+          >
+            <View style={styles.exerciseListHeader}>
+              <Text style={styles.exerciseListNumber}>
+                {index + 1}
+              </Text>
+              <Text style={styles.exerciseListName}>
+                {exercise.name}
+              </Text>
+            </View>
+            <Text style={styles.exerciseListMeta}>
+              {exercise.equipment} • {exercise.difficulty}
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={() => onDelete(index)}
+          >
+            <Text style={styles.deleteButtonText}>✕</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Sets Tracking - Always visible */}
+        <View style={styles.setsContainer}>
+          <View style={styles.setsHeader}>
+            <Text style={styles.setHeaderText}>Set</Text>
+            <Text style={styles.setHeaderText}>Weight</Text>
+            <Text style={styles.setHeaderText}>Reps</Text>
+            <Text style={styles.setHeaderText}>✓</Text>
+          </View>
+          
+          {exerciseSets && exerciseSets.map((set, setIndex) => (
+            <View key={setIndex} style={styles.setRow}>
+              <Text style={styles.setNumber}>{setIndex + 1}</Text>
+              
+              <TextInput
+                style={styles.setInput}
+                value={set.weight}
+                onChangeText={(value) => onUpdateSet(index, setIndex, 'weight', value)}
+                placeholder="lbs"
+                placeholderTextColor={Colors.textMuted}
+                keyboardType="numeric"
+              />
+              
+              <TextInput
+                style={styles.setInput}
+                value={set.reps}
+                onChangeText={(value) => onUpdateSet(index, setIndex, 'reps', value)}
+                placeholder="reps"
+                placeholderTextColor={Colors.textMuted}
+                keyboardType="numeric"
+              />
+              
+              <TouchableOpacity
+                style={styles.completeButton}
+                onPress={() => onUpdateSet(index, setIndex, 'completed', !set.completed)}
+              >
+                <View style={[styles.checkboxContainer, set.completed && styles.checkboxCompleted]}>
+                  {set.completed && <Text style={styles.checkmark}>✓</Text>}
+                </View>
+              </TouchableOpacity>
+              
+              {exerciseSets.length > 1 && (
+                <TouchableOpacity
+                  style={styles.deleteSetButton}
+                  onPress={() => onDeleteSet(index, setIndex)}
+                >
+                  <Text style={styles.deleteSetButtonText}>✕</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          ))}
+          
+          <TouchableOpacity
+            style={styles.addSetButton}
+            onPress={() => onAddSet(index)}
+          >
+            <Text style={styles.addSetButtonText}>+ Add Set</Text>
+          </TouchableOpacity>
+        </View>
+    </View>
+  );
+};
+
 export default function WorkoutScreen({ navigation, route }) {
-  const { exercise, addToExistingWorkout, existingWorkoutExercises, workoutStartTime: existingStartTime } = route.params || {};
+  const { exercise, addToExistingWorkout, existingWorkoutExercises, workoutStartTime: existingStartTime, selectedMuscleGroups } = route.params || {};
   const [workoutStartTime] = useState(existingStartTime || new Date());
   const [currentTime, setCurrentTime] = useState(new Date());
   const [restTimer, setRestTimer] = useState(0);
@@ -33,6 +131,27 @@ export default function WorkoutScreen({ navigation, route }) {
   const [pickerSeconds, setPickerSeconds] = useState(0);
   const [showFinishConfirmation, setShowFinishConfirmation] = useState(false);
   const [showBackWarning, setShowBackWarning] = useState(false);
+  
+  // Exercise tracking state
+  const [exerciseSets, setExerciseSets] = useState({});
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [exerciseToDelete, setExerciseToDelete] = useState(null);
+  const [draggedExercise, setDraggedExercise] = useState(null);
+
+  // Initialize exercise sets when component mounts or exercises change
+  useEffect(() => {
+    const newSets = {};
+    workoutExercises.forEach((ex, index) => {
+      if (!exerciseSets[index]) {
+        newSets[index] = [
+          { weight: '', reps: '', completed: false }
+        ];
+      } else {
+        newSets[index] = exerciseSets[index];
+      }
+    });
+    setExerciseSets(newSets);
+  }, [workoutExercises.length]);
 
   // Update workout timer every second
   useEffect(() => {
@@ -194,11 +313,22 @@ export default function WorkoutScreen({ navigation, route }) {
 
   // Add another exercise
   const addAnotherExercise = () => {
-    navigation.navigate('AddExercise', {
-      selectedMuscleGroups: [currentExercise.muscleGroup.toLowerCase()],
-      currentWorkoutExercises: workoutExercises,
-      workoutStartTime: workoutStartTime
-    });
+    // If we have selectedMuscleGroups, go directly to ExerciseList
+    // Otherwise, go to MuscleGroupSelection
+    if (selectedMuscleGroups && selectedMuscleGroups.length > 0) {
+      navigation.navigate('ExerciseList', {
+        selectedMuscleGroups: selectedMuscleGroups,
+        fromWorkout: true,
+        currentWorkoutExercises: workoutExercises,
+        workoutStartTime: workoutStartTime
+      });
+    } else {
+      navigation.navigate('MuscleGroupSelection', {
+        fromWorkout: true,
+        currentWorkoutExercises: workoutExercises,
+        workoutStartTime: workoutStartTime
+      });
+    }
   };
 
   // Navigate between exercises
@@ -211,6 +341,94 @@ export default function WorkoutScreen({ navigation, route }) {
   const goToPreviousExercise = () => {
     if (currentExerciseIndex > 0) {
       setCurrentExerciseIndex(currentExerciseIndex - 1);
+    }
+  };
+
+  // Add a new set for specific exercise
+  const addSet = (exerciseIndex) => {
+    const newSets = { ...exerciseSets };
+    if (!newSets[exerciseIndex]) {
+      newSets[exerciseIndex] = [];
+    }
+    newSets[exerciseIndex].push({ weight: '', reps: '', completed: false });
+    setExerciseSets(newSets);
+  };
+
+  // Delete a set for specific exercise
+  const deleteSet = (exerciseIndex, setIndex) => {
+    const newSets = { ...exerciseSets };
+    if (newSets[exerciseIndex] && newSets[exerciseIndex].length > 1) {
+      newSets[exerciseIndex].splice(setIndex, 1);
+      setExerciseSets(newSets);
+    }
+  };
+
+  // Update set data
+  const updateSet = (exerciseIndex, setIndex, field, value) => {
+    const newSets = { ...exerciseSets };
+    if (!newSets[exerciseIndex]) {
+      newSets[exerciseIndex] = [{ weight: '', reps: '', completed: false }];
+    }
+    newSets[exerciseIndex][setIndex][field] = value;
+    setExerciseSets(newSets);
+  };
+
+  // Delete exercise from workout
+  const deleteExercise = (index) => {
+    setExerciseToDelete(index);
+    setShowDeleteConfirmation(true);
+  };
+
+  const confirmDeleteExercise = () => {
+    if (exerciseToDelete !== null) {
+      const newExercises = [...workoutExercises];
+      newExercises.splice(exerciseToDelete, 1);
+      setWorkoutExercises(newExercises);
+      
+      // Update exercise sets
+      const newSets = { ...exerciseSets };
+      delete newSets[exerciseToDelete];
+      // Reindex the sets
+      const reindexedSets = {};
+      Object.keys(newSets).forEach(key => {
+        const numKey = parseInt(key);
+        if (numKey > exerciseToDelete) {
+          reindexedSets[numKey - 1] = newSets[key];
+        } else {
+          reindexedSets[numKey] = newSets[key];
+        }
+      });
+      setExerciseSets(reindexedSets);
+      
+      // Adjust current index if needed
+      if (currentExerciseIndex >= workoutExercises.length - 1) {
+        setCurrentExerciseIndex(Math.max(0, workoutExercises.length - 2));
+      }
+    }
+    setShowDeleteConfirmation(false);
+    setExerciseToDelete(null);
+  };
+
+  // Reorder exercises
+  const moveExercise = (fromIndex, toIndex) => {
+    const newExercises = [...workoutExercises];
+    const [movedExercise] = newExercises.splice(fromIndex, 1);
+    newExercises.splice(toIndex, 0, movedExercise);
+    setWorkoutExercises(newExercises);
+    
+    // Reorder exercise sets accordingly
+    const newSets = {};
+    newExercises.forEach((ex, newIndex) => {
+      const oldIndex = workoutExercises.indexOf(ex);
+      if (exerciseSets[oldIndex]) {
+        newSets[newIndex] = exerciseSets[oldIndex];
+      }
+    });
+    setExerciseSets(newSets);
+    
+    // Update current index if the current exercise was moved
+    if (currentExerciseIndex === fromIndex) {
+      setCurrentExerciseIndex(toIndex);
     }
   };
 
@@ -347,43 +565,20 @@ export default function WorkoutScreen({ navigation, route }) {
       {/* All Workout Exercises */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Workout Exercises ({workoutExercises.length})</Text>
-        <ScrollView style={styles.exerciseList} showsVerticalScrollIndicator={false}>
-          {workoutExercises.map((ex, index) => (
-            <View
-              key={`workout-ex-${index}`}
-              style={styles.exerciseListItem}
-            >
-              <TouchableOpacity
-                style={styles.exerciseMainContent}
-                onPress={() => setCurrentExerciseIndex(index)}
-              >
-                <View style={styles.exerciseListHeader}>
-                  <Text style={styles.exerciseListNumber}>
-                    {index + 1}
-                  </Text>
-                </View>
-                <Text style={styles.exerciseListName}>
-                  {ex.name}
-                </Text>
-                <Text style={styles.exerciseListMeta}>
-                  {ex.equipment} • {ex.difficulty}
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.infoButton}
-                onPress={() => {
-                  navigation.navigate('ExerciseDetail', {
-                    exercise: ex,
-                    fromWorkout: true
-                  });
-                }}
-              >
-                <Text style={styles.infoButtonText}>ℹ️</Text>
-              </TouchableOpacity>
-            </View>
-          ))}
-        </ScrollView>
+        {workoutExercises.map((ex, index) => (
+          <ExerciseCard
+            key={`workout-ex-${index}`}
+            exercise={ex}
+            index={index}
+            onDelete={deleteExercise}
+            onPress={setCurrentExerciseIndex}
+            isSelected={index === currentExerciseIndex}
+            exerciseSets={exerciseSets[index]}
+            onUpdateSet={updateSet}
+            onAddSet={addSet}
+            onDeleteSet={deleteSet}
+          />
+        ))}
       </View>
 
 
@@ -514,6 +709,39 @@ export default function WorkoutScreen({ navigation, route }) {
           </View>
         </View>
       </Modal>
+
+      {/* Delete Exercise Confirmation Modal */}
+      <Modal
+        visible={showDeleteConfirmation}
+        transparent={true}
+        animationType="fade"
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Delete Exercise?</Text>
+            <Text style={styles.modalMessage}>
+              Are you sure you want to remove this exercise from your workout?
+            </Text>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity 
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={() => {
+                  setShowDeleteConfirmation(false);
+                  setExerciseToDelete(null);
+                }}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.modalButton, styles.deleteConfirmButton]}
+                onPress={confirmDeleteExercise}
+              >
+                <Text style={styles.deleteConfirmButtonText}>Delete</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </>
   );
 }
@@ -631,9 +859,146 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: Colors.text,
   },
-  exerciseList: {
-    marginTop: Spacing.sm,
-    maxHeight: 400, // Increased height since this is now the main content
+  exerciseCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    marginBottom: Spacing.sm,
+  },
+  currentExerciseCard: {
+    borderColor: Colors.primary,
+    borderWidth: 2,
+  },
+  exerciseHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: Spacing.xs,
+    paddingHorizontal: Spacing.sm,
+  },
+  exerciseActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    paddingRight: Spacing.sm,
+  },
+  moveButton: {
+    padding: Spacing.xs,
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.sm,
+  },
+  moveButtonText: {
+    fontSize: 18,
+    color: Colors.primary,
+  },
+  deleteButton: {
+    padding: Spacing.sm,
+  },
+  deleteButtonText: {
+    fontSize: 20,
+    color: Colors.textMuted,
+  },
+  setsContainer: {
+    padding: Spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  setsHeader: {
+    flexDirection: 'row',
+    marginBottom: Spacing.xs,
+    paddingBottom: Spacing.xs,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  setHeaderText: {
+    flex: 1,
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+    textAlign: 'center',
+  },
+  setRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.xs,
+  },
+  setNumber: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: Typography.fontSize.md,
+    fontWeight: 'bold',
+    color: Colors.text,
+  },
+  setInput: {
+    flex: 1,
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.sm,
+    paddingVertical: Spacing.xs,
+    paddingHorizontal: Spacing.sm,
+    marginHorizontal: Spacing.xs,
+    textAlign: 'center',
+    color: Colors.text,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  completeButton: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  checkboxContainer: {
+    width: 28,
+    height: 28,
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkboxCompleted: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  checkmark: {
+    color: Colors.background,
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  deleteSetButton: {
+    padding: Spacing.xs,
+    marginLeft: Spacing.xs,
+  },
+  deleteSetButtonText: {
+    fontSize: 18,
+    color: Colors.error,
+  },
+  addSetButton: {
+    backgroundColor: Colors.primary,
+    borderRadius: BorderRadius.md,
+    paddingVertical: Spacing.xs,
+    marginTop: Spacing.xs,
+    alignItems: 'center',
+  },
+  addSetButtonText: {
+    color: Colors.background,
+    fontWeight: '600',
+    fontSize: Typography.fontSize.md,
+  },
+  deleteConfirmButton: {
+    backgroundColor: '#DC3545',
+    opacity: 0.9,
+  },
+  deleteConfirmButtonText: {
+    color: Colors.background,
+    fontWeight: '600',
+  },
+  cancelButton: {
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  cancelButtonText: {
+    color: Colors.text,
   },
   exerciseListItem: {
     backgroundColor: Colors.surface,
@@ -646,18 +1011,18 @@ const styles = StyleSheet.create({
   },
   exerciseMainContent: {
     flex: 1,
-    padding: Spacing.md,
   },
   exerciseListHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Spacing.xs,
+    marginBottom: 2,
   },
   exerciseListNumber: {
     fontSize: Typography.fontSize.lg,
     fontWeight: 'bold',
-    color: Colors.textSecondary,
+    color: Colors.primary,
+    marginRight: Spacing.sm,
+    minWidth: 25,
   },
   exerciseListName: {
     fontSize: Typography.fontSize.md,
@@ -891,9 +1256,16 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: Typography.fontSize.lg,
     fontWeight: 'bold',
-    color: '#4CAF50',
+    color: Colors.text,
+    textAlign: 'center',
+    marginBottom: Spacing.md,
+  },
+  modalMessage: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.textSecondary,
     textAlign: 'center',
     marginBottom: Spacing.lg,
+    paddingHorizontal: Spacing.md,
   },
   confirmationText: {
     fontSize: Typography.fontSize.md,

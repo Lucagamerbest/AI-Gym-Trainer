@@ -29,6 +29,8 @@
       "Read(//c/Users/lucar/**)",
       "Bash(git checkout:*)",
       "Bash(npm run web:*)",
+      "Bash(git fetch:*)",
+      "Bash(git stash:*)",
       "Bash(git pull:*)"
     ],
     "deny": [],

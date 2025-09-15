@@ -5,7 +5,7 @@
 // Status: WORKING - Exercise Library displays correctly on all platforms
 
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView, Platform } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView, Platform, TextInput } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ScreenLayout from '../components/ScreenLayout';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
@@ -14,15 +14,25 @@ import { getExercisesByMuscleGroup } from '../data/exerciseDatabase';
 
 
 export default function ExerciseListScreen({ navigation, route }) {
-  const { selectedMuscleGroups, returnToWorkout, currentWorkoutExercises } = route.params || { selectedMuscleGroups: [] };
+  const { 
+    selectedMuscleGroups, 
+    returnToWorkout, 
+    currentWorkoutExercises,
+    fromWorkout,
+    workoutStartTime,
+    fromFreeWorkout 
+  } = route.params || { selectedMuscleGroups: [] };
   const [exercises, setExercises] = useState([]);
   const [selectedDifficulty, setSelectedDifficulty] = useState('all');
+  const [selectedEquipment, setSelectedEquipment] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [displayMode, setDisplayMode] = useState('compact');
+  const [showFilters, setShowFilters] = useState(false);
 
 
   useEffect(() => {
     loadExercises();
-  }, [selectedMuscleGroups, selectedDifficulty]);
+  }, [selectedMuscleGroups, selectedDifficulty, selectedEquipment, searchQuery]);
 
   useEffect(() => {
     loadDisplayMode();
@@ -111,6 +121,30 @@ export default function ExerciseListScreen({ navigation, route }) {
       console.log(`🔍 [DEBUG] After difficulty filter (${selectedDifficulty}): ${filteredExercises.length} (was ${beforeFilter})`);
     }
 
+    // Filter by equipment type
+    if (selectedEquipment !== 'all') {
+      filteredExercises = filteredExercises.filter(exercise => {
+        const equipment = exercise.equipment?.toLowerCase() || '';
+        if (selectedEquipment === 'bodyweight') {
+          return equipment === 'bodyweight' || equipment === 'none' || equipment === '';
+        } else if (selectedEquipment === 'machine') {
+          return equipment === 'machine';
+        } else if (selectedEquipment === 'cable') {
+          return equipment === 'cable' || equipment === 'cable machine';
+        }
+        return true;
+      });
+    }
+
+    // Filter by search query
+    if (searchQuery.trim() !== '') {
+      const query = searchQuery.toLowerCase().trim();
+      filteredExercises = filteredExercises.filter(exercise => 
+        exercise.name.toLowerCase().includes(query) ||
+        (exercise.description && exercise.description.toLowerCase().includes(query))
+      );
+    }
+
     console.log('🔍 [DEBUG] Final filtered exercises:', filteredExercises.length);
     console.log('🔍 [DEBUG] Setting exercises to state...');
     setExercises(filteredExercises);
@@ -119,19 +153,33 @@ export default function ExerciseListScreen({ navigation, route }) {
 
   const startWorkoutWithExercise = (exercise) => {
     console.log('Starting workout with exercise:', exercise.name);
+    console.log('From workout:', fromWorkout);
+    console.log('From free workout:', fromFreeWorkout);
     console.log('Return to workout:', returnToWorkout);
     console.log('Current workout exercises:', currentWorkoutExercises?.length || 0);
 
-    if (returnToWorkout && currentWorkoutExercises) {
+    // Handle different navigation modes
+    if (fromWorkout || (returnToWorkout && currentWorkoutExercises)) {
       // Add exercise to existing workout
       navigation.navigate('Workout', {
         exercise,
         addToExistingWorkout: true,
-        existingWorkoutExercises: currentWorkoutExercises
+        existingWorkoutExercises: currentWorkoutExercises || [],
+        workoutStartTime: workoutStartTime,
+        selectedMuscleGroups: selectedMuscleGroups
+      });
+    } else if (fromFreeWorkout) {
+      // Start new workout from free workout mode
+      navigation.navigate('Workout', { 
+        exercise,
+        selectedMuscleGroups: selectedMuscleGroups 
       });
     } else {
-      // Start new workout
-      navigation.navigate('Workout', { exercise });
+      // Normal workout start from exercise library
+      navigation.navigate('Workout', { 
+        exercise,
+        selectedMuscleGroups: selectedMuscleGroups 
+      });
     }
   };
 
@@ -164,23 +212,12 @@ export default function ExerciseListScreen({ navigation, route }) {
     { id: 'Advanced', name: 'Advanced' },
   ];
 
-  const renderDifficultyFilter = ({ item }) => (
-    <TouchableOpacity
-      style={[
-        styles.filterButton,
-        selectedDifficulty === item.id && styles.selectedFilterButton
-      ]}
-      onPress={() => setSelectedDifficulty(item.id)}
-      activeOpacity={0.8}
-    >
-      <Text style={[
-        styles.filterButtonText,
-        selectedDifficulty === item.id && styles.selectedFilterButtonText
-      ]}>
-        {item.name}
-      </Text>
-    </TouchableOpacity>
-  );
+  const equipmentOptions = [
+    { id: 'all', name: 'All Equipment' },
+    { id: 'bodyweight', name: 'Bodyweight' },
+    { id: 'machine', name: 'Machine' },
+    { id: 'cable', name: 'Cable' },
+  ];
 
   return (
     <ScreenLayout
@@ -205,16 +242,97 @@ export default function ExerciseListScreen({ navigation, route }) {
           data={exercises}
           ListHeaderComponent={() => {
             return (
-              <View style={styles.filterSection}>
-                <FlatList
-                  data={difficultyOptions}
-                  renderItem={renderDifficultyFilter}
-                  keyExtractor={item => item.id}
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.filterContainer}
-                  scrollEnabled={true}
-                />
+              <View style={styles.headerContainer}>
+                {/* Search Bar with Filter Button */}
+                <View style={styles.searchBarRow}>
+                  <View style={styles.searchContainer}>
+                    <Text style={styles.searchIcon}>🔍</Text>
+                    <TextInput
+                      style={styles.searchInput}
+                      placeholder="Search exercises..."
+                      placeholderTextColor={Colors.textMuted}
+                      value={searchQuery}
+                      onChangeText={setSearchQuery}
+                      returnKeyType="search"
+                    />
+                    {searchQuery.length > 0 && (
+                      <TouchableOpacity
+                        onPress={() => setSearchQuery('')}
+                        style={styles.clearButton}
+                      >
+                        <Text style={styles.clearButtonText}>✕</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                  
+                  <TouchableOpacity
+                    style={[styles.filterToggleButton, (selectedDifficulty !== 'all' || selectedEquipment !== 'all') && styles.filterToggleButtonActive]}
+                    onPress={() => setShowFilters(!showFilters)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.filterToggleIcon}>⚙️</Text>
+                    <Text style={styles.filterToggleText}>Filter</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Collapsible Filter Section */}
+                {showFilters && (
+                  <View style={styles.filtersContainer}>
+                    {/* Difficulty Filter */}
+                    <View style={styles.filterSection}>
+                      <Text style={styles.filterLabel}>Difficulty:</Text>
+                      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScrollView}>
+                        <View style={styles.filterButtonsRow}>
+                          {difficultyOptions.map(item => (
+                            <TouchableOpacity
+                              key={item.id}
+                              style={[
+                                styles.filterButton,
+                                selectedDifficulty === item.id && styles.selectedFilterButton
+                              ]}
+                              onPress={() => setSelectedDifficulty(item.id)}
+                              activeOpacity={0.8}
+                            >
+                              <Text style={[
+                                styles.filterButtonText,
+                                selectedDifficulty === item.id && styles.selectedFilterButtonText
+                              ]}>
+                                {item.name}
+                              </Text>
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                      </ScrollView>
+                    </View>
+
+                    {/* Equipment Filter */}
+                    <View style={styles.filterSection}>
+                      <Text style={styles.filterLabel}>Equipment:</Text>
+                      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScrollView}>
+                        <View style={styles.filterButtonsRow}>
+                          {equipmentOptions.map(item => (
+                            <TouchableOpacity
+                              key={item.id}
+                              style={[
+                                styles.filterButton,
+                                selectedEquipment === item.id && styles.selectedFilterButton
+                              ]}
+                              onPress={() => setSelectedEquipment(item.id)}
+                              activeOpacity={0.8}
+                            >
+                              <Text style={[
+                                styles.filterButtonText,
+                                selectedEquipment === item.id && styles.selectedFilterButtonText
+                              ]}>
+                                {item.name}
+                              </Text>
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                      </ScrollView>
+                    </View>
+                  </View>
+                )}
               </View>
             );
           }}
@@ -266,7 +384,7 @@ export default function ExerciseListScreen({ navigation, route }) {
                     style={styles.addButton}
                     onPress={() => startWorkoutWithExercise(item)}
                   >
-                    <Text style={styles.addButtonText}>Start</Text>
+                    <Text style={styles.addButtonText}>{fromWorkout ? 'Select' : 'Start'}</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -313,7 +431,7 @@ export default function ExerciseListScreen({ navigation, route }) {
                       style={styles.addButton}
                       onPress={() => startWorkoutWithExercise(item)}
                     >
-                      <Text style={styles.addButtonText}>Start</Text>
+                      <Text style={styles.addButtonText}>{fromWorkout ? 'Select' : 'Start'}</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -335,14 +453,94 @@ export default function ExerciseListScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  filterSection: {
-    paddingVertical: Spacing.md,
+  headerContainer: {
+    backgroundColor: Colors.background,
+    paddingBottom: Spacing.xs,
+  },
+  searchBarRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.md,
+    paddingTop: Spacing.sm,
+    paddingBottom: Spacing.xs,
+    gap: Spacing.sm,
+  },
+  searchContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  searchIcon: {
+    fontSize: 16,
+    marginRight: Spacing.xs,
+  },
+  searchInput: {
+    flex: 1,
+    paddingVertical: Spacing.xs,
+    fontSize: Typography.fontSize.md,
+    color: Colors.text,
+  },
+  clearButton: {
+    padding: Spacing.xs,
+  },
+  clearButtonText: {
+    fontSize: 16,
+    color: Colors.textMuted,
+  },
+  filterToggleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    gap: Spacing.xs,
+  },
+  filterToggleButtonActive: {
+    backgroundColor: Colors.surface,
+    borderColor: Colors.primary,
+    borderWidth: 2,
+  },
+  filterToggleIcon: {
+    fontSize: 16,
+  },
+  filterToggleText: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+  },
+  filtersContainer: {
+    paddingHorizontal: Spacing.md,
+    paddingBottom: Spacing.sm,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
-    backgroundColor: Colors.background,
   },
-  filterContainer: {
-    paddingHorizontal: Spacing.lg,
+  filterSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: Spacing.xs,
+  },
+  filterLabel: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+    marginRight: Spacing.sm,
+    minWidth: 70,
+  },
+  filterScrollView: {
+    flex: 1,
+  },
+  filterButtonsRow: {
+    flexDirection: 'row',
+    gap: Spacing.xs,
   },
   filterButton: {
     paddingHorizontal: Spacing.md,
