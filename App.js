@@ -26,6 +26,7 @@ import WorkoutSummaryScreen from './src/screens/WorkoutSummaryScreen';
 import AIAssistantScreen from './src/screens/AIAssistantScreen';
 import DebugScreen from './src/screens/DebugScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
+import ProgressScreen from './src/screens/ProgressScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -116,6 +117,7 @@ function AppNavigator() {
             <Stack.Screen name="AIAssistant" component={AIAssistantScreen} />
             <Stack.Screen name="Training" component={TrainingScreen} />
             <Stack.Screen name="Settings" component={SettingsScreen} />
+            <Stack.Screen name="Progress" component={ProgressScreen} />
             <Stack.Screen name="Debug" component={DebugScreen} />
           </>
         )}

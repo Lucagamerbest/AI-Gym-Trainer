@@ -5,8 +5,8 @@ import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function WorkoutSummaryScreen({ navigation, route }) {
-  const { workoutData } = route.params || {};
-  
+  const { workoutData, exerciseSets, saveResult } = route.params || {};
+
   const {
     duration = '00:00',
     exercisesCompleted = 0,
@@ -14,6 +14,31 @@ export default function WorkoutSummaryScreen({ navigation, route }) {
     startTime,
     endTime
   } = workoutData || {};
+
+  // Calculate summary stats from exercise sets
+  const calculateStats = () => {
+    let totalSets = 0;
+    let completedSets = 0;
+    let totalVolume = 0;
+
+    exercises.forEach((exercise, index) => {
+      const sets = exerciseSets?.[index] || [];
+      totalSets += sets.length;
+
+      sets.forEach(set => {
+        if (set.completed) {
+          completedSets += 1;
+          if (set.weight && set.reps) {
+            totalVolume += parseFloat(set.weight) * parseInt(set.reps);
+          }
+        }
+      });
+    });
+
+    return { totalSets, completedSets, totalVolume };
+  };
+
+  const { totalSets, completedSets, totalVolume } = calculateStats();
 
   const handleFinish = () => {
     // Navigate back to the main app (Home)
@@ -55,8 +80,28 @@ export default function WorkoutSummaryScreen({ navigation, route }) {
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>💪</Text>
-              <Text style={styles.statLabel}>Completed</Text>
+              <Text style={styles.statValue}>{completedSets}</Text>
+              <Text style={styles.statLabel}>Sets Done</Text>
+            </View>
+          </View>
+
+          {/* Additional Stats Row */}
+          <View style={styles.additionalStats}>
+            <View style={styles.additionalStatItem}>
+              <Text style={styles.additionalStatValue}>{totalSets}</Text>
+              <Text style={styles.additionalStatLabel}>Total Sets</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.additionalStatItem}>
+              <Text style={styles.additionalStatValue}>{Math.round(totalVolume)}</Text>
+              <Text style={styles.additionalStatLabel}>Volume (lbs)</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.additionalStatItem}>
+              <Text style={styles.additionalStatValue}>
+                {totalSets > 0 ? Math.round((completedSets / totalSets) * 100) : 0}%
+              </Text>
+              <Text style={styles.additionalStatLabel}>Completion</Text>
             </View>
           </View>
         </LinearGradient>
@@ -81,18 +126,70 @@ export default function WorkoutSummaryScreen({ navigation, route }) {
         </View>
       </View>
 
-      {/* Exercises List */}
+      {/* Detailed Exercise Summary */}
       {exercises.length > 0 && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Exercises Completed</Text>
-          {exercises.map((exercise, index) => (
-            <View key={index} style={styles.exerciseItem}>
-              <Text style={styles.exerciseName}>{exercise.name}</Text>
-              <Text style={styles.exerciseMeta}>
-                {exercise.equipment} • {exercise.difficulty}
-              </Text>
-            </View>
-          ))}
+          <Text style={styles.sectionTitle}>Exercise Summary</Text>
+          {exercises.map((exercise, index) => {
+            const sets = exerciseSets?.[index] || [];
+            const completedExerciseSets = sets.filter(set => set.completed);
+            const bestSet = completedExerciseSets.reduce((best, set) => {
+              const currentVolume = (parseFloat(set.weight) || 0) * (parseInt(set.reps) || 0);
+              const bestVolume = (parseFloat(best?.weight) || 0) * (parseInt(best?.reps) || 0);
+              return currentVolume > bestVolume ? set : best;
+            }, null);
+
+            return (
+              <View key={index} style={styles.exerciseItem}>
+                <View style={styles.exerciseHeader}>
+                  <Text style={styles.exerciseName}>{exercise.name}</Text>
+                  <Text style={styles.exerciseCompletionBadge}>
+                    {completedExerciseSets.length}/{sets.length} sets
+                  </Text>
+                </View>
+                <Text style={styles.exerciseMeta}>
+                  {exercise.equipment} • {exercise.difficulty}
+                </Text>
+
+                {/* Set Details */}
+                {sets.length > 0 && (
+                  <View style={styles.setsContainer}>
+                    <View style={styles.setsHeader}>
+                      <Text style={styles.setHeaderText}>Set</Text>
+                      <Text style={styles.setHeaderText}>Weight</Text>
+                      <Text style={styles.setHeaderText}>Reps</Text>
+                      <Text style={styles.setHeaderText}>Status</Text>
+                    </View>
+                    {sets.map((set, setIndex) => (
+                      <View key={setIndex} style={styles.setRow}>
+                        <Text style={styles.setNumber}>{setIndex + 1}</Text>
+                        <Text style={styles.setValue}>
+                          {set.weight ? `${set.weight} lbs` : '-'}
+                        </Text>
+                        <Text style={styles.setValue}>
+                          {set.reps || '-'}
+                        </Text>
+                        <Text style={[styles.setStatus, set.completed && styles.setStatusCompleted]}>
+                          {set.completed ? '✓' : '○'}
+                        </Text>
+                      </View>
+                    ))}
+
+                    {/* Best Set Highlight */}
+                    {bestSet && (
+                      <View style={styles.bestSetContainer}>
+                        <Text style={styles.bestSetLabel}>💪 Best Set:</Text>
+                        <Text style={styles.bestSetValue}>
+                          {bestSet.weight} lbs × {bestSet.reps} reps
+                          ({Math.round((parseFloat(bestSet.weight) || 0) * (parseInt(bestSet.reps) || 0))} volume)
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                )}
+              </View>
+            );
+          })}
         </View>
       )}
 
@@ -152,6 +249,28 @@ const styles = StyleSheet.create({
     height: 40,
     backgroundColor: Colors.border,
   },
+  additionalStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    marginTop: Spacing.md,
+    paddingTop: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border + '30',
+  },
+  additionalStatItem: {
+    alignItems: 'center',
+  },
+  additionalStatValue: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: 'bold',
+    color: Colors.text,
+    marginBottom: Spacing.xs,
+  },
+  additionalStatLabel: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textMuted,
+  },
   section: {
     marginBottom: Spacing.lg,
   },
@@ -191,15 +310,95 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     marginBottom: Spacing.sm,
   },
+  exerciseHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.xs,
+  },
   exerciseName: {
     fontSize: Typography.fontSize.md,
     fontWeight: '600',
     color: Colors.text,
-    marginBottom: Spacing.xs,
+    flex: 1,
+  },
+  exerciseCompletionBadge: {
+    backgroundColor: Colors.primary + '20',
+    color: Colors.primary,
+    fontSize: Typography.fontSize.xs,
+    fontWeight: 'bold',
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.sm,
   },
   exerciseMeta: {
     fontSize: Typography.fontSize.sm,
     color: Colors.textSecondary,
+    marginBottom: Spacing.sm,
+  },
+  setsContainer: {
+    marginTop: Spacing.sm,
+  },
+  setsHeader: {
+    flexDirection: 'row',
+    paddingBottom: Spacing.xs,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    marginBottom: Spacing.xs,
+  },
+  setHeaderText: {
+    flex: 1,
+    fontSize: Typography.fontSize.xs,
+    fontWeight: '600',
+    color: Colors.textMuted,
+    textAlign: 'center',
+  },
+  setRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: Spacing.xs,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border + '20',
+  },
+  setNumber: {
+    flex: 1,
+    fontSize: Typography.fontSize.sm,
+    color: Colors.text,
+    textAlign: 'center',
+  },
+  setValue: {
+    flex: 1,
+    fontSize: Typography.fontSize.sm,
+    color: Colors.text,
+    textAlign: 'center',
+  },
+  setStatus: {
+    flex: 1,
+    fontSize: Typography.fontSize.md,
+    color: Colors.textMuted,
+    textAlign: 'center',
+  },
+  setStatusCompleted: {
+    color: Colors.primary,
+  },
+  bestSetContainer: {
+    backgroundColor: Colors.primary + '10',
+    borderRadius: BorderRadius.sm,
+    padding: Spacing.sm,
+    marginTop: Spacing.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  bestSetLabel: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
+    color: Colors.primary,
+    marginRight: Spacing.sm,
+  },
+  bestSetValue: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.text,
+    flex: 1,
   },
   messageCard: {
     backgroundColor: Colors.primary + '10',

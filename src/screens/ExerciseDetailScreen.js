@@ -1,7 +1,9 @@
 // ExerciseDetailScreen - Fully Responsive Mobile Version
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, SafeAreaView, Platform, Dimensions } from 'react-native';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
+import { WorkoutStorageService } from '../services/workoutStorage';
+import { useAuth } from '../context/AuthContext';
 
 // Get screen dimensions for responsive design
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -14,6 +16,45 @@ export default function ExerciseDetailScreen({ navigation, route }) {
   console.log('🚨 [RESPONSIVE-DETAIL] Screen size type:', { isSmallScreen, isMediumScreen });
 
   const { exercise, fromWorkout } = route?.params || {};
+  const { user } = useAuth();
+  const [progressData, setProgressData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadProgressData();
+  }, [exercise, user]);
+
+  const loadProgressData = async () => {
+    if (!exercise?.name) return;
+
+    try {
+      setLoading(true);
+      const userId = user?.email || 'guest';
+      const progress = await WorkoutStorageService.getExerciseProgressByName(exercise.name, userId);
+      setProgressData(progress);
+    } catch (error) {
+      console.error('Error loading progress data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getPersonalRecords = () => {
+    if (!progressData || !progressData.records.length) return null;
+
+    const records = progressData.records;
+    const maxWeight = Math.max(...records.map(r => r.weight));
+    const maxVolume = Math.max(...records.map(r => r.volume));
+    const maxReps = Math.max(...records.map(r => r.reps));
+    const totalSessions = records.length;
+
+    return { maxWeight, maxVolume, maxReps, totalSessions };
+  };
+
+  const getRecentSessions = () => {
+    if (!progressData || !progressData.records.length) return [];
+    return progressData.records.slice(-3).reverse(); // Last 3 sessions, most recent first
+  };
 
   console.log('🚨 [RESPONSIVE-DETAIL] Exercise data:', JSON.stringify(exercise, null, 2));
   console.log('🚨 [RESPONSIVE-DETAIL] FromWorkout:', fromWorkout);
@@ -238,6 +279,212 @@ export default function ExerciseDetailScreen({ navigation, route }) {
               }}>
                 Secondary: {exercise.secondaryMuscles.join(', ')}
               </Text>
+            )}
+          </>
+        )}
+
+        {/* Exercise Progress Section */}
+        {!loading && (
+          <>
+            <Text style={{
+              fontSize: getResponsiveFontSize(Typography.fontSize.lg),
+              fontWeight: 'bold',
+              color: Colors.text,
+              marginBottom: getResponsiveSpacing(0.5),
+              marginTop: getResponsiveSpacing(1),
+            }}>
+              Your Progress:
+            </Text>
+
+            {progressData && progressData.records.length > 0 ? (
+              <>
+                {/* Personal Records */}
+                {(() => {
+                  const records = getPersonalRecords();
+                  return (
+                    <View style={{
+                      backgroundColor: Colors.surface,
+                      borderRadius: BorderRadius.md,
+                      borderWidth: 1,
+                      borderColor: Colors.border,
+                      padding: getResponsiveSpacing(0.75),
+                      marginBottom: getResponsiveSpacing(0.75),
+                    }}>
+                      <Text style={{
+                        fontSize: getResponsiveFontSize(Typography.fontSize.md),
+                        fontWeight: 'bold',
+                        color: Colors.primary,
+                        marginBottom: getResponsiveSpacing(0.5),
+                      }}>
+                        Personal Records
+                      </Text>
+                      <View style={{
+                        flexDirection: 'row',
+                        justifyContent: 'space-around',
+                        flexWrap: 'wrap',
+                      }}>
+                        <View style={{ alignItems: 'center', minWidth: getResponsiveSize(70, 80, 90) }}>
+                          <Text style={{
+                            fontSize: getResponsiveFontSize(Typography.fontSize.lg),
+                            fontWeight: 'bold',
+                            color: Colors.text,
+                          }}>
+                            {records.maxWeight}
+                          </Text>
+                          <Text style={{
+                            fontSize: getResponsiveFontSize(Typography.fontSize.xs),
+                            color: Colors.textMuted,
+                          }}>
+                            Max Weight
+                          </Text>
+                        </View>
+                        <View style={{ alignItems: 'center', minWidth: getResponsiveSize(70, 80, 90) }}>
+                          <Text style={{
+                            fontSize: getResponsiveFontSize(Typography.fontSize.lg),
+                            fontWeight: 'bold',
+                            color: Colors.text,
+                          }}>
+                            {records.maxReps}
+                          </Text>
+                          <Text style={{
+                            fontSize: getResponsiveFontSize(Typography.fontSize.xs),
+                            color: Colors.textMuted,
+                          }}>
+                            Max Reps
+                          </Text>
+                        </View>
+                        <View style={{ alignItems: 'center', minWidth: getResponsiveSize(70, 80, 90) }}>
+                          <Text style={{
+                            fontSize: getResponsiveFontSize(Typography.fontSize.lg),
+                            fontWeight: 'bold',
+                            color: Colors.text,
+                          }}>
+                            {Math.round(records.maxVolume)}
+                          </Text>
+                          <Text style={{
+                            fontSize: getResponsiveFontSize(Typography.fontSize.xs),
+                            color: Colors.textMuted,
+                          }}>
+                            Max Volume
+                          </Text>
+                        </View>
+                        <View style={{ alignItems: 'center', minWidth: getResponsiveSize(70, 80, 90) }}>
+                          <Text style={{
+                            fontSize: getResponsiveFontSize(Typography.fontSize.lg),
+                            fontWeight: 'bold',
+                            color: Colors.text,
+                          }}>
+                            {records.totalSessions}
+                          </Text>
+                          <Text style={{
+                            fontSize: getResponsiveFontSize(Typography.fontSize.xs),
+                            color: Colors.textMuted,
+                          }}>
+                            Sessions
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                  );
+                })()}
+
+                {/* Recent Sessions */}
+                {getRecentSessions().length > 0 && (
+                  <View style={{
+                    backgroundColor: Colors.surface,
+                    borderRadius: BorderRadius.md,
+                    borderWidth: 1,
+                    borderColor: Colors.border,
+                    padding: getResponsiveSpacing(0.75),
+                    marginBottom: getResponsiveSpacing(0.75),
+                  }}>
+                    <Text style={{
+                      fontSize: getResponsiveFontSize(Typography.fontSize.md),
+                      fontWeight: 'bold',
+                      color: Colors.primary,
+                      marginBottom: getResponsiveSpacing(0.5),
+                    }}>
+                      Recent Sessions
+                    </Text>
+                    {getRecentSessions().map((session, index) => (
+                      <View key={index} style={{
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        paddingVertical: getResponsiveSpacing(0.25),
+                        borderBottomWidth: index < getRecentSessions().length - 1 ? 1 : 0,
+                        borderBottomColor: Colors.border + '30',
+                      }}>
+                        <Text style={{
+                          fontSize: getResponsiveFontSize(Typography.fontSize.sm),
+                          color: Colors.textMuted,
+                          flex: 1,
+                        }}>
+                          {new Date(session.date).toLocaleDateString()}
+                        </Text>
+                        <Text style={{
+                          fontSize: getResponsiveFontSize(Typography.fontSize.sm),
+                          color: Colors.text,
+                          fontWeight: '600',
+                          marginHorizontal: getResponsiveSpacing(0.5),
+                        }}>
+                          {session.weight} lbs × {session.reps}
+                        </Text>
+                        <Text style={{
+                          fontSize: getResponsiveFontSize(Typography.fontSize.xs),
+                          color: Colors.textMuted,
+                        }}>
+                          {Math.round(session.volume)} vol
+                        </Text>
+                      </View>
+                    ))}
+                    <TouchableOpacity
+                      style={{
+                        backgroundColor: Colors.primary + '20',
+                        borderRadius: BorderRadius.sm,
+                        padding: getResponsiveSpacing(0.5),
+                        alignItems: 'center',
+                        marginTop: getResponsiveSpacing(0.5),
+                      }}
+                      onPress={() => navigation.navigate('Progress')}
+                    >
+                      <Text style={{
+                        fontSize: getResponsiveFontSize(Typography.fontSize.sm),
+                        color: Colors.primary,
+                        fontWeight: '600',
+                      }}>
+                        View Full Progress
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </>
+            ) : (
+              <View style={{
+                backgroundColor: Colors.surface,
+                borderRadius: BorderRadius.md,
+                borderWidth: 1,
+                borderColor: Colors.border,
+                padding: getResponsiveSpacing(1),
+                alignItems: 'center',
+                marginBottom: getResponsiveSpacing(0.75),
+              }}>
+                <Text style={{
+                  fontSize: getResponsiveFontSize(Typography.fontSize.md),
+                  color: Colors.textMuted,
+                  textAlign: 'center',
+                  marginBottom: getResponsiveSpacing(0.5),
+                }}>
+                  No progress data yet
+                </Text>
+                <Text style={{
+                  fontSize: getResponsiveFontSize(Typography.fontSize.sm),
+                  color: Colors.textSecondary,
+                  textAlign: 'center',
+                }}>
+                  Complete a workout with this exercise to start tracking your progress!
+                </Text>
+              </View>
             )}
           </>
         )}

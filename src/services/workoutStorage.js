@@ -1,0 +1,228 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const STORAGE_KEYS = {
+  WORKOUT_HISTORY: 'workout_history',
+  EXERCISE_PROGRESS: 'exercise_progress',
+  USER_STATS: 'user_stats'
+};
+
+export class WorkoutStorageService {
+  // Save a completed workout with detailed exercise sets
+  static async saveWorkout(workoutData, exerciseSets, userId = 'guest') {
+    try {
+      const workout = {
+        id: Date.now().toString(),
+        userId,
+        date: new Date().toISOString(),
+        startTime: workoutData.startTime,
+        endTime: workoutData.endTime,
+        duration: workoutData.duration,
+        exercises: workoutData.exercises.map((exercise, index) => ({
+          ...exercise,
+          sets: exerciseSets[index] || [],
+          completedSets: exerciseSets[index]?.filter(set => set.completed).length || 0,
+          totalSets: exerciseSets[index]?.length || 0
+        }))
+      };
+
+      // Save to workout history
+      const history = await this.getWorkoutHistory(userId);
+      history.push(workout);
+      await AsyncStorage.setItem(`${STORAGE_KEYS.WORKOUT_HISTORY}_${userId}`, JSON.stringify(history));
+
+      // Update exercise progress for each exercise
+      for (let i = 0; i < workout.exercises.length; i++) {
+        const exercise = workout.exercises[i];
+        if (exercise.sets && exercise.sets.length > 0) {
+          await this.updateExerciseProgress(exercise, userId);
+        }
+      }
+
+      // Update user stats
+      await this.updateUserStats(workout, userId);
+
+      return { success: true, workoutId: workout.id };
+    } catch (error) {
+      console.error('Error saving workout:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Get workout history for a user
+  static async getWorkoutHistory(userId = 'guest') {
+    try {
+      const history = await AsyncStorage.getItem(`${STORAGE_KEYS.WORKOUT_HISTORY}_${userId}`);
+      return history ? JSON.parse(history) : [];
+    } catch (error) {
+      console.error('Error getting workout history:', error);
+      return [];
+    }
+  }
+
+  // Update progress for a specific exercise
+  static async updateExerciseProgress(exerciseData, userId = 'guest') {
+    try {
+      const progress = await this.getExerciseProgress(userId);
+      const exerciseKey = exerciseData.name.toLowerCase().replace(/\s+/g, '_');
+
+      if (!progress[exerciseKey]) {
+        progress[exerciseKey] = {
+          name: exerciseData.name,
+          equipment: exerciseData.equipment,
+          records: []
+        };
+      }
+
+      // Add new records from completed sets
+      const completedSets = exerciseData.sets.filter(set => set.completed && set.weight && set.reps);
+
+      completedSets.forEach(set => {
+        progress[exerciseKey].records.push({
+          date: new Date().toISOString(),
+          weight: parseFloat(set.weight) || 0,
+          reps: parseInt(set.reps) || 0,
+          volume: (parseFloat(set.weight) || 0) * (parseInt(set.reps) || 0)
+        });
+      });
+
+      // Sort records by date
+      progress[exerciseKey].records.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      await AsyncStorage.setItem(`${STORAGE_KEYS.EXERCISE_PROGRESS}_${userId}`, JSON.stringify(progress));
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating exercise progress:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Get progress for all exercises
+  static async getExerciseProgress(userId = 'guest') {
+    try {
+      const progress = await AsyncStorage.getItem(`${STORAGE_KEYS.EXERCISE_PROGRESS}_${userId}`);
+      return progress ? JSON.parse(progress) : {};
+    } catch (error) {
+      console.error('Error getting exercise progress:', error);
+      return {};
+    }
+  }
+
+  // Get progress for a specific exercise
+  static async getExerciseProgressByName(exerciseName, userId = 'guest') {
+    try {
+      const allProgress = await this.getExerciseProgress(userId);
+      const exerciseKey = exerciseName.toLowerCase().replace(/\s+/g, '_');
+      return allProgress[exerciseKey] || null;
+    } catch (error) {
+      console.error('Error getting exercise progress by name:', error);
+      return null;
+    }
+  }
+
+  // Update user stats (total workouts, streak, etc.)
+  static async updateUserStats(workout, userId = 'guest') {
+    try {
+      const stats = await this.getUserStats(userId);
+
+      stats.totalWorkouts = (stats.totalWorkouts || 0) + 1;
+      stats.totalExercises = (stats.totalExercises || 0) + workout.exercises.length;
+      stats.lastWorkoutDate = workout.date;
+
+      // Calculate streak
+      const today = new Date().toDateString();
+      const workoutDate = new Date(workout.date).toDateString();
+
+      if (workoutDate === today) {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = yesterday.toDateString();
+
+        if (stats.lastStreakDate === yesterdayStr || !stats.lastStreakDate) {
+          stats.currentStreak = (stats.currentStreak || 0) + 1;
+        } else if (stats.lastStreakDate !== today) {
+          stats.currentStreak = 1;
+        }
+        stats.lastStreakDate = today;
+      }
+
+      // Calculate total volume
+      const workoutVolume = workout.exercises.reduce((total, exercise) => {
+        return total + (exercise.sets || []).reduce((exerciseTotal, set) => {
+          if (set.completed && set.weight && set.reps) {
+            return exerciseTotal + (parseFloat(set.weight) * parseInt(set.reps));
+          }
+          return exerciseTotal;
+        }, 0);
+      }, 0);
+
+      stats.totalVolume = (stats.totalVolume || 0) + workoutVolume;
+
+      await AsyncStorage.setItem(`${STORAGE_KEYS.USER_STATS}_${userId}`, JSON.stringify(stats));
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating user stats:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Get user stats
+  static async getUserStats(userId = 'guest') {
+    try {
+      const stats = await AsyncStorage.getItem(`${STORAGE_KEYS.USER_STATS}_${userId}`);
+      return stats ? JSON.parse(stats) : {
+        totalWorkouts: 0,
+        totalExercises: 0,
+        currentStreak: 0,
+        totalVolume: 0,
+        lastWorkoutDate: null,
+        lastStreakDate: null
+      };
+    } catch (error) {
+      console.error('Error getting user stats:', error);
+      return {
+        totalWorkouts: 0,
+        totalExercises: 0,
+        currentStreak: 0,
+        totalVolume: 0,
+        lastWorkoutDate: null,
+        lastStreakDate: null
+      };
+    }
+  }
+
+  // Get exercise data for charts (last 30 days)
+  static async getExerciseChartData(exerciseName, userId = 'guest', days = 30) {
+    try {
+      const progress = await this.getExerciseProgressByName(exerciseName, userId);
+      if (!progress || !progress.records) return [];
+
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - days);
+
+      return progress.records
+        .filter(record => new Date(record.date) >= cutoffDate)
+        .map(record => ({
+          date: new Date(record.date).toLocaleDateString(),
+          weight: record.weight,
+          reps: record.reps,
+          volume: record.volume
+        }));
+    } catch (error) {
+      console.error('Error getting exercise chart data:', error);
+      return [];
+    }
+  }
+
+  // Clear all data (for testing/reset)
+  static async clearAllData(userId = 'guest') {
+    try {
+      await AsyncStorage.removeItem(`${STORAGE_KEYS.WORKOUT_HISTORY}_${userId}`);
+      await AsyncStorage.removeItem(`${STORAGE_KEYS.EXERCISE_PROGRESS}_${userId}`);
+      await AsyncStorage.removeItem(`${STORAGE_KEYS.USER_STATS}_${userId}`);
+      return { success: true };
+    } catch (error) {
+      console.error('Error clearing data:', error);
+      return { success: false, error: error.message };
+    }
+  }
+}

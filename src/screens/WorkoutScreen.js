@@ -5,6 +5,8 @@ import { Picker } from '@react-native-picker/picker';
 import ScreenLayout from '../components/ScreenLayout';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { LinearGradient } from 'expo-linear-gradient';
+import { WorkoutStorageService } from '../services/workoutStorage';
+import { useAuth } from '../context/AuthContext';
 
 // Exercise Card Component
 const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exerciseSets, onUpdateSet, onAddSet, onDeleteSet }) => {
@@ -106,6 +108,7 @@ const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exercise
 
 export default function WorkoutScreen({ navigation, route }) {
   const { exercise, addToExistingWorkout, existingWorkoutExercises, workoutStartTime: existingStartTime, selectedMuscleGroups } = route.params || {};
+  const { user } = useAuth();
   const [workoutStartTime] = useState(existingStartTime || new Date());
   const [currentTime, setCurrentTime] = useState(new Date());
   const [restTimer, setRestTimer] = useState(0);
@@ -292,7 +295,7 @@ export default function WorkoutScreen({ navigation, route }) {
     setShowFinishConfirmation(true);
   };
 
-  const confirmFinishWorkout = () => {
+  const confirmFinishWorkout = async () => {
     const workoutData = {
       duration: getElapsedTime(),
       exercisesCompleted: workoutExercises.length,
@@ -301,11 +304,23 @@ export default function WorkoutScreen({ navigation, route }) {
       endTime: new Date()
     };
 
+    // Save workout data with exercise sets
+    const userId = user?.email || 'guest';
+    const saveResult = await WorkoutStorageService.saveWorkout(workoutData, exerciseSets, userId);
+
+    if (!saveResult.success) {
+      Alert.alert('Error', 'Failed to save workout data. Continuing anyway.');
+    }
+
     // Remove the navigation listener before navigating away
     navigation.removeListener('beforeRemove', () => {});
 
     setShowFinishConfirmation(false);
-    navigation.navigate('WorkoutSummary', { workoutData });
+    navigation.navigate('WorkoutSummary', {
+      workoutData,
+      exerciseSets,
+      saveResult
+    });
   };
 
   // Get current exercise

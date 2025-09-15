@@ -1,10 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import ScreenLayout from '../components/ScreenLayout';
 import StyledCard from '../components/StyledCard';
 import StyledButton from '../components/StyledButton';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { useAuth } from '../context/AuthContext';
+import { WorkoutStorageService } from '../services/workoutStorage';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 
@@ -12,7 +13,23 @@ WebBrowser.maybeCompleteAuthSession();
 
 export default function ProfileScreen({ navigation }) {
   const { user, signIn, signOut } = useAuth();
-  const [isLoading, setIsLoading] = React.useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [userStats, setUserStats] = useState(null);
+
+  // Load user stats when component mounts or user changes
+  useEffect(() => {
+    loadUserStats();
+  }, [user]);
+
+  const loadUserStats = async () => {
+    try {
+      const userId = user?.email || 'guest';
+      const stats = await WorkoutStorageService.getUserStats(userId);
+      setUserStats(stats);
+    } catch (error) {
+      console.error('Error loading user stats:', error);
+    }
+  };
 
   // Google Sign-In configuration with YOUR credentials
   const [request, response, promptAsync] = Google.useAuthRequest({
@@ -165,18 +182,18 @@ export default function ProfileScreen({ navigation }) {
 
       <View style={styles.statsContainer}>
         <StyledCard style={styles.statCard}>
-          <Text style={styles.statValue}>0</Text>
+          <Text style={styles.statValue}>{userStats?.totalWorkouts || 0}</Text>
           <Text style={styles.statLabel}>Workouts</Text>
         </StyledCard>
-        
+
         <StyledCard style={styles.statCard}>
-          <Text style={styles.statValue}>0</Text>
+          <Text style={styles.statValue}>{userStats?.currentStreak || 0}</Text>
           <Text style={styles.statLabel}>Streak</Text>
         </StyledCard>
-        
+
         <StyledCard style={styles.statCard}>
-          <Text style={styles.statValue}>0</Text>
-          <Text style={styles.statLabel}>Calories</Text>
+          <Text style={styles.statValue}>{Math.round(userStats?.totalVolume || 0)}</Text>
+          <Text style={styles.statLabel}>Volume</Text>
         </StyledCard>
       </View>
 
@@ -193,7 +210,7 @@ export default function ProfileScreen({ navigation }) {
           icon="📊"
           title="Progress & Goals"
           subtitle="Track your achievements"
-          onPress={() => {}}
+          onPress={() => navigation.navigate('Progress')}
           style={styles.menuItem}
         />
         
