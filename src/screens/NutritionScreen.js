@@ -65,7 +65,7 @@ export default function NutritionScreen({ navigation }) {
         icon="📷"
         title="Scan Food"
         subtitle="Instant nutrition info"
-        onPress={() => navigation.navigate('FoodScan')}
+        onPress={() => navigation.navigate('FoodScanning')}
       />
       
       <StyledCard

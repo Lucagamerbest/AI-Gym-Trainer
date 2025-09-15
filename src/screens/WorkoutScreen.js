@@ -9,7 +9,7 @@ import { WorkoutStorageService } from '../services/workoutStorage';
 import { useAuth } from '../context/AuthContext';
 
 // Exercise Card Component
-const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exerciseSets, onUpdateSet, onAddSet, onDeleteSet }) => {
+const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exerciseSets, onUpdateSet, onAddSet, onDeleteSet, onShowInfo }) => {
   return (
     <View
       style={[
@@ -35,13 +35,22 @@ const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exercise
               {exercise.equipment} • {exercise.difficulty}
             </Text>
           </TouchableOpacity>
-          
-          <TouchableOpacity
-            style={styles.deleteButton}
-            onPress={() => onDelete(index)}
-          >
-            <Text style={styles.deleteButtonText}>✕</Text>
-          </TouchableOpacity>
+
+          <View style={styles.exerciseActions}>
+            <TouchableOpacity
+              style={styles.infoButton}
+              onPress={() => onShowInfo(exercise)}
+            >
+              <Text style={styles.infoButtonText}>ℹ️</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.deleteButton}
+              onPress={() => onDelete(index)}
+            >
+              <Text style={styles.deleteButtonText}>✕</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Sets Tracking - Always visible */}
@@ -129,11 +138,11 @@ export default function WorkoutScreen({ navigation, route }) {
   const [pausedDuration, setPausedDuration] = useState(0);
   const [pauseStartTime, setPauseStartTime] = useState(null);
   const [showTimerPicker, setShowTimerPicker] = useState(false);
-  const [showExerciseInfo, setShowExerciseInfo] = useState(false);
   const [pickerMinutes, setPickerMinutes] = useState(1);
   const [pickerSeconds, setPickerSeconds] = useState(0);
   const [showFinishConfirmation, setShowFinishConfirmation] = useState(false);
   const [showBackWarning, setShowBackWarning] = useState(false);
+  const [showAIAssistant, setShowAIAssistant] = useState(false);
   
   // Exercise tracking state
   const [exerciseSets, setExerciseSets] = useState({});
@@ -325,6 +334,14 @@ export default function WorkoutScreen({ navigation, route }) {
 
   // Get current exercise
   const currentExercise = workoutExercises[currentExerciseIndex] || exercise;
+
+  // Navigate to exercise detail screen
+  const showExerciseDetail = (exercise) => {
+    navigation.navigate('ExerciseDetail', {
+      exercise: exercise,
+      fromWorkout: true
+    });
+  };
 
   // Add another exercise
   const addAnotherExercise = () => {
@@ -592,6 +609,7 @@ export default function WorkoutScreen({ navigation, route }) {
             onUpdateSet={updateSet}
             onAddSet={addSet}
             onDeleteSet={deleteSet}
+            onShowInfo={showExerciseDetail}
           />
         ))}
       </View>
@@ -606,6 +624,14 @@ export default function WorkoutScreen({ navigation, route }) {
               onPress={addAnotherExercise}
             >
               <Text style={[styles.actionButtonText, styles.addExerciseButtonText]}>➕ Add Another Exercise</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.actionButton, styles.aiButton]}
+              activeOpacity={0.8}
+              onPress={() => setShowAIAssistant(true)}
+            >
+              <Text style={[styles.actionButtonText, styles.aiButtonText]}>🤖 Ask AI Assistant</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -738,7 +764,7 @@ export default function WorkoutScreen({ navigation, route }) {
               Are you sure you want to remove this exercise from your workout?
             </Text>
             <View style={styles.modalButtons}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[styles.modalButton, styles.cancelButton]}
                 onPress={() => {
                   setShowDeleteConfirmation(false);
@@ -747,7 +773,7 @@ export default function WorkoutScreen({ navigation, route }) {
               >
                 <Text style={styles.cancelButtonText}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[styles.modalButton, styles.deleteConfirmButton]}
                 onPress={confirmDeleteExercise}
               >
@@ -757,6 +783,38 @@ export default function WorkoutScreen({ navigation, route }) {
           </View>
         </View>
       </Modal>
+
+      {/* AI Assistant Modal */}
+      <Modal
+        visible={showAIAssistant}
+        transparent={true}
+        animationType="slide"
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.aiModalContent}>
+            <View style={styles.aiModalHeader}>
+              <Text style={styles.modalTitle}>AI Assistant</Text>
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => setShowAIAssistant(false)}
+              >
+                <Text style={styles.closeButtonText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.aiModalBody}>
+              <Text style={styles.aiIcon}>🤖</Text>
+              <Text style={styles.aiMainText}>AI is currently being built</Text>
+              <Text style={styles.aiSubText}>Check back later</Text>
+              <View style={styles.aiInfoBox}>
+                <Text style={styles.aiInfoText}>
+                  Soon, your AI assistant will provide personalized guidance about your exercises, workout routines, and fitness goals based on your current activity.
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
     </>
   );
 }
@@ -1050,17 +1108,16 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
   },
   infoButton: {
-    padding: Spacing.sm,
+    padding: Spacing.xs,
     alignItems: 'center',
     justifyContent: 'center',
-    width: 36,
-    height: 36,
-    marginRight: Spacing.sm,
+    width: 32,
+    height: 32,
+    marginRight: Spacing.xs,
   },
   infoButtonText: {
-    fontSize: 14,
+    fontSize: 16,
     color: Colors.primary,
-    fontWeight: 'bold',
   },
   exerciseCardContainer: {
     alignItems: 'center',
@@ -1198,18 +1255,6 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.md,
     fontWeight: 'bold',
   },
-  infoButton: {
-    backgroundColor: Colors.primary,
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: Spacing.md,
-  },
-  infoButtonText: {
-    fontSize: 20,
-  },
   buttonSection: {
     gap: Spacing.md,
     marginBottom: Spacing.xl,
@@ -1229,6 +1274,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
   },
+  aiButton: {
+    backgroundColor: 'rgba(123, 104, 238, 0.9)', // Purple color for AI
+    borderWidth: 1,
+    borderColor: 'rgba(123, 104, 238, 0.3)',
+  },
   finishButton: {
     backgroundColor: Colors.primary,
   },
@@ -1239,6 +1289,9 @@ const styles = StyleSheet.create({
   },
   addExerciseButtonText: {
     color: Colors.text,
+  },
+  aiButtonText: {
+    color: Colors.background,
   },
   errorContainer: {
     flex: 1,
@@ -1335,27 +1388,22 @@ const styles = StyleSheet.create({
   modalButtonTextPrimary: {
     color: Colors.background,
   },
-  // Exercise info modal styles
-  infoModalContent: {
+  // AI Modal Styles
+  aiModalContent: {
     backgroundColor: Colors.surface,
     borderRadius: BorderRadius.lg,
     width: '90%',
     maxWidth: 500,
-    maxHeight: '80%',
+    borderWidth: 2,
+    borderColor: 'rgba(123, 104, 238, 0.3)',
   },
-  infoModalHeader: {
+  aiModalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: Spacing.lg,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
-  },
-  infoModalTitle: {
-    fontSize: Typography.fontSize.lg,
-    fontWeight: 'bold',
-    color: Colors.text,
-    flex: 1,
   },
   closeButton: {
     backgroundColor: Colors.border,
@@ -1369,30 +1417,40 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.text,
   },
-  infoModalScroll: {
-    padding: Spacing.lg,
-  },
-  infoModalInstructions: {
-    fontSize: Typography.fontSize.md,
-    color: Colors.text,
-    lineHeight: 24,
-    marginBottom: Spacing.lg,
-  },
-  infoModalMeta: {
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
+  aiModalBody: {
+    alignItems: 'center',
+    padding: Spacing.xl,
     paddingTop: Spacing.lg,
   },
-  infoModalMetaTitle: {
-    fontSize: Typography.fontSize.md,
+  aiIcon: {
+    fontSize: 80,
+    marginBottom: Spacing.xl,
+  },
+  aiMainText: {
+    fontSize: Typography.fontSize.xl,
     fontWeight: 'bold',
     color: Colors.text,
-    marginBottom: Spacing.xs,
-    marginTop: Spacing.sm,
-  },
-  infoModalMetaText: {
-    fontSize: Typography.fontSize.md,
-    color: Colors.textSecondary,
     marginBottom: Spacing.sm,
+    textAlign: 'center',
+  },
+  aiSubText: {
+    fontSize: Typography.fontSize.lg,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.xxl,
+    textAlign: 'center',
+  },
+  aiInfoBox: {
+    backgroundColor: Colors.background,
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    maxWidth: 320,
+  },
+  aiInfoText: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.textMuted,
+    textAlign: 'center',
+    lineHeight: 22,
   },
 });

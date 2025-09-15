@@ -27,6 +27,8 @@ import AIAssistantScreen from './src/screens/AIAssistantScreen';
 import DebugScreen from './src/screens/DebugScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import ProgressScreen from './src/screens/ProgressScreen';
+import CameraScreen from './src/screens/CameraScreen';
+import FoodScanningScreen from './src/screens/FoodScanningScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -105,6 +107,8 @@ function AppNavigator() {
           <>
             <Stack.Screen name="Main" component={TabNavigator} />
             <Stack.Screen name="Nutrition" component={NutritionScreen} />
+            <Stack.Screen name="FoodScanning" component={FoodScanningScreen} />
+            <Stack.Screen name="Camera" component={CameraScreen} />
             <Stack.Screen name="FoodScan" component={FoodScanScreen} />
             <Stack.Screen name="MealsHistory" component={MealsHistoryScreen} />
             <Stack.Screen name="SearchFood" component={SearchFoodScreen} />

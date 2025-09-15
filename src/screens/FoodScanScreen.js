@@ -1,18 +1,21 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import ScreenLayout from '../components/ScreenLayout';
 import StyledCard from '../components/StyledCard';
 import StyledButton from '../components/StyledButton';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 
-export default function FoodScanScreen({ navigation }) {
-  const [foodItem] = useState('Food Item Name');
+export default function FoodScanScreen({ navigation, route }) {
+  // Get data from camera screen or use defaults
+  const { capturedImage, foodData } = route?.params || {};
+
+  const [foodItem] = useState(foodData?.name || 'Food Item Name');
   const [rating] = useState('green');
   const [quantity] = useState('300g');
-  const [calories] = useState(300);
-  const [protein] = useState(10);
-  const [fats] = useState(15);
-  const [carbs] = useState(20);
+  const [calories] = useState(foodData?.calories || 300);
+  const [protein] = useState(foodData?.protein || 10);
+  const [fats] = useState(foodData?.fats || 15);
+  const [carbs] = useState(foodData?.carbs || 20);
 
   return (
     <ScreenLayout
@@ -24,8 +27,18 @@ export default function FoodScanScreen({ navigation }) {
     >
       <StyledCard style={styles.scanImageCard}>
         <View style={styles.scanImageContainer}>
-          <Text style={styles.scanImageIcon}>📷</Text>
-          <Text style={styles.scanImageText}>Scanned Image</Text>
+          {capturedImage ? (
+            <Image
+              source={{ uri: capturedImage }}
+              style={styles.capturedImage}
+              resizeMode="cover"
+            />
+          ) : (
+            <>
+              <Text style={styles.scanImageIcon}>📷</Text>
+              <Text style={styles.scanImageText}>Scanned Image</Text>
+            </>
+          )}
         </View>
       </StyledCard>
 
@@ -89,7 +102,14 @@ export default function FoodScanScreen({ navigation }) {
           size="lg"
           variant="secondary"
           fullWidth
-          onPress={() => {}}
+          onPress={() => {
+            const { fromHistory } = route?.params || {};
+            if (fromHistory) {
+              navigation.navigate('FoodScanning');
+            } else {
+              navigation.goBack(); // Go back to camera
+            }
+          }}
         />
       </View>
     </ScreenLayout>
@@ -103,6 +123,12 @@ const styles = StyleSheet.create({
   },
   scanImageContainer: {
     alignItems: 'center',
+    width: '100%',
+  },
+  capturedImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: BorderRadius.md,
   },
   scanImageIcon: {
     fontSize: 60,
