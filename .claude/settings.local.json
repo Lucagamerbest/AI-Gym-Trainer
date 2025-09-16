@@ -34,7 +34,8 @@
       "Bash(git pull:*)",
       "Bash(npm uninstall:*)",
       "WebFetch(domain:github.com)",
-      "Bash(git clone:*)"
+      "Bash(git clone:*)",
+      "Bash(timeout:*)"
     ],
     "deny": [],
     "ask": []

@@ -13,15 +13,15 @@ export default function ExerciseListScreenTest({ navigation, route }) {
     loadExercises();
   }, [selectedMuscleGroups, selectedDifficulty]);
 
-  const loadExercises = () => {
+  const loadExercises = async () => {
     let filteredExercises = [];
-    
-    selectedMuscleGroups.forEach(muscleGroup => {
-      const groupExercises = getExercisesByMuscleGroup(muscleGroup);
+
+    for (const muscleGroup of selectedMuscleGroups) {
+      const groupExercises = await getExercisesByMuscleGroup(muscleGroup);
       if (groupExercises) {
         filteredExercises = [...filteredExercises, ...groupExercises];
       }
-    });
+    }
 
 
     if (selectedDifficulty !== 'all') {

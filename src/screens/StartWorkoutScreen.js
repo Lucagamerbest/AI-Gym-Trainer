@@ -41,6 +41,16 @@ export default function StartWorkoutScreen({ navigation }) {
             icon="🏃"
             style={styles.quickStartButton}
           />
+          <StyledButton
+            title="Exercise Library"
+            subtitle="Browse all 800+ exercises with advanced filters"
+            onPress={() => navigation.navigate('ExerciseList', {
+              selectedMuscleGroups: ['chest', 'back', 'legs', 'biceps', 'triceps', 'shoulders', 'abs'],
+              fromLibrary: true
+            })}
+            icon="📚"
+            style={styles.quickStartButton}
+          />
         </View>
 
         {/* Workout Programs */}

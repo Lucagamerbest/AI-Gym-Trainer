@@ -17950,7 +17950,15 @@ export const exerciseDatabase = {
 };
 
 // Helper functions for exercise filtering and retrieval
-export const getExercisesByMuscleGroup = (muscleGroup) => {
+export const getExercisesByMuscleGroup = async (muscleGroup) => {
+  // Import custom exercise storage (dynamic import to avoid circular dependency)
+  let customExercises = [];
+  try {
+    const { CustomExerciseStorage } = await import('../services/customExerciseStorage');
+    customExercises = await CustomExerciseStorage.getCustomExercisesByMuscleGroup(muscleGroup);
+  } catch (error) {
+    // Silent fallback if custom exercise storage is not available
+  }
 
   const muscleGroupMap = {
     'chest': exerciseDatabase.chest,
@@ -17966,10 +17974,16 @@ export const getExercisesByMuscleGroup = (muscleGroup) => {
   // For arms, combine biceps and triceps
   if (muscleGroup === 'arms') {
     const result = [...exerciseDatabase.biceps, ...exerciseDatabase.triceps];
-    return result;
+    // Add custom exercises for both biceps and triceps at the top
+    const customBiceps = customExercises.filter(ex => ex.muscleGroup === 'biceps');
+    const customTriceps = customExercises.filter(ex => ex.muscleGroup === 'triceps');
+    return [...customBiceps, ...customTriceps, ...result];
   }
 
-  const result = muscleGroupMap[muscleGroup] || [];
+  const standardExercises = muscleGroupMap[muscleGroup] || [];
+
+  // Combine custom exercises at the top, followed by standard exercises
+  const result = [...customExercises, ...standardExercises];
 
   return result;
 };

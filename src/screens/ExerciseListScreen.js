@@ -14,13 +14,14 @@ import { getExercisesByMuscleGroup } from '../data/exerciseDatabase';
 
 
 export default function ExerciseListScreen({ navigation, route }) {
-  const { 
-    selectedMuscleGroups, 
-    returnToWorkout, 
+  const {
+    selectedMuscleGroups,
+    returnToWorkout,
     currentWorkoutExercises,
     fromWorkout,
     workoutStartTime,
-    fromFreeWorkout 
+    fromFreeWorkout,
+    fromLibrary
   } = route.params || { selectedMuscleGroups: [] };
   const [exercises, setExercises] = useState([]);
   const [selectedDifficulty, setSelectedDifficulty] = useState('all');
@@ -81,21 +82,21 @@ export default function ExerciseListScreen({ navigation, route }) {
     }
   }, []);
 
-  const loadExercises = () => {
-    
+  const loadExercises = async () => {
+
     let filteredExercises = [];
-    
-    selectedMuscleGroups.forEach(muscleGroup => {
+
+    for (const muscleGroup of selectedMuscleGroups) {
       try {
-        const groupExercises = getExercisesByMuscleGroup(muscleGroup);
-        
+        const groupExercises = await getExercisesByMuscleGroup(muscleGroup);
+
         if (groupExercises && Array.isArray(groupExercises) && groupExercises.length > 0) {
           filteredExercises = [...filteredExercises, ...groupExercises];
         }
       } catch (error) {
         // Silent error handling
       }
-    });
+    }
 
 
     if (selectedDifficulty !== 'all') {
@@ -198,14 +199,108 @@ export default function ExerciseListScreen({ navigation, route }) {
 
   return (
     <ScreenLayout
-      title="Exercise Library"
-      subtitle={`${exercises.length} exercises for ${selectedMuscleGroups.length} muscle groups`}
+      title={fromLibrary ? "Exercise Library" : "Exercise Selection"}
+      subtitle={fromLibrary ? `${exercises.length} exercises available` : `${exercises.length} exercises for ${selectedMuscleGroups.length} muscle groups`}
       navigation={navigation}
       showBack={true}
       scrollable={false}
       style={{ paddingHorizontal: 0 }}
     >
-      {/* Exercise List with integrated header */}
+      {/* Static Search Bar and Filters */}
+      <View style={styles.staticHeaderContainer}>
+        {/* Search Bar with Filter Button */}
+        <View style={styles.searchBarRow}>
+          <View style={styles.searchContainer}>
+            <Text style={styles.searchIcon}>🔍</Text>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search exercises..."
+              placeholderTextColor={Colors.textMuted}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              returnKeyType="search"
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity
+                onPress={() => setSearchQuery('')}
+                style={styles.clearButton}
+              >
+                <Text style={styles.clearButtonText}>✕</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          <TouchableOpacity
+            style={[styles.filterToggleButton, (selectedDifficulty !== 'all' || selectedEquipment !== 'all') && styles.filterToggleButtonActive]}
+            onPress={() => setShowFilters(!showFilters)}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.filterToggleIcon}>⚙️</Text>
+            <Text style={styles.filterToggleText}>Filter</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Collapsible Filter Section */}
+        {showFilters && (
+          <View style={styles.filtersContainer}>
+            {/* Difficulty Filter */}
+            <View style={styles.filterSection}>
+              <Text style={styles.filterLabel}>Difficulty:</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScrollView}>
+                <View style={styles.filterButtonsRow}>
+                  {difficultyOptions.map(item => (
+                    <TouchableOpacity
+                      key={item.id}
+                      style={[
+                        styles.filterButton,
+                        selectedDifficulty === item.id && styles.selectedFilterButton
+                      ]}
+                      onPress={() => setSelectedDifficulty(item.id)}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={[
+                        styles.filterButtonText,
+                        selectedDifficulty === item.id && styles.selectedFilterButtonText
+                      ]}>
+                        {item.name}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </ScrollView>
+            </View>
+
+            {/* Equipment Filter */}
+            <View style={styles.filterSection}>
+              <Text style={styles.filterLabel}>Equipment:</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScrollView}>
+                <View style={styles.filterButtonsRow}>
+                  {equipmentOptions.map(item => (
+                    <TouchableOpacity
+                      key={item.id}
+                      style={[
+                        styles.filterButton,
+                        selectedEquipment === item.id && styles.selectedFilterButton
+                      ]}
+                      onPress={() => setSelectedEquipment(item.id)}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={[
+                        styles.filterButtonText,
+                        selectedEquipment === item.id && styles.selectedFilterButtonText
+                      ]}>
+                        {item.name}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </ScrollView>
+            </View>
+          </View>
+        )}
+      </View>
+
+      {/* Exercise List */}
       {exercises.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyIcon}>🤷‍♂️</Text>
@@ -220,95 +315,17 @@ export default function ExerciseListScreen({ navigation, route }) {
           ListHeaderComponent={() => {
             return (
               <View style={styles.headerContainer}>
-                {/* Search Bar with Filter Button */}
-                <View style={styles.searchBarRow}>
-                  <View style={styles.searchContainer}>
-                    <Text style={styles.searchIcon}>🔍</Text>
-                    <TextInput
-                      style={styles.searchInput}
-                      placeholder="Search exercises..."
-                      placeholderTextColor={Colors.textMuted}
-                      value={searchQuery}
-                      onChangeText={setSearchQuery}
-                      returnKeyType="search"
-                    />
-                    {searchQuery.length > 0 && (
-                      <TouchableOpacity
-                        onPress={() => setSearchQuery('')}
-                        style={styles.clearButton}
-                      >
-                        <Text style={styles.clearButtonText}>✕</Text>
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                  
+                {/* Create Exercise Button - Only show in library mode */}
+                {fromLibrary && (
                   <TouchableOpacity
-                    style={[styles.filterToggleButton, (selectedDifficulty !== 'all' || selectedEquipment !== 'all') && styles.filterToggleButtonActive]}
-                    onPress={() => setShowFilters(!showFilters)}
+                    style={styles.createExerciseButtonInHeader}
+                    onPress={() => navigation.navigate('CreateExercise')}
                     activeOpacity={0.8}
                   >
-                    <Text style={styles.filterToggleIcon}>⚙️</Text>
-                    <Text style={styles.filterToggleText}>Filter</Text>
+                    <Text style={styles.createExerciseInListIcon}>🔍</Text>
+                    <Text style={styles.createExerciseInListText}>Still not what you're looking for? Create custom exercise</Text>
+                    <Text style={styles.createExerciseInListArrow}>→</Text>
                   </TouchableOpacity>
-                </View>
-
-                {/* Collapsible Filter Section */}
-                {showFilters && (
-                  <View style={styles.filtersContainer}>
-                    {/* Difficulty Filter */}
-                    <View style={styles.filterSection}>
-                      <Text style={styles.filterLabel}>Difficulty:</Text>
-                      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScrollView}>
-                        <View style={styles.filterButtonsRow}>
-                          {difficultyOptions.map(item => (
-                            <TouchableOpacity
-                              key={item.id}
-                              style={[
-                                styles.filterButton,
-                                selectedDifficulty === item.id && styles.selectedFilterButton
-                              ]}
-                              onPress={() => setSelectedDifficulty(item.id)}
-                              activeOpacity={0.8}
-                            >
-                              <Text style={[
-                                styles.filterButtonText,
-                                selectedDifficulty === item.id && styles.selectedFilterButtonText
-                              ]}>
-                                {item.name}
-                              </Text>
-                            </TouchableOpacity>
-                          ))}
-                        </View>
-                      </ScrollView>
-                    </View>
-
-                    {/* Equipment Filter */}
-                    <View style={styles.filterSection}>
-                      <Text style={styles.filterLabel}>Equipment:</Text>
-                      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScrollView}>
-                        <View style={styles.filterButtonsRow}>
-                          {equipmentOptions.map(item => (
-                            <TouchableOpacity
-                              key={item.id}
-                              style={[
-                                styles.filterButton,
-                                selectedEquipment === item.id && styles.selectedFilterButton
-                              ]}
-                              onPress={() => setSelectedEquipment(item.id)}
-                              activeOpacity={0.8}
-                            >
-                              <Text style={[
-                                styles.filterButtonText,
-                                selectedEquipment === item.id && styles.selectedFilterButtonText
-                              ]}>
-                                {item.name}
-                              </Text>
-                            </TouchableOpacity>
-                          ))}
-                        </View>
-                      </ScrollView>
-                    </View>
-                  </View>
                 )}
               </View>
             );
@@ -325,6 +342,7 @@ export default function ExerciseListScreen({ navigation, route }) {
                   </View>
                   <View style={styles.detailedExerciseContent}>
                 {/* Exercise Name */}
+                {item.isCustom && <Text style={styles.customBadge}>⭐ CUSTOM</Text>}
                 <Text style={styles.exerciseName}>{item.name}</Text>
 
                 {/* Exercise Meta */}
@@ -374,6 +392,7 @@ export default function ExerciseListScreen({ navigation, route }) {
               <View style={styles.exerciseCard}>
                 <View style={styles.exerciseContent}>
                   {/* Exercise Name */}
+                  {item.isCustom && <Text style={styles.customBadge}>⭐ CUSTOM</Text>}
                   <Text style={styles.exerciseName}>{item.name}</Text>
 
                   {/* Exercise Meta */}
@@ -421,7 +440,12 @@ export default function ExerciseListScreen({ navigation, route }) {
           columnWrapperStyle={displayMode === 'detailed' ? null : styles.gridRow}
           contentContainerStyle={styles.gridContainer}
           showsVerticalScrollIndicator={false}
-          stickyHeaderIndices={[0]}
+          // Performance optimizations
+          removeClippedSubviews={true}
+          maxToRenderPerBatch={8}
+          updateCellsBatchingPeriod={50}
+          initialNumToRender={8}
+          windowSize={8}
         />
       )}
 
@@ -430,6 +454,11 @@ export default function ExerciseListScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
+  staticHeaderContainer: {
+    backgroundColor: Colors.background,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
   headerContainer: {
     backgroundColor: Colors.background,
     paddingBottom: Spacing.xs,
@@ -707,5 +736,40 @@ const styles = StyleSheet.create({
   },
   detailedExerciseContent: {
     flex: 1,
+  },
+  // Custom Exercise Badge
+  customBadge: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.primary,
+    fontWeight: 'bold',
+    marginBottom: 2,
+  },
+  // Create Exercise Button in Header
+  createExerciseButtonInHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.primary + '10',
+    marginHorizontal: Spacing.md,
+    marginVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.primary + '30',
+  },
+  createExerciseInListIcon: {
+    fontSize: Typography.fontSize.md,
+    marginRight: Spacing.sm,
+  },
+  createExerciseInListText: {
+    flex: 1,
+    fontSize: Typography.fontSize.sm,
+    color: Colors.primary,
+    fontWeight: '600',
+  },
+  createExerciseInListArrow: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.primary,
+    fontWeight: 'bold',
   },
 });

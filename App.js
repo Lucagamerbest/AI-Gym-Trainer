@@ -4,6 +4,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'expo-status-bar';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { Colors } from './src/constants/theme';
 
@@ -29,6 +30,7 @@ import SettingsScreen from './src/screens/SettingsScreen';
 import ProgressScreen from './src/screens/ProgressScreen';
 import CameraScreen from './src/screens/CameraScreen';
 import FoodScanningScreen from './src/screens/FoodScanningScreen';
+import CreateExerciseScreen from './src/screens/CreateExerciseScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -113,6 +115,7 @@ function AppNavigator() {
             <Stack.Screen name="MealsHistory" component={MealsHistoryScreen} />
             <Stack.Screen name="SearchFood" component={SearchFoodScreen} />
             <Stack.Screen name="StartWorkout" component={StartWorkoutScreen} />
+            <Stack.Screen name="CreateExercise" component={CreateExerciseScreen} />
             <Stack.Screen name="MuscleGroupSelection" component={MuscleGroupSelectionScreen} />
             <Stack.Screen name="ExerciseList" component={ExerciseListScreen} />
             <Stack.Screen name="ExerciseDetail" component={ExerciseDetailScreen} />
@@ -132,10 +135,12 @@ function AppNavigator() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <StatusBar style="light" />
-      <AppNavigator />
-    </AuthProvider>
+    <SafeAreaProvider>
+      <AuthProvider>
+        <StatusBar style="light" />
+        <AppNavigator />
+      </AuthProvider>
+    </SafeAreaProvider>
   );
 }
 

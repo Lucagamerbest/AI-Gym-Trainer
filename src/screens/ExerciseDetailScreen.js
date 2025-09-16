@@ -1,6 +1,7 @@
 // ExerciseDetailScreen - Fully Responsive Mobile Version
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, SafeAreaView, Platform, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Platform, Dimensions } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { WorkoutStorageService } from '../services/workoutStorage';
 import { useAuth } from '../context/AuthContext';
