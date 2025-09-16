@@ -14,18 +14,15 @@ export default function ExerciseListScreenTest({ navigation, route }) {
   }, [selectedMuscleGroups, selectedDifficulty]);
 
   const loadExercises = () => {
-    console.log('Loading exercises for muscle groups:', selectedMuscleGroups);
     let filteredExercises = [];
     
     selectedMuscleGroups.forEach(muscleGroup => {
       const groupExercises = getExercisesByMuscleGroup(muscleGroup);
-      console.log(`Exercises for ${muscleGroup}:`, groupExercises ? groupExercises.length : 0);
       if (groupExercises) {
         filteredExercises = [...filteredExercises, ...groupExercises];
       }
     });
 
-    console.log('Total exercises before difficulty filter:', filteredExercises.length);
 
     if (selectedDifficulty !== 'all') {
       filteredExercises = filteredExercises.filter(exercise => 
@@ -33,7 +30,6 @@ export default function ExerciseListScreenTest({ navigation, route }) {
       );
     }
 
-    console.log('Final filtered exercises:', filteredExercises.length);
     setExercises(filteredExercises);
   };
 

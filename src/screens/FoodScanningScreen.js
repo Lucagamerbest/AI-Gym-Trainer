@@ -24,7 +24,6 @@ export default function FoodScanningScreen({ navigation }) {
         setScanHistory(history);
       }
     } catch (error) {
-      console.error('Error loading scan history:', error);
     } finally {
       setIsLoading(false);
     }
@@ -36,7 +35,6 @@ export default function FoodScanningScreen({ navigation }) {
       await AsyncStorage.setItem(SCAN_HISTORY_KEY, JSON.stringify(newHistory));
       setScanHistory(newHistory);
     } catch (error) {
-      console.error('Error saving scan history:', error);
     }
   };
 

@@ -45,7 +45,6 @@ export default function ExerciseListScreen({ navigation, route }) {
         setDisplayMode(saved);
       }
     } catch (error) {
-      console.error('Error loading display mode:', error);
     }
   };
 
@@ -83,42 +82,27 @@ export default function ExerciseListScreen({ navigation, route }) {
   }, []);
 
   const loadExercises = () => {
-    console.log('🔍 [DEBUG] Loading exercises for muscle groups:', selectedMuscleGroups);
-    console.log('🔍 [DEBUG] Platform:', Platform.OS);
-    console.log('🔍 [DEBUG] Selected difficulty:', selectedDifficulty);
     
     let filteredExercises = [];
     
     selectedMuscleGroups.forEach(muscleGroup => {
-      console.log(`🔍 [DEBUG] Processing muscle group: ${muscleGroup}`);
       try {
         const groupExercises = getExercisesByMuscleGroup(muscleGroup);
-        console.log(`🔍 [DEBUG] Raw result for ${muscleGroup}:`, groupExercises);
-        console.log(`🔍 [DEBUG] Type of result:`, typeof groupExercises);
-        console.log(`🔍 [DEBUG] Is Array:`, Array.isArray(groupExercises));
-        console.log(`🔍 [DEBUG] Length:`, groupExercises ? groupExercises.length : 'null/undefined');
         
         if (groupExercises && Array.isArray(groupExercises) && groupExercises.length > 0) {
-          console.log(`🔍 [DEBUG] Adding ${groupExercises.length} exercises for ${muscleGroup}`);
-          console.log(`🔍 [DEBUG] First exercise:`, groupExercises[0]);
           filteredExercises = [...filteredExercises, ...groupExercises];
-        } else {
-          console.warn(`⚠️ [WARNING] No exercises found for muscle group: ${muscleGroup}`);
         }
       } catch (error) {
-        console.error(`❌ [ERROR] Error loading exercises for ${muscleGroup}:`, error);
+        // Silent error handling
       }
     });
 
-    console.log('🔍 [DEBUG] Total exercises before difficulty filter:', filteredExercises.length);
-    console.log('🔍 [DEBUG] Sample exercise:', filteredExercises[0]);
 
     if (selectedDifficulty !== 'all') {
       const beforeFilter = filteredExercises.length;
       filteredExercises = filteredExercises.filter(exercise => 
         exercise.difficulty === selectedDifficulty
       );
-      console.log(`🔍 [DEBUG] After difficulty filter (${selectedDifficulty}): ${filteredExercises.length} (was ${beforeFilter})`);
     }
 
     // Filter by equipment type
@@ -145,18 +129,11 @@ export default function ExerciseListScreen({ navigation, route }) {
       );
     }
 
-    console.log('🔍 [DEBUG] Final filtered exercises:', filteredExercises.length);
-    console.log('🔍 [DEBUG] Setting exercises to state...');
     setExercises(filteredExercises);
   };
 
 
   const startWorkoutWithExercise = (exercise) => {
-    console.log('Starting workout with exercise:', exercise.name);
-    console.log('From workout:', fromWorkout);
-    console.log('From free workout:', fromFreeWorkout);
-    console.log('Return to workout:', returnToWorkout);
-    console.log('Current workout exercises:', currentWorkoutExercises?.length || 0);
 
     // Handle different navigation modes
     if (fromWorkout || (returnToWorkout && currentWorkoutExercises)) {

@@ -66,7 +66,6 @@ export default function CameraScreen({ navigation, route }) {
           foodData: foodData
         });
       } catch (error) {
-        console.error('Error taking picture:', error);
         Alert.alert('Error', 'Failed to take picture. Please try again.');
       }
     }

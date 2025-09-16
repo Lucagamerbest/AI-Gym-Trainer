@@ -21,7 +21,6 @@ export function AuthProvider({ children }) {
         setUser(JSON.parse(userData));
       }
     } catch (error) {
-      console.error('Error loading user from storage:', error);
     } finally {
       setIsLoading(false);
     }
@@ -37,7 +36,6 @@ export function AuthProvider({ children }) {
       
       return { success: true };
     } catch (error) {
-      console.error('Error signing in:', error);
       return { success: false, error: error.message };
     }
   };
@@ -52,7 +50,6 @@ export function AuthProvider({ children }) {
       
       return { success: true };
     } catch (error) {
-      console.error('Error signing out:', error);
       return { success: false, error: error.message };
     }
   };

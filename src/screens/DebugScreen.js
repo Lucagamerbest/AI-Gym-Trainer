@@ -35,7 +35,6 @@ export default function DebugScreen({ navigation }) {
       
       setUsers(parsedUsers);
     } catch (error) {
-      console.error('Error loading data:', error);
     }
   };
 

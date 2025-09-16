@@ -252,7 +252,6 @@ export default function WorkoutScreen({ navigation, route }) {
         [{ text: 'Let\'s Go!', style: 'default' }]
       );
     } catch (error) {
-      console.log('Error with timer completion:', error);
     }
   };
 

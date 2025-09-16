@@ -27,7 +27,6 @@ export default function ProfileScreen({ navigation }) {
       const stats = await WorkoutStorageService.getUserStats(userId);
       setUserStats(stats);
     } catch (error) {
-      console.error('Error loading user stats:', error);
     }
   };
 
@@ -81,7 +80,6 @@ export default function ProfileScreen({ navigation }) {
         }
       }
     } catch (error) {
-      console.error('Error during Google sign-in:', error);
       Alert.alert('Sign In Error', 'Something went wrong. Please try again.');
     } finally {
       setIsLoading(false);

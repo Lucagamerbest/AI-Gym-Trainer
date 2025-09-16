@@ -39,7 +39,6 @@ export default function ProgressScreen({ navigation }) {
         selectExercise(exercisesWithData[0]);
       }
     } catch (error) {
-      console.error('Error loading progress data:', error);
     } finally {
       setLoading(false);
     }

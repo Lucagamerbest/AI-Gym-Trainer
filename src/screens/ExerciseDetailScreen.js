@@ -11,9 +11,6 @@ const isSmallScreen = screenWidth < 400;
 const isMediumScreen = screenWidth >= 400 && screenWidth < 600;
 
 export default function ExerciseDetailScreen({ navigation, route }) {
-  console.log('🚨 [RESPONSIVE-DETAIL] Screen loading on:', Platform.OS);
-  console.log('🚨 [RESPONSIVE-DETAIL] Screen dimensions:', { width: screenWidth, height: screenHeight });
-  console.log('🚨 [RESPONSIVE-DETAIL] Screen size type:', { isSmallScreen, isMediumScreen });
 
   const { exercise, fromWorkout } = route?.params || {};
   const { user } = useAuth();
@@ -33,7 +30,6 @@ export default function ExerciseDetailScreen({ navigation, route }) {
       const progress = await WorkoutStorageService.getExerciseProgressByName(exercise.name, userId);
       setProgressData(progress);
     } catch (error) {
-      console.error('Error loading progress data:', error);
     } finally {
       setLoading(false);
     }
@@ -56,8 +52,6 @@ export default function ExerciseDetailScreen({ navigation, route }) {
     return progressData.records.slice(-3).reverse(); // Last 3 sessions, most recent first
   };
 
-  console.log('🚨 [RESPONSIVE-DETAIL] Exercise data:', JSON.stringify(exercise, null, 2));
-  console.log('🚨 [RESPONSIVE-DETAIL] FromWorkout:', fromWorkout);
 
   // Responsive sizing functions
   const getResponsiveSize = (small, medium, large) => {
@@ -113,7 +107,6 @@ export default function ExerciseDetailScreen({ navigation, route }) {
       }}>
         <TouchableOpacity
           onPress={() => {
-            console.log('🚨 [RESPONSIVE-DETAIL] Back pressed');
             navigation.goBack();
           }}
           style={{
@@ -506,8 +499,7 @@ export default function ExerciseDetailScreen({ navigation, route }) {
               justifyContent: 'center',
             }}
             onPress={() => {
-              console.log('🚨 [RESPONSIVE-DETAIL] Back pressed');
-              navigation.goBack();
+                navigation.goBack();
             }}
           >
             <Text style={{
@@ -532,7 +524,6 @@ export default function ExerciseDetailScreen({ navigation, route }) {
                 justifyContent: 'center',
               }}
               onPress={() => {
-                console.log('🚨 [RESPONSIVE-DETAIL] Continue workout');
                 navigation.goBack();
               }}
             >

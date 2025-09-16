@@ -43,7 +43,6 @@ export class WorkoutStorageService {
 
       return { success: true, workoutId: workout.id };
     } catch (error) {
-      console.error('Error saving workout:', error);
       return { success: false, error: error.message };
     }
   }
@@ -54,7 +53,6 @@ export class WorkoutStorageService {
       const history = await AsyncStorage.getItem(`${STORAGE_KEYS.WORKOUT_HISTORY}_${userId}`);
       return history ? JSON.parse(history) : [];
     } catch (error) {
-      console.error('Error getting workout history:', error);
       return [];
     }
   }
@@ -91,7 +89,6 @@ export class WorkoutStorageService {
       await AsyncStorage.setItem(`${STORAGE_KEYS.EXERCISE_PROGRESS}_${userId}`, JSON.stringify(progress));
       return { success: true };
     } catch (error) {
-      console.error('Error updating exercise progress:', error);
       return { success: false, error: error.message };
     }
   }
@@ -102,7 +99,6 @@ export class WorkoutStorageService {
       const progress = await AsyncStorage.getItem(`${STORAGE_KEYS.EXERCISE_PROGRESS}_${userId}`);
       return progress ? JSON.parse(progress) : {};
     } catch (error) {
-      console.error('Error getting exercise progress:', error);
       return {};
     }
   }
@@ -114,7 +110,6 @@ export class WorkoutStorageService {
       const exerciseKey = exerciseName.toLowerCase().replace(/\s+/g, '_');
       return allProgress[exerciseKey] || null;
     } catch (error) {
-      console.error('Error getting exercise progress by name:', error);
       return null;
     }
   }
@@ -160,7 +155,6 @@ export class WorkoutStorageService {
       await AsyncStorage.setItem(`${STORAGE_KEYS.USER_STATS}_${userId}`, JSON.stringify(stats));
       return { success: true };
     } catch (error) {
-      console.error('Error updating user stats:', error);
       return { success: false, error: error.message };
     }
   }
@@ -178,7 +172,6 @@ export class WorkoutStorageService {
         lastStreakDate: null
       };
     } catch (error) {
-      console.error('Error getting user stats:', error);
       return {
         totalWorkouts: 0,
         totalExercises: 0,
@@ -208,7 +201,6 @@ export class WorkoutStorageService {
           volume: record.volume
         }));
     } catch (error) {
-      console.error('Error getting exercise chart data:', error);
       return [];
     }
   }
@@ -221,7 +213,6 @@ export class WorkoutStorageService {
       await AsyncStorage.removeItem(`${STORAGE_KEYS.USER_STATS}_${userId}`);
       return { success: true };
     } catch (error) {
-      console.error('Error clearing data:', error);
       return { success: false, error: error.message };
     }
   }

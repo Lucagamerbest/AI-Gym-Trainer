@@ -20,7 +20,6 @@ export default function StartWorkoutScreen({ navigation }) {
 
   const handleStartWorkout = (program) => {
     // For now, just navigate back or show a success message
-    console.log(`Starting ${program.name} workout`);
     navigation.goBack();
   };
 

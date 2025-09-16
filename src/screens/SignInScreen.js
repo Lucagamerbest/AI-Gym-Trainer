@@ -194,7 +194,6 @@ export default function SignInScreen({ navigation }) {
         }
       }
     } catch (error) {
-      console.error('Error during Google sign-in:', error);
       Alert.alert('Sign In Error', 'Something went wrong. Please try again.');
     } finally {
       setIsGoogleLoading(false);

@@ -20,7 +20,6 @@ export default function SettingsScreen({ navigation }) {
         setDisplayMode(saved);
       }
     } catch (error) {
-      console.error('Error loading display mode:', error);
     }
   };
 
@@ -29,7 +28,6 @@ export default function SettingsScreen({ navigation }) {
       await AsyncStorage.setItem('exerciseDisplayMode', mode);
       setDisplayMode(mode);
     } catch (error) {
-      console.error('Error saving display mode:', error);
     }
   };
 
