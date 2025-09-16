@@ -5,7 +5,7 @@
 // Status: WORKING - Exercise Library displays correctly on all platforms
 
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView, Platform, TextInput } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView, Platform, TextInput, Image, Modal } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ScreenLayout from '../components/ScreenLayout';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
@@ -21,7 +21,8 @@ export default function ExerciseListScreen({ navigation, route }) {
     fromWorkout,
     workoutStartTime,
     fromFreeWorkout,
-    fromLibrary
+    fromLibrary,
+    refresh
   } = route.params || { selectedMuscleGroups: [] };
   const [exercises, setExercises] = useState([]);
   const [selectedDifficulty, setSelectedDifficulty] = useState('all');
@@ -29,11 +30,13 @@ export default function ExerciseListScreen({ navigation, route }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [displayMode, setDisplayMode] = useState('compact');
   const [showFilters, setShowFilters] = useState(false);
+  const [showFullScreenImage, setShowFullScreenImage] = useState(false);
+  const [selectedImageUri, setSelectedImageUri] = useState(null);
 
 
   useEffect(() => {
     loadExercises();
-  }, [selectedMuscleGroups, selectedDifficulty, selectedEquipment, searchQuery]);
+  }, [selectedMuscleGroups, selectedDifficulty, selectedEquipment, searchQuery, refresh]);
 
   useEffect(() => {
     loadDisplayMode();
@@ -180,6 +183,11 @@ export default function ExerciseListScreen({ navigation, route }) {
       case 'Advanced': return '#F44336';
       default: return Colors.primary;
     }
+  };
+
+  const openFullScreenImage = (imageUri) => {
+    setSelectedImageUri(imageUri);
+    setShowFullScreenImage(true);
   };
 
 
@@ -336,9 +344,22 @@ export default function ExerciseListScreen({ navigation, route }) {
               return (
                 <View style={styles.detailedExerciseCard}>
                   <View style={styles.detailedImageContainer}>
-                    <View style={styles.imagePlaceholder}>
-                      <Text style={styles.imagePlaceholderText}>Image Description</Text>
-                    </View>
+                    {item.image ? (
+                      <TouchableOpacity
+                        onPress={() => openFullScreenImage(item.image)}
+                        activeOpacity={0.8}
+                      >
+                        <Image
+                          source={{ uri: item.image }}
+                          style={styles.exerciseImage}
+                          resizeMode="cover"
+                        />
+                      </TouchableOpacity>
+                    ) : (
+                      <View style={styles.imagePlaceholder}>
+                        <Text style={styles.imagePlaceholderText}>No Image</Text>
+                      </View>
+                    )}
                   </View>
                   <View style={styles.detailedExerciseContent}>
                 {/* Exercise Name */}
@@ -390,6 +411,20 @@ export default function ExerciseListScreen({ navigation, route }) {
             // Default compact view
             return (
               <View style={styles.exerciseCard}>
+                {/* Exercise Image - Small thumbnail for compact view */}
+                {item.image && (
+                  <TouchableOpacity
+                    style={styles.compactImageContainer}
+                    onPress={() => openFullScreenImage(item.image)}
+                    activeOpacity={0.8}
+                  >
+                    <Image
+                      source={{ uri: item.image }}
+                      style={styles.compactExerciseImage}
+                      resizeMode="cover"
+                    />
+                  </TouchableOpacity>
+                )}
                 <View style={styles.exerciseContent}>
                   {/* Exercise Name */}
                   {item.isCustom && <Text style={styles.customBadge}>⭐ CUSTOM</Text>}
@@ -448,6 +483,28 @@ export default function ExerciseListScreen({ navigation, route }) {
           windowSize={8}
         />
       )}
+
+      {/* Full Screen Image Modal */}
+      <Modal
+        visible={showFullScreenImage}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowFullScreenImage(false)}
+      >
+        <View style={fullScreenImageStyles.overlay}>
+          <TouchableOpacity
+            style={fullScreenImageStyles.closeButton}
+            onPress={() => setShowFullScreenImage(false)}
+          >
+            <Text style={fullScreenImageStyles.closeButtonText}>✕</Text>
+          </TouchableOpacity>
+          <Image
+            source={{ uri: selectedImageUri }}
+            style={fullScreenImageStyles.fullScreenImage}
+            resizeMode="contain"
+          />
+        </View>
+      </Modal>
 
     </ScreenLayout>
   );
@@ -728,6 +785,24 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  exerciseImage: {
+    width: 80,
+    height: 80,
+    borderRadius: BorderRadius.md,
+  },
+  compactImageContainer: {
+    position: 'absolute',
+    top: Spacing.xs,
+    right: Spacing.xs,
+    zIndex: 1,
+  },
+  compactExerciseImage: {
+    width: 40,
+    height: 40,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
   imagePlaceholderText: {
     fontSize: Typography.fontSize.xs,
     color: Colors.textSecondary,
@@ -771,5 +846,36 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.md,
     color: Colors.primary,
     fontWeight: 'bold',
+  },
+});
+
+// Full screen image modal styles
+const fullScreenImageStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.95)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    zIndex: 2,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 20,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  closeButtonText: {
+    color: 'white',
+    fontSize: Typography.fontSize.lg,
+    fontWeight: 'bold',
+  },
+  fullScreenImage: {
+    width: '100%',
+    height: '100%',
   },
 });

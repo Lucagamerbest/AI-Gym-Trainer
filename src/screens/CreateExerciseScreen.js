@@ -8,7 +8,10 @@ import {
   ScrollView,
   TextInput,
   Image,
-  Dimensions
+  Dimensions,
+  Modal,
+  KeyboardAvoidingView,
+  Platform
 } from 'react-native';
 import { CameraView, Camera, useCameraPermissions } from 'expo-camera';
 import ScreenLayout from '../components/ScreenLayout';
@@ -28,6 +31,8 @@ export default function CreateExerciseScreen({ navigation }) {
   const [exerciseName, setExerciseName] = useState('');
   const [exerciseDescription, setExerciseDescription] = useState('');
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState('');
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [lastTap, setLastTap] = useState(null);
   const cameraRef = useRef(null);
 
   const muscleGroups = [
@@ -48,6 +53,20 @@ export default function CreateExerciseScreen({ navigation }) {
 
   const toggleCameraFacing = () => {
     setFacing(current => (current === 'back' ? 'front' : 'back'));
+  };
+
+  const handleCameraPress = () => {
+    const now = Date.now();
+    const DOUBLE_PRESS_DELAY = 300;
+
+    if (lastTap && (now - lastTap) < DOUBLE_PRESS_DELAY) {
+      // Double tap detected - flip camera
+      toggleCameraFacing();
+      setLastTap(null);
+    } else {
+      // Single tap - set the time
+      setLastTap(now);
+    }
   };
 
   const takePicture = async () => {
@@ -97,16 +116,7 @@ export default function CreateExerciseScreen({ navigation }) {
       });
 
       if (result.success) {
-        Alert.alert(
-          'Exercise Created!',
-          `"${exerciseName}" has been added to your custom exercises and will appear at the top of ${selectedMuscleGroup} exercises.`,
-          [
-            {
-              text: 'OK',
-              onPress: () => navigation.goBack()
-            }
-          ]
-        );
+        setShowSuccessModal(true);
       } else {
         Alert.alert('Error', 'Failed to save exercise. Please try again.');
       }
@@ -150,7 +160,12 @@ export default function CreateExerciseScreen({ navigation }) {
           facing={facing}
           onCameraReady={() => setIsReady(true)}
         >
-          <View style={styles.cameraOverlay}>
+          <TouchableOpacity
+            style={styles.cameraTouch}
+            onPress={handleCameraPress}
+            activeOpacity={1}
+          >
+            <View style={styles.cameraOverlay}>
             {/* Header */}
             <View style={styles.cameraHeader}>
               <TouchableOpacity
@@ -181,6 +196,7 @@ export default function CreateExerciseScreen({ navigation }) {
               </View>
             </View>
           </View>
+          </TouchableOpacity>
         </CameraView>
       </View>
     );
@@ -193,7 +209,12 @@ export default function CreateExerciseScreen({ navigation }) {
       navigation={navigation}
       showBack={true}
     >
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      >
+        <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         {/* Photo Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Exercise Photo</Text>
@@ -304,12 +325,62 @@ export default function CreateExerciseScreen({ navigation }) {
             disabled={!exerciseName.trim() || !selectedMuscleGroup || !capturedImage}
           />
         </View>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+
+      {/* Success Modal */}
+      <Modal
+        visible={showSuccessModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowSuccessModal(false)}
+      >
+        <View style={modalStyles.modalOverlay}>
+          <View style={modalStyles.modalContent}>
+            <Text style={modalStyles.modalTitle}>Exercise Created</Text>
+            <Text style={modalStyles.confirmationText}>
+              The exercise {exerciseName} has been created and will appear at the top of {selectedMuscleGroup} exercises.
+            </Text>
+            <View style={modalStyles.modalButtons}>
+              <TouchableOpacity
+                style={[modalStyles.modalButton, modalStyles.modalButtonPrimary]}
+                onPress={() => {
+                  setShowSuccessModal(false);
+                  // Reset navigation stack with StartWorkout as previous screen
+                  navigation.reset({
+                    index: 1,
+                    routes: [
+                      {
+                        name: 'StartWorkout'
+                      },
+                      {
+                        name: 'ExerciseList',
+                        params: {
+                          selectedMuscleGroups: ['chest', 'back', 'legs', 'biceps', 'triceps', 'shoulders', 'abs'],
+                          fromLibrary: true,
+                          refresh: Date.now() // Force refresh
+                        }
+                      }
+                    ]
+                  });
+                }}
+              >
+                <Text style={[modalStyles.modalButtonText, modalStyles.modalButtonTextPrimary]}>
+                  OK
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScreenLayout>
   );
 }
 
 const styles = StyleSheet.create({
+  keyboardAvoidingView: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     padding: Spacing.lg,
@@ -336,6 +407,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'black',
   },
   camera: {
+    flex: 1,
+  },
+  cameraTouch: {
     flex: 1,
   },
   cameraOverlay: {
@@ -538,3 +612,61 @@ const styles = StyleSheet.create({
     minWidth: 200,
   },
 });
+
+// Modal styles matching the app theme
+const modalStyles = {
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#1a1a1a',
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.xl,
+    width: '90%',
+    maxWidth: 400,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  modalTitle: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: 'bold',
+    color: Colors.text,
+    textAlign: 'center',
+    marginBottom: Spacing.md,
+  },
+  confirmationText: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.text,
+    textAlign: 'center',
+    marginBottom: Spacing.lg,
+    lineHeight: 22,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: Spacing.lg,
+  },
+  modalButton: {
+    backgroundColor: '#333',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    minWidth: 120,
+  },
+  modalButtonPrimary: {
+    backgroundColor: '#4CAF50',
+    borderColor: '#4CAF50',
+  },
+  modalButtonText: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: 'bold',
+    color: Colors.text,
+  },
+  modalButtonTextPrimary: {
+    color: Colors.background,
+  },
+};

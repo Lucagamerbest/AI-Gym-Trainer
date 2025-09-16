@@ -46,7 +46,8 @@ export default function StartWorkoutScreen({ navigation }) {
             subtitle="Browse all 800+ exercises with advanced filters"
             onPress={() => navigation.navigate('ExerciseList', {
               selectedMuscleGroups: ['chest', 'back', 'legs', 'biceps', 'triceps', 'shoulders', 'abs'],
-              fromLibrary: true
+              fromLibrary: true,
+              refresh: Date.now() // Always refresh when accessing library
             })}
             icon="📚"
             style={styles.quickStartButton}

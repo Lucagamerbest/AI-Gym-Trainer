@@ -1,9 +1,10 @@
 // ExerciseDetailScreen - Fully Responsive Mobile Version
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Platform, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Platform, Dimensions, Alert, Modal, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { WorkoutStorageService } from '../services/workoutStorage';
+import { CustomExerciseStorage } from '../services/customExerciseStorage';
 import { useAuth } from '../context/AuthContext';
 
 // Get screen dimensions for responsive design
@@ -17,6 +18,8 @@ export default function ExerciseDetailScreen({ navigation, route }) {
   const { user } = useAuth();
   const [progressData, setProgressData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [showFullScreenImage, setShowFullScreenImage] = useState(false);
 
   useEffect(() => {
     loadProgressData();
@@ -91,6 +94,48 @@ export default function ExerciseDetailScreen({ navigation, route }) {
     }
   };
 
+  const handleDeleteExercise = () => {
+    setShowDeleteConfirmation(true);
+  };
+
+  const confirmDeleteExercise = async () => {
+    try {
+      const result = await CustomExerciseStorage.deleteCustomExercise(exercise.id);
+      if (result.success) {
+        setShowDeleteConfirmation(false);
+        // Reset navigation stack with StartWorkout as previous screen
+        setTimeout(() => {
+          navigation.reset({
+            index: 1,
+            routes: [
+              {
+                name: 'StartWorkout'
+              },
+              {
+                name: 'ExerciseList',
+                params: {
+                  selectedMuscleGroups: ['chest', 'back', 'legs', 'biceps', 'triceps', 'shoulders', 'abs'],
+                  fromLibrary: true,
+                  refresh: Date.now() // Force refresh
+                }
+              }
+            ]
+          });
+        }, 100);
+      } else {
+        setShowDeleteConfirmation(false);
+        setTimeout(() => {
+          Alert.alert("Error", "Failed to delete the exercise. Please try again.");
+        }, 100);
+      }
+    } catch (error) {
+      setShowDeleteConfirmation(false);
+      setTimeout(() => {
+        Alert.alert("Error", "An unexpected error occurred while deleting the exercise.");
+      }, 100);
+    }
+  };
+
   return (
     <SafeAreaView style={{
       flex: 1,
@@ -158,6 +203,53 @@ export default function ExerciseDetailScreen({ navigation, route }) {
           borderColor: Colors.border,
           minHeight: screenHeight * 0.6, // Ensure minimum content height
         }}>
+          {/* Custom Exercise Badge */}
+          {exercise?.isCustom && (
+            <View style={{
+              alignSelf: 'center',
+              backgroundColor: Colors.primary + '20',
+              paddingHorizontal: getResponsiveSpacing(0.75),
+              paddingVertical: getResponsiveSpacing(0.25),
+              borderRadius: BorderRadius.sm,
+              marginBottom: getResponsiveSpacing(0.5),
+              borderWidth: 1,
+              borderColor: Colors.primary + '40',
+            }}>
+              <Text style={{
+                fontSize: getResponsiveFontSize(Typography.fontSize.xs),
+                color: Colors.primary,
+                fontWeight: 'bold',
+                textAlign: 'center',
+              }}>
+                ⭐ CUSTOM EXERCISE
+              </Text>
+            </View>
+          )}
+
+          {/* Exercise Image - Show for custom exercises or if available */}
+          {(exercise?.image || exercise?.isCustom) && exercise?.image && (
+            <TouchableOpacity
+              style={{
+                alignSelf: 'center',
+                marginBottom: getResponsiveSpacing(1),
+                borderRadius: BorderRadius.lg,
+                overflow: 'hidden',
+              }}
+              onPress={() => setShowFullScreenImage(true)}
+              activeOpacity={0.8}
+            >
+              <Image
+                source={{ uri: exercise.image }}
+                style={{
+                  width: getResponsiveSize(200, 250, 300),
+                  height: getResponsiveSize(150, 180, 200),
+                  borderRadius: BorderRadius.lg,
+                }}
+                resizeMode="cover"
+              />
+            </TouchableOpacity>
+          )}
+
           {/* Exercise Name - Responsive Size */}
           <Text style={{
             fontSize: getResponsiveSize(20, 24, 28),
@@ -512,6 +604,30 @@ export default function ExerciseDetailScreen({ navigation, route }) {
             </Text>
           </TouchableOpacity>
 
+          {/* Delete Button - Only for Custom Exercises */}
+          {exercise?.isCustom && (
+            <TouchableOpacity
+              style={{
+                backgroundColor: '#DC3545',
+                padding: getResponsiveSpacing(0.75),
+                borderRadius: BorderRadius.md,
+                alignItems: 'center',
+                flex: isSmallScreen ? 0 : 1,
+                minHeight: getResponsiveSize(44, 48, 52),
+                justifyContent: 'center',
+              }}
+              onPress={handleDeleteExercise}
+            >
+              <Text style={{
+                color: Colors.background,
+                fontSize: getResponsiveFontSize(Typography.fontSize.md),
+                fontWeight: 'bold',
+              }}>
+                🗑️ Delete Exercise
+              </Text>
+            </TouchableOpacity>
+          )}
+
           {/* Continue Workout Button */}
           {fromWorkout && (
             <TouchableOpacity
@@ -540,6 +656,151 @@ export default function ExerciseDetailScreen({ navigation, route }) {
         </View>
         </View>
       </ScrollView>
+
+      {/* Full Screen Image Modal */}
+      <Modal
+        visible={showFullScreenImage}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowFullScreenImage(false)}
+      >
+        <View style={fullScreenModalStyles.overlay}>
+          <TouchableOpacity
+            style={fullScreenModalStyles.closeButton}
+            onPress={() => setShowFullScreenImage(false)}
+          >
+            <Text style={fullScreenModalStyles.closeButtonText}>✕</Text>
+          </TouchableOpacity>
+          <Image
+            source={{ uri: exercise?.image }}
+            style={fullScreenModalStyles.fullScreenImage}
+            resizeMode="contain"
+          />
+        </View>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        visible={showDeleteConfirmation}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowDeleteConfirmation(false)}
+      >
+        <View style={modalStyles.modalOverlay}>
+          <View style={modalStyles.modalContent}>
+            <Text style={modalStyles.modalTitle}>Delete Custom Exercise?</Text>
+            <Text style={modalStyles.confirmationText}>
+              Are you sure you want to delete "{exercise?.name}"? This action cannot be undone.
+            </Text>
+            <View style={modalStyles.modalButtons}>
+              <TouchableOpacity
+                style={modalStyles.modalButton}
+                onPress={() => setShowDeleteConfirmation(false)}
+              >
+                <Text style={modalStyles.modalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[modalStyles.modalButton, modalStyles.deleteConfirmButton]}
+                onPress={confirmDeleteExercise}
+              >
+                <Text style={modalStyles.deleteConfirmButtonText}>Delete</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
+
+// Modal styles matching the app theme
+const modalStyles = {
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#1a1a1a',
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.xl,
+    width: '90%',
+    maxWidth: 400,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  modalTitle: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: 'bold',
+    color: Colors.text,
+    textAlign: 'center',
+    marginBottom: Spacing.md,
+  },
+  confirmationText: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.text,
+    textAlign: 'center',
+    marginBottom: Spacing.lg,
+    lineHeight: 22,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: Spacing.lg,
+  },
+  modalButton: {
+    backgroundColor: '#333',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
+    flex: 1,
+    marginHorizontal: Spacing.xs,
+    alignItems: 'center',
+  },
+  modalButtonText: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: 'bold',
+    color: Colors.text,
+  },
+  deleteConfirmButton: {
+    backgroundColor: '#4CAF50',
+    borderColor: '#4CAF50',
+  },
+  deleteConfirmButtonText: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: 'bold',
+    color: Colors.background,
+  },
+};
+
+// Full screen image modal styles
+const fullScreenModalStyles = {
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.95)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    zIndex: 2,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 20,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  closeButtonText: {
+    color: 'white',
+    fontSize: Typography.fontSize.lg,
+    fontWeight: 'bold',
+  },
+  fullScreenImage: {
+    width: '100%',
+    height: '100%',
+  },
+};
