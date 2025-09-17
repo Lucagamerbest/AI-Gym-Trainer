@@ -140,26 +140,34 @@ export default function ExerciseListScreen({ navigation, route }) {
 
 
   const startWorkoutWithExercise = (exercise) => {
+    console.log('📋 ExerciseListScreen - startWorkoutWithExercise called');
+    console.log('   - fromWorkout:', fromWorkout);
+    console.log('   - isWorkoutActive():', isWorkoutActive());
+
     // If we're adding to an existing workout, update context and go back
     if (fromWorkout && isWorkoutActive()) {
       // Add exercise to the active workout
       const exercises = [...(activeWorkout.exercises || [])];
       if (!exercises.find(e => e.id === exercise.id)) {
         exercises.push(exercise);
+        console.log('   → Updating workout context with new exercise');
         // Update the workout context with new exercise
         updateWorkout({
           exercises,
           currentExerciseIndex: exercises.length - 1
         });
       }
+      console.log('   → Going back to workout screen');
       // Go back to the workout screen (don't navigate to new instance)
       navigation.goBack();
       // If we came from muscle selection, go back once more
       if (route.params?.fromMuscleSelection) {
+        console.log('   → Also going back from muscle selection');
         navigation.goBack();
       }
     } else {
       // Starting a new workout
+      console.log('   → Starting NEW workout, navigating to WorkoutScreen');
       navigation.navigate('Workout', {
         exercise,
         fromWorkout: false,

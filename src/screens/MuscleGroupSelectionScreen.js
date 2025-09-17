@@ -1,14 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ScreenLayout from '../components/ScreenLayout';
 import StyledButton from '../components/StyledButton';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
+import { useWorkout } from '../context/WorkoutContext';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function MuscleGroupSelectionScreen({ navigation, route }) {
-  const { fromWorkout, currentWorkoutExercises, workoutStartTime } = route.params || {};
+  const { isWorkoutActive, activeWorkout } = useWorkout();
+  const { fromWorkout, currentWorkoutExercises, workoutStartTime, existingExerciseSets } = route.params || {};
   const [selectedMuscleGroups, setSelectedMuscleGroups] = useState([]);
+
+  // Remove the automatic redirect - it's causing infinite loops
+  // Users should explicitly choose to resume or add exercises
 
   const muscleGroups = [
     { id: 'chest', name: 'Chest', icon: '🎯', color: '#FF6B6B' },
@@ -36,11 +41,13 @@ export default function MuscleGroupSelectionScreen({ navigation, route }) {
     }
 
     // Always navigate to ExerciseList with appropriate parameters
-    navigation.navigate('ExerciseList', { 
+    navigation.navigate('ExerciseList', {
       selectedMuscleGroups,
       fromWorkout: fromWorkout,
       currentWorkoutExercises: currentWorkoutExercises,
-      workoutStartTime: workoutStartTime
+      workoutStartTime: workoutStartTime,
+      existingExerciseSets: existingExerciseSets,
+      fromMuscleSelection: true  // Flag to indicate we came from muscle selection
     });
   };
 
