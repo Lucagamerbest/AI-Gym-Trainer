@@ -1,27 +1,28 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../context/AuthContext';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import Logo from '../components/Logo';
+import ActiveWorkoutIndicator from '../components/ActiveWorkoutIndicator';
 
-export default function HomeScreen({ navigation }) {
+function HomeScreen({ navigation }) {
   const { user } = useAuth();
-  const firstName = user?.displayName?.split(' ')[0] || 'Champion';
-  
+  const firstName = useMemo(() => user?.displayName?.split(' ')[0] || 'Champion', [user]);
+
   // Get greeting based on time of day
-  const getGreeting = () => {
+  const getGreeting = useMemo(() => {
     const hour = new Date().getHours();
     if (hour < 12) return 'Good morning';
     if (hour < 18) return 'Good afternoon';
     return 'Good evening';
-  };
+  }, []);
 
-  const quickStats = [
+  const quickStats = useMemo(() => [
     { label: 'Streak', value: '7', unit: 'days', icon: '🔥' },
     { label: 'This Week', value: '4', unit: 'workouts', icon: '💪' },
     { label: 'Remaining', value: '650', unit: 'calories today', icon: '⚡' },
-  ];
+  ], []);
 
   return (
     <View style={styles.container}>
@@ -129,6 +130,9 @@ export default function HomeScreen({ navigation }) {
           </View>
         </View>
       </ScrollView>
+
+      {/* Active Workout Indicator */}
+      <ActiveWorkoutIndicator navigation={navigation} />
     </View>
   );
 }
@@ -308,3 +312,5 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
+
+export default React.memo(HomeScreen);

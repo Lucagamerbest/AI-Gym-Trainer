@@ -116,7 +116,12 @@ export default function CreateExerciseScreen({ navigation }) {
       });
 
       if (result.success) {
-        setShowSuccessModal(true);
+        // Navigate immediately without modal
+        navigation.navigate('ExerciseList', {
+          selectedMuscleGroups: ['chest', 'back', 'legs', 'biceps', 'triceps', 'shoulders', 'abs'],
+          fromLibrary: true,
+          refresh: Date.now()
+        });
       } else {
         Alert.alert('Error', 'Failed to save exercise. Please try again.');
       }
@@ -328,51 +333,6 @@ export default function CreateExerciseScreen({ navigation }) {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* Success Modal */}
-      <Modal
-        visible={showSuccessModal}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowSuccessModal(false)}
-      >
-        <View style={modalStyles.modalOverlay}>
-          <View style={modalStyles.modalContent}>
-            <Text style={modalStyles.modalTitle}>Exercise Created</Text>
-            <Text style={modalStyles.confirmationText}>
-              The exercise {exerciseName} has been created and will appear at the top of {selectedMuscleGroup} exercises.
-            </Text>
-            <View style={modalStyles.modalButtons}>
-              <TouchableOpacity
-                style={[modalStyles.modalButton, modalStyles.modalButtonPrimary]}
-                onPress={() => {
-                  setShowSuccessModal(false);
-                  // Reset navigation stack with StartWorkout as previous screen
-                  navigation.reset({
-                    index: 1,
-                    routes: [
-                      {
-                        name: 'StartWorkout'
-                      },
-                      {
-                        name: 'ExerciseList',
-                        params: {
-                          selectedMuscleGroups: ['chest', 'back', 'legs', 'biceps', 'triceps', 'shoulders', 'abs'],
-                          fromLibrary: true,
-                          refresh: Date.now() // Force refresh
-                        }
-                      }
-                    ]
-                  });
-                }}
-              >
-                <Text style={[modalStyles.modalButtonText, modalStyles.modalButtonTextPrimary]}>
-                  OK
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </ScreenLayout>
   );
 }

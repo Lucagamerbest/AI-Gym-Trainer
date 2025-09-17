@@ -38,6 +38,11 @@ export const WorkoutProvider = ({ children }) => {
     setActiveWorkout(null);
   }, []);
 
+  const discardWorkout = useCallback(() => {
+    // Simply clear the workout without saving
+    setActiveWorkout(null);
+  }, []);
+
   const isWorkoutActive = useCallback(() => {
     return activeWorkout !== null;
   }, [activeWorkout]);
@@ -59,6 +64,7 @@ export const WorkoutProvider = ({ children }) => {
     startWorkout,
     updateWorkout,
     finishWorkout,
+    discardWorkout,
     isWorkoutActive,
     getElapsedTime
   };

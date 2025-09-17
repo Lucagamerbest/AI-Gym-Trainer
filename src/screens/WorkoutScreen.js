@@ -119,7 +119,7 @@ const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exercise
 export default function WorkoutScreen({ navigation, route }) {
   const { exercise, resumingWorkout, fromWorkout, fromLibrary, selectedMuscleGroups } = route.params || {};
   const { user } = useAuth();
-  const { activeWorkout, startWorkout, updateWorkout, finishWorkout } = useWorkout();
+  const { activeWorkout, startWorkout, updateWorkout, finishWorkout, discardWorkout } = useWorkout();
   const hasProcessedExercise = useRef(false);
 
   // State management
@@ -143,6 +143,8 @@ export default function WorkoutScreen({ navigation, route }) {
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [exerciseToDelete, setExerciseToDelete] = useState(null);
   const [draggedExercise, setDraggedExercise] = useState(null);
+  const [totalVolume, setTotalVolume] = useState(0);
+  const [totalSets, setTotalSets] = useState(0);
 
   // Simple initialization - only for new workouts or resuming
   useEffect(() => {
@@ -162,12 +164,18 @@ export default function WorkoutScreen({ navigation, route }) {
     else if (resumingWorkout && activeWorkout) {
       if (activeWorkout.exerciseSets) {
         setExerciseSets(activeWorkout.exerciseSets);
+        const totals = calculateTotals(activeWorkout.exerciseSets);
+        setTotalVolume(totals.volume);
+        setTotalSets(totals.sets);
       }
       setCurrentExerciseIndex(activeWorkout.currentExerciseIndex || 0);
     }
     // If we have an active workout, just restore its sets
     else if (activeWorkout && activeWorkout.exerciseSets) {
       setExerciseSets(activeWorkout.exerciseSets);
+      const totals = calculateTotals(activeWorkout.exerciseSets);
+      setTotalVolume(totals.volume);
+      setTotalSets(totals.sets);
     }
   }, []); // Only run once on mount
 
@@ -199,8 +207,11 @@ export default function WorkoutScreen({ navigation, route }) {
     }
   }, [workoutExercises.length]);
 
-  // Update workout timer every second
+  // Update workout timer with immediate start
   useEffect(() => {
+    // Set initial time immediately
+    setCurrentTime(new Date());
+
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
@@ -255,6 +266,8 @@ export default function WorkoutScreen({ navigation, route }) {
     } else {
       totalElapsed = Math.floor((currentTime - workoutStartTime) / 1000) - pausedDuration;
     }
+    // Ensure totalElapsed is never negative
+    totalElapsed = Math.max(0, totalElapsed);
     const minutes = Math.floor(totalElapsed / 60);
     const seconds = totalElapsed % 60;
     return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
@@ -337,7 +350,10 @@ export default function WorkoutScreen({ navigation, route }) {
       exercisesCompleted: workoutExercises.length,
       exercises: workoutExercises,
       startTime: workoutStartTime.toISOString(),
-      endTime: new Date().toISOString()
+      endTime: new Date().toISOString(),
+      totalVolume: totalVolume,
+      totalSets: totalSets,
+      volumePerExercise: calculateVolumePerExercise()
     };
 
     // Save workout data with exercise sets
@@ -432,6 +448,40 @@ export default function WorkoutScreen({ navigation, route }) {
     }
   };
 
+  // Calculate total volume and completed sets count
+  const calculateTotals = (sets) => {
+    let volume = 0;
+    let completedSets = 0;
+    Object.values(sets).forEach(exerciseSets => {
+      exerciseSets.forEach(set => {
+        if (set.completed) {
+          completedSets += 1;
+          if (set.weight && set.reps) {
+            volume += parseFloat(set.weight) * parseFloat(set.reps);
+          }
+        }
+      });
+    });
+    return { volume, sets: completedSets };
+  };
+
+  // Calculate volume per exercise
+  const calculateVolumePerExercise = () => {
+    const volumePerExercise = {};
+    Object.entries(exerciseSets).forEach(([exerciseIndex, sets]) => {
+      let exerciseVolume = 0;
+      sets.forEach(set => {
+        if (set.completed && set.weight && set.reps) {
+          exerciseVolume += parseFloat(set.weight) * parseFloat(set.reps);
+        }
+      });
+      if (workoutExercises[exerciseIndex]) {
+        volumePerExercise[workoutExercises[exerciseIndex].name] = exerciseVolume;
+      }
+    });
+    return volumePerExercise;
+  };
+
   // Update set data - LOCAL ONLY, no context update to avoid refresh
   const updateSet = (exerciseIndex, setIndex, field, value) => {
     const newSets = { ...exerciseSets };
@@ -440,6 +490,14 @@ export default function WorkoutScreen({ navigation, route }) {
     }
     newSets[exerciseIndex][setIndex][field] = value;
     setExerciseSets(newSets);
+
+    // Update totals if relevant fields changed
+    if (field === 'completed' ||
+        (newSets[exerciseIndex][setIndex].completed && (field === 'weight' || field === 'reps'))) {
+      const totals = calculateTotals(newSets);
+      setTotalVolume(totals.volume);
+      setTotalSets(totals.sets);
+    }
     // DO NOT update context here - causes refresh on every keystroke
   };
 
@@ -578,31 +636,54 @@ export default function WorkoutScreen({ navigation, route }) {
           colors={[Colors.primary + '15', Colors.surface]}
           style={styles.timerHeaderGradient}
         >
-          <View style={styles.timerRow}>
-            <View style={styles.workoutTimerContainer}>
-              <Text style={styles.timerLabel}>Workout</Text>
-              <View style={styles.workoutControlsRow}>
-                <TouchableOpacity 
-                  style={styles.restControlButton}
+          {/* Top Row - Workout Time and Volume */}
+          <View style={styles.statsRow}>
+            <View style={styles.statItem}>
+              <Text style={styles.statLabel}>Workout Time</Text>
+              <View style={styles.workoutTimeRow}>
+                <TouchableOpacity
+                  style={styles.pauseButton}
                   onPress={toggleWorkoutPause}
                 >
-                  <Text style={styles.restControlButtonText}>
+                  <Text style={styles.pauseButtonText}>
                     {isWorkoutPaused ? '▶️' : '⏸️'}
                   </Text>
                 </TouchableOpacity>
                 <Text style={[
-                  styles.compactTimerText,
+                  styles.statValue,
                   isWorkoutPaused && styles.pausedTimer
                 ]}>
                   {getElapsedTime()}
                 </Text>
               </View>
-              {isWorkoutPaused && (
-                <Text style={styles.pausedLabel}>PAUSED</Text>
-              )}
             </View>
+
+            <View style={styles.statDivider} />
+
+            <View style={styles.statItem}>
+              <Text style={styles.statLabel}>Volume & Sets</Text>
+              <View style={styles.volumeSetsRow}>
+                <View style={styles.volumeSection}>
+                  <Text style={styles.statValue}>
+                    {totalVolume.toLocaleString()}
+                  </Text>
+                  <Text style={styles.statUnit}>lbs</Text>
+                </View>
+                <View style={styles.setsDivider} />
+                <View style={styles.setsSection}>
+                  <Text style={styles.statValue}>
+                    {totalSets}
+                  </Text>
+                  <Text style={styles.statUnit}>sets</Text>
+                </View>
+              </View>
+            </View>
+          </View>
+
+          {/* Bottom Row - Rest Timer */}
+          <View style={styles.timerRow}>
             <View style={styles.restTimerContainer}>
-              <Text style={styles.timerLabel}>Timer</Text>
+              <Text style={styles.timerLabel}>Rest Timer</Text>
               <View style={styles.restControlsRow}>
                 <TouchableOpacity 
                   style={styles.restControlButton}
@@ -757,7 +838,7 @@ export default function WorkoutScreen({ navigation, route }) {
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Finish Workout?</Text>
             <Text style={styles.confirmationText}>
-              Are you sure you want to finish your workout? This will end your current session and show your workout summary.
+              Are you sure you want to finish your workout? This will end your current session.
             </Text>
             <View style={styles.modalButtons}>
               <TouchableOpacity
@@ -773,6 +854,19 @@ export default function WorkoutScreen({ navigation, route }) {
                 <Text style={[styles.modalButtonText, styles.modalButtonTextPrimary]}>Finish Workout</Text>
               </TouchableOpacity>
             </View>
+            <TouchableOpacity
+              style={[styles.modalButtonFullWidth, styles.modalButtonDanger]}
+              onPress={() => {
+                discardWorkout();
+                setShowFinishConfirmation(false);
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: 'Main' }],
+                });
+              }}
+            >
+              <Text style={[styles.modalButtonText, styles.modalButtonTextDanger]}>Discard Workout</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -852,7 +946,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   timerHeaderCard: {
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.md,
+    marginHorizontal: Spacing.sm,
     borderRadius: BorderRadius.lg,
     overflow: 'hidden',
     borderWidth: 1,
@@ -860,29 +955,98 @@ const styles = StyleSheet.create({
   },
   timerHeaderGradient: {
     paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: Spacing.sm,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+    paddingBottom: Spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border + '30',
+  },
+  statItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  statLabel: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.xs,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  statValue: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: 'bold',
+    color: Colors.text,
+  },
+  statUnit: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textSecondary,
+    marginTop: 1,
+  },
+  statDivider: {
+    width: 1,
+    height: 40,
+    backgroundColor: Colors.border + '50',
+    marginHorizontal: Spacing.md,
+  },
+  volumeSetsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '70%',
+    alignSelf: 'center',
+  },
+  volumeSection: {
+    alignItems: 'center',
+    paddingLeft: 10,
+  },
+  setsSection: {
+    alignItems: 'center',
+    paddingRight: 10,
+  },
+  setsDivider: {
+    width: 1,
+    height: 30,
+    backgroundColor: Colors.border + '30',
+    marginHorizontal: Spacing.sm,
+  },
+  workoutTimeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  pauseButton: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: Colors.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  pauseButtonText: {
+    fontSize: 12,
   },
   timerRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: Spacing.xl, // Add more space between workout and timer
-  },
-  workoutTimerContainer: {
-    alignItems: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.md, // Add padding to make it wider
-    backgroundColor: Colors.primary + '05', // Subtle background
-    borderRadius: BorderRadius.md,
-    paddingVertical: Spacing.sm,
+    paddingTop: Spacing.sm,
   },
   restTimerContainer: {
-    alignItems: 'center', 
     flex: 1,
-    paddingHorizontal: Spacing.md, // Add padding to make it wider
-    backgroundColor: Colors.primary + '05', // Subtle background
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
     borderRadius: BorderRadius.md,
     paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   restControlsRow: {
     flexDirection: 'row',
@@ -901,14 +1065,14 @@ const styles = StyleSheet.create({
   },
   restControlButton: {
     backgroundColor: Colors.primary + '20',
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
   restControlButtonText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: 'bold',
   },
   timerLabel: {
@@ -916,11 +1080,13 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     marginBottom: 2,
     fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   compactTimerText: {
-    fontSize: 20,
+    fontSize: Typography.fontSize.lg,
     fontWeight: 'bold',
-    color: Colors.text,
+    color: Colors.primary,
     fontFamily: 'monospace',
   },
   activeRestTimer: {
@@ -1391,6 +1557,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     marginTop: Spacing.lg,
+    marginBottom: Spacing.md,
   },
   modalButton: {
     backgroundColor: '#333',
@@ -1414,6 +1581,32 @@ const styles = StyleSheet.create({
   },
   modalButtonTextPrimary: {
     color: Colors.background,
+  },
+  modalButtonsVertical: {
+    marginTop: Spacing.lg,
+    gap: Spacing.sm,
+  },
+  modalButtonDanger: {
+    backgroundColor: '#C44444',
+    borderColor: '#C44444',
+  },
+  modalButtonTextDanger: {
+    color: Colors.background,
+  },
+  modalButtonSubtext: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+    marginTop: 2,
+  },
+  modalButtonFullWidth: {
+    backgroundColor: '#333',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#555',
+    marginTop: Spacing.sm,
   },
   // AI Modal Styles
   aiModalContent: {

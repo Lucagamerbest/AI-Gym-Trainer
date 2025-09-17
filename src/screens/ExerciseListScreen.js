@@ -4,7 +4,7 @@
 // Last working version: 2025-09-13
 // Status: WORKING - Exercise Library displays correctly on all platforms
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView, Platform, TextInput, Image, Modal } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ScreenLayout from '../components/ScreenLayout';
@@ -87,21 +87,21 @@ export default function ExerciseListScreen({ navigation, route }) {
     }
   }, []);
 
-  const loadExercises = async () => {
-
+  const loadExercises = useCallback(async () => {
     let filteredExercises = [];
 
-    for (const muscleGroup of selectedMuscleGroups) {
+    // Load all muscle groups in parallel for speed
+    const promises = selectedMuscleGroups.map(async (muscleGroup) => {
       try {
         const groupExercises = await getExercisesByMuscleGroup(muscleGroup);
-
-        if (groupExercises && Array.isArray(groupExercises) && groupExercises.length > 0) {
-          filteredExercises = [...filteredExercises, ...groupExercises];
-        }
+        return groupExercises || [];
       } catch (error) {
-        // Silent error handling
+        return [];
       }
-    }
+    });
+
+    const results = await Promise.all(promises);
+    filteredExercises = results.flat();
 
 
     if (selectedDifficulty !== 'all') {
@@ -136,7 +136,7 @@ export default function ExerciseListScreen({ navigation, route }) {
     }
 
     setExercises(filteredExercises);
-  };
+  }, [selectedMuscleGroups, selectedDifficulty, selectedEquipment, searchQuery]);
 
 
   const startWorkoutWithExercise = (exercise) => {

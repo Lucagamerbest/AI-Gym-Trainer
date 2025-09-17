@@ -2,18 +2,21 @@ import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AnimatedBackground from './AnimatedBackground';
+import ActiveWorkoutIndicator from './ActiveWorkoutIndicator';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 
-export default function ScreenLayout({ 
-  children, 
-  title, 
+export default function ScreenLayout({
+  children,
+  title,
   subtitle,
-  navigation, 
+  navigation,
   showBack = true,
   showHome = true,
   scrollable = true,
   centerContent = false,
-  style
+  style,
+  onHomePress,
+  hideWorkoutIndicator = false
 }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
@@ -34,7 +37,9 @@ export default function ScreenLayout({
   }, []);
 
   const handleGoHome = () => {
-    if (navigation) {
+    if (onHomePress) {
+      onHomePress();
+    } else if (navigation) {
       // Navigate to the Main tab navigator, then to Home tab
       navigation.navigate('Main', { screen: 'Home' });
     }
@@ -58,7 +63,7 @@ export default function ScreenLayout({
     <AnimatedBackground>
       <SafeAreaView style={styles.container}>
         {/* Header */}
-        <Animated.View 
+        <Animated.View
           style={[
             styles.header,
             {
@@ -69,7 +74,7 @@ export default function ScreenLayout({
         >
           <View style={styles.headerLeft}>
             {showBack && navigation?.canGoBack() && (
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.navButton}
                 onPress={handleGoBack}
                 activeOpacity={0.7}
@@ -78,14 +83,14 @@ export default function ScreenLayout({
               </TouchableOpacity>
             )}
           </View>
-          
+
           <View style={styles.headerCenter}>
             {title && <Text style={styles.headerTitle}>{title}</Text>}
           </View>
-          
+
           <View style={styles.headerRight}>
             {showHome && (
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.navButton}
                 onPress={handleGoHome}
                 activeOpacity={0.7}
@@ -98,7 +103,7 @@ export default function ScreenLayout({
 
         {/* Page Title */}
         {(title || subtitle) && (
-          <Animated.View 
+          <Animated.View
             style={[
               styles.titleContainer,
               {
@@ -113,7 +118,7 @@ export default function ScreenLayout({
         )}
 
         {/* Content */}
-        <Animated.View 
+        <Animated.View
           style={[
             styles.contentContainer,
             {
@@ -127,6 +132,11 @@ export default function ScreenLayout({
             {children}
           </ContentWrapper>
         </Animated.View>
+
+        {/* Active Workout Indicator */}
+        {!hideWorkoutIndicator && navigation && (
+          <ActiveWorkoutIndicator navigation={navigation} />
+        )}
       </SafeAreaView>
     </AnimatedBackground>
   );

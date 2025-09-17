@@ -6,6 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
+import { WorkoutProvider } from './src/context/WorkoutContext';
 import { Colors } from './src/constants/theme';
 
 // Import screens
@@ -137,8 +138,10 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <AuthProvider>
-        <StatusBar style="light" />
-        <AppNavigator />
+        <WorkoutProvider>
+          <StatusBar style="light" />
+          <AppNavigator />
+        </WorkoutProvider>
       </AuthProvider>
     </SafeAreaProvider>
   );
