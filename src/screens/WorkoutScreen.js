@@ -117,7 +117,6 @@ const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exercise
 };
 
 export default function WorkoutScreen({ navigation, route }) {
-  console.log('🏋️ WorkoutScreen MOUNTED with params:', route.params);
   const { exercise, resumingWorkout, fromWorkout, fromLibrary, selectedMuscleGroups } = route.params || {};
   const { user } = useAuth();
   const { activeWorkout, startWorkout, updateWorkout, finishWorkout } = useWorkout();
@@ -375,10 +374,6 @@ export default function WorkoutScreen({ navigation, route }) {
 
   // Add another exercise - navigate based on how user started
   const addAnotherExercise = () => {
-    console.log('➕ addAnotherExercise called');
-    console.log('   - activeWorkout?.fromLibrary:', activeWorkout?.fromLibrary);
-    console.log('   - fromLibrary:', fromLibrary);
-
     // Save current exercise sets to context before navigating
     updateWorkout({
       exerciseSets,
@@ -387,7 +382,6 @@ export default function WorkoutScreen({ navigation, route }) {
 
     // Always go to exercise library for simplicity
     // This avoids complex navigation flows
-    console.log('   → Navigating to ExerciseList');
     navigation.navigate('ExerciseList', {
       selectedMuscleGroups: ['chest', 'back', 'legs', 'shoulders', 'biceps', 'triceps', 'abs'],
       fromWorkout: true,
