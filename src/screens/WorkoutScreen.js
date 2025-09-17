@@ -117,7 +117,7 @@ const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exercise
 };
 
 export default function WorkoutScreen({ navigation, route }) {
-  const { exercise, resumingWorkout, fromWorkout } = route.params || {};
+  const { exercise, resumingWorkout, fromWorkout, fromLibrary, selectedMuscleGroups } = route.params || {};
   const { user } = useAuth();
   const { activeWorkout, startWorkout, updateWorkout, finishWorkout } = useWorkout();
   const hasProcessedExercise = useRef(false);
@@ -144,55 +144,39 @@ export default function WorkoutScreen({ navigation, route }) {
   const [exerciseToDelete, setExerciseToDelete] = useState(null);
   const [draggedExercise, setDraggedExercise] = useState(null);
 
-  // Handle initialization and exercise addition - with duplicate prevention
+  // Simple initialization - only for new workouts or resuming
   useEffect(() => {
-    // Prevent double execution
-    if (hasProcessedExercise.current) return;
-
-    if (exercise && !resumingWorkout) {
-      hasProcessedExercise.current = true;
-
-      if (activeWorkout) {
-        // Add to existing workout
-        const exercises = [...(activeWorkout.exercises || [])];
-        // Prevent duplicates by checking both ID and timing
-        const isDuplicate = exercises.some(e =>
-          e.id === exercise.id &&
-          e.name === exercise.name
-        );
-
-        if (!isDuplicate) {
-          exercises.push(exercise);
-          updateWorkout({
-            exercises,
-            currentExerciseIndex: exercises.length - 1
-          });
-          setCurrentExerciseIndex(exercises.length - 1);
-        }
-      } else {
-        // Start new workout with this exercise
-        startWorkout({
-          exercises: [exercise],
-          startTime: new Date().toISOString(),
-          exerciseSets: {},
-          currentExerciseIndex: 0,
-          selectedMuscleGroups: route.params?.selectedMuscleGroups || []
-        });
-      }
-    } else if (resumingWorkout && activeWorkout) {
-      // Just resuming, set the index to the last exercise
-      setCurrentExerciseIndex(activeWorkout.currentExerciseIndex || 0);
-    } else if (!activeWorkout && !exercise) {
-      // No workout and no exercise - start empty workout
+    // Only start a new workout if we don't have one and we have an exercise
+    if (exercise && !activeWorkout && !fromWorkout) {
+      const muscleGroups = route.params?.selectedMuscleGroups || [];
       startWorkout({
-        exercises: [],
+        exercises: [exercise],
         startTime: new Date().toISOString(),
         exerciseSets: {},
+        selectedMuscleGroups: muscleGroups,
         currentExerciseIndex: 0,
-        selectedMuscleGroups: []
+        fromLibrary: fromLibrary || false
       });
     }
-  }, [exercise?.id]); // Only re-run if exercise ID changes
+    // Resuming existing workout
+    else if (resumingWorkout && activeWorkout) {
+      if (activeWorkout.exerciseSets) {
+        setExerciseSets(activeWorkout.exerciseSets);
+      }
+      setCurrentExerciseIndex(activeWorkout.currentExerciseIndex || 0);
+    }
+    // If we have an active workout, just restore its sets
+    else if (activeWorkout && activeWorkout.exerciseSets) {
+      setExerciseSets(activeWorkout.exerciseSets);
+    }
+  }, []); // Only run once on mount
+
+  // Update exercise index when new exercises are added via context
+  useEffect(() => {
+    if (activeWorkout && activeWorkout.currentExerciseIndex !== undefined) {
+      setCurrentExerciseIndex(activeWorkout.currentExerciseIndex);
+    }
+  }, [activeWorkout?.currentExerciseIndex]);
 
   // Get workout data from context
   const workoutExercises = activeWorkout?.exercises || [];
@@ -388,15 +372,25 @@ export default function WorkoutScreen({ navigation, route }) {
     });
   };
 
-  // Add another exercise
+  // Add another exercise - navigate based on how user started
   const addAnotherExercise = () => {
-    // Navigate to muscle group selection or exercise list
-    if (activeWorkout?.selectedMuscleGroups?.length > 0) {
+    // Save current exercise sets to context before navigating
+    updateWorkout({
+      exerciseSets,
+      currentExerciseIndex
+    });
+
+    // Check if user came from exercise library (has all exercises available)
+    if (activeWorkout?.fromLibrary || fromLibrary) {
+      // Go directly to exercise library with all muscle groups
       navigation.navigate('ExerciseList', {
-        selectedMuscleGroups: activeWorkout.selectedMuscleGroups,
-        fromWorkout: true
+        selectedMuscleGroups: ['chest', 'back', 'legs', 'shoulders', 'biceps', 'triceps', 'abs'],
+        fromWorkout: true,
+        fromLibrary: true
       });
     } else {
+      // User came from free workout - go to muscle group selection
+      // They need to select muscles for each new exercise
       navigation.navigate('MuscleGroupSelection', {
         fromWorkout: true
       });
@@ -416,7 +410,7 @@ export default function WorkoutScreen({ navigation, route }) {
     }
   };
 
-  // Add a new set for specific exercise
+  // Add a new set for specific exercise - LOCAL ONLY
   const addSet = (exerciseIndex) => {
     const newSets = { ...exerciseSets };
     if (!newSets[exerciseIndex]) {
@@ -424,6 +418,7 @@ export default function WorkoutScreen({ navigation, route }) {
     }
     newSets[exerciseIndex].push({ weight: '', reps: '', completed: false });
     setExerciseSets(newSets);
+    // DO NOT update context here - keep it local
   };
 
   // Delete a set for specific exercise
@@ -435,7 +430,7 @@ export default function WorkoutScreen({ navigation, route }) {
     }
   };
 
-  // Update set data
+  // Update set data - LOCAL ONLY, no context update to avoid refresh
   const updateSet = (exerciseIndex, setIndex, field, value) => {
     const newSets = { ...exerciseSets };
     if (!newSets[exerciseIndex]) {
@@ -443,6 +438,7 @@ export default function WorkoutScreen({ navigation, route }) {
     }
     newSets[exerciseIndex][setIndex][field] = value;
     setExerciseSets(newSets);
+    // DO NOT update context here - causes refresh on every keystroke
   };
 
   // Delete exercise from workout
@@ -455,8 +451,7 @@ export default function WorkoutScreen({ navigation, route }) {
     if (exerciseToDelete !== null) {
       const newExercises = [...workoutExercises];
       newExercises.splice(exerciseToDelete, 1);
-      setWorkoutExercises(newExercises);
-      
+
       // Update exercise sets
       const newSets = { ...exerciseSets };
       delete newSets[exerciseToDelete];
@@ -471,10 +466,16 @@ export default function WorkoutScreen({ navigation, route }) {
         }
       });
       setExerciseSets(reindexedSets);
-      
+
+      // Update workout context with new exercises and sets
+      updateWorkout({
+        exercises: newExercises,
+        exerciseSets: reindexedSets
+      });
+
       // Adjust current index if needed
-      if (currentExerciseIndex >= workoutExercises.length - 1) {
-        setCurrentExerciseIndex(Math.max(0, workoutExercises.length - 2));
+      if (currentExerciseIndex >= newExercises.length) {
+        setCurrentExerciseIndex(Math.max(0, newExercises.length - 1));
       }
     }
     setShowDeleteConfirmation(false);
@@ -486,8 +487,7 @@ export default function WorkoutScreen({ navigation, route }) {
     const newExercises = [...workoutExercises];
     const [movedExercise] = newExercises.splice(fromIndex, 1);
     newExercises.splice(toIndex, 0, movedExercise);
-    setWorkoutExercises(newExercises);
-    
+
     // Reorder exercise sets accordingly
     const newSets = {};
     newExercises.forEach((ex, newIndex) => {
@@ -497,7 +497,13 @@ export default function WorkoutScreen({ navigation, route }) {
       }
     });
     setExerciseSets(newSets);
-    
+
+    // Update workout context with reordered exercises and sets
+    updateWorkout({
+      exercises: newExercises,
+      exerciseSets: newSets
+    });
+
     // Update current index if the current exercise was moved
     if (currentExerciseIndex === fromIndex) {
       setCurrentExerciseIndex(toIndex);

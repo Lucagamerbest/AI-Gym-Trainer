@@ -15,7 +15,7 @@ import { useWorkout } from '../context/WorkoutContext';
 
 
 export default function ExerciseListScreen({ navigation, route }) {
-  const { isWorkoutActive, activeWorkout } = useWorkout();
+  const { isWorkoutActive, activeWorkout, updateWorkout } = useWorkout();
   const {
     selectedMuscleGroups,
     returnToWorkout,
@@ -140,12 +140,33 @@ export default function ExerciseListScreen({ navigation, route }) {
 
 
   const startWorkoutWithExercise = (exercise) => {
-    // Navigate to workout with exercise and context
-    navigation.navigate('Workout', {
-      exercise,
-      fromWorkout: fromWorkout || false,
-      selectedMuscleGroups: selectedMuscleGroups
-    });
+    // If we're adding to an existing workout, update context and go back
+    if (fromWorkout && isWorkoutActive()) {
+      // Add exercise to the active workout
+      const exercises = [...(activeWorkout.exercises || [])];
+      if (!exercises.find(e => e.id === exercise.id)) {
+        exercises.push(exercise);
+        // Update the workout context with new exercise
+        updateWorkout({
+          exercises,
+          currentExerciseIndex: exercises.length - 1
+        });
+      }
+      // Go back to the workout screen (don't navigate to new instance)
+      navigation.goBack();
+      // If we came from muscle selection, go back once more
+      if (route.params?.fromMuscleSelection) {
+        navigation.goBack();
+      }
+    } else {
+      // Starting a new workout
+      navigation.navigate('Workout', {
+        exercise,
+        fromWorkout: false,
+        selectedMuscleGroups: selectedMuscleGroups,
+        fromLibrary: fromLibrary || false
+      });
+    }
   };
 
   const getEquipmentIcon = (equipment) => {
