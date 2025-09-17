@@ -11,9 +11,11 @@ import ScreenLayout from '../components/ScreenLayout';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { LinearGradient } from 'expo-linear-gradient';
 import { getExercisesByMuscleGroup } from '../data/exerciseDatabase';
+import { useWorkout } from '../context/WorkoutContext';
 
 
 export default function ExerciseListScreen({ navigation, route }) {
+  const { isWorkoutActive, activeWorkout } = useWorkout();
   const {
     selectedMuscleGroups,
     returnToWorkout,
@@ -138,30 +140,12 @@ export default function ExerciseListScreen({ navigation, route }) {
 
 
   const startWorkoutWithExercise = (exercise) => {
-
-    // Handle different navigation modes
-    if (fromWorkout || (returnToWorkout && currentWorkoutExercises)) {
-      // Add exercise to existing workout
-      navigation.navigate('Workout', {
-        exercise,
-        addToExistingWorkout: true,
-        existingWorkoutExercises: currentWorkoutExercises || [],
-        workoutStartTime: workoutStartTime,
-        selectedMuscleGroups: selectedMuscleGroups
-      });
-    } else if (fromFreeWorkout) {
-      // Start new workout from free workout mode
-      navigation.navigate('Workout', { 
-        exercise,
-        selectedMuscleGroups: selectedMuscleGroups 
-      });
-    } else {
-      // Normal workout start from exercise library
-      navigation.navigate('Workout', { 
-        exercise,
-        selectedMuscleGroups: selectedMuscleGroups 
-      });
-    }
+    // Navigate to workout with exercise and context
+    navigation.navigate('Workout', {
+      exercise,
+      fromWorkout: fromWorkout || false,
+      selectedMuscleGroups: selectedMuscleGroups
+    });
   };
 
   const getEquipmentIcon = (equipment) => {
@@ -400,7 +384,9 @@ export default function ExerciseListScreen({ navigation, route }) {
                     style={styles.addButton}
                     onPress={() => startWorkoutWithExercise(item)}
                   >
-                    <Text style={styles.addButtonText}>{fromWorkout ? 'Select' : 'Start'}</Text>
+                    <Text style={styles.addButtonText}>
+                      {fromWorkout || isWorkoutActive() ? 'Add Exercise' : 'Start'}
+                    </Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -462,7 +448,9 @@ export default function ExerciseListScreen({ navigation, route }) {
                       style={styles.addButton}
                       onPress={() => startWorkoutWithExercise(item)}
                     >
-                      <Text style={styles.addButtonText}>{fromWorkout ? 'Select' : 'Start'}</Text>
+                      <Text style={styles.addButtonText}>
+                      {fromWorkout || isWorkoutActive() ? 'Add Exercise' : 'Start'}
+                    </Text>
                     </TouchableOpacity>
                   </View>
                 </View>

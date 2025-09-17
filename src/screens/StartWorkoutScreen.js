@@ -4,9 +4,11 @@ import ScreenLayout from '../components/ScreenLayout';
 import StyledCard from '../components/StyledCard';
 import StyledButton from '../components/StyledButton';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
+import { useWorkout } from '../context/WorkoutContext';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function StartWorkoutScreen({ navigation }) {
+  const { isWorkoutActive, activeWorkout } = useWorkout();
   const [showAllPrograms, setShowAllPrograms] = useState(false);
 
   const workoutPrograms = [
@@ -19,8 +21,14 @@ export default function StartWorkoutScreen({ navigation }) {
   const displayedPrograms = showAllPrograms ? workoutPrograms : workoutPrograms.slice(0, 2);
 
   const handleStartWorkout = (program) => {
-    // For now, just navigate back or show a success message
-    navigation.goBack();
+    if (isWorkoutActive() && activeWorkout) {
+      // Navigate to active workout for resuming
+      navigation.navigate('Workout', { resumingWorkout: true });
+    } else {
+      // TODO: In the future, implement actual program workouts
+      // For now, just navigate back or show a success message
+      navigation.goBack();
+    }
   };
 
   return (
@@ -35,21 +43,45 @@ export default function StartWorkoutScreen({ navigation }) {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Quick Start</Text>
           <StyledButton
-            title="Free Workout"
-            subtitle="Choose your own muscle groups"
-            onPress={() => navigation.navigate('MuscleGroupSelection')}
-            icon="🏃"
+            title={isWorkoutActive() ? "Continue Workout" : "Free Workout"}
+            subtitle={isWorkoutActive() ? "Resume your active workout" : "Choose your own muscle groups"}
+            onPress={() => {
+              if (isWorkoutActive() && activeWorkout) {
+                // Navigate to active workout for resuming
+                navigation.navigate('Workout', { resumingWorkout: true });
+              } else {
+                // Start new free workout
+                navigation.navigate('MuscleGroupSelection');
+              }
+            }}
+            icon={isWorkoutActive() ? "⚡" : "🏃"}
             style={styles.quickStartButton}
           />
           <StyledButton
-            title="Exercise Library"
-            subtitle="Browse all 800+ exercises with advanced filters"
-            onPress={() => navigation.navigate('ExerciseList', {
-              selectedMuscleGroups: ['chest', 'back', 'legs', 'biceps', 'triceps', 'shoulders', 'abs'],
-              fromLibrary: true,
-              refresh: Date.now() // Always refresh when accessing library
-            })}
-            icon="📚"
+            title={isWorkoutActive() ? "Add Exercises" : "Exercise Library"}
+            subtitle={isWorkoutActive() ? "Add exercises to your current workout" : "Browse all 800+ exercises with advanced filters"}
+            onPress={() => {
+              if (isWorkoutActive() && activeWorkout) {
+                // Navigate to exercise library with active workout context
+                navigation.navigate('ExerciseList', {
+                  selectedMuscleGroups: ['chest', 'back', 'legs', 'biceps', 'triceps', 'shoulders', 'abs'],
+                  fromWorkout: true,
+                  currentWorkoutExercises: activeWorkout.exercises || [],
+                  workoutStartTime: activeWorkout.startTime,
+                  existingExerciseSets: activeWorkout.exerciseSets || {},
+                  fromLibrary: true,
+                  refresh: Date.now()
+                });
+              } else {
+                // Normal exercise library access
+                navigation.navigate('ExerciseList', {
+                  selectedMuscleGroups: ['chest', 'back', 'legs', 'biceps', 'triceps', 'shoulders', 'abs'],
+                  fromLibrary: true,
+                  refresh: Date.now()
+                });
+              }
+            }}
+            icon={isWorkoutActive() ? "➕" : "📚"}
             style={styles.quickStartButton}
           />
         </View>
@@ -86,7 +118,9 @@ export default function StartWorkoutScreen({ navigation }) {
                     <Text style={styles.programFocus}>🎯 {program.focus}</Text>
                   </View>
                   <View style={styles.startButton}>
-                    <Text style={styles.startButtonText}>START</Text>
+                    <Text style={styles.startButtonText}>
+                      {isWorkoutActive() ? 'CONTINUE' : 'START'}
+                    </Text>
                   </View>
                 </View>
               </LinearGradient>

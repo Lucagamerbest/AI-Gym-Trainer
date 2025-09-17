@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Vibration, Modal, TextInput, PanResponder, Animated } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
@@ -7,6 +7,7 @@ import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { LinearGradient } from 'expo-linear-gradient';
 import { WorkoutStorageService } from '../services/workoutStorage';
 import { useAuth } from '../context/AuthContext';
+import { useWorkout } from '../context/WorkoutContext';
 
 // Exercise Card Component
 const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exerciseSets, onUpdateSet, onAddSet, onDeleteSet, onShowInfo }) => {
@@ -116,24 +117,18 @@ const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exercise
 };
 
 export default function WorkoutScreen({ navigation, route }) {
-  const { exercise, addToExistingWorkout, existingWorkoutExercises, workoutStartTime: existingStartTime, selectedMuscleGroups } = route.params || {};
+  const { exercise, resumingWorkout, fromWorkout } = route.params || {};
   const { user } = useAuth();
-  const [workoutStartTime] = useState(existingStartTime || new Date());
+  const { activeWorkout, startWorkout, updateWorkout, finishWorkout } = useWorkout();
+  const hasProcessedExercise = useRef(false);
+
+  // State management
   const [currentTime, setCurrentTime] = useState(new Date());
   const [restTimer, setRestTimer] = useState(0);
   const [isRestTimerRunning, setIsRestTimerRunning] = useState(false);
   const [restTargetSeconds, setRestTargetSeconds] = useState(60);
   const restIntervalRef = useRef(null);
-  const [workoutExercises, setWorkoutExercises] = useState(
-    addToExistingWorkout && existingWorkoutExercises
-      ? [...existingWorkoutExercises, exercise]
-      : [exercise]
-  );
-  const [currentExerciseIndex, setCurrentExerciseIndex] = useState(
-    addToExistingWorkout && existingWorkoutExercises
-      ? existingWorkoutExercises.length
-      : 0
-  );
+  const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [isWorkoutPaused, setIsWorkoutPaused] = useState(false);
   const [pausedDuration, setPausedDuration] = useState(0);
   const [pauseStartTime, setPauseStartTime] = useState(null);
@@ -141,28 +136,83 @@ export default function WorkoutScreen({ navigation, route }) {
   const [pickerMinutes, setPickerMinutes] = useState(1);
   const [pickerSeconds, setPickerSeconds] = useState(0);
   const [showFinishConfirmation, setShowFinishConfirmation] = useState(false);
-  const [showBackWarning, setShowBackWarning] = useState(false);
   const [showAIAssistant, setShowAIAssistant] = useState(false);
-  
+
   // Exercise tracking state
   const [exerciseSets, setExerciseSets] = useState({});
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [exerciseToDelete, setExerciseToDelete] = useState(null);
   const [draggedExercise, setDraggedExercise] = useState(null);
 
-  // Initialize exercise sets when component mounts or exercises change
+  // Handle initialization and exercise addition - with duplicate prevention
   useEffect(() => {
-    const newSets = {};
-    workoutExercises.forEach((ex, index) => {
-      if (!exerciseSets[index]) {
-        newSets[index] = [
-          { weight: '', reps: '', completed: false }
-        ];
+    // Prevent double execution
+    if (hasProcessedExercise.current) return;
+
+    if (exercise && !resumingWorkout) {
+      hasProcessedExercise.current = true;
+
+      if (activeWorkout) {
+        // Add to existing workout
+        const exercises = [...(activeWorkout.exercises || [])];
+        // Prevent duplicates by checking both ID and timing
+        const isDuplicate = exercises.some(e =>
+          e.id === exercise.id &&
+          e.name === exercise.name
+        );
+
+        if (!isDuplicate) {
+          exercises.push(exercise);
+          updateWorkout({
+            exercises,
+            currentExerciseIndex: exercises.length - 1
+          });
+          setCurrentExerciseIndex(exercises.length - 1);
+        }
       } else {
-        newSets[index] = exerciseSets[index];
+        // Start new workout with this exercise
+        startWorkout({
+          exercises: [exercise],
+          startTime: new Date().toISOString(),
+          exerciseSets: {},
+          currentExerciseIndex: 0,
+          selectedMuscleGroups: route.params?.selectedMuscleGroups || []
+        });
+      }
+    } else if (resumingWorkout && activeWorkout) {
+      // Just resuming, set the index to the last exercise
+      setCurrentExerciseIndex(activeWorkout.currentExerciseIndex || 0);
+    } else if (!activeWorkout && !exercise) {
+      // No workout and no exercise - start empty workout
+      startWorkout({
+        exercises: [],
+        startTime: new Date().toISOString(),
+        exerciseSets: {},
+        currentExerciseIndex: 0,
+        selectedMuscleGroups: []
+      });
+    }
+  }, [exercise?.id]); // Only re-run if exercise ID changes
+
+  // Get workout data from context
+  const workoutExercises = activeWorkout?.exercises || [];
+  const workoutStartTime = activeWorkout?.startTime ? new Date(activeWorkout.startTime) : new Date();
+
+  // Initialize exercise sets
+  useEffect(() => {
+    const newSets = { ...exerciseSets };
+    let hasChanges = false;
+
+    workoutExercises.forEach((ex, index) => {
+      if (!newSets[index]) {
+        newSets[index] = [{ weight: '', reps: '', completed: false }];
+        hasChanges = true;
       }
     });
-    setExerciseSets(newSets);
+
+    if (hasChanges) {
+      setExerciseSets(newSets);
+    }
   }, [workoutExercises.length]);
 
   // Update workout timer every second
@@ -174,22 +224,16 @@ export default function WorkoutScreen({ navigation, route }) {
     return () => clearInterval(timer);
   }, []);
 
-  // Prevent navigation away from workout screen
-  useFocusEffect(
-    React.useCallback(() => {
-      const beforeRemove = (e) => {
-        // Prevent default behavior of leaving the screen
-        e.preventDefault();
+  // Function to manually update workout context when needed
+  const updateWorkoutData = () => {
+    updateWorkout({
+      exerciseSets: exerciseSets,
+      exercises: workoutExercises,
+      currentExerciseIndex: currentExerciseIndex
+    });
+  };
 
-        // Show custom themed modal instead of system alert
-        setShowBackWarning(true);
-      };
-
-      navigation.addListener('beforeRemove', beforeRemove);
-
-      return () => navigation.removeListener('beforeRemove', beforeRemove);
-    }, [navigation])
-  );
+  // Removed problematic sync effect that was causing infinite loops
 
   // Rest timer logic
   useEffect(() => {
@@ -308,8 +352,8 @@ export default function WorkoutScreen({ navigation, route }) {
       duration: getElapsedTime(),
       exercisesCompleted: workoutExercises.length,
       exercises: workoutExercises,
-      startTime: workoutStartTime,
-      endTime: new Date()
+      startTime: workoutStartTime.toISOString(),
+      endTime: new Date().toISOString()
     };
 
     // Save workout data with exercise sets
@@ -320,11 +364,13 @@ export default function WorkoutScreen({ navigation, route }) {
       Alert.alert('Error', 'Failed to save workout data. Continuing anyway.');
     }
 
-    // Remove the navigation listener before navigating away
-    navigation.removeListener('beforeRemove', () => {});
+    // Clear workout from global context
+    finishWorkout();
 
     setShowFinishConfirmation(false);
-    navigation.navigate('WorkoutSummary', {
+
+    // Navigate with replace to prevent going back to workout
+    navigation.replace('WorkoutSummary', {
       workoutData,
       exerciseSets,
       saveResult
@@ -332,7 +378,7 @@ export default function WorkoutScreen({ navigation, route }) {
   };
 
   // Get current exercise
-  const currentExercise = workoutExercises[currentExerciseIndex] || exercise;
+  const currentExercise = workoutExercises[currentExerciseIndex];
 
   // Navigate to exercise detail screen
   const showExerciseDetail = (exercise) => {
@@ -344,20 +390,15 @@ export default function WorkoutScreen({ navigation, route }) {
 
   // Add another exercise
   const addAnotherExercise = () => {
-    // If we have selectedMuscleGroups, go directly to ExerciseList
-    // Otherwise, go to MuscleGroupSelection
-    if (selectedMuscleGroups && selectedMuscleGroups.length > 0) {
+    // Navigate to muscle group selection or exercise list
+    if (activeWorkout?.selectedMuscleGroups?.length > 0) {
       navigation.navigate('ExerciseList', {
-        selectedMuscleGroups: selectedMuscleGroups,
-        fromWorkout: true,
-        currentWorkoutExercises: workoutExercises,
-        workoutStartTime: workoutStartTime
+        selectedMuscleGroups: activeWorkout.selectedMuscleGroups,
+        fromWorkout: true
       });
     } else {
       navigation.navigate('MuscleGroupSelection', {
-        fromWorkout: true,
-        currentWorkoutExercises: workoutExercises,
-        workoutStartTime: workoutStartTime
+        fromWorkout: true
       });
     }
   };
@@ -512,6 +553,7 @@ export default function WorkoutScreen({ navigation, route }) {
     );
   }
 
+
   return (
     <>
       <ScreenLayout
@@ -520,6 +562,7 @@ export default function WorkoutScreen({ navigation, route }) {
         navigation={navigation}
         showBack={true}
         scrollable={true}
+        hideWorkoutIndicator={true}
       >
       {/* Compact Timer Header */}
       <View style={styles.timerHeaderCard}>
@@ -726,29 +769,6 @@ export default function WorkoutScreen({ navigation, route }) {
         </View>
       </Modal>
 
-      {/* Back Navigation Warning Modal */}
-      <Modal
-        visible={showBackWarning}
-        transparent={true}
-        animationType="slide"
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Workout in Progress</Text>
-            <Text style={styles.confirmationText}>
-              You have an active workout session. To complete your workout, please use the "Finish Workout" button below.
-            </Text>
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.modalButtonPrimary]}
-                onPress={() => setShowBackWarning(false)}
-              >
-                <Text style={[styles.modalButtonText, styles.modalButtonTextPrimary]}>Continue Workout</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
 
       {/* Delete Exercise Confirmation Modal */}
       <Modal
@@ -1451,5 +1471,16 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
     textAlign: 'center',
     lineHeight: 22,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: Spacing.xl,
+  },
+  loadingText: {
+    fontSize: Typography.fontSize.lg,
+    color: Colors.textSecondary,
+    marginTop: Spacing.md,
   },
 });
