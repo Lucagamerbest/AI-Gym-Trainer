@@ -153,9 +153,9 @@ export default function WorkoutScreen({ navigation, route }) {
         exercises: [exercise],
         startTime: new Date().toISOString(),
         exerciseSets: {},
-        selectedMuscleGroups: muscleGroups,
+        selectedMuscleGroups: muscleGroups, // Store the muscle groups they selected
         currentExerciseIndex: 0,
-        fromLibrary: fromLibrary || false
+        fromLibrary: fromLibrary || false // Track if started from library or free workout
       });
     }
     // Resuming existing workout
@@ -380,13 +380,23 @@ export default function WorkoutScreen({ navigation, route }) {
       currentExerciseIndex
     });
 
-    // Always go to exercise library for simplicity
-    // This avoids complex navigation flows
-    navigation.navigate('ExerciseList', {
-      selectedMuscleGroups: ['chest', 'back', 'legs', 'shoulders', 'biceps', 'triceps', 'abs'],
-      fromWorkout: true,
-      fromLibrary: true
-    });
+    // Check if workout was started from library or free workout
+    if (activeWorkout?.fromLibrary) {
+      // Started from library - show all exercises
+      navigation.navigate('ExerciseList', {
+        selectedMuscleGroups: ['chest', 'back', 'legs', 'shoulders', 'biceps', 'triceps', 'abs'],
+        fromWorkout: true,
+        fromLibrary: true
+      });
+    } else {
+      // Started from free workout - use the muscle groups they selected
+      const muscleGroups = activeWorkout?.selectedMuscleGroups || ['chest', 'back', 'legs', 'shoulders', 'biceps', 'triceps', 'abs'];
+      navigation.navigate('ExerciseList', {
+        selectedMuscleGroups: muscleGroups,
+        fromWorkout: true,
+        fromLibrary: false
+      });
+    }
   };
 
   // Navigate between exercises
