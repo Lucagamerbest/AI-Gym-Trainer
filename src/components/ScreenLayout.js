@@ -85,7 +85,11 @@ export default function ScreenLayout({
           </View>
 
           <View style={styles.headerCenter}>
-            {title && <Text style={styles.headerTitle}>{title}</Text>}
+            {typeof title === 'string' ? (
+              title && <Text style={styles.headerTitle}>{title}</Text>
+            ) : (
+              title
+            )}
           </View>
 
           <View style={styles.headerRight}>
@@ -101,8 +105,8 @@ export default function ScreenLayout({
           </View>
         </Animated.View>
 
-        {/* Page Title */}
-        {(title || subtitle) && (
+        {/* Page Title - only show if title is a string */}
+        {((typeof title === 'string' && title) || subtitle) && (
           <Animated.View
             style={[
               styles.titleContainer,
@@ -112,7 +116,7 @@ export default function ScreenLayout({
               },
             ]}
           >
-            {title && <Text style={styles.title}>{title}</Text>}
+            {typeof title === 'string' && title && <Text style={styles.title}>{title}</Text>}
             {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
           </Animated.View>
         )}
@@ -155,8 +159,9 @@ const styles = StyleSheet.create({
     minHeight: 56,
   },
   headerLeft: {
-    width: 60,
+    width: 45,
     alignItems: 'flex-start',
+    marginLeft: -10,
   },
   headerCenter: {
     flex: 1,

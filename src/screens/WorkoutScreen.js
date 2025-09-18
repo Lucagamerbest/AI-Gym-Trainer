@@ -620,109 +620,98 @@ export default function WorkoutScreen({ navigation, route }) {
   }
 
 
+  // Create custom header component with workout stats
+  const WorkoutStatsHeader = () => (
+    <View style={styles.headerStats}>
+      <TouchableOpacity
+        style={styles.headerStatBox}
+        onPress={toggleWorkoutPause}
+        activeOpacity={0.7}
+      >
+        <View style={styles.headerTimerContent}>
+          <Text style={styles.headerPauseIcon}>
+            {isWorkoutPaused ? '▶' : '⏸'}
+          </Text>
+          <Text style={[
+            styles.headerTimerText,
+            isWorkoutPaused && styles.headerTimerPaused
+          ]}>
+            {getElapsedTime()}
+          </Text>
+        </View>
+      </TouchableOpacity>
+
+      <View style={styles.headerStatBox}>
+        <Text style={styles.headerStatValue}>{totalVolume.toLocaleString()}</Text>
+        <Text style={styles.headerStatLabel}>volume (lbs)</Text>
+      </View>
+
+      <View style={styles.headerStatBox}>
+        <Text style={styles.headerStatValue}>{totalSets}</Text>
+        <Text style={styles.headerStatLabel}>sets</Text>
+      </View>
+    </View>
+  );
+
   return (
     <>
       <ScreenLayout
-        title="Active Workout"
-        subtitle={`${workoutExercises.length} exercise${workoutExercises.length > 1 ? 's' : ''}`}
+        title={<WorkoutStatsHeader />}
+        subtitle={null}
         navigation={navigation}
         showBack={true}
         scrollable={true}
         hideWorkoutIndicator={true}
       >
-      {/* Compact Timer Header */}
-      <View style={styles.timerHeaderCard}>
-        <LinearGradient
-          colors={[Colors.primary + '15', Colors.surface]}
-          style={styles.timerHeaderGradient}
-        >
-          {/* Top Row - Workout Time and Volume */}
-          <View style={styles.statsRow}>
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>Workout Time</Text>
-              <View style={styles.workoutTimeRow}>
-                <TouchableOpacity
-                  style={styles.pauseButton}
-                  onPress={toggleWorkoutPause}
-                >
-                  <Text style={styles.pauseButtonText}>
-                    {isWorkoutPaused ? '▶️' : '⏸️'}
-                  </Text>
-                </TouchableOpacity>
-                <Text style={[
-                  styles.statValue,
-                  isWorkoutPaused && styles.pausedTimer
-                ]}>
-                  {getElapsedTime()}
-                </Text>
-              </View>
-            </View>
+      {/* Rest Timer Card */}
+      <View style={styles.restTimerCard}>
+        <View style={styles.restTimerContent}>
+          <Text style={styles.restTimerLabel}>Rest Timer</Text>
+          <View style={styles.restTimerControls}>
+            <TouchableOpacity
+              style={styles.restButton}
+              onPress={() => {
+                stopRestTimer();
+                setRestTargetSeconds(60);
+              }}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.restButtonIcon}>↻</Text>
+            </TouchableOpacity>
 
-            <View style={styles.statDivider} />
+            <TouchableOpacity
+              style={styles.restTimerDisplay}
+              onPress={openTimerPicker}
+              activeOpacity={0.7}
+            >
+              <Text style={[
+                styles.restTimerText,
+                isRestTimerRunning && styles.activeTimer
+              ]}>
+                {restTimer > 0 ? formatRestTimer(restTimer) : formatRestTimer(restTargetSeconds)}
+              </Text>
+            </TouchableOpacity>
 
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>Volume & Sets</Text>
-              <View style={styles.volumeSetsRow}>
-                <View style={styles.volumeSection}>
-                  <Text style={styles.statValue}>
-                    {totalVolume.toLocaleString()}
-                  </Text>
-                  <Text style={styles.statUnit}>lbs</Text>
-                </View>
-                <View style={styles.setsDivider} />
-                <View style={styles.setsSection}>
-                  <Text style={styles.statValue}>
-                    {totalSets}
-                  </Text>
-                  <Text style={styles.statUnit}>sets</Text>
-                </View>
-              </View>
-            </View>
+            <TouchableOpacity
+              style={[
+                styles.restButton,
+                isRestTimerRunning && styles.activeRestButton
+              ]}
+              onPress={() => {
+                if (isRestTimerRunning) {
+                  stopRestTimer();
+                } else {
+                  startRestTimer();
+                }
+              }}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.restButtonIcon}>
+                {isRestTimerRunning ? '⏸' : '▶'}
+              </Text>
+            </TouchableOpacity>
           </View>
-
-          {/* Bottom Row - Rest Timer */}
-          <View style={styles.timerRow}>
-            <View style={styles.restTimerContainer}>
-              <Text style={styles.timerLabel}>Rest Timer</Text>
-              <View style={styles.restControlsRow}>
-                <TouchableOpacity 
-                  style={styles.restControlButton}
-                  onPress={() => {
-                    stopRestTimer();
-                    setRestTargetSeconds(60);
-                  }}
-                >
-                  <Text style={styles.restControlButtonText}>↻</Text>
-                </TouchableOpacity>
-                <TouchableOpacity 
-                  style={styles.restTimerButton}
-                  onPress={openTimerPicker}
-                >
-                  <Text style={[
-                    styles.compactTimerText,
-                    isRestTimerRunning && styles.activeRestTimer
-                  ]}>
-                    {restTimer > 0 ? formatRestTimer(restTimer) : formatRestTimer(restTargetSeconds)}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity 
-                  style={styles.restControlButton}
-                  onPress={() => {
-                    if (isRestTimerRunning) {
-                      stopRestTimer();
-                    } else {
-                      startRestTimer();
-                    }
-                  }}
-                >
-                  <Text style={styles.restControlButtonText}>
-                    {isRestTimerRunning ? '⏸️' : '▶️'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </LinearGradient>
+        </View>
       </View>
 
       {/* All Workout Exercises */}
@@ -944,6 +933,113 @@ const styles = StyleSheet.create({
   screenContainer: {
     flex: 1,
     backgroundColor: Colors.background,
+  },
+  // Header Stats Styles
+  headerStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  headerStatBox: {
+    backgroundColor: Colors.surface,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTimerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  headerPauseIcon: {
+    fontSize: 18,
+    color: Colors.primary,
+  },
+  headerTimerText: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: 'bold',
+    color: Colors.text,
+    fontFamily: 'monospace',
+  },
+  headerTimerPaused: {
+    color: '#FF9800',
+  },
+  headerStatValue: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: 'bold',
+    color: Colors.text,
+  },
+  headerStatLabel: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    marginTop: -2,
+  },
+  // Rest Timer Card Styles
+  restTimerCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.md,
+    marginHorizontal: Spacing.xs,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  restTimerContent: {
+    paddingVertical: 12,
+    paddingHorizontal: Spacing.md,
+  },
+  restTimerLabel: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textSecondary,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  restTimerControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  restButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  activeRestButton: {
+    backgroundColor: Colors.primary + '20',
+    borderColor: Colors.primary,
+  },
+  restButtonIcon: {
+    fontSize: 16,
+    color: Colors.primary,
+  },
+  restTimerDisplay: {
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  restTimerText: {
+    fontSize: Typography.fontSize.xl,
+    fontWeight: 'bold',
+    color: Colors.text,
+    fontFamily: 'monospace',
+  },
+  activeTimer: {
+    color: Colors.primary,
   },
   timerHeaderCard: {
     marginBottom: Spacing.md,
