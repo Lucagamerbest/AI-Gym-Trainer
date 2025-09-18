@@ -10,7 +10,27 @@ import { useAuth } from '../context/AuthContext';
 import { useWorkout } from '../context/WorkoutContext';
 
 // Exercise Card Component
-const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exerciseSets, onUpdateSet, onAddSet, onDeleteSet, onShowInfo }) => {
+const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exerciseSets, onUpdateSet, onAddSet, onDeleteSet, onShowInfo, onSelectSetType }) => {
+  // Function to get set type color
+  const getSetTypeColor = (type) => {
+    switch (type) {
+      case 'warmup': return '#FFA500'; // Orange
+      case 'dropset': return '#9B59B6'; // Purple
+      case 'failure': return '#E74C3C'; // Red
+      default: return Colors.primary; // Green for normal
+    }
+  };
+
+  // Function to get set type label
+  const getSetTypeLabel = (type) => {
+    switch (type) {
+      case 'warmup': return 'Warmup';
+      case 'dropset': return 'Drop';
+      case 'failure': return 'Failure';
+      default: return '';
+    }
+  };
+
   return (
     <View
       style={[
@@ -65,7 +85,25 @@ const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exercise
           
           {exerciseSets && exerciseSets.map((set, setIndex) => (
             <View key={setIndex} style={styles.setRow}>
-              <Text style={styles.setNumber}>{setIndex + 1}</Text>
+              <TouchableOpacity
+                style={styles.setNumberContainer}
+                onPress={() => onSelectSetType(index, setIndex)}
+              >
+                <Text style={[
+                  styles.setNumber,
+                  { color: getSetTypeColor(set.type || 'normal') }
+                ]}>
+                  {setIndex + 1}
+                </Text>
+                {set.type && set.type !== 'normal' && (
+                  <Text style={[
+                    styles.setTypeLabel,
+                    { color: getSetTypeColor(set.type) }
+                  ]}>
+                    {getSetTypeLabel(set.type)}
+                  </Text>
+                )}
+              </TouchableOpacity>
               
               <TextInput
                 style={styles.setInput}
@@ -137,6 +175,8 @@ export default function WorkoutScreen({ navigation, route }) {
   const [pickerSeconds, setPickerSeconds] = useState(0);
   const [showFinishConfirmation, setShowFinishConfirmation] = useState(false);
   const [showAIAssistant, setShowAIAssistant] = useState(false);
+  const [showSetTypeModal, setShowSetTypeModal] = useState(false);
+  const [selectedSetForType, setSelectedSetForType] = useState({ exerciseIndex: null, setIndex: null });
 
   // Exercise tracking state
   const [exerciseSets, setExerciseSets] = useState({});
@@ -501,6 +541,22 @@ export default function WorkoutScreen({ navigation, route }) {
     // DO NOT update context here - causes refresh on every keystroke
   };
 
+  // Handle set type selection
+  const handleSelectSetType = (exerciseIndex, setIndex) => {
+    setSelectedSetForType({ exerciseIndex, setIndex });
+    setShowSetTypeModal(true);
+  };
+
+  // Apply set type to selected set
+  const applySetType = (type) => {
+    const { exerciseIndex, setIndex } = selectedSetForType;
+    if (exerciseIndex !== null && setIndex !== null) {
+      updateSet(exerciseIndex, setIndex, 'type', type);
+    }
+    setShowSetTypeModal(false);
+    setSelectedSetForType({ exerciseIndex: null, setIndex: null });
+  };
+
   // Delete exercise from workout
   const deleteExercise = (index) => {
     setExerciseToDelete(index);
@@ -730,6 +786,7 @@ export default function WorkoutScreen({ navigation, route }) {
             onAddSet={addSet}
             onDeleteSet={deleteSet}
             onShowInfo={showExerciseDetail}
+            onSelectSetType={handleSelectSetType}
           />
         ))}
       </View>
@@ -921,6 +978,58 @@ export default function WorkoutScreen({ navigation, route }) {
                 </Text>
               </View>
             </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Set Type Selection Modal */}
+      <Modal
+        visible={showSetTypeModal}
+        transparent={true}
+        animationType="slide"
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.setTypeModalContent}>
+            <Text style={styles.modalTitle}>Select Set Type</Text>
+
+            <TouchableOpacity
+              style={[styles.setTypeOption, styles.normalSetOption]}
+              onPress={() => applySetType('normal')}
+            >
+              <View style={styles.setTypeColorIndicator} />
+              <Text style={styles.setTypeOptionText}>Normal Set</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.setTypeOption, styles.warmupSetOption]}
+              onPress={() => applySetType('warmup')}
+            >
+              <View style={[styles.setTypeColorIndicator, { backgroundColor: '#FFA500' }]} />
+              <Text style={styles.setTypeOptionText}>Warmup Set</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.setTypeOption, styles.dropsetOption]}
+              onPress={() => applySetType('dropset')}
+            >
+              <View style={[styles.setTypeColorIndicator, { backgroundColor: '#9B59B6' }]} />
+              <Text style={styles.setTypeOptionText}>Drop Set</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.setTypeOption, styles.failureSetOption]}
+              onPress={() => applySetType('failure')}
+            >
+              <View style={[styles.setTypeColorIndicator, { backgroundColor: '#E74C3C' }]} />
+              <Text style={styles.setTypeOptionText}>Failure Set</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => setShowSetTypeModal(false)}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -1284,12 +1393,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: Spacing.xs,
   },
-  setNumber: {
+  setNumberContainer: {
     flex: 1,
-    textAlign: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  setNumber: {
     fontSize: Typography.fontSize.md,
     fontWeight: 'bold',
-    color: Colors.text,
+    textAlign: 'center',
+  },
+  setTypeLabel: {
+    fontSize: 9,
+    fontWeight: '600',
+    marginTop: -2,
   },
   setInput: {
     flex: 1,
@@ -1779,5 +1896,50 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.lg,
     color: Colors.textSecondary,
     marginTop: Spacing.md,
+  },
+  // Set Type Modal Styles
+  setTypeModalContent: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.xl,
+    width: '90%',
+    maxWidth: 400,
+    borderWidth: 2,
+    borderColor: Colors.border,
+  },
+  setTypeOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.sm,
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  normalSetOption: {
+    borderColor: Colors.primary,
+  },
+  warmupSetOption: {
+    borderColor: '#FFA500',
+  },
+  dropsetOption: {
+    borderColor: '#9B59B6',
+  },
+  failureSetOption: {
+    borderColor: '#E74C3C',
+  },
+  setTypeColorIndicator: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: Colors.primary,
+    marginRight: Spacing.md,
+  },
+  setTypeOptionText: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: 'bold',
+    color: Colors.text,
+    flex: 1,
   },
 });
