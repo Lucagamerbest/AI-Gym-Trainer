@@ -142,16 +142,14 @@ export default function ExerciseListScreen({ navigation, route }) {
   const startWorkoutWithExercise = (exercise) => {
     // If we're adding to an existing workout, update context and go back
     if (fromWorkout && isWorkoutActive()) {
-      // Add exercise to the active workout
+      // Add exercise to the active workout - allow duplicates
       const exercises = [...(activeWorkout.exercises || [])];
-      if (!exercises.find(e => e.id === exercise.id)) {
-        exercises.push(exercise);
-        // Update the workout context with new exercise
-        updateWorkout({
-          exercises,
-          currentExerciseIndex: exercises.length - 1
-        });
-      }
+      exercises.push(exercise);
+      // Update the workout context with new exercise
+      updateWorkout({
+        exercises,
+        currentExerciseIndex: exercises.length - 1
+      });
       // Go back to the workout screen (don't navigate to new instance)
       navigation.goBack();
       // If we came from muscle selection, go back once more
