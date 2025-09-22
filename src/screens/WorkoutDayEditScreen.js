@@ -69,7 +69,7 @@ export default function WorkoutDayEditScreen({ navigation, route }) {
           ...exercise,
           uniqueId: Date.now().toString(),
           sets: [
-            { type: 'normal', reps: '10' }  // 1 set by default, no rest time
+            { type: 'normal', reps: '10' }  // 1 set by default, single number
           ]
         };
 
@@ -141,6 +141,50 @@ export default function WorkoutDayEditScreen({ navigation, route }) {
 
     const updatedExercises = [...dayData.exercises];
     if (updatedExercises[exerciseIndex].sets && updatedExercises[exerciseIndex].sets[setIndex]) {
+      // Handle automatic dash insertion for reps
+      if (field === 'reps') {
+        // Remove any non-digit and non-dash characters
+        let cleanedValue = value.replace(/[^0-9-]/g, '');
+
+        // Get the current value from the sets
+        const currentValue = updatedExercises[exerciseIndex].sets[setIndex].reps || '';
+
+        // Check if we're adding a 3rd digit to a 2-digit number (no dash present)
+        if (!currentValue.includes('-') && currentValue.length === 2 && cleanedValue.length === 3) {
+          // Insert dash before the 3rd digit
+          cleanedValue = `${cleanedValue.slice(0, 2)}-${cleanedValue.slice(2)}`;
+        }
+
+        // Prevent multiple dashes
+        const dashCount = (cleanedValue.match(/-/g) || []).length;
+        if (dashCount > 1) {
+          // Keep only the first dash
+          const firstDashIndex = cleanedValue.indexOf('-');
+          cleanedValue = cleanedValue.slice(0, firstDashIndex + 1) +
+                        cleanedValue.slice(firstDashIndex + 1).replace(/-/g, '');
+        }
+
+        // Limit numbers: max 2 digits before dash, max 2 digits after dash
+        if (cleanedValue.includes('-')) {
+          const parts = cleanedValue.split('-');
+          if (parts[0] && parts[0].length > 2) {
+            parts[0] = parts[0].slice(0, 2);
+          }
+          if (parts[1] && parts[1].length > 2) {
+            parts[1] = parts[1].slice(0, 2);
+          }
+          cleanedValue = parts.join('-');
+        } else {
+          // No dash yet, limit to 2 digits (will auto-add dash on 3rd)
+          if (cleanedValue.length > 2 && !value.includes('-')) {
+            // This shouldn't happen due to logic above, but as safety
+            cleanedValue = cleanedValue.slice(0, 2);
+          }
+        }
+
+        value = cleanedValue;
+      }
+
       updatedExercises[exerciseIndex].sets[setIndex][field] = value;
       const updatedDay = { ...dayData, exercises: updatedExercises };
       setDayData(updatedDay);
@@ -337,6 +381,7 @@ export default function WorkoutDayEditScreen({ navigation, route }) {
                           onChangeText={(text) => updateSet(exerciseIndex, setIndex, 'reps', text)}
                           placeholder="10"
                           keyboardType="numeric"
+                          maxLength={5}
                           placeholderTextColor={Colors.textSecondary}
                         />
                         <Text style={styles.inputLabel}>reps</Text>
@@ -531,6 +576,7 @@ const styles = StyleSheet.create({
   setRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'flex-start',
     marginBottom: Spacing.sm,
     paddingVertical: Spacing.xs,
   },
@@ -556,18 +602,20 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginHorizontal: Spacing.xs,
+    justifyContent: 'center',
+    flex: 1,
+    marginHorizontal: Spacing.sm,
   },
   setInput: {
     backgroundColor: Colors.card,
     borderWidth: 1,
     borderColor: Colors.border,
-    borderRadius: BorderRadius.sm,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
     fontSize: Typography.fontSize.md,
     color: Colors.text,
-    minWidth: 55,
+    width: 120,  // Fixed width to match Add Set button
     textAlign: 'center',
   },
   inputLabel: {
@@ -591,18 +639,20 @@ const styles = StyleSheet.create({
   },
   addSetButton: {
     backgroundColor: Colors.primary + '15',
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    borderRadius: BorderRadius.sm,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: BorderRadius.md,
     borderWidth: 1,
     borderColor: Colors.primary + '30',
-    alignSelf: 'flex-start',
-    marginTop: Spacing.xs,
+    alignSelf: 'center',
+    marginTop: Spacing.sm,
+    width: 120,  // Same width as reps input
   },
   addSetText: {
     color: Colors.primary,
     fontSize: Typography.fontSize.sm,
     fontWeight: '600',
+    textAlign: 'center',
   },
   addExerciseButton: {
     marginVertical: Spacing.lg,

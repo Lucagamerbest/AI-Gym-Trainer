@@ -118,9 +118,10 @@ const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exercise
                 style={styles.setInput}
                 value={set.reps}
                 onChangeText={(value) => onUpdateSet(index, setIndex, 'reps', value)}
-                placeholder="reps"
+                placeholder="10"
                 placeholderTextColor={Colors.textMuted}
                 keyboardType="numeric"
+                maxLength={5}
               />
               
               <TouchableOpacity
@@ -497,7 +498,13 @@ export default function WorkoutScreen({ navigation, route }) {
         if (set.completed) {
           completedSets += 1;
           if (set.weight && set.reps) {
-            volume += parseFloat(set.weight) * parseFloat(set.reps);
+            // Handle rep ranges (e.g., "8-12") - use the lower value for calculation
+            const repsValue = set.reps.includes('-')
+              ? parseFloat(set.reps.split('-')[0])
+              : parseFloat(set.reps);
+            if (!isNaN(repsValue)) {
+              volume += parseFloat(set.weight) * repsValue;
+            }
           }
         }
       });
@@ -512,7 +519,13 @@ export default function WorkoutScreen({ navigation, route }) {
       let exerciseVolume = 0;
       sets.forEach(set => {
         if (set.completed && set.weight && set.reps) {
-          exerciseVolume += parseFloat(set.weight) * parseFloat(set.reps);
+          // Handle rep ranges (e.g., "8-12") - use the lower value for calculation
+          const repsValue = set.reps.includes('-')
+            ? parseFloat(set.reps.split('-')[0])
+            : parseFloat(set.reps);
+          if (!isNaN(repsValue)) {
+            exerciseVolume += parseFloat(set.weight) * repsValue;
+          }
         }
       });
       if (workoutExercises[exerciseIndex]) {
@@ -528,6 +541,51 @@ export default function WorkoutScreen({ navigation, route }) {
     if (!newSets[exerciseIndex]) {
       newSets[exerciseIndex] = [{ weight: '', reps: '', completed: false }];
     }
+
+    // Handle automatic dash insertion for reps
+    if (field === 'reps') {
+      // Remove any non-digit and non-dash characters
+      let cleanedValue = value.replace(/[^0-9-]/g, '');
+
+      // Get the current value from the sets
+      const currentValue = newSets[exerciseIndex][setIndex].reps || '';
+
+      // Check if we're adding a 3rd digit to a 2-digit number (no dash present)
+      if (!currentValue.includes('-') && currentValue.length === 2 && cleanedValue.length === 3) {
+        // Insert dash before the 3rd digit
+        cleanedValue = `${cleanedValue.slice(0, 2)}-${cleanedValue.slice(2)}`;
+      }
+
+      // Prevent multiple dashes
+      const dashCount = (cleanedValue.match(/-/g) || []).length;
+      if (dashCount > 1) {
+        // Keep only the first dash
+        const firstDashIndex = cleanedValue.indexOf('-');
+        cleanedValue = cleanedValue.slice(0, firstDashIndex + 1) +
+                      cleanedValue.slice(firstDashIndex + 1).replace(/-/g, '');
+      }
+
+      // Limit numbers: max 2 digits before dash, max 2 digits after dash
+      if (cleanedValue.includes('-')) {
+        const parts = cleanedValue.split('-');
+        if (parts[0] && parts[0].length > 2) {
+          parts[0] = parts[0].slice(0, 2);
+        }
+        if (parts[1] && parts[1].length > 2) {
+          parts[1] = parts[1].slice(0, 2);
+        }
+        cleanedValue = parts.join('-');
+      } else {
+        // No dash yet, limit to 2 digits (will auto-add dash on 3rd)
+        if (cleanedValue.length > 2 && !value.includes('-')) {
+          // This shouldn't happen due to logic above, but as safety
+          cleanedValue = cleanedValue.slice(0, 2);
+        }
+      }
+
+      value = cleanedValue;
+    }
+
     newSets[exerciseIndex][setIndex][field] = value;
     setExerciseSets(newSets);
 
