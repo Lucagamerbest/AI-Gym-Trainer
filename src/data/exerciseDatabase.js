@@ -17,8 +17,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Triceps",
-        "Shoulders"
+        "Triceps Lateral Head", "Triceps Medial Head",
+        "Front Deltoids", "Side Deltoids"
       ]
     },
     {
@@ -32,8 +32,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Triceps",
-        "Shoulders"
+        "Triceps Lateral Head", "Triceps Medial Head",
+        "Front Deltoids", "Side Deltoids"
       ]
     },
     {
@@ -47,8 +47,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Triceps",
-        "Shoulders"
+        "Triceps Lateral Head", "Triceps Medial Head",
+        "Front Deltoids", "Side Deltoids"
       ]
     },
     {
@@ -62,8 +62,8 @@ export const exerciseDatabase = {
         "Upper Chest"
       ],
       "secondaryMuscles": [
-        "Triceps",
-        "Shoulders"
+        "Triceps Lateral Head", "Triceps Medial Head",
+        "Front Deltoids", "Side Deltoids"
       ]
     },
     {
@@ -77,8 +77,8 @@ export const exerciseDatabase = {
         "Upper Chest"
       ],
       "secondaryMuscles": [
-        "Triceps",
-        "Shoulders"
+        "Triceps Lateral Head", "Triceps Medial Head",
+        "Front Deltoids", "Side Deltoids"
       ]
     },
     {
@@ -92,8 +92,8 @@ export const exerciseDatabase = {
         "Upper Chest"
       ],
       "secondaryMuscles": [
-        "Triceps",
-        "Shoulders"
+        "Triceps Lateral Head", "Triceps Medial Head",
+        "Front Deltoids", "Side Deltoids"
       ]
     },
     {
@@ -107,8 +107,8 @@ export const exerciseDatabase = {
         "Lower Chest"
       ],
       "secondaryMuscles": [
-        "Triceps",
-        "Shoulders"
+        "Triceps Lateral Head", "Triceps Medial Head",
+        "Front Deltoids", "Side Deltoids"
       ]
     },
     {
@@ -122,8 +122,8 @@ export const exerciseDatabase = {
         "Lower Chest"
       ],
       "secondaryMuscles": [
-        "Triceps",
-        "Shoulders"
+        "Triceps Lateral Head", "Triceps Medial Head",
+        "Front Deltoids", "Side Deltoids"
       ]
     },
     {
@@ -137,8 +137,8 @@ export const exerciseDatabase = {
         "Lower Chest"
       ],
       "secondaryMuscles": [
-        "Triceps",
-        "Shoulders"
+        "Triceps Lateral Head", "Triceps Medial Head",
+        "Front Deltoids", "Side Deltoids"
       ]
     },
     {
@@ -152,8 +152,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Triceps",
-        "Shoulders",
+        "Triceps Lateral Head", "Triceps Medial Head",
+        "Front Deltoids", "Side Deltoids",
         "Core"
       ]
     },
@@ -168,7 +168,7 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ]
     },
     {
@@ -182,7 +182,7 @@ export const exerciseDatabase = {
         "Upper Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ]
     },
     {
@@ -196,7 +196,7 @@ export const exerciseDatabase = {
         "Upper Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ]
     },
     {
@@ -211,8 +211,8 @@ export const exerciseDatabase = {
       ],
       "secondaryMuscles": [
         "Abdominals",
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Alternating_Floor_Press",
       "images": [
@@ -231,7 +231,7 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Around_The_Worlds",
       "images": [
@@ -250,8 +250,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Barbell_Bench_Press_-_Medium_Grip",
       "images": [
@@ -270,8 +270,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Barbell_Guillotine_Bench_Press",
       "images": [
@@ -290,8 +290,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Barbell_Incline_Bench_Press_-_Medium_Grip",
       "images": [
@@ -310,7 +310,7 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Behind_Head_Chest_Stretch",
       "images": [
@@ -329,8 +329,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Bench_Press_-_With_Bands",
       "images": [
@@ -350,8 +350,8 @@ export const exerciseDatabase = {
       ],
       "secondaryMuscles": [
         "Lats",
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Bent-Arm_Dumbbell_Pullover",
       "images": [
@@ -371,8 +371,8 @@ export const exerciseDatabase = {
       ],
       "secondaryMuscles": [
         "Abdominals",
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Bodyweight_Flyes",
       "images": [
@@ -408,8 +408,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Cable_Chest_Press",
       "images": [
@@ -428,7 +428,7 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Cable_Crossover",
       "images": [
@@ -464,8 +464,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Chain_Press",
       "images": [
@@ -484,7 +484,7 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Chest_And_Front_Of_Shoulder_Stretch",
       "images": [
@@ -504,8 +504,8 @@ export const exerciseDatabase = {
       ],
       "secondaryMuscles": [
         "Abdominals",
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Chest_Push_from_3_point_stance",
       "images": [
@@ -525,8 +525,8 @@ export const exerciseDatabase = {
       ],
       "secondaryMuscles": [
         "Abdominals",
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Chest_Push_multiple_response",
       "images": [
@@ -546,8 +546,8 @@ export const exerciseDatabase = {
       ],
       "secondaryMuscles": [
         "Abdominals",
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Chest_Push_single_response",
       "images": [
@@ -567,8 +567,8 @@ export const exerciseDatabase = {
       ],
       "secondaryMuscles": [
         "Abdominals",
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Chest_Push_with_Run_Release",
       "images": [
@@ -604,8 +604,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Clock_Push-Up",
       "images": [
@@ -624,8 +624,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Biceps",
-        "Shoulders"
+        "Biceps Long Head", "Biceps Short Head",
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Cross_Over_-_With_Bands",
       "images": [
@@ -644,8 +644,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Decline_Barbell_Bench_Press",
       "images": [
@@ -664,8 +664,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Decline_Dumbbell_Bench_Press",
       "images": [
@@ -701,8 +701,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Decline_Push-Up",
       "images": [
@@ -721,8 +721,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Decline_Smith_Press",
       "images": [
@@ -741,8 +741,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Dips_-_Chest_Version",
       "images": [
@@ -761,8 +761,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Drop_Push",
       "images": [
@@ -781,8 +781,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Dumbbell_Bench_Press",
       "images": [
@@ -801,8 +801,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Dumbbell_Bench_Press_with_Neutral_Grip",
       "images": [
@@ -857,7 +857,7 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Elbows_Back",
       "images": [
@@ -876,8 +876,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Extended_Range_One-Arm_Kettlebell_Floor_Press",
       "images": [
@@ -917,8 +917,8 @@ export const exerciseDatabase = {
         "Glutes",
         "Hamstrings",
         "Quadriceps",
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Forward_Drag_with_Press",
       "images": [
@@ -938,8 +938,8 @@ export const exerciseDatabase = {
       ],
       "secondaryMuscles": [
         "Lats",
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Front_Raise_And_Pullover",
       "images": [
@@ -958,8 +958,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Hammer_Grip_Incline_DB_Bench_Press",
       "images": [
@@ -979,8 +979,8 @@ export const exerciseDatabase = {
       ],
       "secondaryMuscles": [
         "Abdominals",
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Heavy_Bag_Thrust",
       "images": [
@@ -999,8 +999,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Incline_Cable_Chest_Press",
       "images": [
@@ -1019,7 +1019,7 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Incline_Cable_Flye",
       "images": [
@@ -1038,8 +1038,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Incline_Dumbbell_Bench_With_Palms_Facing_In",
       "images": [
@@ -1058,7 +1058,7 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Incline_Dumbbell_Flyes",
       "images": [
@@ -1077,7 +1077,7 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Incline_Dumbbell_Flyes_-_With_A_Twist",
       "images": [
@@ -1096,8 +1096,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Incline_Dumbbell_Press",
       "images": [
@@ -1116,8 +1116,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Incline_Push-Up",
       "images": [
@@ -1136,8 +1136,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Incline_Push-Up_Depth_Jump",
       "images": [
@@ -1157,8 +1157,8 @@ export const exerciseDatabase = {
       ],
       "secondaryMuscles": [
         "Abdominals",
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Incline_Push-Up_Medium",
       "images": [
@@ -1178,8 +1178,8 @@ export const exerciseDatabase = {
       ],
       "secondaryMuscles": [
         "Abdominals",
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Incline_Push-Up_Reverse_Grip",
       "images": [
@@ -1199,8 +1199,8 @@ export const exerciseDatabase = {
       ],
       "secondaryMuscles": [
         "Abdominals",
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Incline_Push-Up_Wide",
       "images": [
@@ -1219,8 +1219,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Isometric_Chest_Squeezes",
       "images": [
@@ -1240,8 +1240,8 @@ export const exerciseDatabase = {
       ],
       "secondaryMuscles": [
         "Abdominals",
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Isometric_Wipers",
       "images": [
@@ -1260,8 +1260,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Leg-Over_Floor_Press",
       "images": [
@@ -1280,8 +1280,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Leverage_Chest_Press",
       "images": [
@@ -1300,8 +1300,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Leverage_Decline_Chest_Press",
       "images": [
@@ -1320,8 +1320,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Leverage_Incline_Chest_Press",
       "images": [
@@ -1340,7 +1340,7 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Low_Cable_Crossover",
       "images": [
@@ -1359,8 +1359,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Machine_Bench_Press",
       "images": [
@@ -1379,8 +1379,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Medicine_Ball_Chest_Pass",
       "images": [
@@ -1399,8 +1399,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Neck_Press",
       "images": [
@@ -1436,7 +1436,7 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "One-Arm_Kettlebell_Floor_Press",
       "images": [
@@ -1455,8 +1455,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "One_Arm_Dumbbell_Bench_Press",
       "images": [
@@ -1475,8 +1475,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Plyo_Kettlebell_Pushups",
       "images": [
@@ -1495,8 +1495,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Plyo_Push-up",
       "images": [
@@ -1516,8 +1516,8 @@ export const exerciseDatabase = {
       ],
       "secondaryMuscles": [
         "Abdominals",
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Push-Up_Wide",
       "images": [
@@ -1536,8 +1536,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Push-Ups_With_Feet_Elevated",
       "images": [
@@ -1556,8 +1556,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Push-Ups_With_Feet_On_An_Exercise_Ball",
       "images": [
@@ -1577,8 +1577,8 @@ export const exerciseDatabase = {
       ],
       "secondaryMuscles": [
         "Abdominals",
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Push_Up_to_Side_Plank",
       "images": [
@@ -1597,8 +1597,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Pushups",
       "images": [
@@ -1617,8 +1617,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Pushups_Close_and_Wide_Hand_Positions",
       "images": [
@@ -1654,8 +1654,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Single-Arm_Push-Up",
       "images": [
@@ -1674,8 +1674,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Smith_Machine_Bench_Press",
       "images": [
@@ -1694,8 +1694,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Smith_Machine_Decline_Press",
       "images": [
@@ -1714,8 +1714,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Smith_Machine_Incline_Bench_Press",
       "images": [
@@ -1734,8 +1734,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Standing_Cable_Chest_Press",
       "images": [
@@ -1755,8 +1755,8 @@ export const exerciseDatabase = {
       ],
       "secondaryMuscles": [
         "Lats",
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Straight-Arm_Dumbbell_Pullover",
       "images": [
@@ -1775,8 +1775,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Suspended_Push-Up",
       "images": [
@@ -1796,8 +1796,8 @@ export const exerciseDatabase = {
       ],
       "secondaryMuscles": [
         "Forearms",
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Svend_Press",
       "images": [
@@ -1816,8 +1816,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Wide-Grip_Barbell_Bench_Press",
       "images": [
@@ -1836,8 +1836,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Wide-Grip_Decline_Barbell_Bench_Press",
       "images": [
@@ -1856,8 +1856,8 @@ export const exerciseDatabase = {
         "Chest"
       ],
       "secondaryMuscles": [
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Wide-Grip_Decline_Barbell_Pullover",
       "images": [
@@ -1878,7 +1878,7 @@ export const exerciseDatabase = {
         "Lats"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Rhomboids"
       ]
     },
@@ -1894,7 +1894,7 @@ export const exerciseDatabase = {
       ],
       "secondaryMuscles": [
         "Lats",
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ]
     },
     {
@@ -1909,7 +1909,7 @@ export const exerciseDatabase = {
       ],
       "secondaryMuscles": [
         "Rhomboids",
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ]
     },
     {
@@ -1923,7 +1923,7 @@ export const exerciseDatabase = {
         "Lats"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Rhomboids"
       ]
     },
@@ -1952,7 +1952,7 @@ export const exerciseDatabase = {
         "Lats"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Rhomboids"
       ]
     },
@@ -1968,7 +1968,7 @@ export const exerciseDatabase = {
       ],
       "secondaryMuscles": [
         "Rear Deltoids",
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ]
     },
     {
@@ -1998,7 +1998,7 @@ export const exerciseDatabase = {
       ],
       "secondaryMuscles": [
         "Lats",
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ]
     },
     {
@@ -2035,8 +2035,8 @@ export const exerciseDatabase = {
       "secondaryMuscles": [
         "Chest",
         "Lats",
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Bent-Arm_Barbell_Pullover",
       "images": [
@@ -2074,7 +2074,7 @@ export const exerciseDatabase = {
       "secondaryMuscles": [
         "Abdominals",
         "Chest",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Catch_and_Overhead_Throw",
       "images": [
@@ -2112,7 +2112,7 @@ export const exerciseDatabase = {
         "Lats"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Forearms",
         "Middle Back"
       ],
@@ -2133,9 +2133,9 @@ export const exerciseDatabase = {
         "Lats"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Middle Back",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Close-Grip_Front_Lat_Pulldown",
       "images": [
@@ -2191,9 +2191,9 @@ export const exerciseDatabase = {
         "Lats"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Middle Back",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Full_Range-Of-Motion_Lat_Pulldown",
       "images": [
@@ -2212,7 +2212,7 @@ export const exerciseDatabase = {
         "Lats"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Middle Back"
       ],
       "originalId": "Gironda_Sternum_Chins",
@@ -2233,12 +2233,12 @@ export const exerciseDatabase = {
       ],
       "secondaryMuscles": [
         "Abdominals",
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Forearms",
         "Middle Back",
-        "Shoulders",
+        "Front Deltoids", "Side Deltoids",
         "Traps",
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Kipping_Muscle_Up",
       "images": [
@@ -2257,7 +2257,7 @@ export const exerciseDatabase = {
         "Lats"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Middle Back"
       ],
       "originalId": "Kneeling_High_Pulley_Row",
@@ -2277,7 +2277,7 @@ export const exerciseDatabase = {
         "Lats"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Middle Back"
       ],
       "originalId": "Kneeling_Single-Arm_High_Pulley_Row",
@@ -2314,7 +2314,7 @@ export const exerciseDatabase = {
         "Lats"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Middle Back"
       ],
       "originalId": "Leverage_Iso_Row",
@@ -2334,7 +2334,7 @@ export const exerciseDatabase = {
         "Lats"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Forearms",
         "Middle Back"
       ],
@@ -2356,12 +2356,12 @@ export const exerciseDatabase = {
       ],
       "secondaryMuscles": [
         "Abdominals",
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Forearms",
         "Middle Back",
-        "Shoulders",
+        "Front Deltoids", "Side Deltoids",
         "Traps",
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Muscle_Up",
       "images": [
@@ -2397,7 +2397,7 @@ export const exerciseDatabase = {
         "Lats"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Middle Back"
       ],
       "originalId": "One_Arm_Lat_Pulldown",
@@ -2417,7 +2417,7 @@ export const exerciseDatabase = {
         "Lats"
       ],
       "secondaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "originalId": "One_Handed_Hang",
       "images": [
@@ -2436,7 +2436,7 @@ export const exerciseDatabase = {
         "Lats"
       ],
       "secondaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Overhead_Lat",
       "images": [
@@ -2472,7 +2472,7 @@ export const exerciseDatabase = {
         "Lats"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Middle Back"
       ],
       "originalId": "Pullups",
@@ -2492,9 +2492,9 @@ export const exerciseDatabase = {
         "Lats"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Middle Back",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Rocky_Pull-Ups_Pulldowns",
       "images": [
@@ -2513,10 +2513,10 @@ export const exerciseDatabase = {
         "Lats"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Forearms",
         "Middle Back",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Rope_Climb",
       "images": [
@@ -2552,7 +2552,7 @@ export const exerciseDatabase = {
         "Lats"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Middle Back"
       ],
       "originalId": "Shotgun_Row",
@@ -2589,10 +2589,10 @@ export const exerciseDatabase = {
         "Lats"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Forearms",
         "Middle Back",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Side_To_Side_Chins",
       "images": [
@@ -2628,9 +2628,9 @@ export const exerciseDatabase = {
         "Lats"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Middle Back",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Underhand_Cable_Pulldowns",
       "images": [
@@ -2649,9 +2649,9 @@ export const exerciseDatabase = {
         "Lats"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Middle Back",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "V-Bar_Pulldown",
       "images": [
@@ -2670,9 +2670,9 @@ export const exerciseDatabase = {
         "Lats"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Middle Back",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "V-Bar_Pullup",
       "images": [
@@ -2691,7 +2691,7 @@ export const exerciseDatabase = {
         "Lats"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Middle Back"
       ],
       "originalId": "Weighted_Pull_Ups",
@@ -2711,9 +2711,9 @@ export const exerciseDatabase = {
         "Lats"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Middle Back",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Wide-Grip_Lat_Pulldown",
       "images": [
@@ -2732,9 +2732,9 @@ export const exerciseDatabase = {
         "Lats"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Middle Back",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Wide-Grip_Pulldown_Behind_The_Neck",
       "images": [
@@ -2753,9 +2753,9 @@ export const exerciseDatabase = {
         "Lats"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Middle Back",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Wide-Grip_Rear_Pull-Up",
       "images": [
@@ -2773,10 +2773,10 @@ export const exerciseDatabase = {
       "instructions": "Sit upright, press handles overhead, don't lock elbows",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
-        "Triceps",
+        "Triceps Lateral Head", "Triceps Medial Head",
         "Upper Chest"
       ]
     },
@@ -2788,10 +2788,10 @@ export const exerciseDatabase = {
       "instructions": "Press arms overhead, vary grip or width",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
-        "Triceps",
+        "Triceps Lateral Head", "Triceps Medial Head",
         "Upper Chest"
       ]
     },
@@ -2803,10 +2803,10 @@ export const exerciseDatabase = {
       "instructions": "Press arms overhead while converging to center",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
-        "Triceps",
+        "Triceps Lateral Head", "Triceps Medial Head",
         "Upper Chest"
       ]
     },
@@ -2878,7 +2878,7 @@ export const exerciseDatabase = {
       ],
       "secondaryMuscles": [
         "Traps",
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ]
     },
     {
@@ -2931,10 +2931,10 @@ export const exerciseDatabase = {
       "instructions": "Move the cables to the bottom of the tower and select an appropriate weight. Grasp the cables and hold them at shoulder height, palms facing forward. This will be your starting position. Keeping your head and chest up, extend through the elbow to press one side directly over head. After pausing at the top, return to the starting position and repeat on the opposite side.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Alternating_Cable_Shoulder_Press",
       "images": [
@@ -2950,7 +2950,7 @@ export const exerciseDatabase = {
       "instructions": "In a standing position, hold a pair of dumbbells at your side. Keeping your elbows slightly bent, raise the weights directly in front of you to shoulder height, avoiding any swinging or cheating. Return the weights to your side. On the next repetition, raise the weights laterally, raising them out to your side to about shoulder height. Return the weights to the starting position and continue alternating to the front and side.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [],
       "originalId": "Alternating_Deltoid_Raise",
@@ -2967,10 +2967,10 @@ export const exerciseDatabase = {
       "instructions": "Clean two kettlebells to your shoulders. Clean the kettlebells to your shoulders by extending through the legs and hips as you pull the kettlebells towards your shoulders. Rotate your wrists as you do so. Press one directly overhead by extending through the elbow, turning it so the palm faces forward while holding the other kettlebell stationary . Lower the pressed kettlebell to the starting position and immediately press with your other arm.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Alternating_Kettlebell_Press",
       "images": [
@@ -2986,12 +2986,12 @@ export const exerciseDatabase = {
       "instructions": "Place a bar on the ground behind the head of an incline bench. Lay on the bench face down. With a pronated grip, pick the barbell up from the floor. Flex the elbows, performing a reverse curl to bring the bar near your chest. This will be your starting position. To begin, press the barbell out in front of your head by extending your elbows. Keep your arms parallel to the ground throughout the movement. Return to the starting position and repeat to complete the set.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Middle Back",
         "Traps",
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Anti-Gravity_Press",
       "images": [
@@ -3007,7 +3007,7 @@ export const exerciseDatabase = {
       "instructions": "Stand up and extend your arms straight out by the sides. The arms should be parallel to the floor and perpendicular (90-degree angle) to your torso. This will be your starting position. Slowly start to make circles of about 1 foot in diameter with each outstretched arm. Breathe normally as you perform the movement. Continue the circular motion of the outstretched arms for about ten seconds. Then reverse the movement, going the opposite direction.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Traps"
@@ -3026,10 +3026,10 @@ export const exerciseDatabase = {
       "instructions": "Sit on an exercise bench with back support and hold two dumbbells in front of you at about upper chest level with your palms facing your body and your elbows bent. Tip: Your arms should be next to your torso. The starting position should look like the contracted portion of a dumbbell curl. Now to perform the movement, raise the dumbbells as you rotate the palms of your hands until they are facing forward. Continue lifting the dumbbells until your arms are extended above you in straight arm position. Breathe out as you perform this portion of the movement. After a second pause at the top, begin to lower the dumbbells to the original position by rotating the palms of your hands towards you. Tip: The left arm will be rotated in a counter clockwise manner while the right one will be rotated clockwise. Breathe in as you perform this portion of the movement. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Arnold_Dumbbell_Press",
       "images": [
@@ -3045,11 +3045,11 @@ export const exerciseDatabase = {
       "instructions": "Run a band around a stationary post like that of a squat rack. Grab the band by the handles and stand back so that the tension in the band rises. Extend and lift the arms straight in front of you. Tip: Your arms should be straight and parallel to the floor while perpendicular to your torso. Your feet should be firmly planted on the floor spread at shoulder width. This will be your starting position. As you exhale, move your arms to the sides and back. Keep your arms extended and parallel to the floor. Continue the movement until the arms are extended to your sides. After a pause, go back to the original position as you inhale. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Middle Back",
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Back_Flyes_-_With_Bands",
       "images": [
@@ -3065,7 +3065,7 @@ export const exerciseDatabase = {
       "instructions": "This exercise is best done with a partner. If you lack a partner, the ball can be thrown and retrieved or thrown against a wall. Begin standing a few meters in front of your partner, both facing the same direction. Begin holding the ball between your legs. Squat down and then forcefully reverse direction, coming to full extension and you toss the ball over your head to your partner. Your partner can then roll the ball back to you. Repeat for the desired number of repetitions.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [],
       "originalId": "Backward_Medicine_Ball_Throw",
@@ -3082,7 +3082,7 @@ export const exerciseDatabase = {
       "instructions": "Begin with your arms extended straight out in front of you, holding the band with both hands. Initiate the movement by performing a reverse fly motion, moving your hands out laterally to your sides. Keep your elbows extended as you perform the movement, bringing the band to your chest. Ensure that you keep your shoulders back during the exercise. Pause as you complete the movement, returning to the starting position under control.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Middle Back",
@@ -3102,7 +3102,7 @@ export const exerciseDatabase = {
       "instructions": "Lie back on an Incline Bench. Using a medium width grip (a grip that is slightly wider than shoulder width), lift the bar from the rack and hold it straight over you with your arms straight. This will be your starting position. While keeping the arms straight, lift the bar by protracting your shoulder blades, raising the shoulders from the bench as you breathe out. Bring back the bar to the starting position as you breathe in. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Chest"
@@ -3121,10 +3121,10 @@ export const exerciseDatabase = {
       "instructions": "Stand up straight while holding a barbell using a wide (higher than shoulder width) and overhand (palms facing your body) grip. Bend knees slightly and bend over as you keep the natural arch of your back. Let the arms hang in front of you as they hold the bar. Once your torso is parallel to the floor, flare the elbows out and away from your body. Tip: Your torso and your arms should resemble the letter \"T\". Now you are ready to begin the exercise. While keeping the upper arms perpendicular to the torso, pull the barbell up towards your upper chest as you squeeze the rear delts and you breathe out. Tip: When performed correctly, this exercise should resemble a bench press in reverse. Also, refrain from using your biceps to do the work. Focus on targeting the rear delts; the arms should only act as hooks. Slowly go back to the initial position as you breathe in. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Lats",
         "Middle Back"
       ],
@@ -3142,11 +3142,11 @@ export const exerciseDatabase = {
       "instructions": "Sit on a bench with back support in a squat rack. Position a barbell at a height that is just above your head. Grab the barbell with a pronated grip (palms facing forward). Once you pick up the barbell with the correct grip width, lift the bar up over your head by locking your arms. Hold at about shoulder level and slightly in front of your head. This is your starting position. Lower the bar down to the shoulders slowly as you inhale. Lift the bar back up to the starting position as you exhale. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Chest",
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Barbell_Shoulder_Press",
       "images": [
@@ -3162,7 +3162,7 @@ export const exerciseDatabase = {
       "instructions": "For this exercise you will need a heavy rope anchored at its center 15-20 feet away. Standing in front of the rope, take an end in each hand with your arms extended at your side. This will be your starting position. Initiate the movement by rapidly raising one arm to shoulder level as quickly as you can. As you let that arm drop to the starting position, raise the opposite side. Continue alternating your left and right arms, whipping the ropes up and down as fast as you can.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Chest",
@@ -3182,7 +3182,7 @@ export const exerciseDatabase = {
       "instructions": "Stand up straight while holding a dumbbell in each hand and with an incline bench in front of you. While keeping your back straight and maintaining the natural arch of your back, lean forward until your forehead touches the bench in front of you. Let the arms hang in front of you perpendicular to the ground. The palms of your hands should be facing each other and your torso should be parallel to the floor. This will be your starting position. Keeping your torso forward and stationary, and the arms straight with a slight bend at the elbows, lift the dumbbells straight to the side until both arms are parallel to the floor. Exhale as you lift the weights. Caution: avoid swinging the torso or bringing the arms back as opposed to the side. After a one second contraction at the top, slowly lower the dumbbells back to the starting position. Repeat the recommended amount of repetitions.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [],
       "originalId": "Bent_Over_Dumbbell_Rear_Delt_Raise_With_Head_On_Bench",
@@ -3199,7 +3199,7 @@ export const exerciseDatabase = {
       "instructions": "Select a weight and hold the handle of the low pulley with your right hand. Bend at the waist until your torso is nearly parallel to the floor. Your legs should be slightly bent with your left hand placed on your lower left thigh. Your right arm should be hanging from your shoulder in front of you and with a slight bend at the elbow. This will be your starting position. Raise your right arm, elbow slightly bent, to the side until the arm is parallel to the floor and in line with your right ear. Breathe out as you perform this step. Slowly lower the weight back to the starting position as you breathe in. Repeat for the recommended amount of repetitions and repeat the movement with the other arm.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Lower Back",
@@ -3220,10 +3220,10 @@ export const exerciseDatabase = {
       "instructions": "Sit on a Military Press Bench with a bar at shoulder level with a pronated grip (palms facing forward). Tip: Your grip should be wider than shoulder width and it should create a 90-degree angle between the forearm and the upper arm as the barbell goes down. This is your starting position. Once you pick up the barbell with the correct grip, lift the bar up over your head by locking your arms. Now lower the bar down to the back of the head slowly as you inhale. Lift the bar back up to the starting position as you exhale. Lower the bar down to the starting position slowly as you inhale. This is one repetition. Alternate in this manner until you complete the recommended amount of repetitions.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Bradford_Rocky_Presses",
       "images": [
@@ -3239,7 +3239,7 @@ export const exerciseDatabase = {
       "instructions": "Sit next to a low pulley sideways (with legs stretched in front of you or crossed) and grasp the single hand cable attachment with the arm nearest to the cable. Tip: If you can adjust the pulley's height, you can use a flat bench to sit on instead. Position the elbow against your side with the elbow bent at 90° and the arm pointing towards the pulley. This will be your starting position. Pull the single hand cable attachment toward your body by internally rotating your shoulder until your forearm is across your abs. You will be creating an imaginary semi-circle. Tip: The forearm should be perpendicular to your torso at all times. Slowly go back to the initial position. Repeat for the recommended amount of repetitions and then repeat the movement with the next arm.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [],
       "originalId": "Cable_Internal_Rotation",
@@ -3256,7 +3256,7 @@ export const exerciseDatabase = {
       "instructions": "Adjust the pulleys to the appropriate height and adjust the weight. The pulleys should be above your head. Grab the left pulley with your right hand and the right pulley with your left hand, crossing them in front of you. This will be your starting position. Initiate the movement by moving your arms back and outward, keeping your arms straight as you execute the movement. Pause at the end of the motion before returning the handles to the start position.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [],
       "originalId": "Cable_Rear_Delt_Fly",
@@ -3273,10 +3273,10 @@ export const exerciseDatabase = {
       "instructions": "Sit in the same position on a low pulley row station as you would if you were doing seated cable rows for the back. Attach a rope to the pulley and grasp it with an overhand grip. Your arms should be extended and parallel to the floor with the elbows flared out. Keep your lower back upright and slide your hips back so that your knees are slightly bent. This will be your starting position. Pull the cable attachment towards your upper chest, just below the neck, as you keep your elbows up and out to the sides. Continue this motion as you exhale until the elbows travel slightly behind the back. Tip: Keep your upper arms horizontal, perpendicular to the torso and parallel to the floor throughout the motion. Go back to the initial position where the arms are extended and the shoulders are stretched forward. Inhale as you perform this portion of the movement. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Middle Back"
       ],
       "originalId": "Cable_Rope_Rear-Delt_Rows",
@@ -3293,7 +3293,7 @@ export const exerciseDatabase = {
       "instructions": "Stand in the middle of two low pulleys that are opposite to each other and place a flat bench right behind you (in perpendicular fashion to you; the narrow edge of the bench should be the one behind you). Select the weight to be used on each pulley. Now sit at the edge of the flat bench behind you with your feet placed in front of your knees. Bend forward while keeping your back flat and rest your torso on the thighs. Have someone give you the single handles attached to the pulleys. Grasp the left pulley with the right hand and the right pulley with the left after you select your weight. The pulleys should run under your knees and your arms will be extended with palms facing each other and a slight bend at the elbows. This will be the starting position. While keeping the arms stationary, raise the upper arms to the sides until they are parallel to the floor and at shoulder height. Exhale during the execution of this movement and hold the contraction for a second. Slowly lower your arms to the starting position as you inhale. Repeat for the recommended amount of repetitions. Tip: Maintain upper arms perpendicular to torso and a fixed elbow position (10 degree to 30 degree angle) throughout exercise.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Middle Back",
@@ -3313,10 +3313,10 @@ export const exerciseDatabase = {
       "instructions": "Move the cables to the bottom of the towers and select an appropriate weight. Stand directly in between the uprights. Grasp the cables and hold them at shoulder height, palms facing forward. This will be your starting position. Keeping your head and chest up, extend through the elbow to press the handles directly over head. After pausing at the top, return to the starting position and repeat.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Cable_Shoulder_Press",
       "images": [
@@ -3332,7 +3332,7 @@ export const exerciseDatabase = {
       "instructions": "While standing upright, hold a barbell plate in both hands at the 3 and 9 o'clock positions. Your palms should be facing each other and your arms should be extended straight out in front of you. This will be your starting position. Initiate the movement by rotating the plate as far to one side as possible. Use the same type of movement you would use to turn a steering wheel to one side. Reverse the motion, turning it all the way to the opposite side. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Forearms"
@@ -3351,10 +3351,10 @@ export const exerciseDatabase = {
       "instructions": "Sit on the edge of a chair, gripping the back of it. Straighten your arms, keeping your back straight, and pull your upper body forward so you feel a stretch. Hold for 20-30 seconds.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Chest"
       ],
       "originalId": "Chair_Upper_Body_Stretch",
@@ -3371,7 +3371,7 @@ export const exerciseDatabase = {
       "instructions": "The circus bell is an oversized dumbbell with a thick handle. Begin with the dumbbell between your feet, and grip the handle with both hands. Clean the dumbbell by extending through your hips and knees to deliver the implement to the desired shoulder, letting go with the extra hand. Ensure that you get one of the dumbbell heads behind the shoulder to keep from being thrown off balance. To raise it overhead, dip by flexing the knees, and the drive upwards as you extend the dumbbell overhead, leaning slightly away from it as you do so. Carefully guide the bell back to the floor, keeping it under control as much as possible. It is best to perform this event on a thick rubber mat to prevent damage to the floor.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Forearms",
@@ -3379,7 +3379,7 @@ export const exerciseDatabase = {
         "Hamstrings",
         "Lower Back",
         "Traps",
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Circus_Bell",
       "images": [
@@ -3395,7 +3395,7 @@ export const exerciseDatabase = {
       "instructions": "With a barbell on the floor close to the shins, take an overhand or hook grip just outside the legs. Lower your hips with the weight focused on the heels, back straight, head facing forward, chest up, with your shoulders just in front of the bar. This will be your starting position. Begin the first pull by driving through the heels, extending your knees. Your back angle should stay the same, and your arms should remain straight. Move the weight with control as you continue to above the knees. Next comes the second pull, the main source of acceleration for the clean. As the bar approaches the mid-thigh position, begin extending through the hips. In a jumping motion, accelerate by extending the hips, knees, and ankles, using speed to move the bar upward. There should be no need to actively pull through the arms to accelerate the weight; at the end of the second pull, the body should be fully extended, leaning slightly back, with the arms still extended. As full extension is achieved, transition into the third pull by aggressively shrugging and flexing the arms with the elbows up and out. At peak extension, aggressively pull yourself down, rotating your elbows under the bar as you do so. Receive the bar in a front squat position, the depth of which is dependent upon the height of the bar at the end of the third pull. The bar should be racked onto the protracted shoulders, lightly touching the throat with the hands relaxed. Continue to descend to the bottom squat position, which will help in the recovery. Immediately recover by driving through the heels, keeping the torso upright and elbows up. Continue until you have risen to a standing position. The second phase is the jerk, which raises the weight overhead. Standing with the weight racked on the front of the shoulders, begin with the dip. With your feet directly under your hips, flex the knees without moving the hips backward. Go down only slightly, and reverse direction as powerfully as possible. Drive through the heels create as much speed and force as possible, and be sure to move your head out of the way as the bar leaves the shoulders. At this moment as the feet leave the floor, the feet must be placed into the receiving position as quickly as possible. In the brief moment the feet are not actively driving against the platform, the athletes effort to push the bar up will drive them down. The feet should be split, with one foot forward, and one foot back. Receive the bar with the arms locked out overhead. Return to a standing position.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Abdominals",
@@ -3404,7 +3404,7 @@ export const exerciseDatabase = {
         "Lower Back",
         "Quadriceps",
         "Traps",
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Clean_and_Jerk",
       "images": [
@@ -3420,7 +3420,7 @@ export const exerciseDatabase = {
       "instructions": "Assume a shoulder-width stance, with knees inside the arms. Now while keeping the back flat, bend at the knees and hips so that you can grab the bar with the arms fully extended and a pronated grip that is slightly wider than shoulder width. Point the elbows out to sides. The bar should be close to the shins. Position the shoulders over or slightly ahead of the bar. Establish a flat back posture. This will be your starting position. Begin to pull the bar by extending the knees. Move your hips forward and raise the shoulders at the same rate while keeping the angle of the back constant; continue to lift the bar straight up while keeping it close to your body. As the bar passes the knee, extend at the ankles, knees, and hips forcefully, similar to a jumping motion. As you do so, continue to guide the bar with your hands, shrugging your shoulders and using the momentum from your movement to pull the bar as high as possible. The bar should travel close to your body, and you should keep your elbows out. At maximum elevation, your feet should clear the floor and you should start to pull yourself under the bar. The mechanics of this could change slightly, depending on the weight used. You should descend into a squatting position as you pull yourself under the bar. As the bar hits terminal height, rotate your elbows around and under the bar. Rack the bar across the front of the shoulders while keeping the torso erect and flexing the hips and knees to absorb the weight of the bar. Stand to full height, holding the bar in the clean position. Without moving your feet, press the bar overhead as you exhale. Lower the bar under control .",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Abdominals",
@@ -3430,9 +3430,9 @@ export const exerciseDatabase = {
         "Lower Back",
         "Middle Back",
         "Quadriceps",
-        "Shoulders",
+        "Front Deltoids", "Side Deltoids",
         "Traps",
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Clean_and_Press",
       "images": [
@@ -3448,7 +3448,7 @@ export const exerciseDatabase = {
       "instructions": "In the crucifix, you statically hold weights out to the side for time. While the event can be practiced using dumbbells, it is best to practice with one of the various implements used, such as axes and hammers, as it feels different. Begin standing, and raise your arms out to the side holding the implements. Your arms should be parallel to the ground. In competition, judges or sensors are used to let you know when you break parallel. Hold for as long as you can. Typically, the weights should be heavy enough that you fail in 30-60 seconds.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Forearms"
@@ -3467,7 +3467,7 @@ export const exerciseDatabase = {
       "instructions": "Take a dumbbell in each hand with a pronated grip in a standing position. Raise your upper arms so that they are parallel to the floor, allowing your lower arms to hang in the \"scarecrow\" position. This will be your starting position. To initiate the movement, externally rotate the shoulders to move the upper arm 180 degrees. Keep the upper arms in place, rotating the upper arms until the wrists are directly above the elbows, the forearms perpendicular to the floor. Now press the dumbbells by extending at the elbows, straightening your arms overhead. Return to the starting position as you breathe in by reversing the steps. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Traps"
@@ -3486,12 +3486,12 @@ export const exerciseDatabase = {
       "instructions": "Hold a kettlebell by the handle in each hand. Clean the kettlebells to your shoulders by extending through the legs and hips as you pull the kettlebells towards your shoulders. Rotate your wrists as you do so, so that the palms face forward. This will be your starting position. Dip your body by bending the knees, keeping your torso upright. Immediately reverse direction, driving through the heels, in essence jumping to create momentum. As you do so, press the kettlebells overhead to lockout by extending the arms, using your body's momentum to move the weights. Return your feet to the ground in a split fashion, with one foot forward and one foot back. Keeping the weights overhead, return to a standing position, bringing your feet together. Lower the weights to perform the next repetition.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Calves",
         "Quadriceps",
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Double_Kettlebell_Jerk",
       "images": [
@@ -3507,12 +3507,12 @@ export const exerciseDatabase = {
       "instructions": "Clean two kettlebells to your shoulders. Squat down a few inches and reverse the motion rapidly. Use the momentum from the legs to drive the kettlebells overhead. Once the kettlebells are locked out, lower the kettlebells to your shoulders and repeat.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Calves",
         "Quadriceps",
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Double_Kettlebell_Push_Press",
       "images": [
@@ -3528,7 +3528,7 @@ export const exerciseDatabase = {
       "instructions": "Place two kettlebells behind your feet. Bend your knees and sit back to pick up the kettlebells. Swing the kettlebells between your legs forcefully and reverse the direction. Drive through with your hips and lock the ketttlebells overhead in one uninterrupted motion.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Glutes",
@@ -3549,10 +3549,10 @@ export const exerciseDatabase = {
       "instructions": "Sit on an Incline Bench while holding a dumbbell on each hand on top of your thighs. Lift your legs up to kick the weights to your shoulders and lean back. Position the dumbbells above your shoulders with your arms extended. The arms should be perpendicular to the floor with your palms facing forward and knuckles pointing towards the ceiling. This will be your starting position. While keeping the arms straight and locked, lift the dumbbells by raising the shoulders from the bench as you breathe out. Bring back the dumbbells to the starting position as you breathe in. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Dumbbell_Incline_Shoulder_Raise",
       "images": [
@@ -3568,7 +3568,7 @@ export const exerciseDatabase = {
       "instructions": "While holding a dumbbell in one hand, lay with your chest down on a slightly inclined (around 15 degrees when measured from the floor) adjustable bench. The other hand can be used to hold to the leg of the bench for stability. Position the palm of the hand that is holding the dumbbell in a neutral manner (palms facing your torso) as you keep the arm extended with the elbow slightly bent. This will be your starting position. Now raise the arm with the dumbbell to the side until your elbow is at shoulder height and your arm is roughly parallel to the floor as you exhale. Tip: Maintain your arm perpendicular to the torso while keeping your arm extended throughout the movement. Also, keep the contraction at the top for a second. Slowly lower the dumbbell to the starting position as you inhale. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Middle Back"
@@ -3587,7 +3587,7 @@ export const exerciseDatabase = {
       "instructions": "While holding a dumbbell in each hand, lay with your chest down on a slightly inclined (around 15 degrees when measured from the floor) adjustable bench. Position the palms of the hands in a neutral manner (palms facing your torso) as you keep the arms extended with the elbows slightly bent. This will be your starting position. Now raise the arms to the side until your elbows are at shoulder height and your arms are roughly parallel to the floor as you exhale. Tip: Maintain your arms perpendicular to the torso while keeping them extended throughout the movement. Also, keep the contraction at the top for a second. Slowly lower the dumbbells to the starting position as you inhale. Repeat for the recommended amount of repetitions and then switch to the other arm.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [],
       "originalId": "Dumbbell_Lying_Rear_Lateral_Raise",
@@ -3604,10 +3604,10 @@ export const exerciseDatabase = {
       "instructions": "Grab a dumbbell and either sit on a military press bench or a utility bench that has a back support on it as you place the dumbbells upright on top of your thighs or stand up straight. Clean the dumbbell up to bring it to shoulder height. The other hand can be kept fully extended to the side, by the waist or grabbing a fixed surface. Rotate the wrist so that the palm of your hand is facing forward. This is your starting position. As you exhale, push the dumbbell up until your arm is fully extended. After a second pause, slowly come down back to the starting position as you inhale. Repeat for the recommended amount of repetitions and then switch arms.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Dumbbell_One-Arm_Shoulder_Press",
       "images": [
@@ -3623,10 +3623,10 @@ export const exerciseDatabase = {
       "instructions": "Grab a dumbbell and stand up straight with your arm extended in front of you with a slight bend at the elbows and your back straight. This will be your starting position. Tip: The dumbbell should be resting on top of your thigh with the palm of your hands facing your thighs. Keep the other hand can be kept fully extended to the side, by the waist or grabbing a fixed surface. This will be your starting position. Use your side shoulders to lift the dumbbell as you exhale. The dumbbell should be close to the body as you move it up. Continue to lift it until the dumbbell is nearly in line with your chin. Tip: Your elbows should drive the motion. As you lift the dumbbell, your elbow should always be higher than your forearm. Also, keep your torso stationary and pause for a second at the top of the movement. Lower the dumbbell back down slowly to the starting position. Inhale as you perform this portion of the movement. Repeat for the recommended amount of repetitions and switch arms.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Traps"
       ],
       "originalId": "Dumbbell_One-Arm_Upright_Row",
@@ -3643,10 +3643,10 @@ export const exerciseDatabase = {
       "instructions": "Grab a dumbbell in each arm and stand up straight with your arms extended by your sides with a slight bend at the elbows and your back straight. This will be your starting position. Tip: The dumbbell should be next to your thighs with the palm of your hands facing back. Use your side shoulders to lift the dumbbells as you exhale. The dumbbells should be to the side of the body as you move them up. Continue to lift it until the dumbbells are nearly in line with your chin. Tip: Your elbows should drive the motion. As you lift the dumbbell, your elbow should always be higher than your forearm. Also, keep your torso stationary and pause for a second at the top of the movement. Lower the dumbbells back down slowly to the starting position. Inhale as you perform this portion of the movement. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "originalId": "Dumbbell_Raise",
       "images": [
@@ -3662,7 +3662,7 @@ export const exerciseDatabase = {
       "instructions": "This corrective exercise strengthens the muscles that stabilize your shoulder blade. Hold a light weight in each hand, hanging at your sides. Your thumbs should pointing up. Begin the movement raising your arms out in front of you, about 30 degrees off center. Your arms should be fully extended as you perform the movement. Continue until your arms are parallel to the ground, and then return to the starting position.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Traps"
@@ -3681,10 +3681,10 @@ export const exerciseDatabase = {
       "instructions": "While holding a dumbbell in each hand, sit on a military press bench or utility bench that has back support. Place the dumbbells upright on top of your thighs. Now raise the dumbbells to shoulder height one at a time using your thighs to help propel them up into position. Make sure to rotate your wrists so that the palms of your hands are facing forward. This is your starting position. Now, exhale and push the dumbbells upward until they touch at the top. Then, after a brief pause at the top contracted position, slowly lower the weights back down to the starting position while inhaling. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Dumbbell_Shoulder_Press",
       "images": [
@@ -3700,7 +3700,7 @@ export const exerciseDatabase = {
       "instructions": "Sit or stand with your feet slightly apart. Place your hands on your shoulders with your elbows at shoulder level and pointing out. Slowly make a circle with your elbows. Breathe out as you start the circle and breathe in as you complete the circle.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Traps"
@@ -3719,7 +3719,7 @@ export const exerciseDatabase = {
       "instructions": "Lie sideways on a flat bench with one arm holding a dumbbell and the other hand on top of the bench folded so that you can rest your head on it. Bend the elbows of the arm holding the dumbbell so that it creates a 90-degree angle between the upper arm and the forearm. Tip: Keep the arm parallel to your torso. Now bend the elbow while keeping the upper arm stationary. In this manner, the forearm will be parallel to the floor and perpendicular to your torso (Tip: So the forearm will be directly in front of you). The upper arm will be stationary by your torso and should be parallel to the floor (aligned with your torso at all times). This will be your starting position. As you breathe out, externally rotate your forearm so that the dumbbell is lifted up in a semicircle motion as you maintain the 90 degree angle bend between the upper arms and the forearm. You will continue this external rotation until the forearm is perpendicular to the floor and the torso pointing towards the ceiling. At this point you will hold the contraction for a second. As you breathe in, slowly go back to the starting position. Repeat for the recommended amount of repetitions and then switch to the other arm.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [],
       "originalId": "External_Rotation",
@@ -3736,7 +3736,7 @@ export const exerciseDatabase = {
       "instructions": "Choke the band around a post. The band should be at the same height as your elbow. Stand with your left side to the band a couple of feet away. Grasp the end of the band with your right hand, and keep your elbow pressed firmly to your side. We recommend you hold a pad or foam roll in place with your elbow to keep it firmly in position. With your upper arm in position, your elbow should be flexed to 90 degrees with your hand reaching across the front of your torso. This will be your starting position. Execute the movement by rotating your arm in a backhand motion, keeping your elbow in place. Continue as far as you are able, pause, and then return to the starting position.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [],
       "originalId": "External_Rotation_with_Band",
@@ -3753,7 +3753,7 @@ export const exerciseDatabase = {
       "instructions": "Adjust the cable to the same height as your elbow. Stand with your left side to the band a couple of feet away. Grasp the handle with your right hand, and keep your elbow pressed firmly to your side. We recommend you hold a pad or foam roll in place with your elbow to keep it firmly in position. With your upper arm in position, your elbow should be flexed to 90 degrees with your hand reaching across the front of your torso. This will be your starting position. Execute the movement by rotating your arm in a backhand motion, keeping your elbow in place.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [],
       "originalId": "External_Rotation_with_Cable",
@@ -3770,7 +3770,7 @@ export const exerciseDatabase = {
       "instructions": "Facing a high pulley with a rope or dual handles attached, pull the weight directly towards your face, separating your hands as you do so. Keep your upper arms parallel to the ground.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Middle Back"
@@ -3789,7 +3789,7 @@ export const exerciseDatabase = {
       "instructions": "Select the weight on a low pulley machine and grasp the single hand cable attachment that is attached to the low pulley with your left hand. Face away from the pulley and put your arm straight down with the hand cable attachment in front of your thighs at arms' length with the palms of the hand facing your thighs. This will be your starting position. While maintaining the torso stationary (no swinging), lift the left arm to the front with a slight bend on the elbow and the palms of the hand always faces down. Continue to go up until you arm is slightly above parallel to the floor. Exhale as you execute this portion of the movement and pause for a second at the top. Now as you inhale lower the arm back down slowly to the starting position. Once all of the recommended amount of repetitions have been performed for this arm, switch arms and perform the exercise with the right one.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [],
       "originalId": "Front_Cable_Raise",
@@ -3806,7 +3806,7 @@ export const exerciseDatabase = {
       "instructions": "Pick a couple of dumbbells and stand with a straight torso and the dumbbells on front of your thighs at arms length with the palms of the hand facing your thighs. This will be your starting position. While maintaining the torso stationary (no swinging), lift the left dumbbell to the front with a slight bend on the elbow and the palms of the hands always facing down. Continue to go up until you arm is slightly above parallel to the floor. Exhale as you execute this portion of the movement and pause for a second at the top. Inhale after the second pause. Now lower the dumbbell back down slowly to the starting position as you simultaneously lift the right dumbbell. Continue alternating in this fashion until all of the recommended amount of repetitions have been performed for each arm.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [],
       "originalId": "Front_Dumbbell_Raise",
@@ -3823,7 +3823,7 @@ export const exerciseDatabase = {
       "instructions": "Sit down on an incline bench with the incline set anywhere between 30 to 60 degrees while holding a dumbbell on each hand. Tip: You can change the angle to hit the muscle a little differently each time. Extend your arms straight in front of you and have your palms facing down with the dumbbells raised about 1 inch above your thighs. This will be your starting position. Slowly raise the dumbbells straight up until they are slightly above your shoulders, while keeping your elbows locked. Squeeze at the top for a second and make sure you breathe out during this portion of the movement. Tip: Keep your head resting down against the bench and your legs on the floor at all times. Lower the arms back to the starting position as you inhale. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [],
       "originalId": "Front_Incline_Dumbbell_Raise",
@@ -3840,7 +3840,7 @@ export const exerciseDatabase = {
       "instructions": "While standing straight, hold a barbell plate in both hands at the 3 and 9 o'clock positions. Your palms should be facing each other and your arms should be extended and locked with a slight bend at the elbows and the plate should be down near your waist in front of you as far as you can go. Tip: The arms will remain in this position throughout the exercise. This will be your starting position. Slowly raise the plate as you exhale until it is a little above shoulder level. Hold the contraction for a second. Tip: make sure that you do not swing the weight or bend at the elbows. Your torso should remain stationary throughout the movement as well. As you inhale, slowly lower the plate back down to the starting position. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [],
       "originalId": "Front_Plate_Raise",
@@ -3857,7 +3857,7 @@ export const exerciseDatabase = {
       "instructions": "Pick a couple of dumbbells and stand with a straight torso and the dumbbells on front of your thighs at arms length with the palms of the hand facing your thighs. This will be your starting position. While maintaining the torso stationary (no swinging), lift the dumbbells to the front with a slight bend on the elbow and the palms of the hands always facing down. Continue to go up until you arms are slightly above parallel to the floor. Exhale as you execute this portion of the movement and pause for a second at the top. As you inhale, lower the dumbbells back down slowly to the starting position. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [],
       "originalId": "Front_Two-Dumbbell_Raise",
@@ -3874,10 +3874,10 @@ export const exerciseDatabase = {
       "instructions": "With your back to the wall bend at the waist and place both hands on the floor at shoulder width. Kick yourself up against the wall with your arms straight. Your body should be upside down with the arms and legs fully extended. Keep your whole body as straight as possible. Tip: If doing this for the first time, have a spotter help you. Also, make sure that you keep facing the wall with your head, rather than looking down. Slowly lower yourself to the ground as you inhale until your head almost touches the floor. Tip: It is of utmost importance that you come down slow in order to avoid head injury. Push yourself back up slowly as you exhale until your elbows are nearly locked. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Handstand_Push-Ups",
       "images": [
@@ -3893,7 +3893,7 @@ export const exerciseDatabase = {
       "instructions": "Choke the band around a post. The band should be at the same height as your elbow. Stand with your right side to the band a couple of feet away. Grasp the end of the band with your right hand, and keep your elbow pressed firmly to your side. We recommend you hold a pad or foam roll in place with your elbow to keep it firmly in position. With your upper arm in position, your elbow should be flexed to 90 degrees with your hand reaching away from your torso. This will be your starting position. Execute the movement by rotating your arm in a forehand motion, keeping your elbow in place. Continue as far as you are able, pause, and then return to the starting position.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [],
       "originalId": "Internal_Rotation_with_Band",
@@ -3910,7 +3910,7 @@ export const exerciseDatabase = {
       "instructions": "",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Chest",
@@ -3934,13 +3934,13 @@ export const exerciseDatabase = {
       "instructions": "This drill helps you learn to drive yourself low enough during the jerk and corrects those who move backward during the movement. Begin with the bar racked in the jerk position, with the shoulders forward, torso upright, and the feet split slightly apart. Initiate the movement as you would a normal jerk, dipping at the knees while keeping your torso vertical, and driving back up forcefully, using momentum and not your arms to elevate the weight. Keep the rear foot in place, using it to drive your body forward into a full split as you jerk the weight. Recover by standing up with the weight overhead.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Glutes",
         "Hamstrings",
         "Quadriceps",
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Jerk_Balance",
       "images": [
@@ -3956,10 +3956,10 @@ export const exerciseDatabase = {
       "instructions": "Clean a kettlebell to your shoulder. Clean the kettlebell to your shoulder by extending through the legs and hips as you raise the kettlebell towards your shoulder. The palm should be facing inward. Looking straight ahead, press the kettlebell out and overhead, rotating your wrist so that your palm faces forward at the top of the motion. Return the kettlebell to the starting position, with the palm facing in.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Kettlebell_Arnold_Press",
       "images": [
@@ -3975,7 +3975,7 @@ export const exerciseDatabase = {
       "instructions": "With a wide stance, hold a kettlebell with both hands. Allow it to hang at waist level with your arms extended. This will be your starting position. Initiate the movement by turning to one side, swinging the kettlebell to head height. Briefly pause at the top of the motion. Allow the bell to drop as you rotate to the opposite side, again raising the kettlebell to head height. Repeat for the desired amount of repetitions.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Abdominals"
@@ -3994,10 +3994,10 @@ export const exerciseDatabase = {
       "instructions": "Sit on the floor and spread your legs out comfortably. Clean one kettlebell to your shoulder. Press the kettlebell up and out until it is locked out overhead. Return to the starting position.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Kettlebell_Seated_Press",
       "images": [
@@ -4013,10 +4013,10 @@ export const exerciseDatabase = {
       "instructions": "Clean two kettlebells two your shoulders. Press one kettlebell. Lower the kettlebell and immediately press the other kettlebell. Make sure to do the same amount of reps on both sides.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Kettlebell_Seesaw_Press",
       "images": [
@@ -4032,11 +4032,11 @@ export const exerciseDatabase = {
       "instructions": "Clean two kettlebells to your shoulders. Clean the kettlebells to your shoulders by extending through the legs and hips as you pull the kettlebells towards your shoulders. Rotate your wrists as you do so. This will be your starting position. Begin to squat by flexing your hips and knees, lowering your hips between your legs. Maintain an upright, straight back as you descend as low as you can. At the bottom, reverse direction and squat by extending your knees and hips, driving through your heels. As you do so, press both kettlebells overhead by extending your arms straight up, using the momentum from the squat to help drive the weights upward. As you begin the next repetition, return the weights to the shoulders.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Quadriceps",
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Kettlebell_Thruster",
       "images": [
@@ -4052,13 +4052,13 @@ export const exerciseDatabase = {
       "instructions": "Lie on your back on the floor and press a kettlebell to the top position by extending the elbow. Bend the knee on the same side as the kettlebell. Keeping the kettlebell locked out at all times, pivot to the opposite side and use your non- working arm to assist you in driving forward to the lunge position. Using your free hand, push yourself to a seated position, then progressing to one knee. While looking up at the kettlebell, slowly stand up. Reverse the motion back to the starting position and repeat.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Abdominals",
         "Hamstrings",
         "Quadriceps",
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Kettlebell_Turkish_Get-Up_Lunge_style",
       "images": [
@@ -4074,14 +4074,14 @@ export const exerciseDatabase = {
       "instructions": "Lie on your back on the floor and press a kettlebell to the top position by extending the elbow. Bend the knee on the same side as the kettlebell. Keeping the kettlebell locked out at all times, pivot to the opposite side and use your non- working arm to assist you in driving forward to the lunge position. Using your free hand, push yourself to a seated position, then progressing to your feet. While looking up at the kettlebell, slowly stand up. Reverse the motion back to the starting position and repeat.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Abdominals",
         "Calves",
         "Hamstrings",
         "Quadriceps",
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Kettlebell_Turkish_Get-Up_Squat_style",
       "images": [
@@ -4097,7 +4097,7 @@ export const exerciseDatabase = {
       "instructions": "This drill helps increase arm efficiency during the run. Begin kneeling, left foot in front, right knee down. Apply pressure through the front heel to keep your glutes and hamstrings activated. Begin by blocking the arms in long, pendulum like swings. Close the arm angle, blocking with the arms as you would when jogging, progressing to a run and finally a sprint. As soon as your hands pass the hip, accelerate them forward during the sprinting motion to move them as quickly as possible. Switch knees and repeat.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Abdominals"
@@ -4116,7 +4116,7 @@ export const exerciseDatabase = {
       "instructions": "Position a bar into landmine or, lacking one, securely anchor it in a corner. Load the bar to an appropriate weight and position the handle attachment on the bar. Raise the bar from the floor, taking the handles to your shoulders. This will be your starting position. In an athletic stance, squat by flexing your hips and setting your hips back, keeping your arms flexed. Reverse the motion by powerfully extending through the hips, knees, and ankles, while also extending the elbows to straighten the arms. This movement should be done explosively, coming out of the squat to full extension as powerfully as possible. Return to the starting position.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Abdominals",
@@ -4124,7 +4124,7 @@ export const exerciseDatabase = {
         "Chest",
         "Hamstrings",
         "Quadriceps",
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Landmine_Linear_Jammer",
       "images": [
@@ -4140,7 +4140,7 @@ export const exerciseDatabase = {
       "instructions": "To begin, stand on an exercise band so that tension begins at arm's length. Grasp the handles using a pronated (palms facing your thighs) grip that is slightly less than shoulder width. The handles should be resting on the sides of your thighs. Your arms should be extended with a slight bend at the elbows and your back should be straight. This will be your starting position. Use your side shoulders to lift the handles to the sides as you exhale. Continue to lift the handles until they are slightly above parallel. Tip: As you lift the handles, slightly tilt the hand as if you were pouring water and keep your arms extended. Also, keep your torso stationary and pause for a second at the top of the movement. Lower the handles back down slowly to the starting position. Inhale as you perform this portion of the movement. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [],
       "originalId": "Lateral_Raise_-_With_Bands",
@@ -4157,10 +4157,10 @@ export const exerciseDatabase = {
       "instructions": "Load an appropriate weight onto the pins and adjust the seat for your height. The handles should be near the top of the shoulders at the beginning of the motion. Your chest and head should be up and handles held with a pronated grip. This will be your starting position. Press the handles upward by extending through the elbow. After a brief pause at the top, return the weight to just above the start position, keeping tension on the muscles by not returning the weight to the stops until the set is complete.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Leverage_Shoulder_Press",
       "images": [
@@ -4176,7 +4176,7 @@ export const exerciseDatabase = {
       "instructions": "Begin standing with the log in front of you. Grasp the handles, and begin to clean the log. As you are bent over to start the clean, attempt to get the log as high as possible, pulling it into your chest. Extend through the hips and knees to bring it up to complete the clean. Push your head back and look up, creating a shelf on your chest to rest the log. Begin the press by dipping, flexing slightly through the knees and reversing the motion. This push press will generate momentum to start the log moving vertically. Continue by extending through the elbows to press the log above your head. There are no strict rules on form, so use whatever techniques you are most efficient with. As the log is pressed, ensure that you push your head through on each repetition, looking forward. Repeat as many times as possible. Attempt to control the descent of the log as it is returned to the ground.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Abdominals",
@@ -4187,7 +4187,7 @@ export const exerciseDatabase = {
         "Middle Back",
         "Quadriceps",
         "Traps",
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Log_Lift",
       "images": [
@@ -4203,10 +4203,10 @@ export const exerciseDatabase = {
       "instructions": "Sit on a low pulley row machine with a rope attachment. Grab the ends of the rope using a palms-down grip and sit with your back straight and your knees slightly bent. Tip: Keep your back almost completely vertical and your arms fully extended in front of you. This will be your starting position. While keeping your torso stationary, lift your elbows and start bending them as you pull the rope towards your neck while exhaling. Throughout the movement your upper arms should remain parallel to the floor. Tip: Continue this motion until your hands are almost next to your ears (the forearms will not be parallel to the floor at the end of the movement as they will be angled a bit upwards) and your elbows are out away from your sides. After holding for a second or so at the contracted position, come back slowly to the starting position as you inhale. Tip: Again, during no part of the movement should the torso move. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Middle Back",
         "Traps"
       ],
@@ -4224,7 +4224,7 @@ export const exerciseDatabase = {
       "instructions": "While holding a dumbbell in one hand, lay with your chest down on a flat bench. The other hand can be used to hold to the leg of the bench for stability. Position the palm of the hand that is holding the dumbbell in a neutral manner (palms facing your torso) as you keep the arm extended with the elbow slightly bent. This will be your starting position. Now raise the arm with the dumbbell to the side until your elbow is at shoulder height and your arm is roughly parallel to the floor as you exhale. Tip: Maintain your arm perpendicular to the torso while keeping your arm extended throughout the movement. Also, keep the contraction at the top for a second. Slowly lower the dumbbell to the starting position as you inhale. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [],
       "originalId": "Lying_One-Arm_Lateral_Raise",
@@ -4241,7 +4241,7 @@ export const exerciseDatabase = {
       "instructions": "While holding a dumbbell in each hand, lay with your chest down on a flat bench. Position the palms of the hands in a neutral manner (palms facing your torso) as you keep the arms extended with the elbows slightly bent. This will be your starting position. Now raise the arms to the side until your elbows are at shoulder height and your arms are roughly parallel to the floor as you exhale. Tip: Maintain your arms perpendicular to the torso while keeping them extended throughout the movement. Also, keep the contraction at the top for a second. Slowly lower the dumbbells to the starting position as you inhale. Repeat for the recommended amount of repetitions and then switch to the other arm.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [],
       "originalId": "Lying_Rear_Delt_Raise",
@@ -4258,10 +4258,10 @@ export const exerciseDatabase = {
       "instructions": "Sit down on the Shoulder Press Machine and select the weight. Grab the handles to your sides as you keep the elbows bent and in line with your torso. This will be your starting position. Now lift the handles as you exhale and you extend the arms fully. At the top of the position make sure that you hold the contraction for a second. Lower the handles slowly back to the starting position as you inhale. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Machine_Shoulder_Military_Press",
       "images": [
@@ -4277,7 +4277,7 @@ export const exerciseDatabase = {
       "instructions": "Assume a semisquat stance with a medicine ball in your hands. Your arms should hang so the ball is near your feet. Begin by thrusting the hips forward as you extend through the legs, jumping up. As you do, swing your arms up and over your head, keeping them extended, releasing the ball at the peak of your movement. The goal is to throw the ball the greatest distance behind you.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Abdominals",
@@ -4298,7 +4298,7 @@ export const exerciseDatabase = {
       "instructions": "Lie down sideways on an incline bench press with a dumbbell in the hand. Make sure the shoulder is pressing against the incline bench and the arm is lying across your body with the palm around your navel. Hold a dumbbell in your uppermost arm while keeping it extended in front of you parallel to the floor. This is your starting position. While keeping the dumbbell parallel to the floor at all times, perform a lateral raise. Your arm should travel straight up until it is pointing at the ceiling. Tip: Exhale as you perform this movement. Hold the dumbbell in the position and feel the contraction in the shoulders for a second. While inhaling lower the weight across your body back into the starting position. Repeat the movement for the prescribed amount of repetitions. Switch arms and repeat the movement.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [],
       "originalId": "One-Arm_Incline_Lateral_Raise",
@@ -4315,7 +4315,7 @@ export const exerciseDatabase = {
       "instructions": "Hold a kettlebell by the handle. Clean the kettlebell to your shoulder by extending through the legs and hips as you pull the kettlebell towards your shoulder. Rotate your wrist as you do so, so that the palm faces forward. Dip your body by bending the knees, keeping your torso upright. Immediately reverse direction, driving through the heels, in essence jumping to create momentum. As you do so, press the kettlebell overhead to lockout by extending the arms, using your body's momentum to move the weight. Receive the weight overhead by returning to a squat position underneath the weight. Keeping the weight overhead, return to a standing position. Lower the weight to the floor to perform the next repetition.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [],
       "originalId": "One-Arm_Kettlebell_Clean_and_Jerk",
@@ -4332,12 +4332,12 @@ export const exerciseDatabase = {
       "instructions": "Hold a kettlebell by the handle. Clean the kettlebell to your shoulder by extending through the legs and hips as you pull the kettlebell towards your shoulder. Rotate your wrist as you do so, so that the palm faces forward. This will be your starting position. Dip your body by bending the knees, keeping your torso upright. Immediately reverse direction, driving through the heels, in essence jumping to create momentum. As you do so, press the kettlebell overhead to lockout by extending the arms, using your body's momentum to move the weight. Receive the weight overhead by returning to a squat position underneath the weight. Keeping the weight overhead, return to a standing position. Lower the weight to perform the next repetition.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Calves",
         "Quadriceps",
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "One-Arm_Kettlebell_Jerk",
       "images": [
@@ -4353,10 +4353,10 @@ export const exerciseDatabase = {
       "instructions": "Clean a kettlebell to your shoulder. Clean the kettlebell to your shoulder by extending through the legs and hips as you pull the kettlebell towards your shoulder. Rotate your wrist as you do so, so that the palm faces inward. This will be your starting position. Look at the kettlebell and press it up and out until it is locked out overhead. Lower the kettlebell back to your shoulder under control and repeat. Make sure to contract your lat, butt, and stomach forcefully for added stability and strength.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "One-Arm_Kettlebell_Military_Press_To_The_Side",
       "images": [
@@ -4372,10 +4372,10 @@ export const exerciseDatabase = {
       "instructions": "Clean a kettlebell to your shoulder. Clean the kettlebell to your shoulder by extending through the legs and hips as you pull the kettlebell towards your shoulder. Rotate your wrist as you do so, so that the palm faces forward. This will be your starting position. Hold the kettlebell with the elbow out to the side, and press it up and out until it is locked out overhead. Lower the kettlebell back to your shoulder under control and repeat. Make sure to contract your lat, butt, and stomach forcefully for added stability and strength.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "One-Arm_Kettlebell_Para_Press",
       "images": [
@@ -4391,12 +4391,12 @@ export const exerciseDatabase = {
       "instructions": "Hold a kettlebell by the handle. Clean the kettlebell to your shoulder by extending through the legs and hips as you pull the kettlebell towards your shoulder. Rotate your wrist as you do so, so that the palm faces forward. This will be your starting position. Dip your body by bending the knees, keeping your torso upright. Immediately reverse direction, driving through the heels, in essence jumping to create momentum. As you do so, press the kettlebell overhead to lockout by extending the arms, using your body's momentum to move the weight. Lower the weight to perform the next repetition.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Calves",
         "Quadriceps",
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "One-Arm_Kettlebell_Push_Press",
       "images": [
@@ -4412,7 +4412,7 @@ export const exerciseDatabase = {
       "instructions": "Place a kettlebell between your feet. Bend your knees and push your butt back to get in the proper starting position. Look straight ahead and swing the kettlebell back between your legs. Immediately reverse the direction and drive through with your hips and knees, accelerating the kettlebell upward. As the kettlebell rises to your shoulder rotate your hand and punch straight up, using momentum to receive the weight locked out overhead.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Calves",
@@ -4420,7 +4420,7 @@ export const exerciseDatabase = {
         "Hamstrings",
         "Lower Back",
         "Traps",
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "One-Arm_Kettlebell_Snatch",
       "images": [
@@ -4436,13 +4436,13 @@ export const exerciseDatabase = {
       "instructions": "Hold a kettlebell by the handle. Clean the kettlebell to your shoulder by extending through the legs and hips as you pull the kettlebell towards your shoulder. Rotate your wrist as you do so, so that the palm faces forward. This will be your starting position. Dip your body by bending the knees, keeping your torso upright. Immediately reverse direction, driving through the heels, in essence jumping to create momentum. As you do so, press the kettlebell overhead to lockout by extending the arms, using your body's momentum to move the weight. Receive the weight overhead by returning to a squat position underneath the weight, positioning one leg in front of you and one leg behind you. Keeping the weight overhead, return to a standing position and bring your feet together. Lower the weight to perform the next repetition.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Glutes",
         "Hamstrings",
         "Quadriceps",
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "One-Arm_Kettlebell_Split_Jerk",
       "images": [
@@ -4458,7 +4458,7 @@ export const exerciseDatabase = {
       "instructions": "Hold a kettlebell in one hand by the handle. Squat towards the floor, and then reverse the motion, extending the hips, knees, and finally the ankles, to raise the kettlebell overhead. After fully extending the body, descend into a lunge position to receive the weights overhead, one leg forward and one leg back. Ensure you drive through with your hips and lock the ketttlebells overhead in one uninterrupted motion. Return to a standing position, holding the weight overhead, and bring the feet together. Lower the weight to return to the starting position.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Hamstrings",
@@ -4478,7 +4478,7 @@ export const exerciseDatabase = {
       "instructions": "Pick a dumbbell and place it in one of your hands. Your non lifting hand should be used to grab something steady such as an incline bench press. Lean towards your lifting arm and away from the hand that is gripping the incline bench as this will allow you to keep your balance. Stand with a straight torso and have the dumbbell by your side at arm's length with the palm of the hand facing you. This will be your starting position. While maintaining the torso stationary (no swinging), lift the dumbbell to your side with a slight bend on the elbow and your hand slightly tilted forward as if pouring water in a glass. Continue to go up until you arm is parallel to the floor. Exhale as you execute this movement and pause for a second at the top. Lower the dumbbell back down slowly to the starting position as you inhale. Repeat for the recommended amount of repetitions. Switch arms and repeat the exercise.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [],
       "originalId": "One-Arm_Side_Laterals",
@@ -4495,7 +4495,7 @@ export const exerciseDatabase = {
       "instructions": "Stand up with your torso upright and a dumbbell on each hand being held at arms length. The elbows should be close to the torso. The palms of the hands should be facing your torso. Your feet should be about shoulder width apart. This will be your starting position. Keeping your arms straight and the torso stationary, lift the weights out to your sides until they are about shoulder level height while exhaling. Feel the contraction for a second and begin to lower the weights back down to the starting position while inhaling. Tip: Keep the palms facing down with the little finger slightly higher while lifting and lowering the weights as it will concentrate the stress on your shoulders mainly. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [],
       "originalId": "Power_Partials",
@@ -4512,11 +4512,11 @@ export const exerciseDatabase = {
       "instructions": "",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Quadriceps",
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Push_Press",
       "images": [
@@ -4532,12 +4532,12 @@ export const exerciseDatabase = {
       "instructions": "Standing with the weight racked on the back of the shoulders, begin with the dip. With your feet directly under your hips, flex the knees without moving the hips backward. Go down only slightly, and reverse direction as powerfully as possible. Drive through the heels create as much speed and force as possible, moving the bar in a vertical path. Using the momentum generated, finish pressing the weight overhead be extending through the arms. Return to the starting position, using your legs to absorb the impact.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Calves",
         "Quadriceps",
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Push_Press_-_Behind_the_Neck",
       "images": [
@@ -4553,7 +4553,7 @@ export const exerciseDatabase = {
       "instructions": "This drill teaches the delivery of the barbell to the rack position on the shoulders. Begin holding a bar in the scarecrow position, with the upper arms parallel to the floor, and the forearms hanging down. Use a hook grip, with your fingers wrapped over your thumbs. Begin by rotating the elbows around the bar, delivering the bar to the shoulders. As your elbows come forward, relax your grip. The shoulders should be protracted, providing a shelf for the bar, which should lightly contact the throat. It is important that the bar stay close to the body at all times, as with a heavier load any distance will result in an unwanted collision. As the movement becomes smoother, speed and load can be increased before progressing further.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Forearms",
@@ -4573,11 +4573,11 @@ export const exerciseDatabase = {
       "instructions": "You will need a partner for this drill. Begin in an athletic 2 or 3 point stance. At the signal, move into a position to receive the pass from your partner. Catch the medicine ball with both hands and immediately throw it back to your partner. You can modify this drill by running different routes.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Chest",
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Return_Push_from_Stance",
       "images": [
@@ -4593,7 +4593,7 @@ export const exerciseDatabase = {
       "instructions": "To begin, lie down on an incline bench with the chest and stomach pressing against the incline. Have the dumbbells in each hand with the palms facing each other (neutral grip). Extend the arms in front of you so that they are perpendicular to the angle of the bench. The legs should be stationary while applying pressure with the ball of your toes. This is the starting position. Maintaining the slight bend of the elbows, move the weights out and away from each other (to the side) in an arc motion while exhaling. Tip: Try to squeeze your shoulder blades together to get the best results from this exercise. The arms should be elevated until they are parallel to the floor. Feel the contraction and slowly lower the weights back down to the starting position while inhaling. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [],
       "originalId": "Reverse_Flyes",
@@ -4610,7 +4610,7 @@ export const exerciseDatabase = {
       "instructions": "To begin, lie down on an incline bench set at a 30-degree angle with the chest and stomach pressing against the incline. Have the dumbbells in each hand with the palms facing down to the floor. Your arms should be in front of you so that they are perpendicular to the angle of the bench. Tip: Your elbows should have a slight bend. The legs should be stationary while applying pressure with the ball of your toes (your heels should not be touching the floor). This is the starting position. Maintaining the slight bend of the elbows, move the weights out and away from each other in an arc motion while exhaling. As you lift the weight, your wrist should externally rotate by 90-degrees so that you go from a palms down (pronated) grip to a palms facing each other (neutral) grip. Tip: Try to squeeze your shoulder blades together to get the best results from this exercise. The arms should be elevated until they are level with the head. Feel the contraction and slowly lower the weights back down to the starting position while inhaling. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [],
       "originalId": "Reverse_Flyes_With_External_Rotation",
@@ -4627,7 +4627,7 @@ export const exerciseDatabase = {
       "instructions": "Adjust the handles so that they are fully to the rear. Make an appropriate weight selection and adjust the seat height so the handles are at shoulder level. Grasp the handles with your hands facing inwards. This will be your starting position. In a semicircular motion, pull your hands out to your side and back, contracting your rear delts. Keep your arms slightly bent throughout the movement, with all of the motion occurring at the shoulder joint. Pause at the rear of the movement, and slowly return the weight to the starting position.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [],
       "originalId": "Reverse_Machine_Flyes",
@@ -4644,10 +4644,10 @@ export const exerciseDatabase = {
       "instructions": "Stand up straight with your legs together, holding a bodybar or broomstick. Hold the pole behind your hips with a wider than shoulder width grip. Your palms should be down and your thumbs facing out. Slowly lift your arms up behind your head. Don't force it if it gets hard to lift further.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Chest"
       ],
       "originalId": "Round_The_World_Shoulder_Stretch",
@@ -4664,10 +4664,10 @@ export const exerciseDatabase = {
       "instructions": "Sit on a Military Press Bench with a bar behind your head and either have a spotter give you the bar (better on the rotator cuff this way) or pick it up yourself carefully with a pronated grip (palms facing forward). Tip: Your grip should be wider than shoulder width and it should create a 90-degree angle between the forearm and the upper arm as the barbell goes down. Once you pick up the barbell with the correct grip length, lift the bar up over your head by locking your arms. Hold at about shoulder level and slightly in front of your head. This is your starting position. Lower the bar down to the collarbone slowly as you inhale. Lift the bar back up to the starting position as you exhale. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Seated_Barbell_Military_Press",
       "images": [
@@ -4683,7 +4683,7 @@ export const exerciseDatabase = {
       "instructions": "Place a couple of dumbbells looking forward in front of a flat bench. Sit on the end of the bench with your legs together and the dumbbells behind your calves. Bend at the waist while keeping the back straight in order to pick up the dumbbells. The palms of your hands should be facing each other as you pick them. This will be your starting position. Keeping your torso forward and stationary, and the arms slightly bent at the elbows, lift the dumbbells straight to the side until both arms are parallel to the floor. Exhale as you lift the weights. (Note: avoid swinging the torso or bringing the arms back as opposed to the side.) After a one second contraction at the top, slowly lower the dumbbells back to the starting position. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [],
       "originalId": "Seated_Bent-Over_Rear_Delt_Raise",
@@ -4700,10 +4700,10 @@ export const exerciseDatabase = {
       "instructions": "Adjust the weight to an appropriate amount and be seated, grasping the handles. Your upper arms should be about 90 degrees to the body, with your head and chest up. The elbows should also be bent to about 90 degrees. This will be your starting position. Begin by extending through the elbow, pressing the handles together above your head. After pausing at the top, return the handles to the starting position. Ensure that you maintain tension on the cables. You can also execute this movement with your back off the pad and alternate hands.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Seated_Cable_Shoulder_Press",
       "images": [
@@ -4719,10 +4719,10 @@ export const exerciseDatabase = {
       "instructions": "Grab a couple of dumbbells and sit on a military press bench or a utility bench that has a back support on it as you place the dumbbells upright on top of your thighs. Clean the dumbbells up one at a time by using your thighs to bring the dumbbells up to shoulder height at each side. Rotate the wrists so that the palms of your hands are facing forward. This is your starting position. As you exhale, push the dumbbells up until they touch at the top. After a second pause, slowly come down back to the starting position as you inhale. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Seated_Dumbbell_Press",
       "images": [
@@ -4738,7 +4738,7 @@ export const exerciseDatabase = {
       "instructions": "Sit upright on the floor with your legs bent, your partner standing behind you. Stick your arms straight out to your sides, with your palms facing the ground. Attempt to move them as far behind you as possible, as your assistant holds your wrists. This will be your starting position. Keeping your elbows straight, attempt to move your arms to the front, with your partner gently restraining you to prevent any actual movement for 10-20 seconds. Now, relax your muscles and allow your partner to gently increase the stretch on the shoulders and chest. Hold for 10 to 20 seconds.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Chest"
@@ -4757,7 +4757,7 @@ export const exerciseDatabase = {
       "instructions": "Pick a couple of dumbbells and sit at the end of a flat bench with your feet firmly on the floor. Hold the dumbbells with your palms facing in and your arms straight down at your sides at arms' length. This will be your starting position. While maintaining the torso stationary (no swinging), lift the dumbbells to your side with a slight bend on the elbow and the hands slightly tilted forward as if pouring water in a glass. Continue to go up until you arms are parallel to the floor. Exhale as you execute this movement and pause for a second at the top. Lower the dumbbells back down slowly to the starting position as you inhale. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [],
       "originalId": "Seated_Side_Lateral_Raise",
@@ -4774,11 +4774,11 @@ export const exerciseDatabase = {
       "instructions": "Grab a dumbbell with each hand and stand up erect. Clean (lift) the dumbbells to the chest/shoulder level and then rotate your wrists so that your palms are facing towards you as if you were getting ready to perform an Arnold Press. This will be your starting position. Now start extending your left arm overhead as you rotate the wrist so that the palm of your hand faces forward as you go up. Your elbows should come out also as you lift the weight. Simultaneously, you will also be bending from your hip to your opposite side. Tip: If you perform the exercise correctly, is should look as if you are trying to reach for something overhead on the right hand side of your body, but with your left arm. Breathe out as you perform this movement. Once you reach the top position breathe in. Then, with the weight fully extended overhead and you bent over to your right hand side, begin the movement to the left side. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Abdominals",
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "See-Saw_Press_Alternating_Side_Press",
       "images": [
@@ -4794,7 +4794,7 @@ export const exerciseDatabase = {
       "instructions": "With shoulders relaxed and arms resting loosely at your sides (or in your lap if you're seated), gently roll your shoulders forward, up, back, and down. Reverse direction. You can do this exercise alternating shoulders or both at the same time.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Traps"
@@ -4813,10 +4813,10 @@ export const exerciseDatabase = {
       "instructions": "To begin, stand on an exercise band so that tension begins at arm's length. Grasp the handles and lift them so that the hands are at shoulder height at each side. Rotate the wrists so that the palms of your hands are facing forward. Your elbows should be bent, with the upper arms and forearms in line to the torso. This is your starting position. As you exhale, lift the handles up until your arms are fully extended overhead.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Shoulder_Press_-_With_Bands",
       "images": [
@@ -4832,7 +4832,7 @@ export const exerciseDatabase = {
       "instructions": "Relax your arms to your sides and raise your shoulders up toward your ears, then back down.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Lats"
@@ -4851,7 +4851,7 @@ export const exerciseDatabase = {
       "instructions": "Reach your left arm across your body and hold it straight.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [],
       "originalId": "Shoulder_Stretch",
@@ -4868,7 +4868,7 @@ export const exerciseDatabase = {
       "instructions": "Pick a couple of dumbbells and stand with a straight torso and the dumbbells by your side at arms length with the palms of the hand facing you. This will be your starting position. While maintaining the torso in a stationary position (no swinging), lift the dumbbells to your side with a slight bend on the elbow and the hands slightly tilted forward as if pouring water in a glass. Continue to go up until you arms are parallel to the floor. Exhale as you execute this movement and pause for a second at the top. Lower the dumbbells back down slowly to the starting position as you inhale. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [],
       "originalId": "Side_Lateral_Raise",
@@ -4885,7 +4885,7 @@ export const exerciseDatabase = {
       "instructions": "In a standing position, hold a pair of dumbbells at your side. This will be your starting position. Keeping your elbows slightly bent, raise the weights directly in front of you to shoulder height, avoiding any swinging or cheating. At the top of the exercise move the weights out in front of you, keeping your arms extended. Lower the weights with a controlled motion. On the next repetition, raise the weights in front of you to shoulder height before moving the weights laterally to your sides. Lower the weights to the starting position.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Traps"
@@ -4904,7 +4904,7 @@ export const exerciseDatabase = {
       "instructions": "This stretch works best standing. Cross your left arm over the midline of your body and hold the left wrist in your right hand down at the level of your hips. Start the stretch with a bent left arm. Slowly straighten, pull, and lift it up to shoulder height, as pictured. Feel this stretch originate in your back, not your shoulders, and don't pull too hard on the shoulders joint. Switch sides.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Forearms",
@@ -4924,11 +4924,11 @@ export const exerciseDatabase = {
       "instructions": "Position a bar into a landmine or securely anchor it in a corner. Load the bar to an appropriate weight. Raise the bar from the floor, taking it to your shoulders with one or both hands. Adopt a wide stance. This will be your starting position. Perform the movement by extending the elbow, pressing the weight up. Move explosively, extending the hips and knees fully to produce maximal force. Return to the starting position.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Chest",
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Single-Arm_Linear_Jammer",
       "images": [
@@ -4944,7 +4944,7 @@ export const exerciseDatabase = {
       "instructions": "With a wide stance, hold a dumbell with both hands, grasping the head of the dumbbell instead of the handle. Your arms should be extended and hanging at the waist. This will be your starting position. Raise the weight until it is above shoulder level, keeping your arms extended. Your torso and hips should remain stationary throughout the movement. Return to the starting position and repeat for the recommended amount of repetitions.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Forearms",
@@ -4964,7 +4964,7 @@ export const exerciseDatabase = {
       "instructions": "Attach dual handles to a sled connected by a rope or chain. Load the sled to a light weight. Face the sled, backing up until there is some tension in the line. Hold your hands directly above your head with your elbows extended. This will be your starting position. Walk backwards, keeping your arms raised above your head. Avoid jerky movements.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Calves",
@@ -4985,7 +4985,7 @@ export const exerciseDatabase = {
       "instructions": "Attach dual handles to a sled connected by a rope or chain. Load the sled to a light weight. Face the sled, backing up until there is some tension in the line. Take both handles at arms length at about waist level. Bend the knees slightly and keep your chest and head up. This will be your starting position. Without flexing the elbow, pull the handles upward and apart, performing a reverse fly with some external rotation. Your palms should be facing forward as you do this. Return to the starting position, taking a couple steps back to take the slack out of the line.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [],
       "originalId": "Sled_Reverse_Flye",
@@ -5002,7 +5002,7 @@ export const exerciseDatabase = {
       "instructions": "Place an incline bench underneath the smith machine. Place the barbell at a height that you can reach when lying down and your arms are almost fully extended. Once the weight you need is selected, lie down on the incline bench and make sure your shoulders are aligned right under the barbell. Using a shoulder width pronated (palms forward) grip, lift the bar from the rack and hold it straight over you with a slight bend at the elbows. This will be your starting position. As you breathe out, lift the bar up until your arms are fully extended. Note: The contraction should be felt around the shoulders. After a second pause, bring the bar back down to the starting position as you breathe in. Repeat the movement for the prescribed amount of repetitions. When you are done, place the bar back in the rack.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Chest"
@@ -5021,10 +5021,10 @@ export const exerciseDatabase = {
       "instructions": "With the bar at thigh level, load an appropriate weight. Take a wide grip on the bar and unhook the weight, removing your off hand from the bar. Your arm should be extended as you stand up straight with your head and chest up. This will be your starting position. Begin the movement by flexing the elbow, raising the upper arm with the elbow pointed out. Continue until your upper arm is parallel to the floor. After a brief pause, return the weight to the starting position. Repeat for the desired number of repetitions before engaging the hooks to rack the weight.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Traps"
       ],
       "originalId": "Smith_Machine_One-Arm_Upright_Row",
@@ -5041,10 +5041,10 @@ export const exerciseDatabase = {
       "instructions": "To begin, place a flat bench (or preferably one with back support) underneath a smith machine. Position the barbell at a height so that when seated on the flat bench, the arms must be almost fully extended to reach the barbell. Once you have the correct height, sit slightly in behind the barbell so that there is an imaginary straight line from the tip of your nose to the barbell. Your feet should be stationary. Grab the barbell with the palms facing forward, unlock it and lift it up so that your arms are fully extended. This is the starting position. Slowly begin to lower the barbell until it is level with your chin while inhaling. Then lift the barbell back to the starting position using your shoulders while exhaling. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Smith_Machine_Overhead_Shoulder_Press",
       "images": [
@@ -5060,10 +5060,10 @@ export const exerciseDatabase = {
       "instructions": "Stand with a dumbbell in each hand. Raise the dumbbells to your shoulders with your palms facing forward and your elbows pointed out. This will be your starting position. Extend one arm to press the dumbbell straight up, keeping your off hand in place. Do not lean or jerk the weight during the movement. After a brief pause, return the weight to the starting position. Repeat for the opposite side, continuing to alternate between arms.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Standing_Alternating_Dumbbell_Press",
       "images": [
@@ -5079,10 +5079,10 @@ export const exerciseDatabase = {
       "instructions": "This exercise is best performed inside a squat rack for easier pick up of the bar. To begin, first set the bar on a rack that best matches your height. Once the correct height is chosen and the bar is loaded, step under the bar and place the back of your shoulders (slightly below the neck) across it. Hold on to the bar using both arms at each side and lift it off the rack by first pushing with your legs and at the same time straightening your torso. Step away from the rack and position your legs using a shoulder width medium stance with the toes slightly pointed out. Your back should be kept straight while performing this exercise. This will be your starting position. Elevate the barbell overhead by fully extending your arms while breathing out. Hold the contraction for a second and lower the barbell back down to the starting position by inhaling. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Standing_Barbell_Press_Behind_Neck",
       "images": [
@@ -5098,10 +5098,10 @@ export const exerciseDatabase = {
       "instructions": "Place a loaded bar at shoulder level in a rack. With a pronated grip at shoulder width, begin with the bar racked across the front of your shoulders. This is your starting position. Initiate the lift by extending the elbows to press the bar overhead. Avoid locking out the elbow as you move the weight behind your head. Lower the bar down to the back of the head until your elbow forms a right angle. Lift the bar back over your head by extending the elbows Lower the bar down to the starting position. Alternate in this manner until you complete the recommended amount of repetitions.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Standing_Bradford_Press",
       "images": [
@@ -5117,10 +5117,10 @@ export const exerciseDatabase = {
       "instructions": "Standing with your feet shoulder width apart, take a dumbbell in each hand. Raise the dumbbells to head height, the elbows out and about 90 degrees. This will be your starting position. Maintaining strict technique with no leg drive or leaning back, extend through the elbow to raise the weights together directly above your head. Pause, and slowly return the weight to the starting position.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Standing_Dumbbell_Press",
       "images": [
@@ -5136,7 +5136,7 @@ export const exerciseDatabase = {
       "instructions": "Hold the dumbbells in front of your thighs, palms facing your thighs. Keep your arms straight with a slight bend at the elbows but keep them locked. This will be your starting position. Raise the dumbbells in a semicircular motion to arm's length overhead as you exhale. Slowly return to the starting position using the same path as you inhale. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [],
       "originalId": "Standing_Dumbbell_Straight-Arm_Front_Delt_Raise_Above_Head",
@@ -5153,7 +5153,7 @@ export const exerciseDatabase = {
       "instructions": "To begin, stand straight with a barbell in your hands. You should grip the bar with palms facing down and a closer than shoulder width grip apart from each other. Your feet should be shoulder width apart from each other. Your elbows should be slightly bent. This is the starting position. Lift the barbell up until it is directly over your head while exhaling. Make sure to keep your elbows slightly bent when performing each repetition. Once you feel the contraction, begin to lower the barbell back down to the starting position as you inhale. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [],
       "originalId": "Standing_Front_Barbell_Raise_Over_Head",
@@ -5170,7 +5170,7 @@ export const exerciseDatabase = {
       "instructions": "Start by standing to the right side of a low pulley row. Use your left hand to come across the body and grab a single handle attached to the low pulley with a pronated grip (palms facing down). Rest your arm in front of you. Your right hand should grab the machine for better support and balance. Make sure that your back is erect and your feet are shoulder width apart from each other. This is the starting position. Begin to use the left hand and come across your body out until it is elevated to shoulder height while exhaling. Feel the contraction at the top for a second and begin to slowly lower the handle back down to the original starting position while inhaling. Repeat for the recommended amount of repetitions. Switch arms and repeat the exercise.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Forearms"
@@ -5189,10 +5189,10 @@ export const exerciseDatabase = {
       "instructions": "Start by placing a barbell that is about chest high on a squat rack. Once you have selected the weights, grab the barbell using a pronated (palms facing forward) grip. Make sure to grip the bar wider than shoulder width apart from each other. Slightly bend the knees and place the barbell on your collar bone. Lift the barbell up keeping it lying on your chest. Take a step back and position your feet shoulder width apart from each other. Once you pick up the barbell with the correct grip length, lift the bar up over your head by locking your arms. Hold at about shoulder level and slightly in front of your head. This is your starting position. Lower the bar down to the collarbone slowly as you inhale. Lift the bar back up to the starting position as you exhale. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Standing_Military_Press",
       "images": [
@@ -5208,10 +5208,10 @@ export const exerciseDatabase = {
       "instructions": "Start by having a dumbbell in one hand with your arm fully extended to the side using a neutral grip. Use your other arm to hold on to an incline bench to keep your balance. Your feet should be shoulder width apart from each other. Now slowly lift the dumbbell up until you create a 90 degree angle with your arm. Note: Your forearm should be perpendicular to the floor. Continue to maintain a neutral grip throughout the entire exercise. Slowly lift the dumbbell up until your arm is fully extended. This the starting position. While inhaling lower the weight down until your arm is at a 90 degree angle again. Feel the contraction for a second and then lift the weight back up towards the starting position while exhaling. Remember to hold on to the incline bench and keep your feet positioned to keep balance during the exercise. Repeat for the recommended amount of repetitions. Switch arms and repeat the exercise.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Standing_Palm-In_One-Arm_Dumbbell_Press",
       "images": [
@@ -5227,10 +5227,10 @@ export const exerciseDatabase = {
       "instructions": "Start by having a dumbbell in each hand with your arm fully extended to the side using a neutral grip. Your feet should be shoulder width apart from each other. Now slowly lift the dumbbells up until you create a 90 degree angle with your arms. Note: Your forearms should be perpendicular to the floor. This the starting position. Continue to maintain a neutral grip throughout the entire exercise. Slowly lift the dumbbells up until your arms are fully extended. While inhaling lower the weights down until your arm is at a 90 degree angle again. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Standing_Palms-In_Dumbbell_Press",
       "images": [
@@ -5246,7 +5246,7 @@ export const exerciseDatabase = {
       "instructions": "Stand with your feet shoulder width apart holding a medicine ball in both hands. To begin, reach the medicine ball deep behind your head as you bend the knees slightly and lean back. Violently throw the ball forward, flexing at the hip and using your whole body to complete the movement. The medicine ball can be thrown to a partner or to a wall, receiving it as it bounces back.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Chest",
@@ -5266,7 +5266,7 @@ export const exerciseDatabase = {
       "instructions": "Place a bar on the ground behind the head of an incline bench. Lay on the bench face down. With a pronated grip, pick the barbell up from the floor, keeping your arms straight. Allow the bar to hang straight down. This will be your starting position. To begin, raise the barbell out in front of your head while keeping your arms extended. Return to the starting position.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Traps"
@@ -5285,7 +5285,7 @@ export const exerciseDatabase = {
       "instructions": "Place two kettlebells between your feet. To get in the starting position, push your butt back and look straight ahead. Clean the kettlebells to your shoulders by extending through the legs and hips as you raise the kettlebells towards your shoulders. Rotate your wrists as you do so. Lower the kettlebells back to the starting position and repeat.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Calves",
@@ -5308,12 +5308,12 @@ export const exerciseDatabase = {
       "instructions": "Clean two kettlebells to your shoulders. Clean the kettlebells to your shoulders by extending through the legs and hips as you swing the kettlebells towards your shoulders. Rotate your wrists as you do so, so that the palms face forward. Squat down a few inches and reverse the motion rapidly driving both kettlebells overhead. Immediately after the initial push, squat down again and get under the kettlebells. Once the kettlebells are locked out, stand upright to complete the exercise.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Calves",
         "Quadriceps",
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Two-Arm_Kettlebell_Jerk",
       "images": [
@@ -5329,10 +5329,10 @@ export const exerciseDatabase = {
       "instructions": "Clean two kettlebells to your shoulders. Clean the kettlebells to your shoulders by extending through the legs and hips as you swing the kettlebells towards your shoulders. Rotate your wrists as you do so, so that the palms face forward. Press the kettlebells up and out. As the kettlebells pass your head, lean into the weights so that the kettlebells are racked behind your head. Make sure to contract your lats, butt, and stomach for added stability.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Two-Arm_Kettlebell_Military_Press",
       "images": [
@@ -5348,7 +5348,7 @@ export const exerciseDatabase = {
       "instructions": "Grasp a barbell with an overhand grip that is slightly less than shoulder width. The bar should be resting on the top of your thighs with your arms extended and a slight bend in your elbows. Your back should also be straight. This will be your starting position. Now exhale and use the sides of your shoulders to lift the bar, raising your elbows up and to the side. Keep the bar close to your body as you raise it. Continue to lift the bar until it nearly touches your chin. Tip: Your elbows should drive the motion, and should always be higher than your forearms. Remember to keep your torso stationary and pause for a second at the top of the movement. Lower the bar back down slowly to the starting position. Inhale as you perform this portion of the movement. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Traps"
@@ -5367,7 +5367,7 @@ export const exerciseDatabase = {
       "instructions": "Extend both hands straight above your head, palms touching. Slowly push your hands up and back, keeping your back straight.",
       "muscleGroup": "Shoulders",
       "primaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "secondaryMuscles": [
         "Chest",
@@ -5389,7 +5389,7 @@ export const exerciseDatabase = {
       "instructions": "Curl handles upward, elbows tucked in",
       "muscleGroup": "Arms",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [
         "Forearms"
@@ -5403,7 +5403,7 @@ export const exerciseDatabase = {
       "instructions": "Curl one arm at a time, controlled motion",
       "muscleGroup": "Arms",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [
         "Forearms"
@@ -5417,7 +5417,7 @@ export const exerciseDatabase = {
       "instructions": "Stand up with your torso upright and a dumbbell in each hand being held at arms length. The elbows should be close to the torso. The palms of the hands should be facing your torso. This will be your starting position. While holding the upper arm stationary, curl the right weight forward while contracting the biceps as you breathe out. Continue the movement until your biceps is fully contracted and the dumbbells are at shoulder level. Hold the contracted position for a second as you squeeze the biceps. Tip: Only the forearms should move. Slowly begin to bring the dumbbells back to starting position as your breathe in. Repeat the movement with the left hand. This equals one repetition. Continue alternating in this manner for the recommended amount of repetitions.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [
         "Forearms"
@@ -5436,7 +5436,7 @@ export const exerciseDatabase = {
       "instructions": "Sit down on an incline bench with a dumbbell in each hand being held at arms length. Tip: Keep the elbows close to the torso.This will be your starting position. While holding the upper arm stationary, curl the right weight forward while contracting the biceps as you breathe out. As you do so, rotate the hand so that the palm is facing up. Continue the movement until your biceps is fully contracted and the dumbbells are at shoulder level. Hold the contracted position for a second as you squeeze the biceps. Tip: Only the forearms should move. Slowly begin to bring the dumbbell back to starting position as your breathe in. Repeat the movement with the left hand. This equals one repetition. Continue alternating in this manner for the recommended amount of repetitions.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [
         "Forearms"
@@ -5455,7 +5455,7 @@ export const exerciseDatabase = {
       "instructions": "Stand up with your torso upright while holding a barbell at a shoulder-width grip. The palm of your hands should be facing forward and the elbows should be close to the torso. This will be your starting position. While holding the upper arms stationary, curl the weights forward while contracting the biceps as you breathe out. Tip: Only the forearms should move. Continue the movement until your biceps are fully contracted and the bar is at shoulder level. Hold the contracted position for a second and squeeze the biceps hard. Slowly begin to bring the bar back to starting position as your breathe in. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [
         "Forearms"
@@ -5474,7 +5474,7 @@ export const exerciseDatabase = {
       "instructions": "Lie against an incline bench, with your arms holding a barbell and hanging down in a horizontal line. This will be your starting position. While keeping the upper arms stationary, curl the weight up as high as you can while squeezing the biceps. Breathe out as you perform this portion of the movement. Tip: Only the forearms should move. Do not swing the arms. After a second contraction, slowly go back to the starting position as you inhale. Tip: Make sure that you go all of the way down. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Barbell_Curls_Lying_Against_An_Incline",
@@ -5491,7 +5491,7 @@ export const exerciseDatabase = {
       "instructions": "Lie on your side, with your upper arm against the foam roller. The upper arm should be more or less aligned with your body, with the outside of the bicep pressed against the foam roller. Raise your hips off of the floor, supporting your weight on your arm and on your feet. Hold for 10-30 seconds, and then switch sides.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Brachialis-SMR",
@@ -5508,7 +5508,7 @@ export const exerciseDatabase = {
       "instructions": "Attach a rope attachment to a low pulley and stand facing the machine about 12 inches away from it. Grasp the rope with a neutral (palms-in) grip and stand straight up keeping the natural arch of the back and your torso stationary. Put your elbows in by your side and keep them there stationary during the entire movement. Tip: Only the forearms should move; not your upper arms. This will be your starting position. Using your biceps, pull your arms up as you exhale until your biceps touch your forearms. Tip: Remember to keep the elbows in and your upper arms stationary. After a 1 second contraction where you squeeze your biceps, slowly start to bring the weight back to the original position. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Cable_Hammer_Curls_-_Rope_Attachment",
@@ -5525,7 +5525,7 @@ export const exerciseDatabase = {
       "instructions": "Place a preacher bench about 2 feet in front of a pulley machine. Attach a straight bar to the low pulley. Sit at the preacher bench with your elbow and upper arms firmly on top of the bench pad and have someone hand you the bar from the low pulley. Grab the bar and fully extend your arms on top of the preacher bench pad. This will be your starting position. Now start pilling the weight up towards your shoulders and squeeze the biceps hard at the top of the movement. Exhale as you perform this motion. Also, hold for a second at the top. Now slowly lower the weight to the starting position. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [
         "Forearms"
@@ -5544,7 +5544,7 @@ export const exerciseDatabase = {
       "instructions": "Attach a band to each end of the bar. Take the bar, placing a foot on the middle of the band. Stand upright with a narrow, supinated grip on the EZ bar. The elbows should be close to the torso. This will be your starting position. While keeping the upper arms in place, flex the elbows to execute the curl. Exhale as the weight is lifted. Continue the movement until your biceps are fully contracted and the bar is at shoulder level. Hold the contracted position for a second and squeeze the biceps hard. Slowly begin to bring the bar back to starting position as your breathe in. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [
         "Forearms"
@@ -5563,7 +5563,7 @@ export const exerciseDatabase = {
       "instructions": "Stand up with your torso upright while holding an E-Z Curl Bar at the closer inner handle. The palm of your hands should be facing forward and they should be slightly tilted inwards due to the shape of the bar. The elbows should be close to the torso. This will be your starting position. While holding the upper arms stationary, curl the weights forward while contracting the biceps as you breathe out. Tip: Only the forearms should move. Continue the movement until your biceps are fully contracted and the bar is at shoulder level. Hold the contracted position for a second and squeeze the biceps hard. Slowly begin to bring the bar back to starting position as your breathe in. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [
         "Forearms"
@@ -5582,7 +5582,7 @@ export const exerciseDatabase = {
       "instructions": "Hold a barbell with both hands, palms up and a few inches apart. Stand with your torso straight and your head up. Your feet should be about shoulder width and your elbows close to your torso. This will be your starting position. Tip: You will keep your upper arms and elbows stationary throughout the movement. Curl the bar up in a semicircular motion until the forearms touch your biceps. Exhale as you perform this portion of the movement and contract your biceps hard for a second at the top. Tip: Avoid bending the back or using swinging motions as you lift the weight. Only the forearms should move. Slowly go back down to the starting position as you inhale. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [
         "Forearms"
@@ -5601,7 +5601,7 @@ export const exerciseDatabase = {
       "instructions": "Sit down on a flat bench with one dumbbell in front of you between your legs. Your legs should be spread with your knees bent and feet on the floor. Use your right arm to pick the dumbbell up. Place the back of your right upper arm on the top of your inner right thigh. Rotate the palm of your hand until it is facing forward away from your thigh. Tip: Your arm should be extended and the dumbbell should be above the floor. This will be your starting position. While holding the upper arm stationary, curl the weights forward while contracting the biceps as you breathe out. Only the forearms should move. Continue the movement until your biceps are fully contracted and the dumbbells are at shoulder level. Tip: At the top of the movement make sure that the little finger of your arm is higher than your thumb. This guarantees a good contraction. Hold the contracted position for a second as you squeeze the biceps. Slowly begin to bring the dumbbells back to starting position as your breathe in. Caution: Avoid swinging motions at any time. Repeat for the recommended amount of repetitions. Then repeat the movement with the left arm.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [
         "Forearms"
@@ -5620,7 +5620,7 @@ export const exerciseDatabase = {
       "instructions": "Stand up straight with a dumbbell in each hand. Your hands should be down at your side with your palms facing in. While keeping your palms facing in and without twisting your arm, curl the dumbbell of the right arm up towards your left shoulder as you exhale. Touch the top of the dumbbell to your shoulder and hold the contraction for a second. Slowly lower the dumbbell along the same path as you inhale and then repeat the same movement for the left arm. Continue alternating in this fashion until the recommended amount of repetitions is performed for each arm.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [
         "Forearms"
@@ -5639,7 +5639,7 @@ export const exerciseDatabase = {
       "instructions": "Grab a barbell with a supinated grip (palms facing forward) and get your elbows close to your torso and back. This will be your starting position. As you exhale, curl the bar up while keeping the elbows to the back as you \"Drag\" the bar up by keeping it in contact with your torso. Tip: As you can see, you will not be keeping the elbows pinned to your sides, but instead you will be bringing them back. Also, do not lift your shoulders. Slowly go back to the starting position as you keep the bar in contact with the torso at all times. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [
         "Forearms"
@@ -5658,7 +5658,7 @@ export const exerciseDatabase = {
       "instructions": "Stand (torso upright) with a dumbbell in each hand held at arms length. The elbows should be close to the torso and the palms of your hand should be facing your thighs. While holding the upper arm stationary, curl the right weight as you rotate the palm of the hands until they are facing forward. At this point continue contracting the biceps as you breathe out until your biceps is fully contracted and the dumbbells are at shoulder level. Hold the contracted position for a second as you squeeze the biceps. Tip: Only the forearms should move. Slowly begin to bring the dumbbell back to the starting position as your breathe in. Tip: Remember to twist the palms back to the starting position (facing your thighs) as you come down. Repeat the movement with the left hand. This equals one repetition. Continue alternating in this manner for the recommended amount of repetitions.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [
         "Forearms"
@@ -5677,7 +5677,7 @@ export const exerciseDatabase = {
       "instructions": "Stand up straight with a dumbbell in each hand at arm's length. Keep your elbows close to your torso and rotate the palms of your hands until they are facing forward. This will be your starting position. Now, keeping the upper arms stationary, exhale and curl the weights while contracting your biceps. Continue to raise the weights until your biceps are fully contracted and the dumbbells are at shoulder level. Hold the contracted position for a brief pause as you squeeze your biceps. Then, inhale and slowly begin to lower the dumbbells back to the starting position. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [
         "Forearms"
@@ -5696,7 +5696,7 @@ export const exerciseDatabase = {
       "instructions": "Grab a dumbbell on each hand and lie face down on an incline bench with your shoulders near top of the incline. Your knees can rest on the seat or your legs can be straddled to the sides (my preferred way). Let your arms extend and hang naturally in front of you so that they are perpendicular to the floor. Now keep your elbows in by your side and face the palms forward. This will be your starting position. Raise the dumbbells by contracting the biceps until your arms are fully flexed. Exhale as you perform this portion of the movement and ensure that only the forearms move. The upper arms should remain stationary at all times. Lower the dumbbells until your arms are fully extended. Repeat for the recommended amount of times.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Dumbbell_Prone_Incline_Curl",
@@ -5713,7 +5713,7 @@ export const exerciseDatabase = {
       "instructions": "Stand up straight while holding an EZ curl bar at the wide outer handle. The palms of your hands should be facing forward and slightly tilted inward due to the shape of the bar. Keep your elbows close to your torso. This will be your starting position. Now, while keeping your upper arms stationary, exhale and curl the weights forward while contracting the biceps. Focus on only moving your forearms. Continue to raise the weight until your biceps are fully contracted and the bar is at shoulder level. Hold the top contracted position for a moment and squeeze the biceps. Then inhale and slowly lower the bar back to the starting position. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [],
       "originalId": "EZ-Bar_Curl",
@@ -5730,7 +5730,7 @@ export const exerciseDatabase = {
       "instructions": "Hold the dumbbell towards the side farther from you so that you have more weight on the side closest to you. (This can be done for a good effect on all bicep dumbbell exercises). Now do a normal incline dumbbell curl, but keep your wrists as far back as possible so as to neutralize any stress that is placed on them. Sit on an incline bench that is angled at 45-degrees while holding a dumbbell on each hand. Let your arms hang down on your sides, with the elbows in, and turn the palms of your hands forward with the thumbs pointing away from the body. Tip: You will keep this hand position throughout the movement as there should not be any twisting of the hands as they come up. This will be your starting position. Curl up the two dumbbells at the same time until your biceps are fully contracted and exhale. Tip: Do not swing the arms or use momentum. Keep a controlled motion at all times. Hold the contracted position for a second at the top. As you inhale, slowly go back to the starting position. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Flexor_Incline_Dumbbell_Curls",
@@ -5747,7 +5747,7 @@ export const exerciseDatabase = {
       "instructions": "Stand up with your torso upright and a dumbbell on each hand being held at arms length. The elbows should be close to the torso. The palms of the hands should be facing your torso. This will be your starting position. Now, while holding your upper arm stationary, exhale and curl the weight forward while contracting the biceps. Continue to raise the weight until the biceps are fully contracted and the dumbbell is at shoulder level. Hold the contracted position for a brief moment as you squeeze the biceps. Tip: Focus on keeping the elbow stationary and only moving your forearm. After the brief pause, inhale and slowly begin the lower the dumbbells back down to the starting position. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Hammer_Curls",
@@ -5764,7 +5764,7 @@ export const exerciseDatabase = {
       "instructions": "Stand between a couple of high pulleys and grab a handle in each arm. Position your upper arms in a way that they are parallel to the floor with the palms of your hands facing you. This will be your starting position. Curl the handles towards you until they are next to your ears. Make sure that as you do so you flex your biceps and exhale. The upper arms should remain stationary and only the forearms should move. Hold for a second in the contracted position as you squeeze the biceps. Slowly bring back the arms to the starting position. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [],
       "originalId": "High_Cable_Curls",
@@ -5781,7 +5781,7 @@ export const exerciseDatabase = {
       "instructions": "Sit back on an incline bench with a dumbbell in each hand held at arms length. Keep your elbows close to your torso and rotate the palms of your hands until they are facing forward. This will be your starting position. While holding the upper arm stationary, curl the weights forward while contracting the biceps as you breathe out. Only the forearms should move. Continue the movement until your biceps are fully contracted and the dumbbells are at shoulder level. Hold the contracted position for a second. Slowly begin to bring the dumbbells back to starting position as your breathe in. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Incline_Dumbbell_Curl",
@@ -5798,7 +5798,7 @@ export const exerciseDatabase = {
       "instructions": "Seat yourself on an incline bench with a dumbbell in each hand. You should pressed firmly against he back with your feet together. Allow the dumbbells to hang straight down at your side, holding them with a neutral grip. This will be your starting position. Initiate the movement by flexing at the elbow, attempting to keep the upper arm stationary. Continue to the top of the movement and pause, then slowly return to the start position.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Incline_Hammer_Curls",
@@ -5815,7 +5815,7 @@ export const exerciseDatabase = {
       "instructions": "Hold a dumbbell in each hand and lie back on an incline bench. The dumbbells should be at arm's length hanging at your sides and your palms should be facing out. This will be your starting position. Now as you exhale curl the weight outward and up while keeping your forearms in line with your side deltoids. Continue the curl until the dumbbells are at shoulder height and to the sides of your deltoids. Tip: The end of the movement should look similar to a double biceps pose. After a second contraction at the top of the movement, start to inhale and slowly lower the weights back to the starting position using the same path used to bring them up. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Incline_Inner_Biceps_Curl",
@@ -5832,7 +5832,7 @@ export const exerciseDatabase = {
       "instructions": "Grab a straight bar or E-Z bar attachment that is attached to the low pulley with both hands, using an underhand (palms facing up) shoulder-width grip. Lie flat on your back on top of an exercise mat in front of the weight stack with your feet flat against the frame of the pulley machine and your legs straight. With your arms extended and your elbows close to your body slightly bend your arms. This will be your starting position. While keeping your upper arms stationary and the elbows close to your body, curl the bar up slowly toward your chest as you breathe out and you squeeze the biceps. After a second squeeze at the top of the movement, slowly return to the starting position. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Lying_Cable_Curl",
@@ -5849,7 +5849,7 @@ export const exerciseDatabase = {
       "instructions": "Place a flat bench in front of a high pulley or lat pulldown machine. Hold the straight bar attachment using an underhand grip (palms up) that is about shoulder width. Lie on your back with your head over the end of the bench. Now extend your arms straight above your shoulders. Your torso and your arms should make a 90-degree angle and the elbows should be in. This will be your starting position. As you breathe out, curl the bar down in a semicircular motion until it touches your chin. Squeeze the biceps for a second at the top contracted position. Tip: As you execute this motion only the forearms should move. At no time should the upper arms be moving at all. They are to remain perpendicular throughout the movement. Return to starting position slowly. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Lying_Close-Grip_Bar_Curl_On_High_Pulley",
@@ -5866,7 +5866,7 @@ export const exerciseDatabase = {
       "instructions": "Lie face forward on a tall flat bench while holding a barbell with a supinated grip (palms facing up). Tip: If you are holding a barbell grab it using a shoulder-width grip and if you are using an E-Z Bar grab it on the inner handles. Your upper body should be positioned in a way that the upper chest is over the end of the bench and the barbell is hanging in front of you with the arms extended and perpendicular to the floor. This will be your starting position. While keeping the elbows in and the upper arms stationary, curl the weight up in a semi-circular motion as you contract the biceps and exhale. Hold at the top of the movement for a second. As you inhale, slowly go back to the starting position. Tip: Maintain full control of the weight at all times and avoid any swinging. Remember, only the forearms should move throughout the movement. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Lying_High_Bench_Barbell_Curl",
@@ -5883,7 +5883,7 @@ export const exerciseDatabase = {
       "instructions": "Lie down on a flat bench face up while holding a dumbbell in each arm on top of your thighs. Bring the dumbbells to the sides with the arms extended and the palms of the hands facing your thighs (neutral grip). While keeping the arms close to your torso and elbows in, slowly lower your arms (as you keep them extended with a slight bend at the elbows) as far down towards the floor as you can go. Once you cannot go down any further, lock your upper arms in that position and that will be your starting position. As you breathe out, slowly begin to curl the weights up as you simultaneously rotate your wrists so that the palms of the hands face up. Continue curling the weight until your biceps are fully contracted and squeeze hard at the top position for a second. Tip: Only the forearms should move. Upper arms should remain stationary and elbows should stay in throughout the movement. Return back to the starting position very slowly.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Lying_Supine_Dumbbell_Curl",
@@ -5900,7 +5900,7 @@ export const exerciseDatabase = {
       "instructions": "Adjust the seat to the appropriate height and make your weight selection. Place your upper arms against the pads and grasp the handles. This will be your starting position. Perform the movement by flexing the elbow, pulling your lower arm towards your upper arm. Pause at the top of the movement, and then slowly return the weight to the starting position. Avoid returning the weight all the way to the stops until the set is complete to keep tension on the muscles being worked.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Machine_Bicep_Curl",
@@ -5917,7 +5917,7 @@ export const exerciseDatabase = {
       "instructions": "Sit down on the Preacher Curl Machine and select the weight. Place the back of your upper arms (your triceps) on the preacher pad provided and grab the handles using an underhand grip (palms facing up). Tip: Make sure that when you place the arms on the pad you keep the elbows in. This will be your starting position. Now lift the handles as you exhale and you contract the biceps. At the top of the position make sure that you hold the contraction for a second. Tip: Only the forearms should move. The upper arms should remain stationary and on the pad at all times. Lower the handles slowly back to the starting position as you inhale. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Machine_Preacher_Curls",
@@ -5934,7 +5934,7 @@ export const exerciseDatabase = {
       "instructions": "Grab a dumbbell with the right arm and place the upper arm on top of the preacher bench or the incline bench. The dumbbell should be held at shoulder length. This will be your starting position. As you breathe in, slowly lower the dumbbell until your upper arm is extended and the biceps is fully stretched. As you exhale, use the biceps to curl the weight up until your biceps is fully contracted and the dumbbell is at shoulder height. Again, remember that to ensure full contraction you need to bring that small finger higher than the thumb. Squeeze the biceps hard for a second at the contracted position and repeat for the recommended amount of repetitions. Switch arms and repeat the movement.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [],
       "originalId": "One_Arm_Dumbbell_Preacher_Curl",
@@ -5951,7 +5951,7 @@ export const exerciseDatabase = {
       "instructions": "To begin, set a weight that is comfortable on each side of the pulley machine. Note: Make sure that the amount of weight selected is the same on each side. Now adjust the height of the pulleys on each side and make sure that they are positioned at a height higher than that of your shoulders. Stand in the middle of both sides and use an underhand grip (palms facing towards the ceiling) to grab each handle. Your arms should be fully extended and parallel to the floor with your feet positioned shoulder width apart from each other. Your body should be evenly aligned the handles. This is the starting position. While exhaling, slowly squeeze the biceps on each side until your forearms and biceps touch. While inhaling, move your forearms back to the starting position. Note: Your entire body is stationary during this exercise except for the forearms. Repeat for the recommended amount of repetitions prescribed in your program.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Overhead_Cable_Curl",
@@ -5968,7 +5968,7 @@ export const exerciseDatabase = {
       "instructions": "To perform this movement you will need a preacher bench and an E-Z bar. Grab the E-Z curl bar at the close inner handle (either have someone hand you the bar which is preferable or grab the bar from the front bar rest provided by most preacher benches). The palm of your hands should be facing forward and they should be slightly tilted inwards due to the shape of the bar. With the upper arms positioned against the preacher bench pad and the chest against it, hold the E-Z Curl Bar at shoulder length. This will be your starting position. As you breathe in, slowly lower the bar until your upper arm is extended and the biceps is fully stretched. As you exhale, use the biceps to curl the weight up until your biceps is fully contracted and the bar is at shoulder height. Squeeze the biceps hard and hold this position for a second. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Preacher_Curl",
@@ -5985,7 +5985,7 @@ export const exerciseDatabase = {
       "instructions": "Place the upper part of both arms on top of the preacher bench as you hold a dumbbell in each hand with the palms facing each other (neutral grip). As you breathe in, slowly lower the dumbbells until your upper arm is extended and the biceps is fully stretched. As you exhale, use the biceps to curl the weight up until your biceps is fully contracted and the dumbbells are at shoulder height. Squeeze the biceps hard for a second at the contracted position and repeat for the recommended amount of repetitions.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [
         "Forearms"
@@ -6004,7 +6004,7 @@ export const exerciseDatabase = {
       "instructions": "Stand up with your torso upright while holding a barbell at shoulder width with the elbows close to the torso. The palm of your hands should be facing down (pronated grip). This will be your starting position. While holding the upper arms stationary, curl the weights while contracting the biceps as you breathe out. Only the forearms should move. Continue the movement until your biceps are fully contracted and the bar is at shoulder level. Hold the contracted position for a second as you squeeze the muscle. Slowly begin to bring the bar back to starting position as your breathe in. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [
         "Forearms"
@@ -6023,7 +6023,7 @@ export const exerciseDatabase = {
       "instructions": "Grab an EZ-bar using a shoulder width and palms down (pronated) grip. Now place the upper part of both arms on top of the preacher bench and have your arms extended. This will be your starting position. As you exhale, use the biceps to curl the weight up until your biceps are fully contracted and the barbell is at shoulder height. Squeeze the biceps hard for a second at the contracted position. As you breathe in, slowly lower the barbell until your upper arms are extended and the biceps is fully stretched. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [
         "Forearms"
@@ -6042,7 +6042,7 @@ export const exerciseDatabase = {
       "instructions": "Stand up with your torso upright while holding a bar attachment that is attached to a low pulley using a pronated (palms down) and shoulder width grip. Make sure also that you keep the elbows close to the torso. This will be your starting position. While holding the upper arms stationary, curl the weights while contracting the biceps as you breathe out. Only the forearms should move. Continue the movement until your biceps are fully contracted and the bar is at shoulder level. Hold the contracted position for a second as you squeeze the muscle. Slowly begin to bring the bar back to starting position as your breathe in. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [
         "Forearms"
@@ -6061,7 +6061,7 @@ export const exerciseDatabase = {
       "instructions": "Start by standing straight with a weighted plate held by both hands and arms fully extended. Use a pronated grip (palms facing down) and make sure your fingers grab the rough side of the plate while your thumb grabs the smooth side. Note: For the best results, grab the weighted plate at an 11:00 and 1:00 o'clock position. Your feet should be shoulder width apart from each other and the weighted plate should be near the groin area. This is the starting position. Slowly lift the plate up while keeping the elbows in and the upper arms stationary until your biceps and forearms touch while exhaling. The plate should be evenly aligned with your torso at this point. Feel the contraction for a second and begin to lower the weight back down to the starting position while inhaling Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [
         "Forearms"
@@ -6080,11 +6080,11 @@ export const exerciseDatabase = {
       "instructions": "Sit on the floor with your knees bent and your partner standing behind you. Extend your arms straight behind you with your palms facing each other. Your partner will hold your wrists for you. This will be the starting position. Attempt to flex your elbows, while your partner prevents any actual movement. After 10-20 seconds, relax your arms while your partner gently pulls your wrists up to stretch your biceps. Be sure to let your partner know when the stretch is appropriate to prevent injury or overstretching.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [
         "Chest",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Seated_Biceps",
       "images": [
@@ -6100,7 +6100,7 @@ export const exerciseDatabase = {
       "instructions": "Sit down on a flat bench with a barbell or E-Z Bar in front of you in between your legs. Your legs should be spread with the knees bent and the feet on the floor. Use your arms to pick the barbell up and place the back of your upper arms on top of your inner thighs (around three and a half inches away from the front of the knee). A supinated grip closer than shoulder width is needed to perform this exercise. Tip: Your arm should be extended at arms length and the barbell should be above the floor. This will be your starting position. While holding the upper arms stationary, curl the weights forward while contracting the biceps as you breathe out. Only the forearms should move. Continue the movement until your biceps are fully contracted and the dumbbells are at shoulder level. Hold the contracted position for a second as you squeeze the biceps. Slowly begin to bring the barbell back to starting position as your breathe in. Tip: Avoid swinging motions at any time. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Seated_Close-Grip_Concentration_Barbell_Curl",
@@ -6117,7 +6117,7 @@ export const exerciseDatabase = {
       "instructions": "Sit on a flat bench with a dumbbell on each hand being held at arms length. The elbows should be close to the torso. Rotate the palms of the hands so that they are facing your torso. This will be your starting position. While holding the upper arm stationary, curl the weights and start twisting the wrists once the dumbbells pass your thighs so that the palms of your hands face forward at the end of the movement. Make sure that you contract the biceps as you breathe out and make sure that only the forearms move. Continue the movement until your biceps are fully contracted and the dumbbells are at shoulder level. Hold the contracted position for a second as you squeeze the biceps. Slowly begin to bring the dumbbells back to the starting position as your breathe in and as you rotate the wrists back to a neutral grip. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Seated_Dumbbell_Curl",
@@ -6134,7 +6134,7 @@ export const exerciseDatabase = {
       "instructions": "Sit on the end of a flat bench with a dumbbell in each hand being held at arms length. The elbows should be close to the torso. Rotate the palms of the hands so that they are facing inward in a neutral position. This will be your starting position. While holding the upper arms stationary, curl the dumbbells out and up, turning the palms out as you lift and keeping your forearms in line with your outer deltoids. Tips: Only the forearms should move. Continue the movement until your biceps are fully contracted and the dumbbells are at shoulder level. Hold the contracted position for a second as you squeeze the biceps. Slowly begin to bring the dumbbells back to the starting position as your breathe in. Remember to rotate your arms as you lower the dumbbells so that you can switch back to a neutral grip. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Seated_Dumbbell_Inner_Biceps_Curl",
@@ -6151,7 +6151,7 @@ export const exerciseDatabase = {
       "instructions": "Start out by setting the bar on the part of the preacher bench that you would normally sit on. Make sure to align the barbell properly so that it is balanced and will not fall off. Move to the front side of the preacher bench (the part where the arms usually lay) and position yourself to lay at a 45 degree slant with your torso and stomach pressed against the front side of the preacher bench. Make sure that your feet (especially the toes) are well positioned on the floor and place your upper arms on top of the pad located on the inside part of the preacher bench. Use your arms to grab the barbell with a supinated grip (palms facing up) at about shoulder width apart or slightly closer from each other. Slowly begin to lift the barbell upwards and exhale. Hold the contracted position for a second as you squeeze the biceps. Slowly begin to bring the barbell back to the starting position as your breathe in. . Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Spider_Curl",
@@ -6168,7 +6168,7 @@ export const exerciseDatabase = {
       "instructions": "Stand up with your torso upright while holding a cable curl bar that is attached to a low pulley. Grab the cable bar at shoulder width and keep the elbows close to the torso. The palm of your hands should be facing up (supinated grip). This will be your starting position. While holding the upper arms stationary, curl the weights while contracting the biceps as you breathe out. Only the forearms should move. Continue the movement until your biceps are fully contracted and the bar is at shoulder level. Hold the contracted position for a second as you squeeze the muscle. Slowly begin to bring the curl bar back to starting position as your breathe in. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Standing_Biceps_Cable_Curl",
@@ -6185,11 +6185,11 @@ export const exerciseDatabase = {
       "instructions": "Clasp your hands behind your back with your palms together, straighten arms and then rotate them so your palms face downward. Raise your arms up and hold until you feel a stretch in your biceps.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [
         "Chest",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Standing_Biceps_Stretch",
       "images": [
@@ -6205,7 +6205,7 @@ export const exerciseDatabase = {
       "instructions": "Taking a dumbbell in your working hand, lean forward. Allow your working arm to hang perpendicular to the ground with the elbow pointing out. This will be your starting position. Flex the elbow to curl the weight, keeping the upper arm stationary. At the top of the repetition, flex the biceps and pause. Lower the dumbbell back to the starting position. Repeat the movement for the prescribed amount of repetitions.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [
         "Forearms"
@@ -6224,7 +6224,7 @@ export const exerciseDatabase = {
       "instructions": "To begin, stand straight with a dumbbell in each hand using a pronated grip (palms facing down). Your arms should be fully extended while your feet are shoulder width apart from each other. This is the starting position. While holding the upper arms stationary, curl the weights while contracting the biceps as you breathe out. Only the forearms should move. Continue the movement until your biceps are fully contracted and the dumbbells are at shoulder level. Hold the contracted position for a second as you squeeze the muscle. Slowly begin to bring the dumbbells back to starting position as your breathe in. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [
         "Forearms"
@@ -6243,7 +6243,7 @@ export const exerciseDatabase = {
       "instructions": "Stand up with a dumbbell in each hand being held at arms length. The elbows should be close to the torso. Your legs should be at about shoulder's width apart from each other. Rotate the palms of the hands so that they are facing inward in a neutral position. This will be your starting position. While holding the upper arms stationary, curl the weights out while contracting the biceps as you breathe out. Your wrist should turn so that when the weights are fully elevated you have supinated grip (palms facing up). Only the forearms should move. Continue the movement until your biceps are fully contracted and the dumbbells are at shoulder level. Tip: Keep the forearms aligned with your outer deltoids. Hold the contracted position for a second as you squeeze the biceps. Slowly begin to bring the dumbbells back to the starting position as your breathe in. Remember to rotate the wrists as you lower the weight in order to switch back to a neutral grip. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Standing_Inner-Biceps_Curl",
@@ -6260,7 +6260,7 @@ export const exerciseDatabase = {
       "instructions": "Start out by grabbing single handle next to the low pulley machine. Make sure you are far enough from the machine so that your arm is supporting the weight. Make sure that your upper arm is stationary, perpendicular to the floor with elbows in and palms facing forward. Your non lifting arm should be grabbing your waist. This will allow you to keep your balance. Slowly begin to curl the single handle upwards while keeping the upper arm stationary until your forearm touches your bicep while exhaling. Tip: Only the forearm should move. Hold the contraction position as you squeeze the bicep and then lower the single handle back down to the starting position as you inhale. Repeat for the recommended amount of repetitions. Switch arms while performing this exercise.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Standing_One-Arm_Cable_Curl",
@@ -6277,7 +6277,7 @@ export const exerciseDatabase = {
       "instructions": "Stand on the back side of an incline bench as if you were going to be a spotter for someone. Have a dumbbell in one hand and rest it across the incline bench with a supinated (palms up) grip. Position your non lifting hand at the corner or side of the incline bench. The chest should be pressed against the top part of the incline and your feet should be pressed against the floor at a wide stance. This is the starting position. While holding the upper arm stationary, curl the dumbbell upward while contracting the biceps as you breathe out. Only the forearms should move. Continue the movement until your biceps are fully contracted and the dumbbell is at shoulder level. Hold the contracted position for a second. Slowly begin to bring the dumbbells back to starting position as your breathe in. Repeat for the recommended amount of repetitions. Switch arms while performing this exercise.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Standing_One-Arm_Dumbbell_Curl_Over_Incline_Bench",
@@ -6294,7 +6294,7 @@ export const exerciseDatabase = {
       "instructions": "Grab a dumbbell with each arm and place the upper arms on top of the preacher bench or the incline bench. The dumbbell should be held at shoulder length. This will be your starting position. As you breathe in, slowly lower the dumbbells until your upper arm is extended and the biceps is fully stretched. As you exhale, use the biceps to curl the weights up until your biceps is fully contracted and the dumbbells are at shoulder height. Squeeze the biceps hard for a second at the contracted position and repeat for the recommended amount of repetitions.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Two-Arm_Dumbbell_Preacher_Curl",
@@ -6311,7 +6311,7 @@ export const exerciseDatabase = {
       "instructions": "Stand up with your torso upright while holding a barbell at the wide outer handle. The palm of your hands should be facing forward. The elbows should be close to the torso. This will be your starting position. While holding the upper arms stationary, curl the weights forward while contracting the biceps as you breathe out. Tip: Only the forearms should move. Continue the movement until your biceps are fully contracted and the bar is at shoulder level. Hold the contracted position for a second and squeeze the biceps hard. Slowly begin to bring the bar back to starting position as your breathe in. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Wide-Grip_Standing_Barbell_Curl",
@@ -6328,7 +6328,7 @@ export const exerciseDatabase = {
       "instructions": "Stand up with your torso upright and a dumbbell in each hand being held at arms length. The elbows should be close to the torso. Make sure the palms of the hands are facing each other. This will be your starting position. While holding the upper arm stationary, curl the weights while contracting the biceps as you breathe out. Only the forearms should move. Your wrist should rotate so that you have a supinated (palms up) grip. Continue the movement until your biceps are fully contracted and the dumbbells are at shoulder level. Hold the contracted position for a second as you squeeze the biceps. Now during the contracted position, rotate your wrist until you now have a pronated (palms facing down) grip with the thumb at a higher position than the pinky. Slowly begin to bring the dumbbells back down using the pronated grip. As the dumbbells close your thighs, start rotating the wrist so that you go back to a neutral (palms facing your body) grip. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [
         "Forearms"
@@ -6347,7 +6347,7 @@ export const exerciseDatabase = {
       "instructions": "Grab a dumbbell in each hand and place your upper arms on top of the preacher bench or the incline bench. The dumbbells should be held at shoulder height and the elbows should be flexed. Hold the dumbbells with the palms of your hands facing down. This will be your starting position. As you breathe in, slowly lower the dumbbells keeping the palms down until your upper arm is extended and your biceps are fully stretched. Now rotate your wrists once you are at the bottom of the movement so that the palms of the hands are facing up. As you exhale, use your biceps to curl the weights up until they are fully contracted and the dumbbells are at shoulder height. Again, remember that to ensure full contraction you need to bring that small finger higher than the thumb. Squeeze the biceps hard for a second at the contracted position and rotate your wrists so that the palms are facing down again. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Biceps",
       "primaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "secondaryMuscles": [
         "Forearms"
@@ -6368,10 +6368,10 @@ export const exerciseDatabase = {
       "instructions": "Extend arms down with overhand grip",
       "muscleGroup": "Arms",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ]
     },
     {
@@ -6382,10 +6382,10 @@ export const exerciseDatabase = {
       "instructions": "Isolate one arm, extend down fully",
       "muscleGroup": "Arms",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ]
     },
     {
@@ -6396,10 +6396,10 @@ export const exerciseDatabase = {
       "instructions": "Pull cable overhead, extend arms upward",
       "muscleGroup": "Arms",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ]
     },
     {
@@ -6410,10 +6410,10 @@ export const exerciseDatabase = {
       "instructions": "Same motion, one arm at a time",
       "muscleGroup": "Arms",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ]
     },
     {
@@ -6448,7 +6448,7 @@ export const exerciseDatabase = {
       "instructions": "Secure a band to the base of a rack or the bench. Lay on the bench so that the band is lined up with your head. Take hold of the band, raising your elbows so that the upper arm is perpendicular to the floor. With the elbow flexed, the band should be above your head. This will be your starting position. Extend through the elbow to straighten your arm, keeping your upper arm in place. Pause at the top of the motion, and return to the starting position.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Band_Skull_Crusher",
@@ -6465,11 +6465,11 @@ export const exerciseDatabase = {
       "instructions": "For this exercise you will need to place a bench behind your back. With the bench perpendicular to your body, and while looking away from it, hold on to the bench on its edge with the hands fully extended, separated at shoulder width. The legs will be extended forward, bent at the waist and perpendicular to your torso. This will be your starting position. Slowly lower your body as you inhale by bending at the elbows until you lower yourself far enough to where there is an angle slightly smaller than 90 degrees between the upper arm and the forearm. Tip: Keep the elbows as close as possible throughout the movement. Forearms should always be pointing down. Using your triceps to bring your torso up again, lift yourself back to the starting position. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [
         "Chest",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Bench_Dips",
       "images": [
@@ -6485,13 +6485,13 @@ export const exerciseDatabase = {
       "instructions": "Begin by lying on the bench, getting your head beyond the bar if possible. Tuck your feet underneath you and arch your back. Using the bar to help support your weight, lift your shoulder off the bench and retract them, squeezing the shoulder blades together. Use your feet to drive your traps into the bench. Maintain this tight body position throughout the movement. However wide your grip, it should cover the ring on the bar. Pull the bar out of the rack without protracting your shoulders. Focus on squeezing the bar and trying to pull it apart. Lower the bar to your lower chest or upper stomach. The bar, wrist, and elbow should stay in line at all times. Pause when the barbell touches your torso, and then drive the bar up with as much force as possible. The elbows should be tucked in until lockout.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [
         "Chest",
         "Forearms",
         "Lats",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Bench_Press_-_Powerlifting",
       "images": [
@@ -6507,12 +6507,12 @@ export const exerciseDatabase = {
       "instructions": "Adjust the leader chain, shortening it to the desired length.Place the chains on the sleeves of the bar. Lying on the bench, get your head beyond the bar if possible. Tuck your feet underneath you and arch your back. Using the bar to help support your weight, lift your shoulder off the bench and retract them, squeezing the shoulder blades together. Use your feet to drive your traps into the bench. Maintain this tight body position throughout the movement. However wide your grip, it should cover the ring on the bar. Pull the bar out of the rack without protracting your shoulders. Focus on squeezing the bar and trying to pull it apart. Lower the bar to your lower chest or upper stomach. The bar, wrist, and elbow should stay in line at all times. Pause when the barbell touches your torso, and then drive the bar up with as much force as possible. The elbows should be tucked in until lockout.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [
         "Chest",
         "Lats",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Bench_Press_with_Chains",
       "images": [
@@ -6528,13 +6528,13 @@ export const exerciseDatabase = {
       "instructions": "Begin by lying on the bench, getting your head beyond the bar if possible. One to five boards, made out of 2x6's, can be screwed together and held in place by a training partner, bands, or just tucked under your shirt. Tuck your feet underneath you and arch your back. Using the bar to help support your weight, lift your shoulder off the bench and retract them, squeezing the shoulder blades together. Use your feet to drive your traps into the bench. Maintain this tight body position throughout the movement. You can take a standard bench grip, or shoulder width to focus on the triceps. Pull the bar out of the rack without protracting your shoulders. The bar, wrist, and elbow should stay in line at all times. Focus on squeezing the bar and trying to pull it apart. Lower the bar to the boards, and then drive the bar up with as much force as possible. The elbows should be tucked in until lockout.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [
         "Chest",
         "Forearms",
         "Lats",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Board_Press",
       "images": [
@@ -6550,7 +6550,7 @@ export const exerciseDatabase = {
       "instructions": "Assume a plank position on the ground. You should be supporting your bodyweight on your toes and forearms, keeping your torso straight. Your forearms should be shoulder-width apart. This will be your starting position. Pressing your palms firmly into the ground, extend through the elbows to raise your body from the ground. Keep your torso rigid as you perform the movement. Slowly lower your forearms back to the ground by allowing the elbows to flex. Repeat.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [
         "Abdominals",
@@ -6570,7 +6570,7 @@ export const exerciseDatabase = {
       "instructions": "Position a bar in a rack at chest height. Standing, take a shoulder width grip on the bar and step a yard or two back, feet together and arms extended so that you are leaning on the bar. This will be your starting position. Begin by flexing the elbow, lowering yourself towards the bar. Pause, and then reverse the motion by extending the elbows. Progress from bodyweight by adding chains over your shoulders.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Body_Tricep_Press",
@@ -6587,7 +6587,7 @@ export const exerciseDatabase = {
       "instructions": "Lie on incline an bench facing away from a high pulley machine that has a straight bar attachment on it. Grasp the straight bar attachment overhead with a pronated (overhand; palms down) narrow grip (less than shoulder width) and keep your elbows tucked in to your sides. Your upper arms should create around a 25 degree angle when measured from the floor. Keeping the upper arms stationary, extend the arms as you flex the triceps. Breathe out during this portion of the movement and hold the contraction for a second. Slowly go back to the starting position. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Cable_Incline_Triceps_Extension",
@@ -6604,7 +6604,7 @@ export const exerciseDatabase = {
       "instructions": "Lie on a flat bench and grasp the straight bar attachment of a low pulley with a narrow overhand grip. Tip: The easiest way to do this is to have someone hand you the bar as you lay down. With your arms extended, position the bar over your torso. Your arms and your torso should create a 90-degree angle. This will be your starting position. Lower the bar by bending at the elbow while keeping the upper arms stationary and elbows in. Go down until the bar lightly touches your forehead. Breathe in as you perform this portion of the movement. Flex the triceps as you lift the bar back to its starting position. Exhale as you perform this portion of the movement. Hold for a second at the contracted position and repeat for the recommended amount of repetitions.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Cable_Lying_Triceps_Extension",
@@ -6621,7 +6621,7 @@ export const exerciseDatabase = {
       "instructions": "With your right hand, grasp a single handle attached to the high-cable pulley using a supinated (underhand; palms facing up) grip. You should be standing directly in front of the weight stack. Now pull the handle down so that your upper arm and elbow are locked in to the side of your body. Your upper arm and forearm should form an acute angle (less than 90-degrees). You can keep the other arm by the waist and you can have one leg in front of you and the other one back for better balance. This will be your starting position. As you contract the triceps, move the single handle attachment down to your side until your arm is straight. Breathe out as you perform this movement. Tip: Only the forearms should move. Your upper arms should remain stationary at all times. Squeeze the triceps and hold for a second in this contracted position. Slowly return the handle to the starting position. Repeat for the recommended amount of repetitions and then perform the same movement with the other arm.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Cable_One_Arm_Tricep_Extension",
@@ -6638,7 +6638,7 @@ export const exerciseDatabase = {
       "instructions": "Attach a rope to the bottom pulley of the pulley machine. Grasping the rope with both hands, extend your arms with your hands directly above your head using a neutral grip (palms facing each other). Your elbows should be in close to your head and the arms should be perpendicular to the floor with the knuckles aimed at the ceiling. This will be your starting position. Slowly lower the rope behind your head as you hold the upper arms stationary. Inhale as you perform this movement and pause when your triceps are fully stretched. Return to the starting position by flexing your triceps as you breathe out. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Cable_Rope_Overhead_Triceps_Extension",
@@ -6655,7 +6655,7 @@ export const exerciseDatabase = {
       "instructions": "You will need two cable handle attachments and a flat bench, as well as chains, for this exercise. Clip the middle of the chains to the handles, and position yourself on the flat bench. Your elbows should be pointing straight up. Begin by extending through the elbow, keeping your upper arm still, with your wrists pronated. Pause at the lockout, and reverse the motion to return to the starting position.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Chain_Handle_Extension",
@@ -6672,11 +6672,11 @@ export const exerciseDatabase = {
       "instructions": "Lie back on a flat bench. Using a close grip (around shoulder width), lift the bar from the rack and hold it straight over you with your arms locked. This will be your starting position. As you breathe in, come down slowly until you feel the bar on your middle chest. Tip: Make sure that - as opposed to a regular bench press - you keep the elbows close to the torso at all times in order to maximize triceps involvement. After a second pause, bring the bar back to the starting position as you breathe out and push the bar using your triceps muscles. Lock your arms in the contracted position, hold for a second and then start coming down slowly again. Tip: It should take at least twice as long to go down than to come up. Repeat the movement for the prescribed amount of repetitions. When you are done, place the bar back in the rack.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [
         "Chest",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Close-Grip_Barbell_Bench_Press",
       "images": [
@@ -6692,11 +6692,11 @@ export const exerciseDatabase = {
       "instructions": "Place a dumbbell standing up on a flat bench. Ensuring that the dumbbell stays securely placed at the top of the bench, lie perpendicular to the bench with only your shoulders lying on the surface. Hips should be below the bench and your legs bent with your feet firmly on the floor. Grasp the dumbbell with both hands and hold it straight over your chest at arm's length. Both palms should be pressing against the underside of the sides of the dumbbell. This will be your starting position. Initiate the movement by lowering the dumbbell to your chest. Return to the starting position by extending the elbows.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [
         "Chest",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Close-Grip_Dumbbell_Press",
       "images": [
@@ -6712,11 +6712,11 @@ export const exerciseDatabase = {
       "instructions": "Lie on a flat bench with an EZ bar loaded to an appropriate weight. Using a narrow grip lift the bar and hold it straight over your torso with your elbows in. The arms should be perpendicular to the floor. This will be your starting position. Now lower the bar down to your lower chest as you breathe in. Keep the elbows in as you perform this movement. Using the triceps to push the bar back up, press it back to the starting position by extending the elbows as you exhale. Repeat.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [
         "Chest",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Close-Grip_EZ-Bar_Press",
       "images": [
@@ -6732,12 +6732,12 @@ export const exerciseDatabase = {
       "instructions": "Lie on the floor and place your hands on an upright dumbbell. Supporting your weight on your toes and hands, keep your torso rigid and your elbows in with your arms straight. This will be your starting position. Lower your body, allowing the elbows to flex while you inhale. Keep your body straight, not allowing your hips to rise or sag. Press yourself back up to the starting position by extending the elbows. Breathe out as you perform this step. After a pause at the contracted position, repeat the movement for the prescribed amount of repetitions.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [
         "Abdominals",
         "Chest",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Close-Grip_Push-Up_off_of_a_Dumbbell",
       "images": [
@@ -6753,11 +6753,11 @@ export const exerciseDatabase = {
       "instructions": "Secure your legs at the end of the decline bench and slowly lay down on the bench. Using a close grip (a grip that is slightly less than shoulder width), lift the bar from the rack and hold it straight over you with your arms locked and elbows in. The arms should be perpendicular to the floor. This will be your starting position. Tip: In order to protect your rotator cuff, it is best if you have a spotter help you lift the barbell off the rack. Now lower the bar down to your lower chest as you breathe in. Keep the elbows in as you perform this movement. Using the triceps to push the bar back up, press it back to the starting position as you exhale. As you breathe in and you keep the upper arms stationary, bring the bar down slowly by moving your forearms in a semicircular motion towards you until you feel the bar slightly touch your forehead. Breathe in as you perform this portion of the movement. Lift the bar back to the starting position by contracting the triceps and exhaling. Repeat steps 3-6 until the recommended amount of repetitions is performed.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [
         "Chest",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Decline_Close-Grip_Bench_To_Skull_Crusher",
       "images": [
@@ -6773,7 +6773,7 @@ export const exerciseDatabase = {
       "instructions": "Secure your legs at the end of the decline bench and lie down with a dumbbell on each hand on top of your thighs. The palms of your hand will be facing each other. Once you are laying down, move the dumbbells in front of you at shoulder width. The palms of the hands should be facing each other and the arms should be perpendicular to the floor and fully extended. This will be your starting position. As you breathe in and you keep the upper arms stationary (and elbows in), bring the dumbbells down slowly by moving your forearms in a semicircular motion towards you until your thumbs are next to your ears. Breathe in as you perform this portion of the movement. Lift the dumbbells back to the starting position by contracting the triceps and exhaling. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Decline_Dumbbell_Triceps_Extension",
@@ -6790,7 +6790,7 @@ export const exerciseDatabase = {
       "instructions": "Secure your legs at the end of the decline bench and slowly lay down on the bench. Using a close grip (a grip that is slightly less than shoulder width), lift the EZ bar from the rack and hold it straight over you with your arms locked and elbows in. The arms should be perpendicular to the floor. This will be your starting position. Tip: In order to protect your rotator cuff, it is best if you have a spotter help you lift the barbell off the rack. As you breathe in and you keep the upper arms stationary, bring the bar down slowly by moving your forearms in a semicircular motion towards you until you feel the bar slightly touch your forehead. Breathe in as you perform this portion of the movement. Lift the bar back to the starting position by contracting the triceps and exhaling. Repeat until the recommended amount of repetitions is performed.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Decline_EZ_Bar_Triceps_Extension",
@@ -6807,11 +6807,11 @@ export const exerciseDatabase = {
       "instructions": "Sit securely in a dip machine, select the weight and firmly grasp the handles. Now keep your elbows in at your sides in order to place emphasis on the triceps. The elbows should be bent at a 90 degree angle. As you contract the triceps, extend your arms downwards as you exhale. Tip: At the bottom of the movement, focus on keeping a little bend in your arms to keep tension on the triceps muscle. Now slowly let your arms come back up to the starting position as you inhale. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [
         "Chest",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Dip_Machine",
       "images": [
@@ -6827,11 +6827,11 @@ export const exerciseDatabase = {
       "instructions": "To get into the starting position, hold your body at arm's length with your arms nearly locked above the bars. Now, inhale and slowly lower yourself downward. Your torso should remain upright and your elbows should stay close to your body. This helps to better focus on tricep involvement. Lower yourself until there is a 90 degree angle formed between the upper arm and forearm. Then, exhale and push your torso back up using your triceps to bring your body back to the starting position. Repeat the movement for the prescribed amount of repetitions.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [
         "Chest",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Dips_-_Triceps_Version",
       "images": [
@@ -6847,11 +6847,11 @@ export const exerciseDatabase = {
       "instructions": "Lay on the floor holding dumbbells in your hands. Your knees can be bent. Begin with the weights fully extended above you. Lower the weights until your upper arm comes in contact with the floor. You can tuck your elbows to emphasize triceps size and strength, or to focus on your chest angle your arms to the side. Pause at the bottom, and then bring the weight together at the top by extending through the elbows.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [
         "Chest",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Dumbbell_Floor_Press",
       "images": [
@@ -6867,7 +6867,7 @@ export const exerciseDatabase = {
       "instructions": "Grab a dumbbell and either sit on a military press bench or a utility bench that has a back support on it as you place the dumbbells upright on top of your thighs or stand up straight. Clean the dumbbell up to bring it to shoulder height and then extend the arm over your head so that the whole arm is perpendicular to the floor and next to your head. The dumbbell should be on top of you. The other hand can be kept fully extended to the side, by the waist, supporting the upper arm that has the dumbbell or grabbing a fixed surface. Rotate the wrist so that the palm of your hand is facing forward and the pinkie is facing the ceiling. This will be your starting position. Slowly lower the dumbbell behind your head as you hold the upper arm stationary. Inhale as you perform this movement and pause when your triceps are fully stretched. Return to the starting position by flexing your triceps as you breathe out. Tip: It is imperative that only the forearm moves. The upper arm should remain at all times stationary next to your head. Repeat for the recommended amount of repetitions and switch arms.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Dumbbell_One-Arm_Triceps_Extension",
@@ -6884,7 +6884,7 @@ export const exerciseDatabase = {
       "instructions": "Lie down on a flat bench holding two dumbbells directly above your shoulders. Your arms should be fully extended and form a 90 degree angle from your torso and the floor. The palms of your hands should be facing forward, and your elbows should be tucked in. This will be your starting position. Now, inhale and slowly lower the dumbbells until they are near your ears. Be sure to keep your upper arms stationary and your elbows tucked in. Then, exhale and use your triceps to return the weight to the starting position.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Dumbbell_Tricep_Extension_-Pronated_Grip",
@@ -6901,7 +6901,7 @@ export const exerciseDatabase = {
       "instructions": "Using a close grip, lift the EZ bar and hold it with your elbows in as you lie on the bench. Your arms should be perpendicular to the floor. This will be your starting position. Keeping the upper arms stationary, lower the bar by allowing the elbows to flex. Inhale as you perform this portion of the movement. Pause once the bar is directly above the forehead. Lift the bar back to the starting position by extending the elbow and exhaling. Repeat.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [
         "Forearms"
@@ -6920,11 +6920,11 @@ export const exerciseDatabase = {
       "instructions": "Adjust the j-hooks so they are at the appropriate height to rack the bar. Begin lying on the floor with your head near the end of a power rack. Keeping your shoulder blades pulled together; pull the bar off of the hooks. Lower the bar towards the bottom of your chest or upper stomach, squeezing the bar and attempting to pull it apart as you do so. Ensure that you tuck your elbows throughout the movement. Lower the bar until your upper arm contacts the ground and pause, preventing any slamming or bouncing of the weight. Press the bar back up as fast as you can, keeping the bar, your wrists, and elbows in line as you do so.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [
         "Chest",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Floor_Press",
       "images": [
@@ -6940,11 +6940,11 @@ export const exerciseDatabase = {
       "instructions": "Adjust the j-hooks so they are at the appropriate height to rack the bar. For this exercise, drape the chains directly over the end of the bar, trying to keep the ends away from the plates. Begin lying on the floor with your head near the end of a power rack. Keeping your shoulder blades pulled together, pull the bar off of the hooks. Lower the bar towards the bottom of your chest or upper stomach, squeezing the bar and attempting to pull it apart as you do so. Ensure that you tuck your elbows throughout the movement. Lower the bar until your upper arm contacts the ground and pause, preventing any slamming or bouncing of the weight. Press the bar back up as fast as you can, keeping the bar, your wrists, and elbows in line as you do so.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [
         "Chest",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Floor_Press_with_Chains",
       "images": [
@@ -6960,7 +6960,7 @@ export const exerciseDatabase = {
       "instructions": "Hold a barbell with an overhand grip (palms down) that is a little closer together than shoulder width. Lie back on an incline bench set at any angle between 45-75-degrees. Bring the bar overhead with your arms extended and elbows in. The arms should be in line with the torso above the head. This will be your starting position. Now lower the bar in a semicircular motion behind your head until your forearms touch your biceps. Inhale as you perform this movement. Tip: Keep your upper arms stationary and close to your head at all times. Only the forearms should move. Return to the starting position as you breathe out and you contract the triceps. Hold the contraction for a second. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [
         "Forearms"
@@ -6979,11 +6979,11 @@ export const exerciseDatabase = {
       "instructions": "Stand facing a Smith machine bar or sturdy elevated platform at an appropriate height. Place your hands next to one another on the bar. Position your feet back from the bar with arms and body straight. This will be your starting position. Keeping your body straight, lower your chest to the bar by bending the arms. Return to the starting position by extending the elbows, pressing yourself back up.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [
         "Chest",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Incline_Push-Up_Close-Grip",
       "images": [
@@ -6999,11 +6999,11 @@ export const exerciseDatabase = {
       "instructions": "Start the exercise the same way you would a close grip bench press. You will lie on a flat bench while holding a barbell at arms length (fully extended) with the elbows in. However, instead of having the arms perpendicular to the torso, make sure the bar is set in a direct line above the upper chest. This will be your starting position. Now beginning from a fully extended position lower the bar down as if performing a lying triceps extension. Inhale as you perform this movement. When you reach the half way point, let the bar roll back about one inch by moving the upper arms towards your legs until they are perpendicular to the torso. Tip: Keep the bend at the elbows constant as you bring the upper arms forward. As you exhale, press the bar back up by using the triceps to perform a close grip bench press. Now go back to the starting position and start over. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [
         "Chest",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "JM_Press",
       "images": [
@@ -7019,7 +7019,7 @@ export const exerciseDatabase = {
       "instructions": "Place a bench sideways in front of a high pulley machine. Hold a straight bar attachment above your head with your hands about 6 inches apart with your palms facing down. Face away from the machine and kneel. Place your head and the back of your upper arms on the bench. Your elbows should be bent with the forearms pointing towards the high pulley. This will be your starting position. While keeping your upper arms close to your head at all times with the elbows in, press the bar out in a semicircular motion until the elbows are locked and your arms are parallel to the floor. Contract the triceps hard and keep this position for a second. Exhale as you perform this movement. Slowly return to the starting position as you breathe in. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Kneeling_Cable_Triceps_Extension",
@@ -7036,7 +7036,7 @@ export const exerciseDatabase = {
       "instructions": "Select the desired weight and lay down face up on the bench of a seated row machine that has a rope attached to it. Your head should be pointing towards the attachment. Grab the outside of the rope ends with your palms facing each other (neutral grip). Position your elbows so that they are bent at a 90 degree angle and your upper arms are perpendicular (90 degree angle) to your torso. Tip: Keep the elbows in and make sure that the upper arms point to the ceiling while your forearms point towards the pulley above your head. This will be your starting position. As you breathe out, extend your lower arms until they are straight and vertical. The upper arms and elbows remain stationary throughout the movement. Only the forearms should move. Contract the triceps hard for a second. As you breathe in slowly return to the starting position. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Low_Cable_Triceps_Extension",
@@ -7053,7 +7053,7 @@ export const exerciseDatabase = {
       "instructions": "While holding a barbell or EZ Curl bar with a pronated grip (palms facing forward), lie on your back on a flat bench with your head close to the end of the bench. Tip: If you are holding a barbell grab it using a shoulder-width grip and if you are using an E-Z Bar grab it on the inner handles. Extend your arms in front of you and slowly bring the bar back in a semi circular motion (while keeping the arms extended) to a position over your head. At the end of this step your arms should be overhead and parallel to the floor. This will be your starting position. Tip: Keep your elbows in at all times. As you inhale, lower the bar by bending at the elbows and while keeping the upper arm stationary. Keep lowering the bar until your forearms are perpendicular to the floor. As you exhale bring the bar back up to the starting position by pushing the bar up in a semi-circular motion until the lower arms are also parallel to the floor. Contract the triceps hard at the top of the movement for a second. Tip: Again, only the forearms should move. The upper arms should remain stationary at all times. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Lying_Close-Grip_Barbell_Triceps_Extension_Behind_The_Head",
@@ -7070,7 +7070,7 @@ export const exerciseDatabase = {
       "instructions": "While holding a barbell or EZ Curl bar with a pronated grip (palms facing forward), lie on your back on a flat bench with your head off the end of the bench. Tip: If you are holding a barbell grab it using a shoulder-width grip and if you are using an E-Z Bar grab it on the inner handles. Extend your arms in front of you as you hold the barbell over your chest. The arms should be perpendicular to your torso (90-degree angle). This will be your starting position. As you inhale, lower the bar in a semi-circular motion by bending at the elbows and while keeping the upper arm stationary and elbows in. Keep lowering the bar until it lightly touches your chin. As you exhale bring the bar back up to the starting position by pushing the bar up in a semi-circular motion. Contract the triceps hard at the top of the movement for a second. Tip: Again, only the forearms should move. The upper arms should remain stationary at all times. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Lying_Close-Grip_Barbell_Triceps_Press_To_Chin",
@@ -7087,11 +7087,11 @@ export const exerciseDatabase = {
       "instructions": "Lie on a flat bench while holding two dumbbells directly in front of you. Your arms should be fully extended at a 90-degree angle from your torso and the floor. The palms should be facing in and the elbows should be tucked in. This is the starting position. As you breathe in and you keep the upper arms stationary with the elbows in, slowly lower the weight until the dumbbells are near your ears. At that point, while keeping the elbows in and the upper arms stationary, use the triceps to bring the weight back up to the starting position as you breathe out. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [
         "Chest",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Lying_Dumbbell_Tricep_Extension",
       "images": [
@@ -7107,7 +7107,7 @@ export const exerciseDatabase = {
       "instructions": "Lie on a flat bench with either an e-z bar (my preference) or a straight bar placed on the floor behind your head and your feet on the floor. Grab the bar behind you, using a medium overhand (pronated) grip, and raise the bar in front of you at arms length. Tip: The arms should be perpendicular to the torso and the floor. The elbows should be tucked in. This is the starting position. As you breathe in, slowly lower the weight until the bar lightly touches your forehead while keeping the upper arms and elbows stationary. At that point, use the triceps to bring the weight back up to the starting position as you breathe out. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Lying_Triceps_Press",
@@ -7124,7 +7124,7 @@ export const exerciseDatabase = {
       "instructions": "Adjust the seat to the appropriate height and make your weight selection. Place your upper arms against the pads and grasp the handles. This will be your starting position. Perform the movement by extending the elbow, pulling your lower arm away from your upper arm. Pause at the completion of the movement, and then slowly return the weight to the starting position. Avoid returning the weight all the way to the stops until the set is complete to keep tension on the muscles being worked.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Machine_Triceps_Extension",
@@ -7141,11 +7141,11 @@ export const exerciseDatabase = {
       "instructions": "Lie down on a flat surface with your back pressing against the floor or an exercise mat. Make sure your knees are bent. Have a partner hand you the bar on one hand. When starting, your arm should be just about fully extended, similar to the starting position of a barbell bench press. However, this time your grip will be neutral (palms facing your torso). Make sure the hand you are not using to lift the weight is placed by your side. Begin the exercise by lowering the barbell until your elbow touches the ground. Make sure to breathe in as this is the eccentric (lowering part of the exercise). Then start lifting the barbell back up to the original starting position. Remember to breathe out during the concentric (lifting part of the exercise). Repeat until you have performed your recommended repetitions. Switch arms and repeat the movement.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [
         "Chest",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "One_Arm_Floor_Press",
       "images": [
@@ -7161,7 +7161,7 @@ export const exerciseDatabase = {
       "instructions": "Lie flat on a bench while holding a dumbbell at arms length. Your arm should be perpendicular to your body. The palm of your hand should be facing towards your feet as a pronated grip is required to perform this exercise. Place your non lifting hand on your bicep for support. Slowly begin to lower the dumbbell down as you breathe in. Then, begin lifting the dumbbell upward as you contract the triceps. Remember to breathe out during the concentric (lifting part of the exercise). Repeat until you have performed your set repetitions. Switch arms and repeat the movement.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [],
       "originalId": "One_Arm_Pronated_Dumbbell_Triceps_Extension",
@@ -7178,7 +7178,7 @@ export const exerciseDatabase = {
       "instructions": "Lie flat on a bench while holding a dumbbell at arms length. Your arm should be perpendicular to your body. The palm of your hand should be facing towards your face as a supinated grip is required to perform this exercise. Place your non lifting hand on your bicep for support. Slowly begin to lower the dumbbell down as you breathe in. Then, begin lifting the dumbbell upward as you contract the triceps. Remember to breathe out during the concentric (lifting part of the exercise). Repeat until you have performed your set repetitions. Switch arms and repeat the movement. Switch arms again and repeat the movement.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [],
       "originalId": "One_Arm_Supinated_Dumbbell_Triceps_Extension",
@@ -7195,7 +7195,7 @@ export const exerciseDatabase = {
       "instructions": "Sit upright on the floor with your partner behind you. Raise one arm straight up, and flex the elbow, attempting to touch your hand to your back. Your parner should hold your elbow and wrist. This will be your starting position. Attempt to extend the arm straight into the air as your partner prevents you from doing actually doing so. After 10-20 seconds, relax the arm and allow your partner to further stretch the tricep by applying gentle pressure to the wrist. Hold for 10-20 seconds, and then switch sides.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [
         "Lats"
@@ -7214,11 +7214,11 @@ export const exerciseDatabase = {
       "instructions": "Stand between a set of parallel bars. Place a hand on each bar, and then take a small jump to help you get into the starting position with your arms locked out. Begin by flexing the elbow, lowering your body until your arms break 90 degrees. Avoid swinging, and maintain good posture throughout the descent. Reverse the motion by extending the elbow, pushing yourself back up into the starting position. Repeat for the desired number of repetitions.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [
         "Chest",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Parallel_Bar_Dip",
       "images": [
@@ -7234,14 +7234,14 @@ export const exerciseDatabase = {
       "instructions": "Pin presses remove the eccentric phase of the bench press, developing starting strength. They also allow you to train a desired range of motion. The bench should be set up in a power rack. Set the pins to the desired point in your range of motion, whether it just be lockout or an inch off of your chest. The bar should be moved to the pins and prepared for lifting. Begin by lying on the bench, with the bar directly above the contact point during your regular bench. Tuck your feet underneath you and arch your back. Using the bar to help support your weight, lift your shoulder off the bench and retract them, squeezing the shoulder blades together. Use your feet to drive your traps into the bench. Maintain this tight body position throughout the movement. You can take a standard bench grip, or shoulder width to focus on the triceps. The bar, wrist, and elbow should stay in line at all times. Focus on squeezing the bar and trying to pull it apart. Drive the bar up with as much force as possible. The elbows should be tucked in until lockout. Return the bar to the pins, pausing before beginning the next repetition.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [
         "Chest",
         "Forearms",
         "Lats",
         "Middle Back",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Pin_Presses",
       "images": [
@@ -7257,11 +7257,11 @@ export const exerciseDatabase = {
       "instructions": "Lie on the floor face down and place your hands closer than shoulder width for a close hand position. Make sure that you are holding your torso up at arms' length. Lower yourself until your chest almost touches the floor as you inhale. Using your triceps and some of your pectoral muscles, press your upper body back up to the starting position and squeeze your chest. Breathe out as you perform this step. After a second pause at the contracted position, repeat the movement for the prescribed amount of repetitions.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [
         "Chest",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Push-Ups_-_Close_Triceps_Position",
       "images": [
@@ -7277,14 +7277,14 @@ export const exerciseDatabase = {
       "instructions": "Position a bench inside a power rack, with the bar set to the correct height. Begin by anchoring bands either to band pegs or to the top of the rack. Ensure that you will be position properly under the bands. Attach the other end to the barbell. Lie on the bench, tuck your feet underneath you and arch your back. Using the bar to help support your weight, lift your shoulder off the bench and retract them, squeezing the shoulder blades together. Use your feet to drive your traps into the bench. Maintain this tight body position throughout the movement. However wide your grip, it should cover the ring on the bar. Pull the bar out of the rack without protracting your shoulders. Focus on squeezing the bar and trying to pull it apart. Lower the bar to your lower chest or upper stomach. The bar, wrist, and elbow should stay in line at all times. Pause when the barbell touches your torso, and then drive the bar up with as much force as possible. The elbows should be tucked in until lockout.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [
         "Chest",
         "Forearms",
         "Lats",
         "Middle Back",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Reverse_Band_Bench_Press",
       "images": [
@@ -7300,7 +7300,7 @@ export const exerciseDatabase = {
       "instructions": "Start by setting a bar attachment (straight or e-z) on a high pulley machine. Facing the bar attachment, grab it with the palms facing up (supinated grip) at shoulder width. Lower the bar by using your lats until your arms are fully extended by your sides. Tip: Elbows should be in by your sides and your feet should be shoulder width apart from each other. This is the starting position. Slowly elevate the bar attachment up as you inhale so it is aligned with your chest. Only the forearms should move and the elbows/upper arms should be stationary by your side at all times. Then begin to lower the cable bar back down to the original staring position while exhaling and contracting the triceps hard. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Reverse_Grip_Triceps_Pushdown",
@@ -7317,11 +7317,11 @@ export const exerciseDatabase = {
       "instructions": "Lie back on a flat bench. Using a close, supinated grip (around shoulder width), lift the bar from the rack and hold it straight over you with your arms locked extended in front of you and perpendicular to the floor. This will be your starting position. As you breathe in, come down slowly until you feel the bar on your middle chest. Tip: Make sure that as opposed to a regular bench press, you keep the elbows close to the torso at all times in order to maximize triceps involvement. After a second pause, bring the bar back to the starting position as you breathe out and push the bar using your triceps muscles. Lock your arms in the contracted position, hold for a second and then start coming down slowly again. Tip: It should take at least twice as long to go down than to come up. Repeat the movement for the prescribed amount of repetitions. When you are done, place the bar back in the rack.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [
         "Chest",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Reverse_Triceps_Bench_Press",
       "images": [
@@ -7337,11 +7337,11 @@ export const exerciseDatabase = {
       "instructions": "Grip a ring in each hand, and then take a small jump to help you get into the starting position with your arms locked out. Begin by flexing the elbow, lowering your body until your arms break 90 degrees. Avoid swinging, and maintain good posture throughout the descent. Reverse the motion by extending the elbow, pushing yourself back up into the starting position. Repeat for the desired number of repetitions.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [
         "Chest",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Ring_Dips",
       "images": [
@@ -7357,7 +7357,7 @@ export const exerciseDatabase = {
       "instructions": "Sit down at the end of a flat bench with a dumbbell in one arm using a neutral grip (palms of the hand facing you). Bend your knees slightly and bring your torso forward, by bending at the waist, while keeping the back straight until it is almost parallel to the floor. Make sure that you keep the head up. The upper arm with the dumbbell should be close to the torso and aligned with it (lifted up until it is parallel to the floor while the forearms are pointing towards the floor as the hands hold the weights). Tip: There should be a 90-degree angle between the forearms and the upper arm. This is your starting position. Keeping the upper arm stationary, use the triceps to lift the weight as you exhale until the forearm is parallel to the floor and the whole arm is extended. Like many other arm exercises, only the forearm moves. After a second contraction at the top, slowly lower the dumbbell back to the starting position as you inhale. Repeat the movement for the prescribed amount of repetitions. Switch arms and repeat the exercise.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Seated_Bent-Over_One-Arm_Dumbbell_Triceps_Extension",
@@ -7374,7 +7374,7 @@ export const exerciseDatabase = {
       "instructions": "Sit down at the end of a flat bench with a dumbbell in both arms using a neutral grip (palms of the hand facing you). Bend your knees slightly and bring your torso forward, by bending at the waist, while keeping the back straight until it is almost parallel to the floor. Make sure that you keep the head up. The upper arms with the dumbbells should be close to the torso and aligned with it (lifted up until they are parallel to the floor while the forearms are pointing towards the floor as the hands hold the weights). Tip: There should be a 90-degree angle between the forearms and the upper arm. This is your starting position. Keeping the upper arms stationary, use the triceps to lift the weight as you exhale until the forearms are parallel to the floor and the whole arm is extended. Like many other arm exercises, only the forearm moves. After a second contraction at the top, slowly lower the dumbbells back to the starting position as you inhale. Repeat the movement for the prescribed amount of repetitions.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Seated_Bent-Over_Two-Arm_Dumbbell_Triceps_Extension",
@@ -7391,7 +7391,7 @@ export const exerciseDatabase = {
       "instructions": "Sit down on a bench with back support and grasp a dumbbell with both hands and hold it overhead at arm's length. Tip: a better way is to have somebody hand it to you especially if it is very heavy. The resistance should be resting in the palms of your hands with your thumbs around it. The palm of the hand should be facing inward. This will be your starting position. Keeping your upper arms close to your head (elbows in) and perpendicular to the floor, lower the resistance in a semi-circular motion behind your head until your forearms touch your biceps. Tip: The upper arms should remain stationary and only the forearms should move. Breathe in as you perform this step. Go back to the starting position by using the triceps to raise the dumbbell. Breathe out as you perform this step. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Seated_Triceps_Press",
@@ -7408,7 +7408,7 @@ export const exerciseDatabase = {
       "instructions": "Attach dual handles to a sled using a chain or rope. Load the sled to an appropriate load. Facing away from the sled, step away until there is tension in the line. Raise your hands above your head, keeping them together, palms facing each other. Your elbows should be pointed upward with the elbows flexed. This will be your starting position. Extend through the elbow to straighten the arm. Ensure that your upper arm stays in position to isolate the triceps. Upon full extension, step forward to take the slack out of the line. You may keep your feet staggered for more stability.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Sled_Overhead_Triceps_Extension",
@@ -7425,11 +7425,11 @@ export const exerciseDatabase = {
       "instructions": "Place a flat bench underneath the smith machine. Place the barbell at a height that you can reach when lying down and your arms are almost fully extended. Once the weight you need is selected, lie down on the flat bench. Using a close and pronated grip (palms facing forward) that is around shoulder width, unlock the bar from the rack and hold it straight over you with your arms locked. This will be your starting position. As you breathe in, come down slowly until you feel the bar on your middle chest. Tip: Make sure that as opposed to a regular bench press, you keep the elbows close to the torso at all times in order to maximize triceps involvement. After a second pause, bring the bar back to the starting position as you breathe out and push the bar using your triceps muscles. Lock your arms in the contracted position, hold for a second and then start coming down slowly again. Tip: It should take at least twice as long to go down than to come up. Repeat the movement for the prescribed amount of repetitions. When you are done, lock the bar back in the rack.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [
         "Chest",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Smith_Machine_Close-Grip_Bench_Press",
       "images": [
@@ -7445,7 +7445,7 @@ export const exerciseDatabase = {
       "instructions": "For this exercise anchor a band to the ground. We used an incline bench and anchored the band to the base, standing over the bench. Alternatively, this could be performed standing on the band. To begin, pull the band behind your head, holding it with a pronated grip and your elbows up. This will be your starting position. To perform the movement, extend through the elbow to to straighten your arms, ensuring that you keep your upper arm in place. Pause, and then return to the starting position.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Speed_Band_Overhead_Triceps",
@@ -7462,10 +7462,10 @@ export const exerciseDatabase = {
       "instructions": "With a dumbbell in one hand and the palm facing your torso, bend your knees slightly and bring your torso forward, by bending at the waist, while keeping the back straight until it is almost parallel to the floor. Make sure that you keep the head up. The upper arm should be close to the torso and parallel to the floor while the forearm is pointing towards the floor as the hand holds the weight. Tip: There should be a 90-degree angle between the forearm and the upper arm. This is your starting position. Keeping the upper arms stationary, use the triceps to lift the weights as you exhale until the forearms are parallel to the floor and the whole arm is extended. Like many other arm exercises, only the forearm moves. After a second contraction at the top, slowly lower the dumbbell back to the starting position as you inhale. Repeat the movement for the prescribed amount of repetitions. Switch arms and repeat the exercise.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Standing_Bent-Over_One-Arm_Dumbbell_Triceps_Extension",
       "images": [
@@ -7481,7 +7481,7 @@ export const exerciseDatabase = {
       "instructions": "With a dumbbell in each hand and the palms facing your torso, bend your knees slightly and bring your torso forward, by bending at the waist, while keeping the back straight until it is almost parallel to the floor. Make sure that you keep the head up. The upper arms should be close to the torso and parallel to the floor while the forearms are pointing towards the floor as the hands hold the weights. Tip: There should be a 90-degree angle between the forearms and the upper arm. This is your starting position. Keeping the upper arms stationary, use the triceps to lift the weights as you exhale until the forearms are parallel to the floor and the whole arms are extended. Like many other arm exercises, only the forearm moves. After a second contraction at the top, slowly lower the dumbbells back to their starting position as you inhale. Repeat the movement for the prescribed amount of repetitions.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Standing_Bent-Over_Two-Arm_Dumbbell_Triceps_Extension",
@@ -7498,7 +7498,7 @@ export const exerciseDatabase = {
       "instructions": "To begin, stand up with a dumbbell held by both hands. Your feet should be about shoulder width apart from each other. Slowly use both hands to grab the dumbbell and lift it over your head until both arms are fully extended. The resistance should be resting in the palms of your hands with your thumbs around it. The palm of the hands should be facing up towards the ceiling. This will be your starting position. Keeping your upper arms close to your head with elbows in and perpendicular to the floor, lower the resistance in a semicircular motion behind your head until your forearms touch your biceps. Tip: The upper arms should remain stationary and only the forearms should move. Breathe in as you perform this step. Go back to the starting position by using the triceps to raise the dumbbell. Breathe out as you perform this step. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Standing_Dumbbell_Triceps_Extension",
@@ -7515,11 +7515,11 @@ export const exerciseDatabase = {
       "instructions": "Grab a single handle with your left arm next to the low pulley machine. Turn away from the machine keeping the handle to the side of your body with your arm fully extended. Now use both hands to elevate the single handle directly above the head with the palm facing forward. Keep your upper arm completely vertical (perpendicular to the floor) and put your right hand on your left elbow to help keep it steady. This is the starting position. Keeping your upper arms close to your head (elbows in) and perpendicular to the floor, lower the resistance in a semicircular motion behind your head until your forearms touch your biceps. Tip: The upper arms should remain stationary and only the forearms should move. Breathe in as you perform this step. Go back to the starting position by using the triceps to raise the single handle. Breathe out as you perform this step. Repeat for the recommended amount of repetitions. Switch arms and repeat the exercise.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [
         "Chest",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Standing_Low-Pulley_One-Arm_Triceps_Extension",
       "images": [
@@ -7535,11 +7535,11 @@ export const exerciseDatabase = {
       "instructions": "To begin, stand up with a dumbbell held in one hand. Your feet should be about shoulder width apart from each other. Now fully extend the arm with the dumbbell over your head. Tip: The small finger of your hand should be facing the ceiling and the palm of your hand should be facing forward. The dumbbell should be above your head. This will be your starting position. Keeping your upper arm close to your head (elbows in) and perpendicular to the floor, lower the resistance in a semicircular motion behind your head until your forearm touch your bicep. Tip: The upper arm should remain stationary and only the forearm should move. Breathe in as you perform this step. Go back to the starting position by using the triceps to raise the dumbbell. Breathe out as you perform this step. Repeat for the recommended amount of repetitions. Switch arms and repeat the exercise.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [
         "Chest",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Standing_One-Arm_Dumbbell_Triceps_Extension",
       "images": [
@@ -7555,10 +7555,10 @@ export const exerciseDatabase = {
       "instructions": "To begin, stand up holding a barbell or e-z bar using a pronated grip (palms facing forward) with your hands closer than shoulder width apart from each other. Your feet should be about shoulder width apart. Now elevate the barbell above your head until your arms are fully extended. Keep your elbows in. This will be your starting position. Keeping your upper arms close to your head and elbows in, perpendicular to the floor, lower the resistance in a semicircular motion behind your head until your forearms touch your biceps. Tip: The upper arms should remain stationary and only the forearms should move. Breathe in as you perform this step. Go back to the starting position by using the triceps to raise the barbell. Breathe out as you perform this step. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Standing_Overhead_Barbell_Triceps_Extension",
       "images": [
@@ -7574,7 +7574,7 @@ export const exerciseDatabase = {
       "instructions": "To begin, stand up with both arms fully extended above the head holding one end of a towel with both hands. Your elbows should be in and the arms perpendicular to the floor with the palms facing each other while your feet should be shoulder width apart from each other. This is the starting position. Now communicate with your partner so that he/she can grip the other side of the towel to apply resistance. Keeping your upper arms close to your head (elbows in) and perpendicular to the floor, lower the resistance in a semicircular motion behind your head until your forearms touch your biceps. Tip: The upper arms should remain stationary and only the forearms should move. Breathe in as you perform this step. Go back to the starting position by using the triceps to raise the towel. Breathe out as you perform this step. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Standing_Towel_Triceps_Extension",
@@ -7591,11 +7591,11 @@ export const exerciseDatabase = {
       "instructions": "This drill is great for chest passes when you lack a partner or a wall of sufficient strength. Lay on the ground on your back with your knees bent. Begin with the ball on your chest, held with both hands on the bottom. Explode up, extending through the elbow to throw the ball directly above you as high as possible. Catch the ball with both hands as it comes down.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [
         "Chest",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Supine_Chest_Throw",
       "images": [
@@ -7611,11 +7611,11 @@ export const exerciseDatabase = {
       "instructions": "Lie down on a flat bench with a dumbbell in each hand on top of your thighs. The palms of your hand will be facing each other. By using your thighs to help you get the dumbbells up, clean the dumbbells one arm at a time so that you can hold them in front of you at shoulder width. Note: when holding the dumbbells in front of you, make sure your arms are wider than shoulder width apart from each other using a pronated (palms forward) grip. Allow your elbows to point out. This is your starting position. Keeping the upper arms stationary, slowly move the dumbbells in and down in a semi circular motion until they touch the upper chest while inhaling. Keep full control of the dumbbells at all times and do not move the upper arms nor rest the dumbbells on the chest. As you breathe out, move the dumbbells up using your triceps and the same semi-circular motion but in reverse. Attempt to keep the dumbbells together as they move up. Lock your arms in the contracted position, hold for a second and then start coming down again slowly again. Tip: It should take at least twice as long to go down than to come up. Repeat the movement for the prescribed amount of repetitions of your training program.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [
         "Chest",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Tate_Press",
       "images": [
@@ -7631,7 +7631,7 @@ export const exerciseDatabase = {
       "instructions": "Start with a dumbbell in each hand and your palms facing your torso. Keep your back straight with a slight bend in the knees and bend forward at the waist. Your torso should be almost parallel to the floor. Make sure to keep your head up. Your upper arms should be close to your torso and parallel to the floor. Your forearms should be pointed towards the floor as you hold the weights. There should be a 90-degree angle formed between your forearm and upper arm. This is your starting position. Now, while keeping your upper arms stationary, exhale and use your triceps to lift the weights until the arm is fully extended. Focus on moving the forearm. After a brief pause at the top contraction, inhale and slowly lower the dumbbells back down to the starting position. Repeat the movement for the prescribed amount of repetitions.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Tricep_Dumbbell_Kickback",
@@ -7648,10 +7648,10 @@ export const exerciseDatabase = {
       "instructions": "Bring right arm across your body and over your left shoulder, holding your elbow with your left hand, until you feel a stretch in your tricep. Then repeat for your other arm.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Tricep_Side_Stretch",
       "images": [
@@ -7667,7 +7667,7 @@ export const exerciseDatabase = {
       "instructions": "Attach a rope to a low pulley. After selecting an appropriate weight, grasp the rope with both hands and face away from the cable. Position your hands behind your head with your elbows point straight up. Your elbows should start out flexed, and you can stagger your stance and lean gently away from the machine to create greater stability. This will be your starting position. To perform the movement, extend through the elbow while keeping the upper arm in position, raising your hands above your head. Squeeze your triceps at the top of the movement, and slowly lower the weight back to the start position.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Triceps_Overhead_Extension_with_Rope",
@@ -7684,7 +7684,7 @@ export const exerciseDatabase = {
       "instructions": "Attach a straight or angled bar to a high pulley and grab with an overhand grip (palms facing down) at shoulder width. Standing upright with the torso straight and a very small inclination forward, bring the upper arms close to your body and perpendicular to the floor. The forearms should be pointing up towards the pulley as they hold the bar. This is your starting position. Using the triceps, bring the bar down until it touches the front of your thighs and the arms are fully extended perpendicular to the floor. The upper arms should always remain stationary next to your torso and only the forearms should move. Exhale as you perform this movement. After a second hold at the contracted position, bring the bar slowly up to the starting point. Breathe in as you perform this step. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Triceps_Pushdown",
@@ -7701,7 +7701,7 @@ export const exerciseDatabase = {
       "instructions": "Attach a rope attachment to a high pulley and grab with a neutral grip (palms facing each other). Standing upright with the torso straight and a very small inclination forward, bring the upper arms close to your body and perpendicular to the floor. The forearms should be pointing up towards the pulley as they hold the rope with the palms facing each other. This is your starting position. Using the triceps, bring the rope down as you bring each side of the rope to the side of your thighs. At the end of the movement the arms are fully extended and perpendicular to the floor. The upper arms should always remain stationary next to your torso and only the forearms should move. Exhale as you perform this movement. After holding for a second, at the contracted position, bring the rope slowly up to the starting point. Breathe in as you perform this step. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Triceps_Pushdown_-_Rope_Attachment",
@@ -7718,7 +7718,7 @@ export const exerciseDatabase = {
       "instructions": "Attach a V-Bar to a high pulley and grab with an overhand grip (palms facing down) at shoulder width. Standing upright with the torso straight and a very small inclination forward, bring the upper arms close to your body and perpendicular to the floor. The forearms should be pointing up towards the pulley as they hold the bar. The thumbs should be higher than the small finger. This is your starting position. Using the triceps, bring the bar down until it touches the front of your thighs and the arms are fully extended perpendicular to the floor. The upper arms should always remain stationary next to your torso and only the forearms should move. Exhale as you perform this movement. After a second hold at the contracted position, bring the V-Bar slowly up to the starting point. Breathe in as you perform this step. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [],
       "originalId": "Triceps_Pushdown_-_V-Bar_Attachment",
@@ -7735,7 +7735,7 @@ export const exerciseDatabase = {
       "instructions": "Reach your hand behind your head, grasp your elbow and gently pull. Hold for 10 to 20 seconds, then switch sides.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [
         "Lats"
@@ -7754,11 +7754,11 @@ export const exerciseDatabase = {
       "instructions": "For this exercise you will need to place a bench behind your back and another one in front of you. With the benches perpendicular to your body, hold on to one bench on its edge with the hands close to your body, separated at shoulder width. Your arms should be fully extended. The legs will be extended forward on top of the other bench. Your legs should be parallel to the floor while your torso is to be perpendicular to the floor. Have your partner place the dumbbell on your lap. Note: This exercise is best performed with a partner as placing the weight on your lap can be challenging and cause injury without assistance. This will be your starting position. Slowly lower your body as you inhale by bending at the elbows until you lower yourself far enough to where there is an angle slightly smaller than 90 degrees between the upper arm and the forearm. Tip: Keep the elbows as close as possible throughout the movement. Forearms should always be pointing down. Using your triceps to bring your torso up again, lift yourself back to the starting position while exhaling. Repeat for the recommended amount of repetitions.",
       "muscleGroup": "Triceps",
       "primaryMuscles": [
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "secondaryMuscles": [
         "Chest",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Weighted_Bench_Dip",
       "images": [
@@ -7869,7 +7869,7 @@ export const exerciseDatabase = {
         "Abdominals"
       ],
       "secondaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Ab_Roller",
       "images": [
@@ -7890,7 +7890,7 @@ export const exerciseDatabase = {
       "secondaryMuscles": [
         "Glutes",
         "Hamstrings",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Advanced_Kettlebell_Windmill",
       "images": [
@@ -7944,7 +7944,7 @@ export const exerciseDatabase = {
       ],
       "secondaryMuscles": [
         "Lower Back",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Barbell_Ab_Rollout",
       "images": [
@@ -7964,7 +7964,7 @@ export const exerciseDatabase = {
       ],
       "secondaryMuscles": [
         "Lower Back",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Barbell_Ab_Rollout_-_On_Knees",
       "images": [
@@ -7986,7 +7986,7 @@ export const exerciseDatabase = {
         "Glutes",
         "Hamstrings",
         "Lats",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Barbell_Rollout_from_Bench",
       "images": [
@@ -8045,8 +8045,8 @@ export const exerciseDatabase = {
         "Hamstrings",
         "Lower Back",
         "Quadriceps",
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Bent_Press",
       "images": [
@@ -8356,8 +8356,8 @@ export const exerciseDatabase = {
       "secondaryMuscles": [
         "Glutes",
         "Hamstrings",
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Double_Kettlebell_Windmill",
       "images": [
@@ -8495,7 +8495,7 @@ export const exerciseDatabase = {
         "Abdominals"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Lats"
       ],
       "originalId": "Gorilla_Chin_Crunch",
@@ -8584,7 +8584,7 @@ export const exerciseDatabase = {
       ],
       "secondaryMuscles": [
         "Hamstrings",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Kettlebell_Figure_8",
       "images": [
@@ -8605,7 +8605,7 @@ export const exerciseDatabase = {
       "secondaryMuscles": [
         "Glutes",
         "Hamstrings",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Kettlebell_Pass_Between_The_Legs",
       "images": [
@@ -8626,8 +8626,8 @@ export const exerciseDatabase = {
       "secondaryMuscles": [
         "Glutes",
         "Hamstrings",
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Kettlebell_Windmill",
       "images": [
@@ -8682,7 +8682,7 @@ export const exerciseDatabase = {
       "secondaryMuscles": [
         "Glutes",
         "Lower Back",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Landmine_180s",
       "images": [
@@ -8735,7 +8735,7 @@ export const exerciseDatabase = {
         "Abdominals"
       ],
       "secondaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Medicine_Ball_Full_Twist",
       "images": [
@@ -8806,7 +8806,7 @@ export const exerciseDatabase = {
       ],
       "secondaryMuscles": [
         "Lats",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "One-Arm_Medicine_Ball_Slam",
       "images": [
@@ -8826,8 +8826,8 @@ export const exerciseDatabase = {
       ],
       "secondaryMuscles": [
         "Chest",
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Otis-Up",
       "images": [
@@ -8849,7 +8849,7 @@ export const exerciseDatabase = {
         "Chest",
         "Forearms",
         "Lats",
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Overhead_Stretch",
       "images": [
@@ -8869,8 +8869,8 @@ export const exerciseDatabase = {
       ],
       "secondaryMuscles": [
         "Chest",
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Pallof_Press",
       "images": [
@@ -8890,8 +8890,8 @@ export const exerciseDatabase = {
       ],
       "secondaryMuscles": [
         "Chest",
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Pallof_Press_With_Rotation",
       "images": [
@@ -8945,8 +8945,8 @@ export const exerciseDatabase = {
       ],
       "secondaryMuscles": [
         "Chest",
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Press_Sit-Up",
       "images": [
@@ -9103,7 +9103,7 @@ export const exerciseDatabase = {
         "Abdominals"
       ],
       "secondaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Side_Bridge",
       "images": [
@@ -9160,7 +9160,7 @@ export const exerciseDatabase = {
         "Forearms",
         "Lats",
         "Middle Back",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Sledgehammer_Swings",
       "images": [
@@ -9197,7 +9197,7 @@ export const exerciseDatabase = {
       ],
       "secondaryMuscles": [
         "Glutes",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Spell_Caster",
       "images": [
@@ -9217,8 +9217,8 @@ export const exerciseDatabase = {
       ],
       "secondaryMuscles": [
         "Chest",
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Spider_Crawl",
       "images": [
@@ -9237,7 +9237,7 @@ export const exerciseDatabase = {
         "Abdominals"
       ],
       "secondaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Standing_Cable_Lift",
       "images": [
@@ -9256,7 +9256,7 @@ export const exerciseDatabase = {
         "Abdominals"
       ],
       "secondaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Standing_Cable_Wood_Chop",
       "images": [
@@ -9328,7 +9328,7 @@ export const exerciseDatabase = {
       "secondaryMuscles": [
         "Chest",
         "Lats",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Supine_One-Arm_Overhead_Throw",
       "images": [
@@ -9349,7 +9349,7 @@ export const exerciseDatabase = {
       "secondaryMuscles": [
         "Chest",
         "Lats",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Supine_Two-Arm_Overhead_Throw",
       "images": [
@@ -9370,7 +9370,7 @@ export const exerciseDatabase = {
       "secondaryMuscles": [
         "Chest",
         "Lower Back",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Suspended_Fallout",
       "images": [
@@ -9747,7 +9747,7 @@ export const exerciseDatabase = {
         "Hamstrings"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Calves",
         "Forearms",
         "Glutes",
@@ -10703,7 +10703,7 @@ export const exerciseDatabase = {
         "Glutes",
         "Lower Back",
         "Quadriceps",
-        "Shoulders",
+        "Front Deltoids", "Side Deltoids",
         "Traps"
       ],
       "originalId": "Clean",
@@ -10773,7 +10773,7 @@ export const exerciseDatabase = {
         "Calves",
         "Glutes",
         "Hamstrings",
-        "Shoulders",
+        "Front Deltoids", "Side Deltoids",
         "Traps"
       ],
       "originalId": "Clean_from_Blocks",
@@ -10794,11 +10794,11 @@ export const exerciseDatabase = {
       ],
       "secondaryMuscles": [
         "Abdominals",
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Calves",
         "Forearms",
         "Lower Back",
-        "Shoulders",
+        "Front Deltoids", "Side Deltoids",
         "Traps"
       ],
       "originalId": "Conans_Wheel",
@@ -10858,7 +10858,7 @@ export const exerciseDatabase = {
         "Hamstrings"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Calves",
         "Forearms",
         "Glutes",
@@ -10931,7 +10931,7 @@ export const exerciseDatabase = {
         "Glutes",
         "Lower Back",
         "Quadriceps",
-        "Shoulders",
+        "Front Deltoids", "Side Deltoids",
         "Traps"
       ],
       "originalId": "Dumbbell_Clean",
@@ -11468,7 +11468,7 @@ export const exerciseDatabase = {
         "Calves",
         "Glutes",
         "Hamstrings",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Goblet_Squat",
       "images": [
@@ -11623,7 +11623,7 @@ export const exerciseDatabase = {
         "Glutes",
         "Hamstrings",
         "Lower Back",
-        "Shoulders",
+        "Front Deltoids", "Side Deltoids",
         "Traps"
       ],
       "originalId": "Hang_Clean",
@@ -11648,7 +11648,7 @@ export const exerciseDatabase = {
         "Glutes",
         "Hamstrings",
         "Lower Back",
-        "Shoulders",
+        "Front Deltoids", "Side Deltoids",
         "Traps"
       ],
       "originalId": "Hang_Clean_-_Below_the_Knees",
@@ -11674,7 +11674,7 @@ export const exerciseDatabase = {
         "Glutes",
         "Lower Back",
         "Quadriceps",
-        "Shoulders",
+        "Front Deltoids", "Side Deltoids",
         "Traps"
       ],
       "originalId": "Hang_Snatch",
@@ -11700,7 +11700,7 @@ export const exerciseDatabase = {
         "Glutes",
         "Lower Back",
         "Quadriceps",
-        "Shoulders",
+        "Front Deltoids", "Side Deltoids",
         "Traps"
       ],
       "originalId": "Hang_Snatch_-_Below_Knees",
@@ -11745,8 +11745,8 @@ export const exerciseDatabase = {
         "Forearms",
         "Glutes",
         "Hamstrings",
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Heaving_Snatch_Balance",
       "images": [
@@ -12001,7 +12001,7 @@ export const exerciseDatabase = {
         "Calves",
         "Glutes",
         "Lower Back",
-        "Shoulders",
+        "Front Deltoids", "Side Deltoids",
         "Traps"
       ],
       "originalId": "Kettlebell_Hang_Clean",
@@ -12044,7 +12044,7 @@ export const exerciseDatabase = {
         "Calves",
         "Glutes",
         "Hamstrings",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Kettlebell_Pistol_Squat",
       "images": [
@@ -12583,7 +12583,7 @@ export const exerciseDatabase = {
       "secondaryMuscles": [
         "Chest",
         "Hamstrings",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Mountain_Climbers",
       "images": [
@@ -12625,8 +12625,8 @@ export const exerciseDatabase = {
         "Glutes",
         "Lower Back",
         "Quadriceps",
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Muscle_Snatch",
       "images": [
@@ -12787,7 +12787,7 @@ export const exerciseDatabase = {
       "secondaryMuscles": [
         "Glutes",
         "Lower Back",
-        "Shoulders",
+        "Front Deltoids", "Side Deltoids",
         "Traps"
       ],
       "originalId": "One-Arm_Kettlebell_Clean",
@@ -12810,7 +12810,7 @@ export const exerciseDatabase = {
         "Calves",
         "Glutes",
         "Lower Back",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "One-Arm_Kettlebell_Swings",
       "images": [
@@ -12833,7 +12833,7 @@ export const exerciseDatabase = {
         "Glutes",
         "Lower Back",
         "Quadriceps",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "One-Arm_Open_Palm_Kettlebell_Clean",
       "images": [
@@ -12855,7 +12855,7 @@ export const exerciseDatabase = {
         "Calves",
         "Glutes",
         "Hamstrings",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "One-Arm_Overhead_Kettlebell_Squats",
       "images": [
@@ -12918,7 +12918,7 @@ export const exerciseDatabase = {
       ],
       "secondaryMuscles": [
         "Abdominals",
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Chest"
       ],
       "originalId": "One_Half_Locust",
@@ -12982,7 +12982,7 @@ export const exerciseDatabase = {
         "Glutes",
         "Lower Back",
         "Quadriceps",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Open_Palm_Kettlebell_Clean",
       "images": [
@@ -13006,8 +13006,8 @@ export const exerciseDatabase = {
         "Glutes",
         "Hamstrings",
         "Lower Back",
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Overhead_Squat",
       "images": [
@@ -13160,9 +13160,9 @@ export const exerciseDatabase = {
         "Lower Back",
         "Middle Back",
         "Quadriceps",
-        "Shoulders",
+        "Front Deltoids", "Side Deltoids",
         "Traps",
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Power_Clean",
       "images": [
@@ -13204,8 +13204,8 @@ export const exerciseDatabase = {
         "Calves",
         "Glutes",
         "Hamstrings",
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Power_Jerk",
       "images": [
@@ -13228,9 +13228,9 @@ export const exerciseDatabase = {
         "Glutes",
         "Lower Back",
         "Quadriceps",
-        "Shoulders",
+        "Front Deltoids", "Side Deltoids",
         "Traps",
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Power_Snatch",
       "images": [
@@ -13254,9 +13254,9 @@ export const exerciseDatabase = {
         "Glutes",
         "Hamstrings",
         "Lower Back",
-        "Shoulders",
+        "Front Deltoids", "Side Deltoids",
         "Traps",
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Power_Snatch_from_Blocks",
       "images": [
@@ -13280,7 +13280,7 @@ export const exerciseDatabase = {
         "Glutes",
         "Lower Back",
         "Quadriceps",
-        "Shoulders",
+        "Front Deltoids", "Side Deltoids",
         "Traps"
       ],
       "originalId": "Power_Stairs",
@@ -13321,7 +13321,7 @@ export const exerciseDatabase = {
         "Chest",
         "Glutes",
         "Quadriceps",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Prowler_Sprint",
       "images": [
@@ -13669,7 +13669,7 @@ export const exerciseDatabase = {
         "Quadriceps"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Calves",
         "Glutes",
         "Hamstrings",
@@ -13734,14 +13734,14 @@ export const exerciseDatabase = {
       ],
       "secondaryMuscles": [
         "Abdominals",
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Calves",
         "Forearms",
         "Glutes",
         "Hamstrings",
         "Lower Back",
         "Middle Back",
-        "Shoulders",
+        "Front Deltoids", "Side Deltoids",
         "Traps"
       ],
       "originalId": "Sandbag_Load",
@@ -14281,7 +14281,7 @@ export const exerciseDatabase = {
         "Chest",
         "Glutes",
         "Hamstrings",
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Sled_Push",
       "images": [
@@ -14320,7 +14320,7 @@ export const exerciseDatabase = {
         "Glutes",
         "Lower Back",
         "Quadriceps",
-        "Shoulders",
+        "Front Deltoids", "Side Deltoids",
         "Traps"
       ],
       "originalId": "Smith_Machine_Hang_Power_Clean",
@@ -14462,13 +14462,13 @@ export const exerciseDatabase = {
         "Quadriceps"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Glutes",
         "Hamstrings",
         "Lower Back",
-        "Shoulders",
+        "Front Deltoids", "Side Deltoids",
         "Traps",
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Snatch",
       "images": [
@@ -14490,8 +14490,8 @@ export const exerciseDatabase = {
         "Calves",
         "Glutes",
         "Hamstrings",
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Snatch_Balance",
       "images": [
@@ -14562,9 +14562,9 @@ export const exerciseDatabase = {
         "Glutes",
         "Hamstrings",
         "Lower Back",
-        "Shoulders",
+        "Front Deltoids", "Side Deltoids",
         "Traps",
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Snatch_from_Blocks",
       "images": [
@@ -14631,7 +14631,7 @@ export const exerciseDatabase = {
         "Glutes",
         "Hamstrings",
         "Lower Back",
-        "Shoulders",
+        "Front Deltoids", "Side Deltoids",
         "Traps"
       ],
       "originalId": "Split_Clean",
@@ -14653,8 +14653,8 @@ export const exerciseDatabase = {
       "secondaryMuscles": [
         "Glutes",
         "Hamstrings",
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Split_Jerk",
       "images": [
@@ -14700,9 +14700,9 @@ export const exerciseDatabase = {
         "Hamstrings",
         "Lower Back",
         "Quadriceps",
-        "Shoulders",
+        "Front Deltoids", "Side Deltoids",
         "Traps",
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Split_Snatch",
       "images": [
@@ -14765,8 +14765,8 @@ export const exerciseDatabase = {
         "Calves",
         "Glutes",
         "Hamstrings",
-        "Shoulders",
-        "Triceps"
+        "Front Deltoids", "Side Deltoids",
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Squat_Jerk",
       "images": [
@@ -15095,7 +15095,7 @@ export const exerciseDatabase = {
         "Calves",
         "Glutes",
         "Hamstrings",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Star_Jump",
       "images": [
@@ -15362,9 +15362,9 @@ export const exerciseDatabase = {
         "Glutes",
         "Hamstrings",
         "Lower Back",
-        "Shoulders",
+        "Front Deltoids", "Side Deltoids",
         "Traps",
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Tire_Flip",
       "images": [
@@ -15446,7 +15446,7 @@ export const exerciseDatabase = {
       "secondaryMuscles": [
         "Glutes",
         "Quadriceps",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Vertical_Swing",
       "images": [
@@ -15662,7 +15662,7 @@ export const exerciseDatabase = {
         "Middle Back"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Lats"
       ],
       "originalId": "Alternating_Kettlebell_Row",
@@ -15683,10 +15683,10 @@ export const exerciseDatabase = {
       ],
       "secondaryMuscles": [
         "Abdominals",
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Chest",
         "Lats",
-        "Triceps"
+        "Triceps Lateral Head", "Triceps Medial Head"
       ],
       "originalId": "Alternating_Renegade_Row",
       "images": [
@@ -15705,7 +15705,7 @@ export const exerciseDatabase = {
         "Lower Back"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Forearms",
         "Glutes",
         "Hamstrings",
@@ -15730,7 +15730,7 @@ export const exerciseDatabase = {
       "secondaryMuscles": [
         "Abdominals",
         "Adductors",
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Calves",
         "Forearms",
         "Glutes",
@@ -15843,9 +15843,9 @@ export const exerciseDatabase = {
         "Middle Back"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Lats",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Bent_Over_Barbell_Row",
       "images": [
@@ -15864,7 +15864,7 @@ export const exerciseDatabase = {
         "Middle Back"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Lats",
         "Lower Back",
         "Traps"
@@ -15886,7 +15886,7 @@ export const exerciseDatabase = {
         "Middle Back"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Lats"
       ],
       "originalId": "Bent_Over_Two-Arm_Long_Bar_Row",
@@ -15906,9 +15906,9 @@ export const exerciseDatabase = {
         "Middle Back"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Lats",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Bent_Over_Two-Dumbbell_Row",
       "images": [
@@ -15927,7 +15927,7 @@ export const exerciseDatabase = {
         "Middle Back"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Lats"
       ],
       "originalId": "Bent_Over_Two-Dumbbell_Row_With_Palms_In",
@@ -15947,7 +15947,7 @@ export const exerciseDatabase = {
         "Middle Back"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Lats"
       ],
       "originalId": "Bodyweight_Mid_Row",
@@ -15967,8 +15967,8 @@ export const exerciseDatabase = {
         "Forearms"
       ],
       "secondaryMuscles": [
-        "Biceps",
-        "Shoulders"
+        "Biceps Long Head", "Biceps Short Head",
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Bottoms-Up_Clean_From_The_Hang_Position",
       "images": [
@@ -16098,7 +16098,7 @@ export const exerciseDatabase = {
       ],
       "secondaryMuscles": [
         "Forearms",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Clean_Shrug",
       "images": [
@@ -16232,10 +16232,10 @@ export const exerciseDatabase = {
         "Middle Back"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Forearms",
         "Lats",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Dumbbell_Incline_Row",
       "images": [
@@ -16479,7 +16479,7 @@ export const exerciseDatabase = {
       ],
       "secondaryMuscles": [
         "Lats",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Incline_Bench_Pull",
       "images": [
@@ -16517,7 +16517,7 @@ export const exerciseDatabase = {
         "Middle Back"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Lats"
       ],
       "originalId": "Inverted_Row_with_Straps",
@@ -16572,14 +16572,14 @@ export const exerciseDatabase = {
       ],
       "secondaryMuscles": [
         "Abdominals",
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Calves",
         "Forearms",
         "Glutes",
         "Hamstrings",
         "Middle Back",
         "Quadriceps",
-        "Shoulders",
+        "Front Deltoids", "Side Deltoids",
         "Traps"
       ],
       "originalId": "Keg_Load",
@@ -16603,7 +16603,7 @@ export const exerciseDatabase = {
         "Glutes",
         "Hamstrings",
         "Quadriceps",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Kettlebell_Sumo_High_Pull",
       "images": [
@@ -16694,7 +16694,7 @@ export const exerciseDatabase = {
         "Middle Back"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Lats",
         "Traps"
       ],
@@ -16766,7 +16766,7 @@ export const exerciseDatabase = {
         "Middle Back"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Lats"
       ],
       "originalId": "Lying_T-Bar_Row",
@@ -16824,7 +16824,7 @@ export const exerciseDatabase = {
         "Middle Back"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Lats"
       ],
       "originalId": "Mixed_Grip_Chin",
@@ -16878,9 +16878,9 @@ export const exerciseDatabase = {
         "Middle Back"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Lats",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "One-Arm_Dumbbell_Row",
       "images": [
@@ -16899,7 +16899,7 @@ export const exerciseDatabase = {
         "Middle Back"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Lats"
       ],
       "originalId": "One-Arm_Kettlebell_Row",
@@ -16919,7 +16919,7 @@ export const exerciseDatabase = {
         "Middle Back"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Lats"
       ],
       "originalId": "One-Arm_Long_Bar_Row",
@@ -16939,7 +16939,7 @@ export const exerciseDatabase = {
         "Middle Back"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Forearms",
         "Lats"
       ],
@@ -17062,7 +17062,7 @@ export const exerciseDatabase = {
         "Lower Back"
       ],
       "secondaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Pyramid",
       "images": [
@@ -17150,9 +17150,9 @@ export const exerciseDatabase = {
         "Middle Back"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Lats",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Reverse_Grip_Bent-Over_Rows",
       "images": [
@@ -17235,9 +17235,9 @@ export const exerciseDatabase = {
         "Middle Back"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Lats",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Seated_Cable_Rows",
       "images": [
@@ -17360,7 +17360,7 @@ export const exerciseDatabase = {
         "Middle Back"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Lats",
         "Traps"
       ],
@@ -17449,7 +17449,7 @@ export const exerciseDatabase = {
         "Middle Back"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Lats"
       ],
       "originalId": "Sled_Row",
@@ -17469,7 +17469,7 @@ export const exerciseDatabase = {
         "Traps"
       ],
       "secondaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Smith_Machine_Behind_the_Back_Shrug",
       "images": [
@@ -17488,9 +17488,9 @@ export const exerciseDatabase = {
         "Middle Back"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Lats",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Smith_Machine_Bent_Over_Row",
       "images": [
@@ -17509,9 +17509,9 @@ export const exerciseDatabase = {
         "Traps"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Middle Back",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Smith_Machine_Upright_Row",
       "images": [
@@ -17531,7 +17531,7 @@ export const exerciseDatabase = {
       ],
       "secondaryMuscles": [
         "Forearms",
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Snatch_Shrug",
       "images": [
@@ -17572,8 +17572,8 @@ export const exerciseDatabase = {
         "Traps"
       ],
       "secondaryMuscles": [
-        "Biceps",
-        "Shoulders"
+        "Biceps Long Head", "Biceps Short Head",
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Standing_Dumbbell_Upright_Row",
       "images": [
@@ -17611,7 +17611,7 @@ export const exerciseDatabase = {
         "Forearms"
       ],
       "secondaryMuscles": [
-        "Biceps"
+        "Biceps Long Head", "Biceps Short Head"
       ],
       "originalId": "Standing_Olympic_Plate_Hand_Squeeze",
       "images": [
@@ -17686,7 +17686,7 @@ export const exerciseDatabase = {
         "Middle Back"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Lats"
       ],
       "originalId": "Straight_Bar_Bench_Mid_Rows",
@@ -17726,7 +17726,7 @@ export const exerciseDatabase = {
         "Middle Back"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Lats"
       ],
       "originalId": "Suspended_Row",
@@ -17746,7 +17746,7 @@ export const exerciseDatabase = {
         "Middle Back"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Lats"
       ],
       "originalId": "T-Bar_Row_with_Handle",
@@ -17785,7 +17785,7 @@ export const exerciseDatabase = {
         "Middle Back"
       ],
       "secondaryMuscles": [
-        "Biceps",
+        "Biceps Long Head", "Biceps Short Head",
         "Lats"
       ],
       "originalId": "Two-Arm_Kettlebell_Row",
@@ -17824,7 +17824,7 @@ export const exerciseDatabase = {
         "Traps"
       ],
       "secondaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Upright_Cable_Row",
       "images": [
@@ -17843,7 +17843,7 @@ export const exerciseDatabase = {
         "Traps"
       ],
       "secondaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Upright_Row_-_With_Bands",
       "images": [
@@ -17921,7 +17921,7 @@ export const exerciseDatabase = {
         "Forearms"
       ],
       "secondaryMuscles": [
-        "Shoulders"
+        "Front Deltoids", "Side Deltoids"
       ],
       "originalId": "Wrist_Roller",
       "images": [

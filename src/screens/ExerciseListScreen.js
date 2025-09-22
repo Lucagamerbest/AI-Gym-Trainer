@@ -24,6 +24,9 @@ export default function ExerciseListScreen({ navigation, route }) {
     workoutStartTime,
     fromFreeWorkout,
     fromLibrary,
+    fromProgramCreation,
+    fromProgramDayEdit,
+    programDayIndex,
     refresh
   } = route.params || { selectedMuscleGroups: [] };
   const [exercises, setExercises] = useState([]);
@@ -90,8 +93,16 @@ export default function ExerciseListScreen({ navigation, route }) {
   const loadExercises = useCallback(async () => {
     let filteredExercises = [];
 
+    // Determine which muscle groups to load
+    let muscleGroupsToLoad = selectedMuscleGroups;
+
+    // If fromLibrary and no muscle groups selected, load all
+    if (fromLibrary && (!selectedMuscleGroups || selectedMuscleGroups.length === 0)) {
+      muscleGroupsToLoad = ['chest', 'back', 'legs', 'biceps', 'triceps', 'shoulders', 'abs'];
+    }
+
     // Load all muscle groups in parallel for speed
-    const promises = selectedMuscleGroups.map(async (muscleGroup) => {
+    const promises = muscleGroupsToLoad.map(async (muscleGroup) => {
       try {
         const groupExercises = await getExercisesByMuscleGroup(muscleGroup);
         return groupExercises || [];
@@ -140,6 +151,18 @@ export default function ExerciseListScreen({ navigation, route }) {
 
 
   const startWorkoutWithExercise = (exercise) => {
+    // If we're adding to a program creation or day edit
+    if (fromProgramCreation || fromProgramDayEdit) {
+      // Navigate to WorkoutDayEdit screen with the exercise and remember muscle groups
+      navigation.navigate('WorkoutDayEdit', {
+        exercise,
+        dayIndex: programDayIndex !== undefined ? programDayIndex : 0,
+        lastSelectedMuscleGroups: selectedMuscleGroups,
+        refresh: Date.now()
+      });
+      return;
+    }
+
     // If we're adding to an existing workout, update context and go back
     if (fromWorkout && isWorkoutActive()) {
       // Add exercise to the active workout - allow duplicates
@@ -208,10 +231,22 @@ export default function ExerciseListScreen({ navigation, route }) {
     { id: 'cable', name: 'Cable' },
   ];
 
+  const getMuscleGroupsDisplay = () => {
+    if (!selectedMuscleGroups || selectedMuscleGroups.length === 0) {
+      return 'All muscle groups';
+    } else if (selectedMuscleGroups.length === 1) {
+      return selectedMuscleGroups[0].charAt(0).toUpperCase() + selectedMuscleGroups[0].slice(1);
+    } else if (selectedMuscleGroups.length <= 3) {
+      return selectedMuscleGroups.map(mg => mg.charAt(0).toUpperCase() + mg.slice(1)).join(', ');
+    } else {
+      return `${selectedMuscleGroups.length} muscle groups`;
+    }
+  };
+
   return (
     <ScreenLayout
       title={fromLibrary ? "Exercise Library" : "Exercise Selection"}
-      subtitle={fromLibrary ? `${exercises.length} exercises available` : `${exercises.length} exercises for ${selectedMuscleGroups.length} muscle groups`}
+      subtitle={fromLibrary ? `${exercises.length} exercises available` : `${exercises.length} exercises for ${getMuscleGroupsDisplay()}`}
       navigation={navigation}
       showBack={true}
       scrollable={false}
@@ -219,6 +254,25 @@ export default function ExerciseListScreen({ navigation, route }) {
     >
       {/* Static Search Bar and Filters */}
       <View style={styles.staticHeaderContainer}>
+        {/* Muscle Group Selection Button - Only show in library mode */}
+        {fromLibrary && (
+          <TouchableOpacity
+            style={styles.muscleGroupButton}
+            onPress={() => navigation.navigate('MuscleGroupSelection', {
+              fromLibrary: true,
+              refresh: Date.now()
+            })}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.muscleGroupIcon}>💪</Text>
+            <View style={styles.muscleGroupTextContainer}>
+              <Text style={styles.muscleGroupLabel}>Target Muscles:</Text>
+              <Text style={styles.muscleGroupValue}>{getMuscleGroupsDisplay()}</Text>
+            </View>
+            <Text style={styles.muscleGroupArrow}>→</Text>
+          </TouchableOpacity>
+        )}
+
         {/* Search Bar with Filter Button */}
         <View style={styles.searchBarRow}>
           <View style={styles.searchContainer}>
@@ -404,7 +458,7 @@ export default function ExerciseListScreen({ navigation, route }) {
                     onPress={() => startWorkoutWithExercise(item)}
                   >
                     <Text style={styles.addButtonText}>
-                      {fromWorkout || isWorkoutActive() ? 'Add Exercise' : 'Start'}
+                      {fromProgramCreation ? 'Add to Program' : (fromWorkout || isWorkoutActive() ? 'Add Exercise' : 'Start')}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -468,7 +522,7 @@ export default function ExerciseListScreen({ navigation, route }) {
                       onPress={() => startWorkoutWithExercise(item)}
                     >
                       <Text style={styles.addButtonText}>
-                      {fromWorkout || isWorkoutActive() ? 'Add Exercise' : 'Start'}
+                      {fromProgramCreation ? 'Add' : (fromWorkout || isWorkoutActive() ? 'Add Exercise' : 'Start')}
                     </Text>
                     </TouchableOpacity>
                   </View>
@@ -526,6 +580,40 @@ const styles = StyleSheet.create({
   headerContainer: {
     backgroundColor: Colors.background,
     paddingBottom: Spacing.xs,
+  },
+  muscleGroupButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.primary + '15',
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    marginHorizontal: Spacing.md,
+    marginBottom: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.primary + '30',
+  },
+  muscleGroupIcon: {
+    fontSize: 20,
+    marginRight: Spacing.sm,
+  },
+  muscleGroupTextContainer: {
+    flex: 1,
+  },
+  muscleGroupLabel: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textSecondary,
+    marginBottom: 2,
+  },
+  muscleGroupValue: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.primary,
+    fontWeight: '600',
+  },
+  muscleGroupArrow: {
+    fontSize: 18,
+    color: Colors.primary,
+    marginLeft: Spacing.sm,
   },
   searchBarRow: {
     flexDirection: 'row',
@@ -757,17 +845,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
   },
   addButton: {
-    backgroundColor: '#4CAF50',
-    paddingHorizontal: Spacing.xs,
-    paddingVertical: 6,
-    borderRadius: BorderRadius.sm,
+    backgroundColor: Colors.primary,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
     flex: 1,
     alignItems: 'center',
   },
   addButtonText: {
     color: Colors.background,
     fontWeight: 'bold',
-    fontSize: Typography.fontSize.sm,
+    fontSize: Typography.fontSize.md,
   },
 
   // Detailed View Styles

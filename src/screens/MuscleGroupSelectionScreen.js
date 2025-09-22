@@ -9,7 +9,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 export default function MuscleGroupSelectionScreen({ navigation, route }) {
   const { isWorkoutActive, activeWorkout } = useWorkout();
-  const { fromWorkout, currentWorkoutExercises, workoutStartTime, existingExerciseSets } = route.params || {};
+  const { fromWorkout, currentWorkoutExercises, workoutStartTime, existingExerciseSets, fromLibrary, fromProgramCreation, fromProgramDayEdit, programDayIndex } = route.params || {};
   const [selectedMuscleGroups, setSelectedMuscleGroups] = useState([]);
 
   // Remove the automatic redirect - it's causing infinite loops
@@ -47,7 +47,11 @@ export default function MuscleGroupSelectionScreen({ navigation, route }) {
       currentWorkoutExercises: currentWorkoutExercises,
       workoutStartTime: workoutStartTime,
       existingExerciseSets: existingExerciseSets,
-      fromMuscleSelection: true  // Flag to indicate we came from muscle selection
+      fromMuscleSelection: true,  // Flag to indicate we came from muscle selection
+      fromLibrary: fromLibrary,  // Pass through the library flag
+      fromProgramCreation: fromProgramCreation,
+      fromProgramDayEdit: fromProgramDayEdit,
+      programDayIndex: programDayIndex
     });
   };
 

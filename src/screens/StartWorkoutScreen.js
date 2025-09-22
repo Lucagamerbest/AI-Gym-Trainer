@@ -64,7 +64,7 @@ export default function StartWorkoutScreen({ navigation }) {
               if (isWorkoutActive() && activeWorkout) {
                 // Navigate to exercise library with active workout context
                 navigation.navigate('ExerciseList', {
-                  selectedMuscleGroups: ['chest', 'back', 'legs', 'biceps', 'triceps', 'shoulders', 'abs'],
+                  selectedMuscleGroups: [],
                   fromWorkout: true,
                   currentWorkoutExercises: activeWorkout.exercises || [],
                   workoutStartTime: activeWorkout.startTime,
@@ -73,9 +73,8 @@ export default function StartWorkoutScreen({ navigation }) {
                   refresh: Date.now()
                 });
               } else {
-                // Normal exercise library access
-                navigation.navigate('ExerciseList', {
-                  selectedMuscleGroups: ['chest', 'back', 'legs', 'biceps', 'triceps', 'shoulders', 'abs'],
+                // Normal exercise library access - let user select muscle groups first
+                navigation.navigate('MuscleGroupSelection', {
                   fromLibrary: true,
                   refresh: Date.now()
                 });
@@ -98,6 +97,33 @@ export default function StartWorkoutScreen({ navigation }) {
               <Text style={styles.expandButtonText}>
                 {showAllPrograms ? 'Show Less ↑' : 'Show More ↓'}
               </Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.programActionsContainer}>
+            <TouchableOpacity
+              style={styles.programActionButton}
+              onPress={() => navigation.navigate('WorkoutProgram')}
+              activeOpacity={0.9}
+            >
+              <LinearGradient
+                colors={[Colors.primary, '#059669']}
+                style={styles.programActionGradient}
+              >
+                <Text style={styles.programActionIcon}>+</Text>
+                <Text style={styles.programActionText}>Create Program</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.programActionButton}
+              onPress={() => navigation.navigate('WorkoutProgramsList')}
+              activeOpacity={0.9}
+            >
+              <View style={styles.myProgramsButton}>
+                <Text style={styles.myProgramsIcon}>📋</Text>
+                <Text style={styles.myProgramsText}>My Programs</Text>
+              </View>
             </TouchableOpacity>
           </View>
           {displayedPrograms.map((program) => (
@@ -212,5 +238,50 @@ const styles = StyleSheet.create({
   },
   quickStartButton: {
     marginBottom: Spacing.md,
+  },
+  programActionsContainer: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+    marginBottom: Spacing.lg,
+  },
+  programActionButton: {
+    flex: 1,
+    borderRadius: BorderRadius.lg,
+    overflow: 'hidden',
+  },
+  programActionGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: Spacing.md,
+  },
+  programActionIcon: {
+    fontSize: 18,
+    color: Colors.background,
+    marginRight: Spacing.xs,
+  },
+  programActionText: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: 'bold',
+    color: Colors.background,
+  },
+  myProgramsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: Spacing.md,
+    backgroundColor: Colors.surface,
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    borderRadius: BorderRadius.lg,
+  },
+  myProgramsIcon: {
+    fontSize: 18,
+    marginRight: Spacing.xs,
+  },
+  myProgramsText: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: 'bold',
+    color: Colors.primary,
   },
 });
