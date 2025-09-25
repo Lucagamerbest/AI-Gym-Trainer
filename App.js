@@ -35,6 +35,7 @@ import CreateExerciseScreen from './src/screens/CreateExerciseScreen';
 import WorkoutProgramScreen from './src/screens/WorkoutProgramScreen';
 import WorkoutProgramsListScreen from './src/screens/WorkoutProgramsListScreen';
 import WorkoutDayEditScreen from './src/screens/WorkoutDayEditScreen';
+import ProgramDaySelectionScreen from './src/screens/ProgramDaySelectionScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -121,6 +122,7 @@ function AppNavigator() {
             <Stack.Screen name="StartWorkout" component={StartWorkoutScreen} />
             <Stack.Screen name="WorkoutProgram" component={WorkoutProgramScreen} />
             <Stack.Screen name="WorkoutProgramsList" component={WorkoutProgramsListScreen} />
+            <Stack.Screen name="ProgramDaySelection" component={ProgramDaySelectionScreen} />
             <Stack.Screen name="WorkoutDayEdit" component={WorkoutDayEditScreen} />
             <Stack.Screen name="CreateExercise" component={CreateExerciseScreen} />
             <Stack.Screen name="MuscleGroupSelection" component={MuscleGroupSelectionScreen} />

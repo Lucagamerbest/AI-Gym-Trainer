@@ -10,7 +10,7 @@ import { useAuth } from '../context/AuthContext';
 import { useWorkout } from '../context/WorkoutContext';
 
 // Exercise Card Component
-const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exerciseSets, onUpdateSet, onAddSet, onDeleteSet, onShowInfo, onSelectSetType }) => {
+const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exerciseSets, onUpdateSet, onAddSet, onDeleteSet, onShowInfo, onSelectSetType, fromProgram }) => {
   // Function to get set type color
   const getSetTypeColor = (type) => {
     switch (type) {
@@ -115,11 +115,15 @@ const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exercise
               />
               
               <TextInput
-                style={styles.setInput}
+                style={[
+                  styles.setInput,
+                  styles.repsInput,
+                  fromProgram && set.reps && !set.completed && styles.programRepsInput
+                ]}
                 value={set.reps}
                 onChangeText={(value) => onUpdateSet(index, setIndex, 'reps', value)}
-                placeholder="10"
-                placeholderTextColor={Colors.textMuted}
+                placeholder={fromProgram && set.reps ? set.reps : "10"}
+                placeholderTextColor={fromProgram && set.reps ? Colors.primary : Colors.textMuted}
                 keyboardType="numeric"
                 maxLength={5}
               />
@@ -156,7 +160,7 @@ const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exercise
 };
 
 export default function WorkoutScreen({ navigation, route }) {
-  const { exercise, resumingWorkout, fromWorkout, fromLibrary, selectedMuscleGroups } = route.params || {};
+  const { exercise, resumingWorkout, fromWorkout, fromLibrary, selectedMuscleGroups, fromProgram, programExercises, programName, dayName } = route.params || {};
   const { user } = useAuth();
   const { activeWorkout, startWorkout, updateWorkout, finishWorkout, discardWorkout } = useWorkout();
   const hasProcessedExercise = useRef(false);
@@ -187,8 +191,21 @@ export default function WorkoutScreen({ navigation, route }) {
   const [totalVolume, setTotalVolume] = useState(0);
   const [totalSets, setTotalSets] = useState(0);
 
-  // Simple initialization - only for new workouts or resuming
+  // Initialize workout - handle all scenarios
   useEffect(() => {
+    // For program workouts, activeWorkout is set by ProgramDaySelection before navigation
+    if (fromProgram && activeWorkout) {
+      // Load the sets from the active workout
+      if (activeWorkout.exerciseSets) {
+        setExerciseSets(activeWorkout.exerciseSets);
+        const totals = calculateTotals(activeWorkout.exerciseSets);
+        setTotalVolume(totals.volume);
+        setTotalSets(totals.sets);
+      }
+      setCurrentExerciseIndex(activeWorkout.currentExerciseIndex || 0);
+      return; // Exit early for program workouts
+    }
+
     // Only start a new workout if we don't have one and we have an exercise
     if (exercise && !activeWorkout && !fromWorkout) {
       const muscleGroups = route.params?.selectedMuscleGroups || [];
@@ -218,7 +235,7 @@ export default function WorkoutScreen({ navigation, route }) {
       setTotalVolume(totals.volume);
       setTotalSets(totals.sets);
     }
-  }, []); // Only run once on mount
+  }, [activeWorkout, fromProgram]); // Re-run when activeWorkout changes
 
   // Update exercise index when new exercises are added via context
   useEffect(() => {
@@ -231,8 +248,13 @@ export default function WorkoutScreen({ navigation, route }) {
   const workoutExercises = activeWorkout?.exercises || [];
   const workoutStartTime = activeWorkout?.startTime ? new Date(activeWorkout.startTime) : new Date();
 
-  // Initialize exercise sets
+  // Initialize exercise sets - only for non-program workouts or new exercises
   useEffect(() => {
+    // For program workouts, don't override the sets from the program
+    if (activeWorkout?.fromProgram) {
+      return;
+    }
+
     const newSets = { ...exerciseSets };
     let hasChanges = false;
 
@@ -246,7 +268,7 @@ export default function WorkoutScreen({ navigation, route }) {
     if (hasChanges) {
       setExerciseSets(newSets);
     }
-  }, [workoutExercises.length]);
+  }, [workoutExercises.length, activeWorkout?.fromProgram]);
 
   // Update workout timer with immediate start
   useEffect(() => {
@@ -437,8 +459,18 @@ export default function WorkoutScreen({ navigation, route }) {
       currentExerciseIndex
     });
 
+    // Check if workout was started from program
+    if (activeWorkout?.fromProgram) {
+      // Started from program - show all exercises but maintain program context
+      navigation.navigate('ExerciseList', {
+        selectedMuscleGroups: ['chest', 'back', 'legs', 'shoulders', 'biceps', 'triceps', 'abs'],
+        fromWorkout: true,
+        fromLibrary: true,
+        fromProgram: true
+      });
+    }
     // Check if workout was started from library or free workout
-    if (activeWorkout?.fromLibrary) {
+    else if (activeWorkout?.fromLibrary) {
       // Started from library - show all exercises
       navigation.navigate('ExerciseList', {
         selectedMuscleGroups: ['chest', 'back', 'legs', 'shoulders', 'biceps', 'triceps', 'abs'],
@@ -736,33 +768,44 @@ export default function WorkoutScreen({ navigation, route }) {
 
   // Create custom header component with workout stats
   const WorkoutStatsHeader = () => (
-    <View style={styles.headerStats}>
-      <TouchableOpacity
-        style={styles.headerStatBox}
-        onPress={toggleWorkoutPause}
-        activeOpacity={0.7}
-      >
-        <View style={styles.headerTimerContent}>
-          <Text style={styles.headerPauseIcon}>
-            {isWorkoutPaused ? '▶' : '⏸'}
-          </Text>
-          <Text style={[
-            styles.headerTimerText,
-            isWorkoutPaused && styles.headerTimerPaused
-          ]}>
-            {getElapsedTime()}
+    <View>
+      {/* Show program info if from program */}
+      {activeWorkout?.fromProgram && (
+        <View style={styles.programInfoBar}>
+          <Text style={styles.programInfoText}>
+            {activeWorkout.programName} • {activeWorkout.dayName}
           </Text>
         </View>
-      </TouchableOpacity>
+      )}
 
-      <View style={styles.headerStatBox}>
-        <Text style={styles.headerStatValue}>{totalVolume.toLocaleString()}</Text>
-        <Text style={styles.headerStatLabel}>volume (lbs)</Text>
-      </View>
+      <View style={styles.headerStats}>
+        <TouchableOpacity
+          style={styles.headerStatBox}
+          onPress={toggleWorkoutPause}
+          activeOpacity={0.7}
+        >
+          <View style={styles.headerTimerContent}>
+            <Text style={styles.headerPauseIcon}>
+              {isWorkoutPaused ? '▶' : '⏸'}
+            </Text>
+            <Text style={[
+              styles.headerTimerText,
+              isWorkoutPaused && styles.headerTimerPaused
+            ]}>
+              {getElapsedTime()}
+            </Text>
+          </View>
+        </TouchableOpacity>
 
-      <View style={styles.headerStatBox}>
-        <Text style={styles.headerStatValue}>{totalSets}</Text>
-        <Text style={styles.headerStatLabel}>sets</Text>
+        <View style={styles.headerStatBox}>
+          <Text style={styles.headerStatValue}>{totalVolume.toLocaleString()}</Text>
+          <Text style={styles.headerStatLabel}>volume (lbs)</Text>
+        </View>
+
+        <View style={styles.headerStatBox}>
+          <Text style={styles.headerStatValue}>{totalSets}</Text>
+          <Text style={styles.headerStatLabel}>sets</Text>
+        </View>
       </View>
     </View>
   );
@@ -845,6 +888,7 @@ export default function WorkoutScreen({ navigation, route }) {
             onDeleteSet={deleteSet}
             onShowInfo={showExerciseDetail}
             onSelectSetType={handleSelectSetType}
+            fromProgram={activeWorkout?.fromProgram || false}
           />
         ))}
       </View>
@@ -1100,6 +1144,22 @@ const styles = StyleSheet.create({
   screenContainer: {
     flex: 1,
     backgroundColor: Colors.background,
+  },
+  // Program Info Styles
+  programInfoBar: {
+    backgroundColor: Colors.primary + '15',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: BorderRadius.sm,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: Colors.primary + '30',
+  },
+  programInfoText: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.primary,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   // Header Stats Styles
   headerStats: {
@@ -1477,6 +1537,14 @@ const styles = StyleSheet.create({
     color: Colors.text,
     borderWidth: 1,
     borderColor: Colors.border,
+  },
+  repsInput: {
+    minWidth: 70,  // Make wider to accommodate ranges like "8-10"
+    flex: 1.2,     // Give it slightly more space than other inputs
+  },
+  programRepsInput: {
+    borderColor: Colors.primary + '50',
+    backgroundColor: Colors.primary + '10',
   },
   completeButton: {
     flex: 1,

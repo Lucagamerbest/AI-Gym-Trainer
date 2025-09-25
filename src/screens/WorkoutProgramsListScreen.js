@@ -70,10 +70,9 @@ export default function WorkoutProgramsListScreen({ navigation }) {
   };
 
   const handleStartProgram = (program) => {
-    // Navigate to workout with the selected program
-    navigation.navigate('MuscleGroupSelection', {
-      workoutProgram: program,
-      programMode: true
+    // Navigate to day selection screen for the program
+    navigation.navigate('ProgramDaySelection', {
+      program: program
     });
   };
 
