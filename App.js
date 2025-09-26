@@ -31,6 +31,7 @@ import SettingsScreen from './src/screens/SettingsScreen';
 import ProgressScreen from './src/screens/ProgressScreen';
 import CameraScreen from './src/screens/CameraScreen';
 import FoodScanningScreen from './src/screens/FoodScanningScreen';
+import FoodScanResultScreen from './src/screens/FoodScanResultScreen';
 import CreateExerciseScreen from './src/screens/CreateExerciseScreen';
 import WorkoutProgramScreen from './src/screens/WorkoutProgramScreen';
 import WorkoutProgramsListScreen from './src/screens/WorkoutProgramsListScreen';
@@ -117,6 +118,7 @@ function AppNavigator() {
             <Stack.Screen name="FoodScanning" component={FoodScanningScreen} />
             <Stack.Screen name="Camera" component={CameraScreen} />
             <Stack.Screen name="FoodScan" component={FoodScanScreen} />
+            <Stack.Screen name="FoodScanResult" component={FoodScanResultScreen} />
             <Stack.Screen name="MealsHistory" component={MealsHistoryScreen} />
             <Stack.Screen name="SearchFood" component={SearchFoodScreen} />
             <Stack.Screen name="StartWorkout" component={StartWorkoutScreen} />

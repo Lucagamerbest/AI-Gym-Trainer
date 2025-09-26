@@ -106,8 +106,8 @@ export default function ScreenLayout({
           </View>
         </Animated.View>
 
-        {/* Page Title - only show if title is a string */}
-        {((typeof title === 'string' && title) || subtitle) && (
+        {/* Page Title - only show subtitle if provided */}
+        {subtitle && (
           <Animated.View
             style={[
               styles.titleContainer,
@@ -117,7 +117,6 @@ export default function ScreenLayout({
               },
             ]}
           >
-            {typeof title === 'string' && title && <Text style={styles.title}>{title}</Text>}
             {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
           </Animated.View>
         )}

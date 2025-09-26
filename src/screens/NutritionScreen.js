@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ScreenLayout from '../components/ScreenLayout';
 import StyledButton from '../components/StyledButton';
 import StyledCard from '../components/StyledCard';
 import MacroGoalsModal from '../components/MacroGoalsModal';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
+import { testFoodAPI } from '../services/foodAPI';
 
 const MACROS_KEY = '@macro_goals';
 
@@ -42,6 +43,19 @@ export default function NutritionScreen({ navigation }) {
 
   const handleSaveMacros = (newGoals) => {
     setMacroGoals(newGoals);
+  };
+
+  // Test API function
+  const handleTestAPI = async () => {
+    const result = await testFoodAPI();
+    if (result.found) {
+      Alert.alert(
+        'API Test Success!',
+        `Found: ${result.name}\nBrand: ${result.brand}\nCalories: ${result.nutrition.calories} per 100g\nProtein: ${result.nutrition.protein}g\nCarbs: ${result.nutrition.carbs}g\nFat: ${result.nutrition.fat}g`
+      );
+    } else {
+      Alert.alert('API Test', 'Product not found');
+    }
   };
 
   const calculateProgress = (consumed, goal) => {
@@ -152,6 +166,15 @@ export default function NutritionScreen({ navigation }) {
         style={styles.historyButton}
       />
 
+      <StyledButton
+        title="Test Food API 🧪"
+        variant="secondary"
+        size="lg"
+        fullWidth
+        onPress={handleTestAPI}
+        style={styles.testButton}
+      />
+
       <MacroGoalsModal
         visible={showMacroModal}
         onClose={() => setShowMacroModal(false)}
@@ -256,5 +279,8 @@ const styles = StyleSheet.create({
   },
   historyButton: {
     marginTop: Spacing.md,
+  },
+  testButton: {
+    marginTop: Spacing.sm,
   },
 });

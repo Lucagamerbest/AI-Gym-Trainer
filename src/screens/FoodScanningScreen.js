@@ -182,8 +182,22 @@ export default function FoodScanningScreen({ navigation }) {
                       {item.name}
                     </Text>
                     <Text style={styles.historyItemDetails}>
-                      {item.calories} cal • {item.protein}g protein
+                      {item.calories} cal • {item.servingSize || '100g'}
                     </Text>
+                    <View style={styles.historyItemMacros}>
+                      <View style={styles.macroTag}>
+                        <Text style={styles.macroTagLabel}>P</Text>
+                        <Text style={styles.macroTagValue}>{item.protein || 0}g</Text>
+                      </View>
+                      <View style={[styles.macroTag, styles.macroTagCarbs]}>
+                        <Text style={styles.macroTagLabel}>C</Text>
+                        <Text style={styles.macroTagValue}>{item.carbs || 0}g</Text>
+                      </View>
+                      <View style={[styles.macroTag, styles.macroTagFat]}>
+                        <Text style={styles.macroTagLabel}>F</Text>
+                        <Text style={styles.macroTagValue}>{item.fats || 0}g</Text>
+                      </View>
+                    </View>
                     <Text style={styles.historyItemTime}>
                       {formatTimestamp(item.timestamp)}
                     </Text>
@@ -337,5 +351,36 @@ const styles = StyleSheet.create({
   arrowText: {
     fontSize: 18,
     color: Colors.textMuted,
+  },
+  historyItemMacros: {
+    flexDirection: 'row',
+    marginTop: 4,
+    marginBottom: 2,
+  },
+  macroTag: {
+    flexDirection: 'row',
+    backgroundColor: Colors.primary + '20',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    marginRight: 6,
+    alignItems: 'center',
+  },
+  macroTagCarbs: {
+    backgroundColor: Colors.warning + '20',
+  },
+  macroTagFat: {
+    backgroundColor: Colors.success + '20',
+  },
+  macroTagLabel: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: Colors.primary,
+    marginRight: 3,
+  },
+  macroTagValue: {
+    fontSize: 11,
+    color: Colors.text,
+    fontWeight: '600',
   },
 });

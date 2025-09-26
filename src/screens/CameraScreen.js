@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { CameraView, Camera, useCameraPermissions } from 'expo-camera';
 import { Colors, Spacing, Typography } from '../constants/theme';
+import { foodAPI } from '../services/foodAPI';
 
 const { width, height } = Dimensions.get('window');
 
@@ -17,6 +18,9 @@ export default function CameraScreen({ navigation, route }) {
   const [permission, requestPermission] = useCameraPermissions();
   const [facing, setFacing] = useState('back');
   const [isReady, setIsReady] = useState(false);
+  const [isScanning, setIsScanning] = useState(true);
+  const [scannedBarcode, setScannedBarcode] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
   const cameraRef = useRef(null);
 
   useEffect(() => {
@@ -28,6 +32,64 @@ export default function CameraScreen({ navigation, route }) {
 
   const toggleCameraFacing = () => {
     setFacing(current => (current === 'back' ? 'front' : 'back'));
+  };
+
+  const handleBarCodeScanned = async ({ type, data }) => {
+    if (scannedBarcode === data || isLoading) return; // Prevent multiple scans of the same barcode
+
+    setScannedBarcode(data);
+    setIsLoading(true);
+    setIsScanning(false);
+
+    try {
+      // Fetch product info from API
+      const result = await foodAPI.getProductByBarcode(data);
+
+      if (result.found) {
+        // Navigate to FoodScanResult screen with product data
+        navigation.navigate('FoodScanResult', {
+          productData: result,
+          barcode: data
+        });
+      } else {
+        Alert.alert(
+          'Product Not Found',
+          'This product is not in our database. Would you like to try scanning another product?',
+          [
+            {
+              text: 'Try Again',
+              onPress: () => {
+                setScannedBarcode(null);
+                setIsScanning(true);
+                setIsLoading(false);
+              }
+            },
+            { text: 'Cancel', onPress: () => navigation.goBack() }
+          ]
+        );
+      }
+    } catch (error) {
+      console.error('Error in handleBarCodeScanned:', error);
+      const errorMessage = result?.message || error.message || 'Failed to fetch product information. Please check your internet connection.';
+
+      Alert.alert(
+        'Error',
+        errorMessage,
+        [
+          {
+            text: 'Try Again',
+            onPress: () => {
+              setScannedBarcode(null);
+              setIsScanning(true);
+              setIsLoading(false);
+            }
+          },
+          { text: 'Cancel', onPress: () => navigation.goBack() }
+        ]
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const takePicture = async () => {
@@ -107,6 +169,10 @@ export default function CameraScreen({ navigation, route }) {
         style={styles.camera}
         facing={facing}
         onCameraReady={() => setIsReady(true)}
+        barCodeScannerSettings={{
+          barCodeTypes: ['ean13', 'ean8', 'upc_a', 'upc_e', 'code128', 'code39', 'code93'],
+        }}
+        onBarcodeScanned={isScanning ? handleBarCodeScanned : undefined}
       >
         {/* Top Controls */}
         <View style={styles.topControls}>
@@ -127,24 +193,26 @@ export default function CameraScreen({ navigation, route }) {
           <View style={[styles.frameCorner, styles.frameCornerBottomRight]} />
 
           <Text style={styles.scanningText}>
-            Position food within the frame
+            {isLoading ? 'Looking up product...' : 'Position barcode within the frame'}
           </Text>
         </View>
 
         {/* Bottom Controls */}
         <View style={styles.bottomControls}>
-          <View style={styles.captureButtonContainer}>
+          {!isScanning && !isLoading && (
             <TouchableOpacity
-              style={styles.captureButton}
-              onPress={takePicture}
-              disabled={!isReady}
+              style={styles.rescanButton}
+              onPress={() => {
+                setScannedBarcode(null);
+                setIsScanning(true);
+              }}
             >
-              <View style={styles.captureButtonInner} />
+              <Text style={styles.rescanButtonText}>Scan Another Product</Text>
             </TouchableOpacity>
-          </View>
+          )}
 
           <Text style={styles.instructionText}>
-            Tap to scan and analyze nutrition
+            {isScanning ? 'Point camera at product barcode' : 'Processing...'}
           </Text>
         </View>
       </CameraView>
@@ -318,5 +386,17 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0, 0, 0, 0.8)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
+  },
+  rescanButton: {
+    backgroundColor: Colors.primary,
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.md,
+    borderRadius: 25,
+    marginBottom: Spacing.md,
+  },
+  rescanButtonText: {
+    color: Colors.background,
+    fontSize: Typography.fontSize.md,
+    fontWeight: 'bold',
   },
 });
