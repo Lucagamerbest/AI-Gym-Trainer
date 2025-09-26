@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated, ScrollView } from 'react-native';
+import KeyboardScrollView from './KeyboardScrollView';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AnimatedBackground from './AnimatedBackground';
 import ActiveWorkoutIndicator from './ActiveWorkoutIndicator';
@@ -51,8 +52,8 @@ export default function ScreenLayout({
     }
   };
 
-  const ContentWrapper = scrollable ? ScrollView : View;
-  const contentProps = scrollable ? { 
+  const ContentWrapper = scrollable ? KeyboardScrollView : View;
+  const contentProps = scrollable ? {
     showsVerticalScrollIndicator: false,
     contentContainerStyle: centerContent && styles.centeredScrollContent
   } : {
