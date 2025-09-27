@@ -140,7 +140,8 @@ export default function FoodSearchScreen({ navigation }) {
   };
 
   const handleCreateCustomFood = () => {
-    navigation.navigate('CreateFood');
+    // TODO: Implement custom food creation
+    Alert.alert('Coming Soon', 'Custom food creation will be available soon!');
   };
 
   const renderFoodItem = ({ item }) => {
@@ -217,6 +218,7 @@ export default function FoodSearchScreen({ navigation }) {
       subtitle="Search or scan foods to track calories"
       navigation={navigation}
       showBack={true}
+      scrollable={false}
     >
       {/* Search Bar */}
       <View style={styles.searchContainer}>
