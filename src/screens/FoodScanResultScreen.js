@@ -15,6 +15,7 @@ import StyledButton from '../components/StyledButton';
 import StyledCard from '../components/StyledCard';
 import NutriScoreModal from '../components/NutriScoreModal';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
+import { saveFoodFromAPI, addToDaily, initDatabase } from '../services/foodDatabase';
 
 const SCAN_HISTORY_KEY = '@food_scan_history';
 
@@ -53,12 +54,20 @@ export default function FoodScanResultScreen({ navigation, route }) {
   const handleAddToHistory = async () => {
     setIsSaving(true);
     try {
-      // Get existing history
+      // Initialize database first
+      await initDatabase();
+
+      // Save food to database
+      const foodId = await saveFoodFromAPI(productData);
+
+      // Add to daily consumption with the serving size
+      const size = servingSize === '' ? 0 : parseFloat(servingSize);
+      await addToDaily(foodId, size, 'snack');
+
+      // Also keep in AsyncStorage for backward compatibility
       const historyData = await AsyncStorage.getItem(SCAN_HISTORY_KEY);
       const history = historyData ? JSON.parse(historyData) : [];
-
-      // Add new scan to history with adjusted values
-      const multiplier = parseFloat(servingSize) / 100;
+      const multiplier = size / 100;
       const newScan = {
         id: Date.now().toString(),
         name: productData.name,
@@ -68,20 +77,22 @@ export default function FoodScanResultScreen({ navigation, route }) {
         protein: parseFloat((productData.nutrition.protein * multiplier).toFixed(1)),
         carbs: parseFloat((productData.nutrition.carbs * multiplier).toFixed(1)),
         fats: parseFloat((productData.nutrition.fat * multiplier).toFixed(1)),
-        fiber: parseFloat((productData.nutrition.fiber * multiplier).toFixed(1)),
-        sugar: parseFloat((productData.nutrition.sugar * multiplier).toFixed(1)),
-        sodium: parseFloat((productData.nutrition.sodium * multiplier).toFixed(1)),
         servingSize: `${servingSize}g`,
         barcode: barcode,
         timestamp: new Date().toISOString(),
       };
-
-      const updatedHistory = [newScan, ...history.slice(0, 19)]; // Keep last 20 items
+      const updatedHistory = [newScan, ...history.slice(0, 19)];
       await AsyncStorage.setItem(SCAN_HISTORY_KEY, JSON.stringify(updatedHistory));
 
-      Alert.alert('Success', 'Product added to your nutrition log!');
-      navigation.navigate('Nutrition');
+      Alert.alert(
+        'Success',
+        `Added ${servingSize}g of ${productData.name} to your daily intake!`,
+        [
+          { text: 'OK', onPress: () => navigation.navigate('NutritionDashboard') }
+        ]
+      );
     } catch (error) {
+      console.error('Error adding to history:', error);
       Alert.alert('Error', 'Failed to save product. Please try again.');
     } finally {
       setIsSaving(false);

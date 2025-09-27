@@ -144,22 +144,29 @@ export default function NutritionScreen({ navigation }) {
       </TouchableOpacity>
 
       <StyledCard
+        icon="📊"
+        title="Food Tracker"
+        subtitle="Daily calories & macros"
+        onPress={() => navigation.navigate('NutritionDashboard')}
+      />
+
+      <StyledCard
         icon="📷"
         title="Scan Food"
         subtitle="Instant nutrition info"
         onPress={() => navigation.navigate('FoodScanning')}
       />
-      
+
       <StyledCard
         icon="🔍"
         title="Search & Add"
         subtitle="Find from database"
-        onPress={() => navigation.navigate('SearchFood')}
+        onPress={() => navigation.navigate('FoodSearch')}
       />
-      
+
       <StyledButton
         title="My Meals & History"
-        icon="📊"
+        icon="📚"
         size="lg"
         fullWidth
         onPress={() => navigation.navigate('MealsHistory')}
