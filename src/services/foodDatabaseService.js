@@ -5,11 +5,9 @@ import { Platform } from 'react-native';
 // Conditionally import the appropriate implementation
 let foodDatabase;
 
-if (Platform.OS === 'web') {
-  foodDatabase = require('./foodDatabase.web');
-} else {
-  foodDatabase = require('./foodDatabase');
-}
+// For now, always use the web version since SQLite is causing issues
+// TODO: Fix SQLite implementation for mobile
+foodDatabase = require('./foodDatabase.web');
 
 // Export all functions
 export const initDatabase = foodDatabase.initDatabase;
