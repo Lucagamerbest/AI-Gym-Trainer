@@ -22,8 +22,10 @@ import {
   getRecentFoods,
   addToDaily,
   saveFoodFromAPI,
+  saveFood,
 } from '../services/foodDatabaseService';
 import { foodAPI } from '../services/foodAPI';
+import { defaultFoods } from '../services/defaultFoods';
 
 export default function FoodSearchScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -39,7 +41,27 @@ export default function FoodSearchScreen({ navigation }) {
 
   useEffect(() => {
     // Initialize database when screen loads
-    initDatabase().then(() => {
+    initDatabase().then(async () => {
+      // Check if database is empty and populate with default foods
+      const existingFoods = await searchFoods('');
+      if (existingFoods.length === 0) {
+        console.log('Populating database with default foods...');
+        for (const food of defaultFoods) {
+          try {
+            await saveFood(food);
+          } catch (error) {
+            console.log('Error saving default food:', error);
+          }
+        }
+        console.log('Default foods added!');
+        // Load all foods after adding defaults
+        const allFoods = await searchFoods('');
+        setSearchResults(allFoods);
+      } else {
+        // Show existing foods
+        setSearchResults(existingFoods);
+      }
+
       loadFavorites();
       loadRecentFoods();
     });
@@ -64,12 +86,13 @@ export default function FoodSearchScreen({ navigation }) {
   };
 
   const handleSearch = async () => {
-    if (!searchQuery.trim()) return;
+    // Allow empty search to show all foods
+    const query = searchQuery.trim();
 
     setIsLoading(true);
     try {
       // First search local database
-      const localResults = await searchFoods(searchQuery);
+      const localResults = await searchFoods(query || '');
 
       if (localResults.length > 0) {
         setSearchResults(localResults);
@@ -175,10 +198,11 @@ export default function FoodSearchScreen({ navigation }) {
   };
 
   const renderEmptyList = () => {
-    if (activeTab === 'search' && !searchQuery) {
+    if (activeTab === 'search' && searchResults.length === 0) {
       return (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>Search for foods to add to your diary</Text>
+          <Text style={styles.emptyText}>Loading foods...</Text>
+          <Text style={styles.emptySubtext}>Try searching for "apple", "chicken", or "rice"</Text>
         </View>
       );
     }
