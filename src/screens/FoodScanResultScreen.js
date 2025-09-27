@@ -39,12 +39,14 @@ export default function FoodScanResultScreen({ navigation, route }) {
 
   // Calculate nutrition values based on serving size
   const calculateNutrition = (baseValue) => {
-    const multiplier = parseFloat(servingSize) / 100;
+    const size = servingSize === '' ? 0 : parseFloat(servingSize);
+    const multiplier = size / 100;
     return (baseValue * multiplier).toFixed(1);
   };
 
   const calculateCalories = () => {
-    const multiplier = parseFloat(servingSize) / 100;
+    const size = servingSize === '' ? 0 : parseFloat(servingSize);
+    const multiplier = size / 100;
     return Math.round(productData.nutrition.calories * multiplier);
   };
 
@@ -142,7 +144,6 @@ export default function FoodScanResultScreen({ navigation, route }) {
                   <View style={[styles.nutriScoreBadge, styles[`nutriScore${productData.nutritionGrade.toUpperCase()}`]]}>
                     <Text style={styles.nutriScoreLabel}>Nutri-Score</Text>
                     <Text style={styles.nutriScoreGrade}>{productData.nutritionGrade.toUpperCase()}</Text>
-                    <Text style={styles.tapHint}>Tap for details</Text>
                   </View>
                 </TouchableOpacity>
               </View>
@@ -186,7 +187,14 @@ export default function FoodScanResultScreen({ navigation, route }) {
               onChangeText={(text) => {
                 // Only allow numbers
                 const numericValue = text.replace(/[^0-9]/g, '');
-                setServingSize(numericValue || '0');
+                // Allow empty string for user to type new value
+                if (numericValue === '') {
+                  setServingSize('');
+                } else {
+                  // Remove leading zeros (except for just "0")
+                  const withoutLeadingZeros = numericValue.replace(/^0+/, '') || '0';
+                  setServingSize(withoutLeadingZeros);
+                }
               }}
               keyboardType="numeric"
               placeholder="100"

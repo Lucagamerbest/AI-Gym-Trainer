@@ -270,17 +270,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   closeButtonText: {
-    color: Colors.background,
+    color: '#FFFFFF',
     fontSize: 20,
     fontWeight: 'bold',
   },
   title: {
-    color: Colors.background,
+    color: '#FFFFFF',
     fontSize: Typography.fontSize.lg,
     fontWeight: 'bold',
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
+    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
   flipButton: {
     width: 44,
@@ -339,7 +339,7 @@ const styles = StyleSheet.create({
     left: 'auto',
   },
   scanningText: {
-    color: Colors.background,
+    color: '#FFFFFF',
     fontSize: Typography.fontSize.md,
     textAlign: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
@@ -376,7 +376,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   instructionText: {
-    color: Colors.background,
+    color: '#FFFFFF',
     fontSize: Typography.fontSize.sm,
     textAlign: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',

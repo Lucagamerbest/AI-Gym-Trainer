@@ -159,9 +159,8 @@ const styles = StyleSheet.create({
     minHeight: 56,
   },
   headerLeft: {
-    width: 45,
+    width: 60,
     alignItems: 'flex-start',
-    marginLeft: -10,
   },
   headerCenter: {
     flex: 1,
