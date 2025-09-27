@@ -13,6 +13,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import ScreenLayout from '../components/ScreenLayout';
 import StyledButton from '../components/StyledButton';
 import StyledCard from '../components/StyledCard';
+import NutriScoreModal from '../components/NutriScoreModal';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 
 const SCAN_HISTORY_KEY = '@food_scan_history';
@@ -22,6 +23,7 @@ export default function FoodScanResultScreen({ navigation, route }) {
   const [isSaving, setIsSaving] = useState(false);
   const [servingSize, setServingSize] = useState('100');
   const [isEditingServing, setIsEditingServing] = useState(false);
+  const [showNutriScoreModal, setShowNutriScoreModal] = useState(false);
 
   // Auto-detect if product is liquid based on common indicators
   const isLiquid = productData.name?.toLowerCase().includes('drink') ||
@@ -133,10 +135,16 @@ export default function FoodScanResultScreen({ navigation, route }) {
             )}
             {productData.nutritionGrade && (
               <View style={styles.gradeContainer}>
-                <View style={[styles.nutriScoreBadge, styles[`nutriScore${productData.nutritionGrade.toUpperCase()}`]]}>
-                  <Text style={styles.nutriScoreLabel}>Nutri-Score</Text>
-                  <Text style={styles.nutriScoreGrade}>{productData.nutritionGrade.toUpperCase()}</Text>
-                </View>
+                <TouchableOpacity
+                  onPress={() => setShowNutriScoreModal(true)}
+                  activeOpacity={0.7}
+                >
+                  <View style={[styles.nutriScoreBadge, styles[`nutriScore${productData.nutritionGrade.toUpperCase()}`]]}>
+                    <Text style={styles.nutriScoreLabel}>Nutri-Score</Text>
+                    <Text style={styles.nutriScoreGrade}>{productData.nutritionGrade.toUpperCase()}</Text>
+                    <Text style={styles.tapHint}>Tap for details</Text>
+                  </View>
+                </TouchableOpacity>
               </View>
             )}
           </View>
@@ -277,6 +285,15 @@ export default function FoodScanResultScreen({ navigation, route }) {
           />
         </View>
       </ScrollView>
+
+      {/* Nutri-Score Explanation Modal */}
+      <NutriScoreModal
+        visible={showNutriScoreModal}
+        onClose={() => setShowNutriScoreModal(false)}
+        grade={productData.nutritionGrade}
+        nutriscoreData={productData.nutriscoreData}
+        productName={productData.name}
+      />
     </ScreenLayout>
   );
 }
@@ -527,6 +544,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: 'white',
     fontWeight: 'bold',
+  },
+  tapHint: {
+    fontSize: 8,
+    color: 'rgba(255, 255, 255, 0.9)',
+    marginTop: 2,
   },
   nutriScoreA: {
     backgroundColor: '#038141',  // Dark Green - Excellent
