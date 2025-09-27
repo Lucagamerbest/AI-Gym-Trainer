@@ -1,10 +1,21 @@
-import * as SQLite from 'expo-sqlite';
+// SQLite database for mobile platforms
+let SQLite;
+let db;
 
-// Open or create the database
-const db = SQLite.openDatabase('foodtracker.db');
+try {
+  SQLite = require('expo-sqlite');
+  db = SQLite.openDatabase('foodtracker.db');
+} catch (error) {
+  console.log('SQLite not available on this platform');
+}
 
 // Initialize database tables
 export const initDatabase = () => {
+  if (!db) {
+    console.log('Database not available on this platform');
+    return Promise.resolve();
+  }
+
   return new Promise((resolve, reject) => {
     db.transaction(tx => {
       // Foods table - stores all food items
@@ -97,6 +108,8 @@ export const initDatabase = () => {
 
 // Add or update food in database
 export const saveFood = (foodData) => {
+  if (!db) return Promise.reject(new Error('Database not available'));
+
   return new Promise((resolve, reject) => {
     db.transaction(tx => {
       // Check if food exists (by barcode if available)
@@ -171,6 +184,8 @@ const insertFood = (tx, foodData, resolve, reject) => {
 
 // Search foods by name
 export const searchFoods = (searchQuery) => {
+  if (!db) return Promise.resolve([]);
+
   return new Promise((resolve, reject) => {
     db.transaction(tx => {
       tx.executeSql(
@@ -194,6 +209,8 @@ export const searchFoods = (searchQuery) => {
 
 // Get food by barcode
 export const getFoodByBarcode = (barcode) => {
+  if (!db) return Promise.resolve(null);
+
   return new Promise((resolve, reject) => {
     db.transaction(tx => {
       tx.executeSql(
@@ -208,6 +225,8 @@ export const getFoodByBarcode = (barcode) => {
 
 // Add food to daily consumption
 export const addToDaily = (foodId, quantity, mealType = 'snack') => {
+  if (!db) return Promise.reject(new Error('Database not available'));
+
   return new Promise((resolve, reject) => {
     const today = new Date().toISOString().split('T')[0];
 
@@ -274,6 +293,8 @@ const updateFavorites = (tx, foodId) => {
 export const getDailySummary = (date = null) => {
   const targetDate = date || new Date().toISOString().split('T')[0];
 
+  if (!db) return Promise.resolve({ date: targetDate, items: [], totals: { calories: 0, protein: 0, carbs: 0, fat: 0 } });
+
   return new Promise((resolve, reject) => {
     db.transaction(tx => {
       tx.executeSql(
@@ -321,6 +342,8 @@ export const getDailySummary = (date = null) => {
 
 // Get favorite foods
 export const getFavorites = (limit = 10) => {
+  if (!db) return Promise.resolve([]);
+
   return new Promise((resolve, reject) => {
     db.transaction(tx => {
       tx.executeSql(
@@ -342,6 +365,8 @@ export const getFavorites = (limit = 10) => {
 
 // Get recent foods
 export const getRecentFoods = (limit = 10) => {
+  if (!db) return Promise.resolve([]);
+
   return new Promise((resolve, reject) => {
     db.transaction(tx => {
       tx.executeSql(
@@ -361,6 +386,8 @@ export const getRecentFoods = (limit = 10) => {
 
 // Delete food from daily consumption
 export const removeFromDaily = (consumptionId) => {
+  if (!db) return Promise.resolve(0);
+
   return new Promise((resolve, reject) => {
     db.transaction(tx => {
       tx.executeSql(
@@ -375,6 +402,8 @@ export const removeFromDaily = (consumptionId) => {
 
 // Get weekly summary
 export const getWeeklySummary = () => {
+  if (!db) return Promise.resolve([]);
+
   return new Promise((resolve, reject) => {
     const endDate = new Date();
     const startDate = new Date();
