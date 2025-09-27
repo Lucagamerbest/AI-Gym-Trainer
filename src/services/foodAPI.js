@@ -303,13 +303,13 @@ export const foodAPI = {
   searchFood: async (query) => {
     try {
       const response = await fetch(
-        `${BASE_URL}/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1`
+        `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1`
       );
       const data = await response.json();
 
       if (data.products && data.products.length > 0) {
-        // Return top 10 results
-        return data.products.slice(0, 10).map(product => ({
+        // Return top 25 results for better variety
+        return data.products.slice(0, 25).map(product => ({
           name: product.product_name || 'Unknown',
           brand: product.brands || '',
           barcode: product.code,

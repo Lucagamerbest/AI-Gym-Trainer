@@ -39,21 +39,37 @@ export default function FoodSearchScreen({ navigation }) {
   const [mealType, setMealType] = useState('snack');
   const [activeTab, setActiveTab] = useState('search'); // search, favorites, recent
 
+  // Add real-time search as user types
+  useEffect(() => {
+    // Debounce search to avoid too many queries
+    const delayDebounce = setTimeout(() => {
+      if (activeTab === 'search' && searchQuery.length > 0) {
+        handleSearch();
+      }
+    }, 800); // 0.8 second delay - balanced for multi-word typing
+
+    return () => clearTimeout(delayDebounce);
+  }, [searchQuery, activeTab]);
+
   useEffect(() => {
     // Initialize database when screen loads
     initDatabase().then(async () => {
       // Check if database is empty and populate with default foods
       const existingFoods = await searchFoods('');
-      if (existingFoods.length === 0) {
-        console.log('Populating database with default foods...');
+
+      // Check if we have the new foods (100+ items) or just old ones
+      const hasBeef = existingFoods.some(f => f.name?.toLowerCase().includes('beef'));
+      const needsUpdate = existingFoods.length < 100 || !hasBeef;
+
+      if (existingFoods.length === 0 || needsUpdate) {
+        // Clear and repopulate to ensure we have all 100+ items
         for (const food of defaultFoods) {
           try {
             await saveFood(food);
           } catch (error) {
-            console.log('Error saving default food:', error);
+            // Silent error handling
           }
         }
-        console.log('Default foods added!');
         // Load all foods after adding defaults
         const allFoods = await searchFoods('');
         setSearchResults(allFoods);
@@ -310,7 +326,7 @@ export default function FoodSearchScreen({ navigation }) {
         <FlatList
           data={getDisplayList()}
           renderItem={renderFoodItem}
-          keyExtractor={(item) => item.id?.toString() || item.barcode}
+          keyExtractor={(item, index) => `${item.id || index}-${item.name || index}`}
           ListEmptyComponent={renderEmptyList}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}

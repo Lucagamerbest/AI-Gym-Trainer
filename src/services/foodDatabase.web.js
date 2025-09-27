@@ -26,12 +26,12 @@ export const saveFood = async (foodData) => {
         foodId = existingFoods[existingIndex].id;
       } else {
         // Add new
-        foodId = Date.now();
+        foodId = Date.now() + Math.random();
         existingFoods.push({ ...foodData, id: foodId });
       }
     } else {
       // Add new without barcode
-      foodId = Date.now();
+      foodId = Date.now() + Math.random();
       existingFoods.push({ ...foodData, id: foodId });
     }
 
@@ -60,10 +60,14 @@ export const searchFoods = async (searchQuery) => {
     const foods = await getFoods();
     const query = searchQuery.toLowerCase();
 
-    return foods.filter(food =>
-      food.name?.toLowerCase().includes(query) ||
-      food.brand?.toLowerCase().includes(query)
-    ).slice(0, 50);
+    const filtered = foods.filter(food => {
+      const nameMatch = food.name?.toLowerCase().includes(query);
+      const brandMatch = food.brand?.toLowerCase().includes(query);
+      return nameMatch || brandMatch;
+    });
+
+    // Return ALL matching results, not just 50
+    return filtered;
   } catch (error) {
     console.error('Error searching foods:', error);
     return [];
