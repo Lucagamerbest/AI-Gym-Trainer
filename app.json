@@ -30,8 +30,7 @@
       "bundler": "metro"
     },
     "plugins": [
-      "expo-web-browser",
-      "expo-sqlite"
+      "expo-web-browser"
     ]
   }
 }
