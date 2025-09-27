@@ -15,7 +15,7 @@ import StyledButton from '../components/StyledButton';
 import StyledCard from '../components/StyledCard';
 import NutriScoreModal from '../components/NutriScoreModal';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
-import { saveFoodFromAPI, addToDaily, initDatabase } from '../services/foodDatabase';
+import { saveFoodFromAPI, addToDaily, initDatabase } from '../services/foodDatabaseService';
 
 const SCAN_HISTORY_KEY = '@food_scan_history';
 

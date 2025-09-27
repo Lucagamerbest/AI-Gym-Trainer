@@ -1,4 +1,4 @@
-import * as SQLite from 'expo-sqlite/legacy';
+import * as SQLite from 'expo-sqlite';
 
 // Open or create the database
 const db = SQLite.openDatabase('foodtracker.db');

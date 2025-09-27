@@ -18,7 +18,7 @@ import {
   removeFromDaily,
   getWeeklySummary,
   initDatabase,
-} from '../services/foodDatabase';
+} from '../services/foodDatabaseService';
 
 export default function NutritionDashboard({ navigation }) {
   const [dailySummary, setDailySummary] = useState(null);

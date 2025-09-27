@@ -22,7 +22,7 @@ import {
   getRecentFoods,
   addToDaily,
   saveFoodFromAPI,
-} from '../services/foodDatabase';
+} from '../services/foodDatabaseService';
 import { foodAPI } from '../services/foodAPI';
 
 export default function FoodSearchScreen({ navigation }) {
