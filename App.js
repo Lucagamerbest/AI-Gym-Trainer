@@ -38,6 +38,7 @@ import WorkoutProgramsListScreen from './src/screens/WorkoutProgramsListScreen';
 import WorkoutDayEditScreen from './src/screens/WorkoutDayEditScreen';
 import ProgramDaySelectionScreen from './src/screens/ProgramDaySelectionScreen';
 import FoodSearchScreen from './src/screens/FoodSearchScreen';
+import EnhancedFoodSearchScreen from './src/screens/EnhancedFoodSearchScreen';
 import NutritionDashboard from './src/screens/NutritionDashboard';
 
 const Stack = createStackNavigator();

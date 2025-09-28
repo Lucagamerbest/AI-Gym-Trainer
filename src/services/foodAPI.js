@@ -26,17 +26,30 @@ const APIs = {
             imageUrl: product.image_url || product.image_front_url || null,
             nutritionGrade: product.nutrition_grades || null,  // Nutri-Score (a, b, c, d, e)
             novaGroup: product.nova_group || null,  // NOVA processing level (1-4)
-            nutrition: {
-              calories: product.nutriments?.['energy-kcal_100g'] || 0,
-              protein: product.nutriments?.proteins_100g || 0,
-              carbs: product.nutriments?.carbohydrates_100g || 0,
-              fat: product.nutriments?.fat_100g || 0,
-              fiber: product.nutriments?.fiber_100g || 0,
-              sugar: product.nutriments?.sugars_100g || 0,
-              sodium: product.nutriments?.sodium_100g || 0,
-              saturatedFat: product.nutriments?.['saturated-fat_100g'] || 0,
-              salt: product.nutriments?.salt_100g || 0,
-            },
+            nutrition: (() => {
+              const calories = product.nutriments?.['energy-kcal_100g'] || 0;
+              const protein = product.nutriments?.proteins_100g || 0;
+              const carbs = product.nutriments?.carbohydrates_100g || 0;
+              const fat = product.nutriments?.fat_100g || 0;
+
+              // Calculate calories from macros if missing or zero
+              let finalCalories = calories;
+              if (calories === 0 && (protein > 0 || carbs > 0 || fat > 0)) {
+                finalCalories = Math.round((protein * 4) + (carbs * 4) + (fat * 9));
+              }
+
+              return {
+                calories: finalCalories,
+                protein,
+                carbs,
+                fat,
+                fiber: product.nutriments?.fiber_100g || 0,
+                sugar: product.nutriments?.sugars_100g || 0,
+                sodium: product.nutriments?.sodium_100g || 0,
+                saturatedFat: product.nutriments?.['saturated-fat_100g'] || 0,
+                salt: product.nutriments?.salt_100g || 0,
+              };
+            })(),
             // Nutri-Score details for explanation - extract from components arrays
             nutriscoreData: (() => {
               const data = {
@@ -176,15 +189,28 @@ const APIs = {
               name: food.description || food.brandName || 'Unknown',
               brand: food.brandOwner || food.brandName || '',
               imageUrl: null, // USDA doesn't provide images
-              nutrition: {
-                calories: getNutrient('energy') || 0,
-                protein: getNutrient('protein') || 0,
-                carbs: getNutrient('carbohydrate') || 0,
-                fat: getNutrient('total lipid') || getNutrient('fat') || 0,
-                fiber: getNutrient('fiber') || 0,
-                sugar: getNutrient('sugar') || 0,
-                sodium: (getNutrient('sodium') || 0) / 1000, // Convert mg to g
-              },
+              nutrition: (() => {
+                const calories = getNutrient('energy') || 0;
+                const protein = getNutrient('protein') || 0;
+                const carbs = getNutrient('carbohydrate') || 0;
+                const fat = getNutrient('total lipid') || getNutrient('fat') || 0;
+
+                // Calculate calories from macros if missing or zero
+                let finalCalories = calories;
+                if (calories === 0 && (protein > 0 || carbs > 0 || fat > 0)) {
+                  finalCalories = Math.round((protein * 4) + (carbs * 4) + (fat * 9));
+                }
+
+                return {
+                  calories: finalCalories,
+                  protein,
+                  carbs,
+                  fat,
+                  fiber: getNutrient('fiber') || 0,
+                  sugar: getNutrient('sugar') || 0,
+                  sodium: (getNutrient('sodium') || 0) / 1000, // Convert mg to g
+                };
+              })(),
               servingSize: food.servingSize ? `${food.servingSize}${food.servingSizeUnit || ''}` : '100g',
             };
           }
@@ -219,15 +245,28 @@ const APIs = {
             name: product.name?.en || product.name?.de || product.name?.fr || 'Unknown',
             brand: product.product_brand || '',
             imageUrl: product.images?.[0]?.url || null,
-            nutrition: {
-              calories: nutrients.energy_kcal?.per_hundred || 0,
-              protein: nutrients.protein?.per_hundred || 0,
-              carbs: nutrients.carbohydrates?.per_hundred || 0,
-              fat: nutrients.fat?.per_hundred || 0,
-              fiber: nutrients.fiber?.per_hundred || 0,
-              sugar: nutrients.sugars?.per_hundred || 0,
-              sodium: (nutrients.salt?.per_hundred || 0) / 2.5, // Convert salt to sodium
-            },
+            nutrition: (() => {
+              const calories = nutrients.energy_kcal?.per_hundred || 0;
+              const protein = nutrients.protein?.per_hundred || 0;
+              const carbs = nutrients.carbohydrates?.per_hundred || 0;
+              const fat = nutrients.fat?.per_hundred || 0;
+
+              // Calculate calories from macros if missing or zero
+              let finalCalories = calories;
+              if (calories === 0 && (protein > 0 || carbs > 0 || fat > 0)) {
+                finalCalories = Math.round((protein * 4) + (carbs * 4) + (fat * 9));
+              }
+
+              return {
+                calories: finalCalories,
+                protein,
+                carbs,
+                fat,
+                fiber: nutrients.fiber?.per_hundred || 0,
+                sugar: nutrients.sugars?.per_hundred || 0,
+                sodium: (nutrients.salt?.per_hundred || 0) / 2.5, // Convert salt to sodium
+              };
+            })(),
             servingSize: product.serving_size || '100g',
           };
         }
@@ -309,18 +348,37 @@ export const foodAPI = {
 
       if (data.products && data.products.length > 0) {
         // Return top 25 results for better variety
-        return data.products.slice(0, 25).map(product => ({
-          name: product.product_name || 'Unknown',
-          brand: product.brands || '',
-          barcode: product.code,
-          imageUrl: product.image_url || product.image_front_small_url,
-          nutrition: {
-            calories: product.nutriments?.['energy-kcal_100g'] || 0,
-            protein: product.nutriments?.proteins_100g || 0,
-            carbs: product.nutriments?.carbohydrates_100g || 0,
-            fat: product.nutriments?.fat_100g || 0,
+        return data.products.slice(0, 25).map(product => {
+          const calories = product.nutriments?.['energy-kcal_100g'] || 0;
+          const protein = product.nutriments?.proteins_100g || 0;
+          const carbs = product.nutriments?.carbohydrates_100g || 0;
+          const fat = product.nutriments?.fat_100g || 0;
+
+          // Calculate calories from macros if missing or zero
+          let finalCalories = calories;
+          if (calories === 0 && (protein > 0 || carbs > 0 || fat > 0)) {
+            finalCalories = Math.round((protein * 4) + (carbs * 4) + (fat * 9));
           }
-        }));
+
+          return {
+            name: product.product_name || 'Unknown',
+            brand: product.brands || '',
+            barcode: product.code,
+            imageUrl: product.image_url || product.image_front_small_url,
+            nutrition: {
+              calories: finalCalories,
+              protein,
+              carbs,
+              fat,
+            }
+          };
+        }).filter(food =>
+          // Filter out foods with zero calories and no macros
+          food.nutrition.calories > 0 ||
+          food.nutrition.protein > 0 ||
+          food.nutrition.carbs > 0 ||
+          food.nutrition.fat > 0
+        );
       }
 
       return [];

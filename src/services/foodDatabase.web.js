@@ -66,8 +66,19 @@ export const searchFoods = async (searchQuery) => {
       return nameMatch || brandMatch;
     });
 
-    // Return ALL matching results, not just 50
-    return filtered;
+    // Filter out foods with zero calories and no nutritional content
+    const validFoods = filtered.filter(food => {
+      const calories = food.nutrition?.calories || food.calories || 0;
+      const protein = food.nutrition?.protein || food.protein || 0;
+      const carbs = food.nutrition?.carbs || food.carbs || 0;
+      const fat = food.nutrition?.fat || food.fat || 0;
+
+      // Keep foods that have at least some nutritional value
+      return calories > 0 || protein > 0 || carbs > 0 || fat > 0;
+    });
+
+    // Return ALL matching valid results
+    return validFoods;
   } catch (error) {
     console.error('Error searching foods:', error);
     return [];
@@ -302,14 +313,31 @@ export const getWeeklySummary = async () => {
 
 // Save food from API
 export const saveFoodFromAPI = async (apiData) => {
+  const calories = apiData.nutrition?.calories || 0;
+  const protein = apiData.nutrition?.protein || 0;
+  const carbs = apiData.nutrition?.carbs || 0;
+  const fat = apiData.nutrition?.fat || 0;
+
+  // Calculate calories from macros if missing or zero
+  let finalCalories = calories;
+  if (calories === 0 && (protein > 0 || carbs > 0 || fat > 0)) {
+    finalCalories = Math.round((protein * 4) + (carbs * 4) + (fat * 9));
+  }
+
+  // Skip saving foods with no nutritional value
+  if (finalCalories === 0 && protein === 0 && carbs === 0 && fat === 0) {
+    console.log('Skipping food with no nutritional data:', apiData.name);
+    return null;
+  }
+
   const foodData = {
     barcode: apiData.barcode,
     name: apiData.name,
     brand: apiData.brand,
-    calories: apiData.nutrition?.calories || 0,
-    protein: apiData.nutrition?.protein || 0,
-    carbs: apiData.nutrition?.carbs || 0,
-    fat: apiData.nutrition?.fat || 0,
+    calories: finalCalories,
+    protein,
+    carbs,
+    fat,
     fiber: apiData.nutrition?.fiber || 0,
     sugar: apiData.nutrition?.sugar || 0,
     sodium: apiData.nutrition?.sodium || 0,
