@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   TextInput,
   TouchableOpacity,
   FlatList,
+  ScrollView,
   Image,
   Modal,
   Alert,
@@ -25,11 +26,13 @@ import {
   saveFood,
 } from '../services/foodDatabaseService';
 import { foodAPI } from '../services/foodAPI';
-import { defaultFoods } from '../services/defaultFoods';
+import { smartSearchFoods, updateSearchHistory, getRecentSearches, getTrendingFoods } from '../services/smartFoodSearch';
 
 export default function FoodSearchScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
+  const [bestMatch, setBestMatch] = useState(null);
+  const [suggestedFoods, setSuggestedFoods] = useState([]);
   const [favorites, setFavorites] = useState([]);
   const [recentFoods, setRecentFoods] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -38,45 +41,28 @@ export default function FoodSearchScreen({ navigation }) {
   const [servingSize, setServingSize] = useState('100');
   const [mealType, setMealType] = useState('snack');
   const [activeTab, setActiveTab] = useState('search'); // search, favorites, recent
+  const searchInputRef = useRef(null);
+  const searchTimeoutRef = useRef(null);
+  const [isTyping, setIsTyping] = useState(false);
 
-  // Add real-time search as user types
+  // Simple debounced search
   useEffect(() => {
-    // Debounce search to avoid too many queries
-    const delayDebounce = setTimeout(() => {
-      if (activeTab === 'search' && searchQuery.length > 0) {
-        handleSearch();
+    const timer = setTimeout(() => {
+      if (activeTab === 'search') {
+        performSearch();
       }
-    }, 800); // 0.8 second delay - balanced for multi-word typing
+    }, 500);
 
-    return () => clearTimeout(delayDebounce);
-  }, [searchQuery, activeTab]);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
 
   useEffect(() => {
     // Initialize database when screen loads
     initDatabase().then(async () => {
-      // Check if database is empty and populate with default foods
-      const existingFoods = await searchFoods('');
-
-      // Check if we have the new foods (100+ items) or just old ones
-      const hasBeef = existingFoods.some(f => f.name?.toLowerCase().includes('beef'));
-      const needsUpdate = existingFoods.length < 100 || !hasBeef;
-
-      if (existingFoods.length === 0 || needsUpdate) {
-        // Clear and repopulate to ensure we have all 100+ items
-        for (const food of defaultFoods) {
-          try {
-            await saveFood(food);
-          } catch (error) {
-            // Silent error handling
-          }
-        }
-        // Load all foods after adding defaults
-        const allFoods = await searchFoods('');
-        setSearchResults(allFoods);
-      } else {
-        // Show existing foods
-        setSearchResults(existingFoods);
-      }
+      // Load all foods from the enhanced database
+      const allFoods = await searchFoods('');
+      setSearchResults(allFoods);
 
       loadFavorites();
       loadRecentFoods();
@@ -101,54 +87,43 @@ export default function FoodSearchScreen({ navigation }) {
     }
   };
 
-  const handleSearch = async () => {
-    // Allow empty search to show all foods
+  // Search function
+  const performSearch = async () => {
     const query = searchQuery.trim();
 
-    setIsLoading(true);
-    try {
-      // First search local database
-      const localResults = await searchFoods(query || '');
-
-      if (localResults.length > 0) {
-        setSearchResults(localResults);
-      } else {
-        // If no local results, search API
-        const apiResults = await foodAPI.searchFood(searchQuery);
-
-        if (apiResults.length > 0) {
-          // Save API results to local database
-          for (const food of apiResults) {
-            await saveFoodFromAPI({
-              ...food,
-              barcode: food.barcode,
-              name: food.name,
-              brand: food.brand,
-              nutrition: food.nutrition,
-              imageUrl: food.imageUrl,
-            });
-          }
-
-          // Search again to get the saved results
-          const updatedResults = await searchFoods(searchQuery);
-          setSearchResults(updatedResults);
-        } else {
-          setSearchResults([]);
-          Alert.alert('No Results', 'No foods found matching your search');
-        }
-      }
-    } catch (error) {
-      console.error('Search error:', error);
-      Alert.alert('Error', 'Failed to search for foods');
-    } finally {
-      setIsLoading(false);
+    if (query.length === 0) {
+      setBestMatch(null);
+      setSuggestedFoods([]);
+      const allFoods = await searchFoods('');
+      setSearchResults(allFoods);
+      return;
     }
+
+    const allFoods = await searchFoods(query);
+    const smartResults = await smartSearchFoods(allFoods, query, {
+      limit: 50,
+      offset: 0,
+      includeCategories: false,
+      includeSuggestions: true
+    });
+
+    setBestMatch(smartResults.bestMatch);
+    setSuggestedFoods(smartResults.suggested || []);
+    setSearchResults(smartResults.all);
   };
 
-  const handleFoodSelect = (food) => {
+  // Handle search on Enter or button press (for manual search)
+  const handleSearch = async () => {
+    performSearch();
+  };
+
+  const handleFoodSelect = async (food) => {
     setSelectedFood(food);
     setServingSize('100');
     setShowAddModal(true);
+
+    // Update search history for better future results
+    await updateSearchHistory(food);
   };
 
   const handleAddToDaily = async () => {
@@ -252,14 +227,8 @@ export default function FoodSearchScreen({ navigation }) {
     }
   };
 
-  return (
-    <ScreenLayout
-      title="Add Food"
-      subtitle="Search or scan foods to track calories"
-      navigation={navigation}
-      showBack={true}
-      scrollable={false}
-    >
+  const renderHeader = () => (
+    <>
       {/* Search Bar */}
       <View style={styles.searchContainer}>
         <TextInput
@@ -268,7 +237,6 @@ export default function FoodSearchScreen({ navigation }) {
           placeholderTextColor={Colors.textMuted}
           value={searchQuery}
           onChangeText={setSearchQuery}
-          onSubmitEditing={handleSearch}
           returnKeyType="search"
         />
         <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
@@ -316,7 +284,58 @@ export default function FoodSearchScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      {/* Results List */}
+      {/* Best Match */}
+      {activeTab === 'search' && bestMatch && searchQuery.length > 0 && (
+        <View style={styles.bestMatchContainer}>
+          <Text style={styles.sectionTitle}>Best Match</Text>
+          <TouchableOpacity
+            style={styles.bestMatchCard}
+            onPress={() => handleFoodSelect(bestMatch)}
+          >
+            <View style={styles.bestMatchInfo}>
+              <Text style={styles.bestMatchName}>{bestMatch.name}</Text>
+              {bestMatch.brand && (
+                <Text style={styles.bestMatchBrand}>{bestMatch.brand}</Text>
+              )}
+              <Text style={styles.bestMatchCalories}>{bestMatch.calories} cal per {bestMatch.serving_size || '100g'}</Text>
+            </View>
+            <TouchableOpacity style={styles.addButton} onPress={() => handleFoodSelect(bestMatch)}>
+              <Text style={styles.addButtonText}>+</Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* Suggested Foods - Using ScrollView instead of FlatList to avoid nesting */}
+      {activeTab === 'search' && suggestedFoods.length > 0 && searchQuery.length > 0 && (
+        <View style={styles.suggestedContainer}>
+          <Text style={styles.sectionTitle}>Suggested</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {suggestedFoods.map((item, index) => (
+              <TouchableOpacity
+                key={`suggested-${item.id || item.name}-${index}`}
+                style={styles.suggestedCard}
+                onPress={() => handleFoodSelect(item)}
+              >
+                <Text style={styles.suggestedName} numberOfLines={2}>{item.name}</Text>
+                <Text style={styles.suggestedCalories}>{item.calories} cal</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      )}
+    </>
+  );
+
+  return (
+    <ScreenLayout
+      title="Add Food"
+      subtitle="Search foods (500ms delay) - v2"
+      navigation={navigation}
+      showBack={true}
+      scrollable={false}
+    >
+      {/* Single FlatList with everything */}
       {isLoading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.primary} />
@@ -327,9 +346,11 @@ export default function FoodSearchScreen({ navigation }) {
           data={getDisplayList()}
           renderItem={renderFoodItem}
           keyExtractor={(item, index) => `${item.id || index}-${item.name || index}`}
+          ListHeaderComponent={renderHeader}
           ListEmptyComponent={renderEmptyList}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="always"
         />
       )}
 
@@ -569,7 +590,7 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
   },
   listContent: {
-    flexGrow: 1,
+    paddingBottom: 100,
   },
   modalOverlay: {
     flex: 1,
@@ -667,5 +688,69 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginTop: Spacing.xl,
     gap: Spacing.md,
+  },
+  // Best Match styles
+  bestMatchContainer: {
+    marginBottom: Spacing.md,
+  },
+  sectionTitle: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: Spacing.sm,
+    marginLeft: Spacing.xs,
+  },
+  bestMatchCard: {
+    backgroundColor: Colors.primary + '15',
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: Colors.primary,
+  },
+  bestMatchInfo: {
+    flex: 1,
+  },
+  bestMatchName: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 2,
+  },
+  bestMatchBrand: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+    marginBottom: 4,
+  },
+  bestMatchCalories: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.primary,
+    fontWeight: '500',
+  },
+  // Suggested styles
+  suggestedContainer: {
+    marginBottom: Spacing.lg,
+  },
+  suggestedCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    marginRight: Spacing.sm,
+    width: 120,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  suggestedName: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '500',
+    color: Colors.text,
+    marginBottom: 4,
+  },
+  suggestedCalories: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.primary,
+    fontWeight: '600',
   },
 });
