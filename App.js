@@ -38,6 +38,7 @@ import WorkoutProgramsListScreen from './src/screens/WorkoutProgramsListScreen';
 import WorkoutDayEditScreen from './src/screens/WorkoutDayEditScreen';
 import ProgramDaySelectionScreen from './src/screens/ProgramDaySelectionScreen';
 import FoodSearchScreen from './src/screens/FoodSearchScreen';
+import FoodDetailScreen from './src/screens/FoodDetailScreen';
 import EnhancedFoodSearchScreen from './src/screens/EnhancedFoodSearchScreen';
 import NutritionDashboard from './src/screens/NutritionDashboard';
 
@@ -120,6 +121,7 @@ function AppNavigator() {
             <Stack.Screen name="Nutrition" component={NutritionScreen} />
             <Stack.Screen name="NutritionDashboard" component={NutritionDashboard} />
             <Stack.Screen name="FoodSearch" component={FoodSearchScreen} />
+            <Stack.Screen name="FoodDetail" component={FoodDetailScreen} />
             <Stack.Screen name="FoodScanning" component={FoodScanningScreen} />
             <Stack.Screen name="Camera" component={CameraScreen} />
             <Stack.Screen name="FoodScan" component={FoodScanScreen} />

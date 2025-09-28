@@ -1,365 +1,483 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   TextInput,
   TouchableOpacity,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
   ActivityIndicator,
+  StyleSheet,
+  Keyboard,
+  Platform,
 } from 'react-native';
+import ScreenLayout from '../components/ScreenLayout';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { searchFoods, initDatabase } from '../services/foodDatabaseService';
+import { hybridSearch } from '../services/openFoodFactsService';
+
+// Popular foods to show initially
+const POPULAR_FOODS = [
+  'Chicken Breast', 'Rice', 'Eggs', 'Banana', 'Oatmeal',
+  'Salmon', 'Greek Yogurt', 'Sweet Potato', 'Avocado', 'Almonds'
+];
 
 export default function FoodSearchScreen({ navigation }) {
-  // State for search
   const [searchText, setSearchText] = useState('');
-  const [results, setResults] = useState([]);
+  const [allFoods, setAllFoods] = useState([]);
+  const [displayedFoods, setDisplayedFoods] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isSearching, setIsSearching] = useState(false);
-  const [hasSearched, setHasSearched] = useState(false);
 
-  // Refs for debouncing
-  const searchTimer = useRef(null);
-  const searchInput = useRef(null);
+  const searchTimeoutRef = useRef(null);
 
-  // Initialize database on mount
+  // Initialize database and load foods on mount
   useEffect(() => {
-    console.log('[FoodSearch] Component mounted');
-    initDatabase().then(() => {
-      console.log('[FoodSearch] Database initialized');
-    });
+    const initializeData = async () => {
+      console.log('Starting to initialize food database...');
+      try {
+        await initDatabase();
+        const foods = await searchFoods('');
+        console.log('Loaded foods count:', foods.length);
+        setAllFoods(foods);
 
-    // Cleanup
-    return () => {
-      console.log('[FoodSearch] Component unmounting, clearing timer');
-      if (searchTimer.current) {
-        clearTimeout(searchTimer.current);
+        // Show popular foods initially
+        const popularItems = foods.filter(food =>
+          POPULAR_FOODS.some(popular =>
+            food.name.toLowerCase().includes(popular.toLowerCase())
+          )
+        ).slice(0, 20);
+
+        console.log('Popular items count:', popularItems.length);
+        const itemsToDisplay = popularItems.length > 0 ? popularItems : foods.slice(0, 20);
+        console.log('Items to display:', itemsToDisplay.length);
+        setDisplayedFoods(itemsToDisplay);
+      } catch (error) {
+        console.error('Failed to initialize foods:', error);
+        setDisplayedFoods([]);
+      } finally {
+        setIsLoading(false);
       }
     };
+
+    initializeData();
   }, []);
 
-  // Perform the actual search
-  const doSearch = async (query) => {
-    console.log(`[SimpleSearch] Performing search for: "${query}"`);
-    setIsSearching(true);
-    setHasSearched(true);
-
-    try {
-      const searchResults = await searchFoods(query);
-      console.log(`[SimpleSearch] Found ${searchResults.length} results`);
-      setResults(searchResults.slice(0, 20)); // Limit to 20 results
-    } catch (error) {
-      console.error('[SimpleSearch] Search error:', error);
-      setResults([]);
-    } finally {
+  // Handle search with debouncing
+  const performSearch = useCallback(async (query) => {
+    if (!query.trim()) {
+      // Show popular foods when search is empty
+      const popularItems = allFoods.filter(food =>
+        POPULAR_FOODS.some(popular =>
+          food.name.toLowerCase().includes(popular.toLowerCase())
+        )
+      ).slice(0, 20);
+      setDisplayedFoods(popularItems.length > 0 ? popularItems : allFoods.slice(0, 20));
       setIsSearching(false);
-    }
-  };
-
-  // Handle text input changes with debouncing
-  const handleTextChange = (text) => {
-    console.log(`[SimpleSearch] Text changed to: "${text}" at ${Date.now()}`);
-    setSearchText(text);
-
-    // Clear existing timer
-    if (searchTimer.current) {
-      console.log('[FoodSearch] Clearing existing timer');
-      clearTimeout(searchTimer.current);
-      searchTimer.current = null;
-    }
-
-    // Don't search if text is empty
-    if (text.trim() === '') {
-      setResults([]);
-      setHasSearched(false);
       return;
     }
 
-    // Set new timer for debounced search
-    console.log('[FoodSearch] Setting new timer (800ms)');
-    searchTimer.current = setTimeout(() => {
-      console.log('[FoodSearch] Timer fired, initiating search');
-      doSearch(text.trim());
-    }, 800);
-  };
+    setIsSearching(true);
+    const queryLower = query.toLowerCase().trim();
+    const queryWords = queryLower.split(' ');
 
-  // Handle immediate search (when search button is pressed)
-  const handleSearchPress = () => {
-    console.log('[FoodSearch] Search button pressed');
+    // Import the smart search ranking
+    const { smartSearchFoods } = await import('../services/smartFoodSearch');
 
-    // Clear any pending timer
-    if (searchTimer.current) {
-      clearTimeout(searchTimer.current);
-      searchTimer.current = null;
+    // Filter function to exclude overly specific branded products
+    const shouldIncludeFood = (food) => {
+      const nameLower = food.name.toLowerCase();
+      const brandLower = (food.brand || '').toLowerCase();
+
+      // Always include if it's from our local database (not API)
+      if (food.source === 'default' || food.source === 'verified') {
+        // But still filter out specific branded items unless searched for
+        if (brandLower && !queryWords.some(word => brandLower.includes(word))) {
+          // Check if this is a very specific product (has brand + specific flavor/variant)
+          const nameWords = nameLower.split(/[\s,\-–]+/);
+          if (nameWords.length > 4 || nameLower.includes('–') || nameLower.includes(' - ')) {
+            return false; // Too specific, hide it
+          }
+        }
+      }
+
+      // For API results, be more strict
+      if (food.source === 'openfoodfacts') {
+        // Must match query more closely or have brand mentioned
+        if (brandLower) {
+          // Check if user is searching for the brand
+          const searchingForBrand = queryWords.some(word =>
+            word.length > 2 && brandLower.includes(word)
+          );
+
+          // Check if user is searching for specific product details
+          const searchingForSpecific = queryWords.length > 2 ||
+            queryWords.some(word => word.length > 5);
+
+          if (!searchingForBrand && !searchingForSpecific) {
+            // Hide specific branded products for generic searches
+            return false;
+          }
+        }
+      }
+
+      // Always include foods that closely match the search
+      return nameLower.includes(queryLower);
+    };
+
+    // First, search and filter local database
+    const localResults = allFoods.filter(food => {
+      const nameLower = food.name.toLowerCase();
+      // Must contain the query AND pass the inclusion filter
+      return nameLower.includes(queryLower) && shouldIncludeFood(food);
+    });
+
+    // Apply smart ranking to filtered local results
+    const rankedResults = await smartSearchFoods(localResults, query, { limit: 100 });
+
+    // Use hybrid search to combine with API results if needed
+    try {
+      const { combined } = await hybridSearch(query, rankedResults.all.slice(0, 20));
+
+      // Filter the combined results to exclude overly specific products
+      const filteredCombined = combined.filter(shouldIncludeFood);
+
+      // Re-rank the filtered results to ensure whole foods are prioritized
+      const finalRanked = await smartSearchFoods(filteredCombined, query, { limit: 50 });
+      setDisplayedFoods(finalRanked.all);
+    } catch (error) {
+      console.error('Search error:', error);
+      // Fallback to smart-ranked local results if API fails
+      setDisplayedFoods(rankedResults.all.slice(0, 50));
     }
 
-    // Perform search immediately
-    if (searchText.trim()) {
-      doSearch(searchText.trim());
+    setIsSearching(false);
+  }, [allFoods]);
+
+  // Handle text input changes with debouncing
+  const handleSearchChange = (text) => {
+    setSearchText(text);
+
+    // Clear existing timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
     }
+
+    // Set new timeout for search
+    searchTimeoutRef.current = setTimeout(() => {
+      performSearch(text);
+    }, 500);
   };
 
-  // Handle food item selection
-  const handleFoodPress = (food) => {
-    console.log(`[SimpleSearch] Selected food: ${food.name}`);
-    // Navigate back or handle selection as needed
-    navigation.goBack();
+  // Clear search
+  const clearSearch = () => {
+    setSearchText('');
+    performSearch('');
+    Keyboard.dismiss();
+  };
+
+  // Handle food selection
+  const selectFood = (food) => {
+    console.log('Selected food:', food.name);
+    // Navigate to food detail screen
+    navigation.navigate('FoodDetail', { food });
+  };
+
+  // Render individual food item
+  const renderFoodItem = ({ item, index }) => (
+    <TouchableOpacity
+      style={styles.foodCard}
+      onPress={() => selectFood(item)}
+      activeOpacity={0.7}
+    >
+      <View style={styles.foodHeader}>
+        <Text style={styles.foodName} numberOfLines={1}>
+          {item.name}
+        </Text>
+        <Text style={styles.foodCalories}>
+          {item.calories} cal/100g
+        </Text>
+      </View>
+      <View style={styles.macrosContainer}>
+        <View style={styles.macroItem}>
+          <Text style={styles.macroLabel}>Protein</Text>
+          <Text style={styles.macroValue}>{item.protein || 0}g</Text>
+        </View>
+        <View style={styles.macroItem}>
+          <Text style={styles.macroLabel}>Carbs</Text>
+          <Text style={styles.macroValue}>{item.carbs || 0}g</Text>
+        </View>
+        <View style={styles.macroItem}>
+          <Text style={styles.macroLabel}>Fat</Text>
+          <Text style={styles.macroValue}>{item.fat || 0}g</Text>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+
+  // Render list header
+  const renderListHeader = () => {
+    if (isSearching) {
+      return (
+        <View style={styles.messageContainer}>
+          <ActivityIndicator size="small" color={Colors.primary} />
+          <Text style={styles.messageText}>Searching...</Text>
+        </View>
+      );
+    }
+
+    if (!isLoading && displayedFoods.length === 0 && searchText) {
+      return (
+        <View style={styles.messageContainer}>
+          <Text style={styles.messageText}>No foods found for "{searchText}"</Text>
+        </View>
+      );
+    }
+
+    if (!searchText && displayedFoods.length > 0) {
+      return (
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Popular Foods</Text>
+        </View>
+      );
+    }
+
+    if (searchText && displayedFoods.length > 0) {
+      return (
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>
+            {displayedFoods.length} Result{displayedFoods.length !== 1 ? 's' : ''}
+          </Text>
+        </View>
+      );
+    }
+
+    return null;
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    <ScreenLayout
+      title="Add Food"
+      subtitle="Search and track your meals"
+      navigation={navigation}
+      showBack={true}
+      scrollable={true}
     >
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={styles.backText}>← Back</Text>
-        </TouchableOpacity>
-        <Text style={styles.title}>Food Search</Text>
-      </View>
-
-      {/* Search Input Area - NOT in ScrollView */}
-      <View style={styles.searchSection}>
-        <View style={styles.inputContainer}>
-          <TextInput
-            ref={searchInput}
-            style={styles.input}
-            placeholder="Type to search foods..."
-            placeholderTextColor={Colors.textMuted}
-            value={searchText}
-            onChangeText={handleTextChange}
-            autoFocus={true}
-            autoCorrect={false}
-            autoCapitalize="none"
-            returnKeyType="search"
-            onSubmitEditing={handleSearchPress}
-          />
-          <TouchableOpacity
-            style={styles.searchButton}
-            onPress={handleSearchPress}
-            disabled={!searchText.trim()}
-          >
-            <Text style={styles.searchButtonText}>🔍</Text>
-          </TouchableOpacity>
+      <View style={styles.container}>
+        {/* Search Bar Section */}
+        <View style={styles.searchSection}>
+          <View style={styles.searchBar}>
+            <Text style={styles.searchIcon}>🔍</Text>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search foods..."
+              placeholderTextColor={Colors.textMuted}
+              value={searchText}
+              onChangeText={handleSearchChange}
+              returnKeyType="search"
+              autoCorrect={false}
+              autoCapitalize="none"
+            />
+            {searchText.length > 0 && (
+              <TouchableOpacity onPress={clearSearch} style={styles.clearButton}>
+                <Text style={styles.clearButtonText}>✕</Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
 
-        {/* Debug Info */}
-        <View style={styles.debugInfo}>
-          <Text style={styles.debugText}>
-            Text: "{searchText}" |
-            Searching: {isSearching ? 'Yes' : 'No'} |
-            Results: {results.length}
-          </Text>
-        </View>
-      </View>
-
-      {/* Results Area - In ScrollView */}
-      <ScrollView
-        style={styles.resultsContainer}
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={styles.resultsContent}
-      >
-        {isSearching && (
+        {/* Main Content */}
+        {isLoading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={Colors.primary} />
-            <Text style={styles.loadingText}>Searching...</Text>
+            <Text style={styles.loadingText}>Loading foods...</Text>
           </View>
-        )}
-
-        {!isSearching && hasSearched && results.length === 0 && (
-          <View style={styles.noResultsContainer}>
-            <Text style={styles.noResultsText}>No results found for "{searchText}"</Text>
+        ) : displayedFoods.length === 0 ? (
+          <View style={styles.loadingContainer}>
+            <Text style={styles.loadingText}>No foods loaded. Check database initialization.</Text>
           </View>
-        )}
-
-        {!isSearching && results.length > 0 && (
-          <View>
-            <Text style={styles.resultsTitle}>
-              Found {results.length} result{results.length !== 1 ? 's' : ''}
-            </Text>
-            {results.map((food, index) => (
+        ) : (
+          <View style={styles.listContainer}>
+            {renderListHeader()}
+            {displayedFoods.map((item, index) => (
               <TouchableOpacity
-                key={`${food.id}-${index}`}
-                style={styles.foodItem}
-                onPress={() => handleFoodPress(food)}
+                key={`food-${index}`}
+                style={styles.foodCard}
+                onPress={() => selectFood(item)}
+                activeOpacity={0.7}
               >
-                <View style={styles.foodInfo}>
-                  <Text style={styles.foodName}>{food.name}</Text>
-                  <Text style={styles.foodCategory}>
-                    {food.category || 'General'} • {food.calories} cal/100g
+                <View style={styles.foodHeader}>
+                  <View style={styles.foodTitleRow}>
+                    <Text style={styles.foodName} numberOfLines={1}>
+                      {item.name}
+                    </Text>
+                    {item.source === 'openfoodfacts' && (
+                      <View style={styles.apiIndicator}>
+                        <Text style={styles.apiIndicatorText}>API</Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text style={styles.foodCalories}>
+                    {item.calories} cal/100g
                   </Text>
                 </View>
-                <View style={styles.macros}>
-                  <Text style={styles.macroText}>P: {food.protein}g</Text>
-                  <Text style={styles.macroText}>C: {food.carbs}g</Text>
-                  <Text style={styles.macroText}>F: {food.fat}g</Text>
+                <View style={styles.macrosContainer}>
+                  <View style={styles.macroItem}>
+                    <Text style={styles.macroLabel}>Protein</Text>
+                    <Text style={styles.macroValue}>{item.protein || 0}g</Text>
+                  </View>
+                  <View style={styles.macroItem}>
+                    <Text style={styles.macroLabel}>Carbs</Text>
+                    <Text style={styles.macroValue}>{item.carbs || 0}g</Text>
+                  </View>
+                  <View style={styles.macroItem}>
+                    <Text style={styles.macroLabel}>Fat</Text>
+                    <Text style={styles.macroValue}>{item.fat || 0}g</Text>
+                  </View>
                 </View>
               </TouchableOpacity>
             ))}
           </View>
         )}
-
-        {!hasSearched && !isSearching && (
-          <View style={styles.instructionsContainer}>
-            <Text style={styles.instructionsTitle}>How to use:</Text>
-            <Text style={styles.instructionsText}>
-              1. Type in the search box above{'\n'}
-              2. Wait for automatic search after you stop typing{'\n'}
-              3. Or tap the search button for immediate search{'\n'}
-              4. Tap any food to select it
-            </Text>
-          </View>
-        )}
-      </ScrollView>
-    </KeyboardAvoidingView>
+      </View>
+    </ScreenLayout>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-    backgroundColor: Colors.surface,
-  },
-  backButton: {
-    marginRight: Spacing.md,
-  },
-  backText: {
-    color: Colors.primary,
-    fontSize: Typography.fontSize.md,
-  },
-  title: {
-    fontSize: Typography.fontSize.lg,
-    fontWeight: 'bold',
-    color: Colors.text,
   },
   searchSection: {
-    backgroundColor: Colors.surface,
-    padding: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
   },
-  inputContainer: {
+  searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  input: {
-    flex: 1,
-    height: 45,
-    backgroundColor: Colors.background,
-    borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing.md,
-    fontSize: Typography.fontSize.md,
-    color: Colors.text,
-    borderWidth: 2,
-    borderColor: Colors.primary,
-  },
-  searchButton: {
-    width: 45,
-    height: 45,
-    backgroundColor: Colors.primary,
-    borderRadius: BorderRadius.md,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: Spacing.sm,
-  },
-  searchButtonText: {
-    fontSize: 20,
-  },
-  debugInfo: {
-    marginTop: Spacing.sm,
-    padding: Spacing.xs,
-    backgroundColor: Colors.background,
-    borderRadius: BorderRadius.sm,
-  },
-  debugText: {
-    fontSize: Typography.fontSize.xs,
-    color: Colors.textSecondary,
-    fontFamily: 'monospace',
-  },
-  resultsContainer: {
-    flex: 1,
-  },
-  resultsContent: {
-    padding: Spacing.md,
-  },
-  loadingContainer: {
-    alignItems: 'center',
-    padding: Spacing.xl,
-  },
-  loadingText: {
-    marginTop: Spacing.md,
-    color: Colors.textSecondary,
-    fontSize: Typography.fontSize.md,
-  },
-  noResultsContainer: {
-    alignItems: 'center',
-    padding: Spacing.xl,
-  },
-  noResultsText: {
-    color: Colors.textSecondary,
-    fontSize: Typography.fontSize.md,
-  },
-  resultsTitle: {
-    fontSize: Typography.fontSize.md,
-    color: Colors.textSecondary,
-    marginBottom: Spacing.md,
-  },
-  foodItem: {
     backgroundColor: Colors.surface,
-    padding: Spacing.md,
-    marginBottom: Spacing.sm,
-    borderRadius: BorderRadius.md,
+    borderRadius: BorderRadius.xl,
+    paddingHorizontal: Spacing.md,
+    height: 50,
     borderWidth: 1,
     borderColor: Colors.border,
   },
-  foodInfo: {
-    marginBottom: Spacing.sm,
+  searchIcon: {
+    fontSize: 20,
+    marginRight: Spacing.sm,
   },
-  foodName: {
+  searchInput: {
+    flex: 1,
     fontSize: Typography.fontSize.md,
-    fontWeight: 'bold',
     color: Colors.text,
-    marginBottom: Spacing.xs,
+    paddingVertical: 0,
   },
-  foodCategory: {
-    fontSize: Typography.fontSize.sm,
+  clearButton: {
+    padding: Spacing.xs,
+  },
+  clearButtonText: {
+    fontSize: 20,
+    color: Colors.textMuted,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: Spacing.md,
+    fontSize: Typography.fontSize.md,
     color: Colors.textSecondary,
   },
-  macros: {
+  listContainer: {
+    paddingHorizontal: 0,
+    paddingBottom: Spacing.xl * 3,
+  },
+  sectionHeader: {
+    marginBottom: Spacing.md,
+    marginHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+  },
+  sectionTitle: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+  },
+  messageContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingTop: Spacing.sm,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: Spacing.xl,
+  },
+  messageText: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.textSecondary,
+    marginLeft: Spacing.sm,
+  },
+  foodCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    paddingHorizontal: Spacing.xl,  // More horizontal padding
+    paddingVertical: Spacing.md,  // Reduced from lg to md
+    marginBottom: Spacing.md,
+    marginHorizontal: Spacing.xs,  // Even smaller margins for wider cards
+    borderWidth: 1,
+    borderColor: Colors.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  foodHeader: {
+    marginBottom: Spacing.md,
+  },
+  foodTitleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.xs,
+  },
+  foodName: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: '600',
+    color: Colors.text,
+    flex: 1,
+  },
+  apiIndicator: {
+    backgroundColor: Colors.primary,
+    paddingHorizontal: Spacing.xs,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.sm,
+    marginLeft: Spacing.sm,
+  },
+  apiIndicatorText: {
+    fontSize: Typography.fontSize.xs,
+    color: 'white',
+    fontWeight: '600',
+  },
+  foodCalories: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.primary,
+    fontWeight: '500',
+  },
+  macrosContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingTop: Spacing.md,
     borderTopWidth: 1,
     borderTopColor: Colors.border,
   },
-  macroText: {
-    fontSize: Typography.fontSize.sm,
-    color: Colors.textSecondary,
-  },
-  instructionsContainer: {
-    padding: Spacing.xl,
+  macroItem: {
     alignItems: 'center',
+    flex: 1,
   },
-  instructionsTitle: {
-    fontSize: Typography.fontSize.lg,
-    fontWeight: 'bold',
-    color: Colors.text,
-    marginBottom: Spacing.md,
+  macroLabel: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textMuted,
+    marginBottom: 2,
   },
-  instructionsText: {
+  macroValue: {
     fontSize: Typography.fontSize.md,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 24,
+    fontWeight: '600',
+    color: Colors.text,
   },
 });

@@ -60,11 +60,44 @@ export const COMMON_PORTIONS = {
 // Calculate relevance score for search results
 const calculateRelevanceScore = (food, query, userHistory = {}) => {
   let score = 0;
-  const queryLower = query.toLowerCase();
+  const queryLower = query.toLowerCase().trim();
   const nameLower = (food.name || '').toLowerCase();
   const brandLower = (food.brand || '').toLowerCase();
 
-  // Exact match bonus (highest priority)
+  // SUPER HIGH PRIORITY: Simple whole foods that exactly match
+  const wholeFoodNames = [
+    'banana', 'apple', 'orange', 'grape', 'strawberry', 'blueberry', 'mango', 'pineapple',
+    'chicken', 'beef', 'pork', 'salmon', 'tuna', 'egg', 'eggs',
+    'rice', 'pasta', 'bread', 'oats', 'quinoa',
+    'milk', 'cheese', 'yogurt', 'butter',
+    'potato', 'carrot', 'broccoli', 'spinach', 'lettuce', 'tomato'
+  ];
+
+  // Check if query is looking for a whole food
+  const isWholeFoodQuery = wholeFoodNames.some(food => queryLower === food || queryLower === food + 's');
+
+  if (isWholeFoodQuery) {
+    // Massive bonus for actual whole foods vs processed products
+    if (nameLower === queryLower || nameLower === queryLower + 's' || queryLower === nameLower + 's') {
+      score += 10000; // Exact whole food match
+    } else if (nameLower.startsWith(queryLower + ' ') || nameLower.startsWith(queryLower + ',')) {
+      score += 5000; // E.g., "Banana, raw" or "Banana fresh"
+    } else if (!brandLower && nameLower.includes(queryLower) && nameLower.split(' ').length <= 3) {
+      score += 2000; // Simple food name containing query, no brand
+    }
+
+    // Penalize processed/flavored products when searching for whole foods
+    if (nameLower.includes('yogurt') || nameLower.includes('cereal') ||
+        nameLower.includes('bar') || nameLower.includes('smoothie') ||
+        nameLower.includes('flavored') || nameLower.includes('shake') ||
+        nameLower.includes('chips') || nameLower.includes('candy')) {
+      if (queryLower !== 'yogurt' && queryLower !== 'cereal') {
+        score -= 500; // Penalty for processed products
+      }
+    }
+  }
+
+  // Regular exact match bonus
   if (nameLower === queryLower) {
     score += 1000;
   } else if (nameLower.includes(queryLower)) {
@@ -76,14 +109,20 @@ const calculateRelevanceScore = (food, query, userHistory = {}) => {
     }
   }
 
-  // Brand match bonus
-  if (brandLower.includes(queryLower)) {
-    score += 100;
+  // Bonus for foods without brands (likely whole foods)
+  if (!brandLower && food.category && (food.category === 'Fruits' || food.category === 'Vegetables' ||
+      food.category === 'Proteins' || food.category === 'Grains')) {
+    score += 300;
   }
 
-  // Popular brand bonus
+  // Brand match bonus (reduced for whole food queries)
+  if (brandLower.includes(queryLower)) {
+    score += isWholeFoodQuery ? 50 : 100;
+  }
+
+  // Popular brand bonus (reduced for whole food queries)
   if (POPULAR_BRANDS.some(brand => brandLower.includes(brand.toLowerCase()))) {
-    score += 50;
+    score += isWholeFoodQuery ? 10 : 50;
   }
 
   // Word order matters - earlier words are more important

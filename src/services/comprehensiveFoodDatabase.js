@@ -8,7 +8,7 @@ export const comprehensiveFoods = [
   // Beef
   {
     name: "Ground Beef 70/30 (raw)",
-    brand: "Generic",
+    brand: "",
     calories: 332,
     protein: 14,
     carbs: 0,
@@ -23,7 +23,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Ground Beef 80/20 (raw)",
-    brand: "Generic",
+    brand: "",
     calories: 254,
     protein: 17.2,
     carbs: 0,
@@ -38,7 +38,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Ground Beef 90/10 (raw)",
-    brand: "Generic",
+    brand: "",
     calories: 176,
     protein: 20,
     carbs: 0,
@@ -53,7 +53,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Ground Beef 93/7 (raw)",
-    brand: "Generic",
+    brand: "",
     calories: 152,
     protein: 21.4,
     carbs: 0,
@@ -68,7 +68,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Ribeye Steak (raw)",
-    brand: "Generic",
+    brand: "",
     calories: 265,
     protein: 21,
     carbs: 0,
@@ -83,7 +83,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Sirloin Steak (raw)",
-    brand: "Generic",
+    brand: "",
     calories: 183,
     protein: 23,
     carbs: 0,
@@ -98,7 +98,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Filet Mignon (raw)",
-    brand: "Generic",
+    brand: "",
     calories: 218,
     protein: 22,
     carbs: 0,
@@ -113,7 +113,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "T-Bone Steak (raw)",
-    brand: "Generic",
+    brand: "",
     calories: 247,
     protein: 19,
     carbs: 0,
@@ -130,7 +130,7 @@ export const comprehensiveFoods = [
   // Chicken
   {
     name: "Chicken Breast (boneless, skinless, raw)",
-    brand: "Generic",
+    brand: "",
     calories: 165,
     protein: 31,
     carbs: 0,
@@ -145,7 +145,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Chicken Thigh (boneless, skinless, raw)",
-    brand: "Generic",
+    brand: "",
     calories: 209,
     protein: 20,
     carbs: 0,
@@ -160,7 +160,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Chicken Wings (raw)",
-    brand: "Generic",
+    brand: "",
     calories: 191,
     protein: 18,
     carbs: 0,
@@ -175,7 +175,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Chicken Drumsticks (raw)",
-    brand: "Generic",
+    brand: "",
     calories: 172,
     protein: 18.6,
     carbs: 0,
@@ -190,7 +190,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Ground Chicken (raw)",
-    brand: "Generic",
+    brand: "",
     calories: 143,
     protein: 17.4,
     carbs: 0,
@@ -205,7 +205,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Rotisserie Chicken (meat only)",
-    brand: "Generic",
+    brand: "",
     calories: 184,
     protein: 28.9,
     carbs: 0,
@@ -269,7 +269,7 @@ export const comprehensiveFoods = [
   // Pork
   {
     name: "Pork Chops (center cut, raw)",
-    brand: "Generic",
+    brand: "",
     calories: 242,
     protein: 19.6,
     carbs: 0,
@@ -284,7 +284,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Pork Tenderloin (raw)",
-    brand: "Generic",
+    brand: "",
     calories: 143,
     protein: 20.9,
     carbs: 0,
@@ -299,7 +299,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Ground Pork (raw)",
-    brand: "Generic",
+    brand: "",
     calories: 263,
     protein: 16.9,
     carbs: 0,
@@ -314,7 +314,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Bacon (raw)",
-    brand: "Generic",
+    brand: "",
     calories: 417,
     protein: 13,
     carbs: 1.3,
@@ -329,7 +329,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Ham (sliced, deli)",
-    brand: "Generic",
+    brand: "",
     calories: 145,
     protein: 21,
     carbs: 2,
@@ -346,7 +346,7 @@ export const comprehensiveFoods = [
   // Turkey
   {
     name: "Turkey Breast (raw)",
-    brand: "Generic",
+    brand: "",
     calories: 104,
     protein: 24,
     carbs: 0,
@@ -361,7 +361,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Ground Turkey 93/7 (raw)",
-    brand: "Generic",
+    brand: "",
     calories: 150,
     protein: 22,
     carbs: 0,
@@ -376,7 +376,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Ground Turkey 85/15 (raw)",
-    brand: "Generic",
+    brand: "",
     calories: 219,
     protein: 20,
     carbs: 0,
@@ -393,7 +393,7 @@ export const comprehensiveFoods = [
   // Fish & Seafood
   {
     name: "Salmon (Atlantic, raw)",
-    brand: "Generic",
+    brand: "",
     calories: 208,
     protein: 20,
     carbs: 0,
@@ -408,7 +408,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Tuna (Yellowfin, raw)",
-    brand: "Generic",
+    brand: "",
     calories: 109,
     protein: 24.4,
     carbs: 0,
@@ -423,7 +423,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Cod (Pacific, raw)",
-    brand: "Generic",
+    brand: "",
     calories: 82,
     protein: 18,
     carbs: 0,
@@ -438,7 +438,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Tilapia (raw)",
-    brand: "Generic",
+    brand: "",
     calories: 96,
     protein: 20,
     carbs: 0,
@@ -453,7 +453,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Shrimp (raw)",
-    brand: "Generic",
+    brand: "",
     calories: 85,
     protein: 20,
     carbs: 0,
@@ -468,7 +468,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Canned Tuna in Water",
-    brand: "Generic",
+    brand: "",
     calories: 116,
     protein: 25.5,
     carbs: 0,
@@ -483,7 +483,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Canned Salmon",
-    brand: "Generic",
+    brand: "",
     calories: 136,
     protein: 19.8,
     carbs: 0,
@@ -498,7 +498,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Lobster (raw)",
-    brand: "Generic",
+    brand: "",
     calories: 89,
     protein: 19,
     carbs: 0,
@@ -513,7 +513,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Crab (raw)",
-    brand: "Generic",
+    brand: "",
     calories: 83,
     protein: 18,
     carbs: 0.04,
@@ -532,7 +532,7 @@ export const comprehensiveFoods = [
   // Eggs
   {
     name: "Eggs (whole, large)",
-    brand: "Generic",
+    brand: "",
     calories: 143,
     protein: 12.6,
     carbs: 0.7,
@@ -547,7 +547,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Egg Whites",
-    brand: "Generic",
+    brand: "",
     calories: 52,
     protein: 10.9,
     carbs: 0.7,
@@ -562,7 +562,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Egg Yolks",
-    brand: "Generic",
+    brand: "",
     calories: 322,
     protein: 15.9,
     carbs: 3.6,
@@ -577,7 +577,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Hard-Boiled Eggs",
-    brand: "Generic",
+    brand: "",
     calories: 155,
     protein: 13,
     carbs: 1.1,
@@ -594,7 +594,7 @@ export const comprehensiveFoods = [
   // Milk
   {
     name: "Whole Milk (3.25% fat)",
-    brand: "Generic",
+    brand: "",
     calories: 61,
     protein: 3.2,
     carbs: 4.8,
@@ -609,7 +609,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "2% Milk",
-    brand: "Generic",
+    brand: "",
     calories: 50,
     protein: 3.3,
     carbs: 4.8,
@@ -624,7 +624,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "1% Milk",
-    brand: "Generic",
+    brand: "",
     calories: 42,
     protein: 3.4,
     carbs: 4.9,
@@ -639,7 +639,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Skim Milk (Fat Free)",
-    brand: "Generic",
+    brand: "",
     calories: 34,
     protein: 3.4,
     carbs: 5,
@@ -656,7 +656,7 @@ export const comprehensiveFoods = [
   // Cheese
   {
     name: "Cheddar Cheese",
-    brand: "Generic",
+    brand: "",
     calories: 403,
     protein: 25,
     carbs: 1.3,
@@ -671,7 +671,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Mozzarella Cheese (Part Skim)",
-    brand: "Generic",
+    brand: "",
     calories: 254,
     protein: 24,
     carbs: 2.8,
@@ -686,7 +686,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Parmesan Cheese",
-    brand: "Generic",
+    brand: "",
     calories: 431,
     protein: 38,
     carbs: 4.1,
@@ -701,7 +701,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Cream Cheese",
-    brand: "Generic",
+    brand: "",
     calories: 342,
     protein: 6,
     carbs: 4.1,
@@ -716,7 +716,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Cottage Cheese (2% fat)",
-    brand: "Generic",
+    brand: "",
     calories: 81,
     protein: 11,
     carbs: 3.4,
@@ -731,7 +731,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Ricotta Cheese (Part Skim)",
-    brand: "Generic",
+    brand: "",
     calories: 138,
     protein: 11.4,
     carbs: 5.1,
@@ -746,7 +746,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Swiss Cheese",
-    brand: "Generic",
+    brand: "",
     calories: 380,
     protein: 27,
     carbs: 5.4,
@@ -761,7 +761,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Blue Cheese",
-    brand: "Generic",
+    brand: "",
     calories: 353,
     protein: 21,
     carbs: 2.3,
@@ -776,7 +776,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Feta Cheese",
-    brand: "Generic",
+    brand: "",
     calories: 264,
     protein: 14,
     carbs: 4.1,
@@ -793,7 +793,7 @@ export const comprehensiveFoods = [
   // Yogurt
   {
     name: "Greek Yogurt (Plain, Non-fat)",
-    brand: "Generic",
+    brand: "",
     calories: 59,
     protein: 10,
     carbs: 3.6,
@@ -808,7 +808,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Greek Yogurt (Plain, Whole Milk)",
-    brand: "Generic",
+    brand: "",
     calories: 97,
     protein: 9,
     carbs: 3.9,
@@ -823,7 +823,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Regular Yogurt (Plain, Whole Milk)",
-    brand: "Generic",
+    brand: "",
     calories: 61,
     protein: 3.5,
     carbs: 4.7,
@@ -842,7 +842,7 @@ export const comprehensiveFoods = [
   // Rice
   {
     name: "White Rice (cooked)",
-    brand: "Generic",
+    brand: "",
     calories: 130,
     protein: 2.7,
     carbs: 28,
@@ -857,7 +857,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Brown Rice (cooked)",
-    brand: "Generic",
+    brand: "",
     calories: 111,
     protein: 2.6,
     carbs: 23,
@@ -872,7 +872,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Jasmine Rice (cooked)",
-    brand: "Generic",
+    brand: "",
     calories: 148,
     protein: 2.8,
     carbs: 32,
@@ -887,7 +887,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Basmati Rice (cooked)",
-    brand: "Generic",
+    brand: "",
     calories: 121,
     protein: 3.5,
     carbs: 25,
@@ -902,7 +902,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Wild Rice (cooked)",
-    brand: "Generic",
+    brand: "",
     calories: 101,
     protein: 4,
     carbs: 21,
@@ -919,7 +919,7 @@ export const comprehensiveFoods = [
   // Pasta
   {
     name: "Spaghetti (cooked)",
-    brand: "Generic",
+    brand: "",
     calories: 158,
     protein: 5.8,
     carbs: 31,
@@ -934,7 +934,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Penne Pasta (cooked)",
-    brand: "Generic",
+    brand: "",
     calories: 156,
     protein: 5.7,
     carbs: 31,
@@ -949,7 +949,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Whole Wheat Pasta (cooked)",
-    brand: "Generic",
+    brand: "",
     calories: 124,
     protein: 5.3,
     carbs: 27,
@@ -964,7 +964,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Lasagna Noodles (cooked)",
-    brand: "Generic",
+    brand: "",
     calories: 155,
     protein: 5.7,
     carbs: 30,
@@ -981,7 +981,7 @@ export const comprehensiveFoods = [
   // Bread
   {
     name: "White Bread",
-    brand: "Generic",
+    brand: "",
     calories: 265,
     protein: 9,
     carbs: 49,
@@ -996,7 +996,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Whole Wheat Bread",
-    brand: "Generic",
+    brand: "",
     calories: 247,
     protein: 13,
     carbs: 41,
@@ -1011,7 +1011,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Sourdough Bread",
-    brand: "Generic",
+    brand: "",
     calories: 266,
     protein: 9,
     carbs: 51,
@@ -1026,7 +1026,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Rye Bread",
-    brand: "Generic",
+    brand: "",
     calories: 259,
     protein: 9,
     carbs: 48,
@@ -1041,7 +1041,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Bagel (Plain)",
-    brand: "Generic",
+    brand: "",
     calories: 257,
     protein: 10,
     carbs: 50,
@@ -1056,7 +1056,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "English Muffin",
-    brand: "Generic",
+    brand: "",
     calories: 223,
     protein: 8.7,
     carbs: 44,
@@ -1071,7 +1071,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Pita Bread",
-    brand: "Generic",
+    brand: "",
     calories: 275,
     protein: 9.8,
     carbs: 56,
@@ -1086,7 +1086,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Tortilla (Flour)",
-    brand: "Generic",
+    brand: "",
     calories: 304,
     protein: 8.2,
     carbs: 50,
@@ -1101,7 +1101,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Tortilla (Corn)",
-    brand: "Generic",
+    brand: "",
     calories: 218,
     protein: 5.7,
     carbs: 45,
@@ -1118,7 +1118,7 @@ export const comprehensiveFoods = [
   // Cereals & Oats
   {
     name: "Oatmeal (cooked)",
-    brand: "Generic",
+    brand: "",
     calories: 71,
     protein: 2.5,
     carbs: 12,
@@ -1133,7 +1133,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Instant Oats (dry)",
-    brand: "Generic",
+    brand: "",
     calories: 379,
     protein: 13.2,
     carbs: 67,
@@ -1148,7 +1148,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Steel Cut Oats (cooked)",
-    brand: "Generic",
+    brand: "",
     calories: 71,
     protein: 2.5,
     carbs: 12,
@@ -1163,7 +1163,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Quinoa (cooked)",
-    brand: "Generic",
+    brand: "",
     calories: 120,
     protein: 4.4,
     carbs: 21,
@@ -1178,7 +1178,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Couscous (cooked)",
-    brand: "Generic",
+    brand: "",
     calories: 112,
     protein: 3.8,
     carbs: 23,
@@ -1197,7 +1197,7 @@ export const comprehensiveFoods = [
   // Green Vegetables
   {
     name: "Broccoli (raw)",
-    brand: "Generic",
+    brand: "",
     calories: 34,
     protein: 2.8,
     carbs: 6.6,
@@ -1212,7 +1212,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Spinach (raw)",
-    brand: "Generic",
+    brand: "",
     calories: 23,
     protein: 2.9,
     carbs: 3.6,
@@ -1227,7 +1227,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Kale (raw)",
-    brand: "Generic",
+    brand: "",
     calories: 49,
     protein: 4.3,
     carbs: 8.8,
@@ -1242,7 +1242,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Lettuce (Romaine)",
-    brand: "Generic",
+    brand: "",
     calories: 17,
     protein: 1.2,
     carbs: 3.3,
@@ -1257,7 +1257,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Lettuce (Iceberg)",
-    brand: "Generic",
+    brand: "",
     calories: 14,
     protein: 0.9,
     carbs: 3,
@@ -1272,7 +1272,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Asparagus (raw)",
-    brand: "Generic",
+    brand: "",
     calories: 20,
     protein: 2.2,
     carbs: 3.9,
@@ -1287,7 +1287,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Green Beans (raw)",
-    brand: "Generic",
+    brand: "",
     calories: 31,
     protein: 1.8,
     carbs: 7,
@@ -1302,7 +1302,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Brussels Sprouts (raw)",
-    brand: "Generic",
+    brand: "",
     calories: 43,
     protein: 3.4,
     carbs: 8.9,
@@ -1317,7 +1317,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Cucumber (with peel)",
-    brand: "Generic",
+    brand: "",
     calories: 16,
     protein: 0.7,
     carbs: 3.6,
@@ -1332,7 +1332,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Celery (raw)",
-    brand: "Generic",
+    brand: "",
     calories: 16,
     protein: 0.7,
     carbs: 3,
@@ -1347,7 +1347,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Zucchini (raw)",
-    brand: "Generic",
+    brand: "",
     calories: 17,
     protein: 1.2,
     carbs: 3.1,
@@ -1364,7 +1364,7 @@ export const comprehensiveFoods = [
   // Root Vegetables
   {
     name: "Potato (raw, with skin)",
-    brand: "Generic",
+    brand: "",
     calories: 77,
     protein: 2,
     carbs: 17,
@@ -1379,7 +1379,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Sweet Potato (raw)",
-    brand: "Generic",
+    brand: "",
     calories: 86,
     protein: 1.6,
     carbs: 20,
@@ -1394,7 +1394,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Carrots (raw)",
-    brand: "Generic",
+    brand: "",
     calories: 41,
     protein: 0.9,
     carbs: 9.6,
@@ -1409,7 +1409,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Beets (raw)",
-    brand: "Generic",
+    brand: "",
     calories: 43,
     protein: 1.6,
     carbs: 9.6,
@@ -1424,7 +1424,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Onion (raw)",
-    brand: "Generic",
+    brand: "",
     calories: 40,
     protein: 1.1,
     carbs: 9.3,
@@ -1439,7 +1439,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Garlic (raw)",
-    brand: "Generic",
+    brand: "",
     calories: 149,
     protein: 6.4,
     carbs: 33,
@@ -1456,7 +1456,7 @@ export const comprehensiveFoods = [
   // Other Vegetables
   {
     name: "Tomatoes (raw)",
-    brand: "Generic",
+    brand: "",
     calories: 18,
     protein: 0.9,
     carbs: 3.9,
@@ -1471,7 +1471,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Bell Pepper (Red, raw)",
-    brand: "Generic",
+    brand: "",
     calories: 31,
     protein: 1,
     carbs: 6,
@@ -1486,7 +1486,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Bell Pepper (Green, raw)",
-    brand: "Generic",
+    brand: "",
     calories: 20,
     protein: 0.9,
     carbs: 4.6,
@@ -1501,7 +1501,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Cauliflower (raw)",
-    brand: "Generic",
+    brand: "",
     calories: 25,
     protein: 1.9,
     carbs: 5,
@@ -1516,7 +1516,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Mushrooms (White, raw)",
-    brand: "Generic",
+    brand: "",
     calories: 22,
     protein: 3.1,
     carbs: 3.3,
@@ -1531,7 +1531,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Corn (Sweet, raw)",
-    brand: "Generic",
+    brand: "",
     calories: 86,
     protein: 3.3,
     carbs: 19,
@@ -1546,7 +1546,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Eggplant (raw)",
-    brand: "Generic",
+    brand: "",
     calories: 25,
     protein: 1,
     carbs: 5.9,
@@ -1561,7 +1561,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Avocado",
-    brand: "Generic",
+    brand: "",
     calories: 160,
     protein: 2,
     carbs: 8.5,
@@ -1580,7 +1580,7 @@ export const comprehensiveFoods = [
   // Common Fruits
   {
     name: "Apple (with skin)",
-    brand: "Generic",
+    brand: "",
     calories: 52,
     protein: 0.3,
     carbs: 14,
@@ -1595,7 +1595,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Apple (Granny Smith)",
-    brand: "Generic",
+    brand: "",
     calories: 58,
     protein: 0.4,
     carbs: 13.6,
@@ -1610,7 +1610,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Apple (Honeycrisp)",
-    brand: "Generic",
+    brand: "",
     calories: 57,
     protein: 0.3,
     carbs: 14.3,
@@ -1625,7 +1625,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Banana",
-    brand: "Generic",
+    brand: "",
     calories: 89,
     protein: 1.1,
     carbs: 23,
@@ -1640,7 +1640,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Orange",
-    brand: "Generic",
+    brand: "",
     calories: 47,
     protein: 0.9,
     carbs: 12,
@@ -1655,7 +1655,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Grapes (Red or Green)",
-    brand: "Generic",
+    brand: "",
     calories: 67,
     protein: 0.6,
     carbs: 17,
@@ -1670,7 +1670,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Strawberries",
-    brand: "Generic",
+    brand: "",
     calories: 32,
     protein: 0.7,
     carbs: 7.7,
@@ -1685,7 +1685,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Blueberries",
-    brand: "Generic",
+    brand: "",
     calories: 57,
     protein: 0.7,
     carbs: 14,
@@ -1700,7 +1700,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Raspberries",
-    brand: "Generic",
+    brand: "",
     calories: 52,
     protein: 1.2,
     carbs: 12,
@@ -1715,7 +1715,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Blackberries",
-    brand: "Generic",
+    brand: "",
     calories: 43,
     protein: 1.4,
     carbs: 9.6,
@@ -1730,7 +1730,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Pineapple",
-    brand: "Generic",
+    brand: "",
     calories: 50,
     protein: 0.5,
     carbs: 13,
@@ -1745,7 +1745,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Mango",
-    brand: "Generic",
+    brand: "",
     calories: 60,
     protein: 0.8,
     carbs: 15,
@@ -1760,7 +1760,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Watermelon",
-    brand: "Generic",
+    brand: "",
     calories: 30,
     protein: 0.6,
     carbs: 7.6,
@@ -1775,7 +1775,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Cantaloupe",
-    brand: "Generic",
+    brand: "",
     calories: 34,
     protein: 0.8,
     carbs: 8.2,
@@ -1790,7 +1790,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Honeydew Melon",
-    brand: "Generic",
+    brand: "",
     calories: 36,
     protein: 0.5,
     carbs: 9.1,
@@ -1805,7 +1805,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Peach",
-    brand: "Generic",
+    brand: "",
     calories: 39,
     protein: 0.9,
     carbs: 9.5,
@@ -1820,7 +1820,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Pear",
-    brand: "Generic",
+    brand: "",
     calories: 57,
     protein: 0.4,
     carbs: 15,
@@ -1835,7 +1835,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Plum",
-    brand: "Generic",
+    brand: "",
     calories: 46,
     protein: 0.7,
     carbs: 11,
@@ -1850,7 +1850,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Cherries",
-    brand: "Generic",
+    brand: "",
     calories: 63,
     protein: 1.1,
     carbs: 16,
@@ -1865,7 +1865,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Grapefruit",
-    brand: "Generic",
+    brand: "",
     calories: 42,
     protein: 0.8,
     carbs: 11,
@@ -1880,7 +1880,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Kiwi",
-    brand: "Generic",
+    brand: "",
     calories: 61,
     protein: 1.1,
     carbs: 15,
@@ -1895,7 +1895,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Papaya",
-    brand: "Generic",
+    brand: "",
     calories: 43,
     protein: 0.5,
     carbs: 11,
@@ -1913,7 +1913,7 @@ export const comprehensiveFoods = [
 
   {
     name: "Almonds (raw)",
-    brand: "Generic",
+    brand: "",
     calories: 579,
     protein: 21,
     carbs: 22,
@@ -1928,7 +1928,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Walnuts",
-    brand: "Generic",
+    brand: "",
     calories: 654,
     protein: 15,
     carbs: 14,
@@ -1943,7 +1943,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Cashews (raw)",
-    brand: "Generic",
+    brand: "",
     calories: 553,
     protein: 18,
     carbs: 30,
@@ -1958,7 +1958,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Peanuts (raw)",
-    brand: "Generic",
+    brand: "",
     calories: 567,
     protein: 26,
     carbs: 16,
@@ -1973,7 +1973,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Peanut Butter (Natural)",
-    brand: "Generic",
+    brand: "",
     calories: 589,
     protein: 24,
     carbs: 24,
@@ -1988,7 +1988,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Almond Butter",
-    brand: "Generic",
+    brand: "",
     calories: 614,
     protein: 21,
     carbs: 19,
@@ -2003,7 +2003,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Sunflower Seeds",
-    brand: "Generic",
+    brand: "",
     calories: 584,
     protein: 21,
     carbs: 20,
@@ -2018,7 +2018,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Pumpkin Seeds",
-    brand: "Generic",
+    brand: "",
     calories: 559,
     protein: 19,
     carbs: 11,
@@ -2033,7 +2033,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Chia Seeds",
-    brand: "Generic",
+    brand: "",
     calories: 486,
     protein: 17,
     carbs: 42,
@@ -2048,7 +2048,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Flax Seeds",
-    brand: "Generic",
+    brand: "",
     calories: 534,
     protein: 18,
     carbs: 29,
@@ -2066,7 +2066,7 @@ export const comprehensiveFoods = [
 
   {
     name: "Black Beans (cooked)",
-    brand: "Generic",
+    brand: "",
     calories: 132,
     protein: 8.9,
     carbs: 24,
@@ -2081,7 +2081,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Kidney Beans (cooked)",
-    brand: "Generic",
+    brand: "",
     calories: 127,
     protein: 8.7,
     carbs: 23,
@@ -2096,7 +2096,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Chickpeas (cooked)",
-    brand: "Generic",
+    brand: "",
     calories: 164,
     protein: 8.9,
     carbs: 27,
@@ -2111,7 +2111,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Lentils (cooked)",
-    brand: "Generic",
+    brand: "",
     calories: 116,
     protein: 9,
     carbs: 20,
@@ -2126,7 +2126,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Pinto Beans (cooked)",
-    brand: "Generic",
+    brand: "",
     calories: 143,
     protein: 9,
     carbs: 26,
@@ -2141,7 +2141,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Navy Beans (cooked)",
-    brand: "Generic",
+    brand: "",
     calories: 140,
     protein: 8.2,
     carbs: 26,
@@ -2156,7 +2156,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Green Peas (cooked)",
-    brand: "Generic",
+    brand: "",
     calories: 84,
     protein: 5.4,
     carbs: 16,
@@ -2171,7 +2171,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Edamame (cooked)",
-    brand: "Generic",
+    brand: "",
     calories: 122,
     protein: 11,
     carbs: 10,
@@ -2189,7 +2189,7 @@ export const comprehensiveFoods = [
 
   {
     name: "Olive Oil",
-    brand: "Generic",
+    brand: "",
     calories: 884,
     protein: 0,
     carbs: 0,
@@ -2204,7 +2204,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Coconut Oil",
-    brand: "Generic",
+    brand: "",
     calories: 862,
     protein: 0,
     carbs: 0,
@@ -2219,7 +2219,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Butter",
-    brand: "Generic",
+    brand: "",
     calories: 717,
     protein: 0.9,
     carbs: 0.1,
@@ -2234,7 +2234,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Canola Oil",
-    brand: "Generic",
+    brand: "",
     calories: 884,
     protein: 0,
     carbs: 0,
@@ -2249,7 +2249,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Avocado Oil",
-    brand: "Generic",
+    brand: "",
     calories: 884,
     protein: 0,
     carbs: 0,
@@ -2267,7 +2267,7 @@ export const comprehensiveFoods = [
 
   {
     name: "Orange Juice (100% pure)",
-    brand: "Generic",
+    brand: "",
     calories: 45,
     protein: 0.7,
     carbs: 10.4,
@@ -2282,7 +2282,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Apple Juice (100% pure)",
-    brand: "Generic",
+    brand: "",
     calories: 46,
     protein: 0.1,
     carbs: 11.3,
@@ -2297,7 +2297,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Almond Milk (unsweetened)",
-    brand: "Generic",
+    brand: "",
     calories: 17,
     protein: 0.6,
     carbs: 0.6,
@@ -2312,7 +2312,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Soy Milk",
-    brand: "Generic",
+    brand: "",
     calories: 54,
     protein: 3.3,
     carbs: 6,
@@ -2327,7 +2327,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Oat Milk",
-    brand: "Generic",
+    brand: "",
     calories: 48,
     protein: 1.5,
     carbs: 7,
@@ -2345,7 +2345,7 @@ export const comprehensiveFoods = [
 
   {
     name: "Ketchup",
-    brand: "Generic",
+    brand: "",
     calories: 112,
     protein: 1.1,
     carbs: 27,
@@ -2360,7 +2360,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Mustard (Yellow)",
-    brand: "Generic",
+    brand: "",
     calories: 60,
     protein: 3.7,
     carbs: 5.8,
@@ -2375,7 +2375,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Mayonnaise",
-    brand: "Generic",
+    brand: "",
     calories: 680,
     protein: 1,
     carbs: 0.6,
@@ -2390,7 +2390,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Soy Sauce",
-    brand: "Generic",
+    brand: "",
     calories: 53,
     protein: 5.5,
     carbs: 4.9,
@@ -2405,7 +2405,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Hot Sauce (Tabasco)",
-    brand: "Generic",
+    brand: "",
     calories: 12,
     protein: 0.8,
     carbs: 0.8,
@@ -2420,7 +2420,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "BBQ Sauce",
-    brand: "Generic",
+    brand: "",
     calories: 172,
     protein: 0.8,
     carbs: 41,
@@ -2435,7 +2435,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Ranch Dressing",
-    brand: "Generic",
+    brand: "",
     calories: 430,
     protein: 1.4,
     carbs: 5.5,
@@ -2450,7 +2450,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Honey",
-    brand: "Generic",
+    brand: "",
     calories: 304,
     protein: 0.3,
     carbs: 82,
@@ -2465,7 +2465,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Maple Syrup",
-    brand: "Generic",
+    brand: "",
     calories: 260,
     protein: 0,
     carbs: 67,
@@ -2483,7 +2483,7 @@ export const comprehensiveFoods = [
 
   {
     name: "Potato Chips",
-    brand: "Generic",
+    brand: "",
     calories: 536,
     protein: 7,
     carbs: 53,
@@ -2498,7 +2498,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Pretzels",
-    brand: "Generic",
+    brand: "",
     calories: 380,
     protein: 10,
     carbs: 80,
@@ -2513,7 +2513,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Popcorn (air-popped)",
-    brand: "Generic",
+    brand: "",
     calories: 387,
     protein: 13,
     carbs: 78,
@@ -2528,7 +2528,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Crackers (Saltines)",
-    brand: "Generic",
+    brand: "",
     calories: 418,
     protein: 9,
     carbs: 74,
@@ -2543,7 +2543,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Granola Bar",
-    brand: "Generic",
+    brand: "",
     calories: 471,
     protein: 10,
     carbs: 64,
@@ -2558,7 +2558,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Dark Chocolate (70-85% cacao)",
-    brand: "Generic",
+    brand: "",
     calories: 598,
     protein: 7.8,
     carbs: 46,
@@ -2573,7 +2573,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Milk Chocolate",
-    brand: "Generic",
+    brand: "",
     calories: 535,
     protein: 7.7,
     carbs: 59,
@@ -2591,7 +2591,7 @@ export const comprehensiveFoods = [
 
   {
     name: "Whey Protein Powder",
-    brand: "Generic",
+    brand: "",
     calories: 400,
     protein: 80,
     carbs: 8,
@@ -2606,7 +2606,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Casein Protein Powder",
-    brand: "Generic",
+    brand: "",
     calories: 380,
     protein: 82,
     carbs: 10,
@@ -2621,7 +2621,7 @@ export const comprehensiveFoods = [
   },
   {
     name: "Plant-Based Protein Powder",
-    brand: "Generic",
+    brand: "",
     calories: 375,
     protein: 75,
     carbs: 10,
