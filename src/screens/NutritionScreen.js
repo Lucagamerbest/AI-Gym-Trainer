@@ -6,7 +6,6 @@ import StyledButton from '../components/StyledButton';
 import StyledCard from '../components/StyledCard';
 import MacroGoalsModal from '../components/MacroGoalsModal';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
-import { testFoodAPI } from '../services/foodAPI';
 
 const MACROS_KEY = '@macro_goals';
 
@@ -14,6 +13,8 @@ export default function NutritionScreen({ navigation }) {
   const [consumed] = useState(0); // Will be updated when food tracking is implemented
   const [burned] = useState(0); // Will be updated when exercise tracking is implemented
   const [showMacroModal, setShowMacroModal] = useState(false);
+  const [selectedMeal, setSelectedMeal] = useState('breakfast');
+  const [expandedMeal, setExpandedMeal] = useState(null);
   const [macroGoals, setMacroGoals] = useState({
     calories: 2000,
     proteinGrams: 150,
@@ -45,19 +46,6 @@ export default function NutritionScreen({ navigation }) {
     setMacroGoals(newGoals);
   };
 
-  // Test API function
-  const handleTestAPI = async () => {
-    const result = await testFoodAPI();
-    if (result.found) {
-      Alert.alert(
-        'API Test Success!',
-        `Found: ${result.name}\nBrand: ${result.brand}\nCalories: ${result.nutrition.calories} per 100g\nProtein: ${result.nutrition.protein}g\nCarbs: ${result.nutrition.carbs}g\nFat: ${result.nutrition.fat}g`
-      );
-    } else {
-      Alert.alert('API Test', 'Product not found');
-    }
-  };
-
   const calculateProgress = (consumed, goal) => {
     if (goal === 0) return 0;
     return Math.min(100, Math.round((consumed / goal) * 100));
@@ -76,11 +64,18 @@ export default function NutritionScreen({ navigation }) {
       showBack={true}
       showHome={true}
     >
-      <TouchableOpacity onPress={() => setShowMacroModal(true)}>
-        <StyledCard style={styles.statsCard}>
-          <View style={styles.editIndicator}>
+      <StyledCard style={styles.statsCard}>
+        <View style={styles.statsHeader}>
+          <Text style={styles.statsTitle}>Daily Calories</Text>
+          <TouchableOpacity
+            style={styles.editIndicator}
+            onPress={() => setShowMacroModal(true)}
+            activeOpacity={0.7}
+          >
             <Text style={styles.editIcon}>✏️</Text>
-          </View>
+            <Text style={styles.editHint}>Edit</Text>
+          </TouchableOpacity>
+        </View>
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
               <Text style={styles.statLabel}>Goal</Text>
@@ -100,87 +95,137 @@ export default function NutritionScreen({ navigation }) {
               <Text style={styles.statUnit}>cal</Text>
             </View>
           </View>
-          <Text style={[styles.deficitText, calorieDeficit > 0 ? styles.deficitPositive : styles.deficitNegative]}>
-            {calorieDeficit > 0 ? 'Deficit' : 'Surplus'}: {Math.abs(calorieDeficit)} cal
-          </Text>
-        </StyledCard>
-      </TouchableOpacity>
+        <Text style={[styles.deficitText, calorieDeficit > 0 ? styles.deficitPositive : styles.deficitNegative]}>
+          {calorieDeficit > 0 ? '🎯 Deficit' : '⚠️ Surplus'}: {Math.abs(calorieDeficit)} cal
+        </Text>
+      </StyledCard>
 
-      <TouchableOpacity onPress={() => setShowMacroModal(true)}>
-        <StyledCard title="Macros" style={styles.macroCard}>
-          <View style={styles.editIndicator}>
-            <Text style={styles.editIcon}>✏️</Text>
+      {/* Compact Meal Selector and Actions */}
+      <View style={styles.foodActionsSection}>
+        <View style={styles.mealSelectorRow}>
+          <Text style={styles.addingToText}>Adding to:</Text>
+          <TouchableOpacity
+            style={styles.mealDropdown}
+            onPress={() => setExpandedMeal(expandedMeal === 'selector' ? null : 'selector')}
+          >
+            <Text style={styles.selectedMealText}>
+              {selectedMeal === 'breakfast' && '🌅 Breakfast'}
+              {selectedMeal === 'lunch' && '☀️ Lunch'}
+              {selectedMeal === 'dinner' && '🌙 Dinner'}
+              {selectedMeal === 'snacks' && '🍿 Snacks'}
+            </Text>
+            <Text style={styles.dropdownArrow}>
+              {expandedMeal === 'selector' ? '▲' : '▼'}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.historyButton}
+            onPress={() => navigation.navigate('MealsHistory')}
+          >
+            <Text style={styles.historyIcon}>📅</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Expanded Meal Options */}
+        {expandedMeal === 'selector' && (
+          <View style={styles.mealOptions}>
+            {['breakfast', 'lunch', 'dinner', 'snacks'].map((mealType) => (
+              <TouchableOpacity
+                key={mealType}
+                style={styles.mealOption}
+                onPress={() => {
+                  setSelectedMeal(mealType);
+                  setExpandedMeal(null);
+                }}
+              >
+                <Text style={styles.mealOptionText}>
+                  {mealType === 'breakfast' && '🌅 Breakfast'}
+                  {mealType === 'lunch' && '☀️ Lunch'}
+                  {mealType === 'dinner' && '🌙 Dinner'}
+                  {mealType === 'snacks' && '🍿 Snacks'}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
-          <View style={styles.macroRow}>
-            <Text style={styles.macroLabel}>Protein</Text>
-            <View style={styles.progressBarContainer}>
-              <View style={[styles.progressBar, { width: `${proteinProgress}%` }]} />
+        )}
+      </View>
+
+      <View style={styles.actionButtons}>
+        <TouchableOpacity
+          style={[styles.actionButton, styles.scanButton]}
+          onPress={() => navigation.navigate('FoodScanning', { mealType: selectedMeal })}
+        >
+          <Text style={[styles.actionButtonIcon, styles.greenText]}>📷</Text>
+          <Text style={[styles.actionButtonText, styles.greenText]}>Scan</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.actionButton, styles.searchButton]}
+          onPress={() => navigation.navigate('FoodSearch', { mealType: selectedMeal })}
+        >
+          <Text style={[styles.actionButtonIcon, styles.blackText]}>🔍</Text>
+          <Text style={[styles.actionButtonText, styles.blackText]}>Search</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.actionButton, styles.recipesButton]}
+          onPress={() => navigation.navigate('Recipes', { mealType: selectedMeal })}
+        >
+          <Text style={[styles.actionButtonIcon, styles.greenText]}>📖</Text>
+          <Text style={[styles.actionButtonText, styles.greenText]}>Recipes</Text>
+        </TouchableOpacity>
+      </View>
+
+      <StyledCard title="Macros" style={styles.macroCard}>
+          {/* Compact Macro Goals Display */}
+          <View style={styles.macroGoalsRow}>
+            <View style={styles.macroGoalCompact}>
+              <Text style={[styles.macroGoalLabel, styles.proteinColor]}>Protein</Text>
+              <Text style={[styles.macroGoalValue, styles.proteinColor]}>{macroGoals.proteinGrams}g</Text>
             </View>
-            <Text style={styles.macroValue}>
-              {consumedMacros.proteinGrams}/{macroGoals.proteinGrams}g
+            <View style={styles.macroGoalDivider} />
+            <View style={styles.macroGoalCompact}>
+              <Text style={[styles.macroGoalLabel, styles.carbsColor]}>Carbs</Text>
+              <Text style={[styles.macroGoalValue, styles.carbsColor]}>{macroGoals.carbsGrams}g</Text>
+            </View>
+            <View style={styles.macroGoalDivider} />
+            <View style={styles.macroGoalCompact}>
+              <Text style={[styles.macroGoalLabel, styles.fatColor]}>Fat</Text>
+              <Text style={[styles.macroGoalValue, styles.fatColor]}>{macroGoals.fatGrams}g</Text>
+            </View>
+          </View>
+
+          {/* Compact Progress Bars */}
+          <View style={styles.macroProgressRow}>
+            <Text style={[styles.macroLabel, styles.proteinColor]}>P</Text>
+            <View style={styles.progressBarContainer}>
+              <View style={[styles.progressBar, styles.progressBarProtein, { width: `${proteinProgress}%` }]} />
+            </View>
+            <Text style={[styles.macroValue, styles.proteinColor]}>
+              {consumedMacros.proteinGrams}/{macroGoals.proteinGrams}
             </Text>
           </View>
 
-          <View style={styles.macroRow}>
-            <Text style={styles.macroLabel}>Carbs</Text>
+          <View style={styles.macroProgressRow}>
+            <Text style={[styles.macroLabel, styles.carbsColor]}>C</Text>
             <View style={styles.progressBarContainer}>
               <View style={[styles.progressBar, styles.progressBarCarbs, { width: `${carbsProgress}%` }]} />
             </View>
-            <Text style={styles.macroValue}>
-              {consumedMacros.carbsGrams}/{macroGoals.carbsGrams}g
+            <Text style={[styles.macroValue, styles.carbsColor]}>
+              {consumedMacros.carbsGrams}/{macroGoals.carbsGrams}
             </Text>
           </View>
 
-          <View style={styles.macroRow}>
-            <Text style={styles.macroLabel}>Fat</Text>
+          <View style={styles.macroProgressRow}>
+            <Text style={[styles.macroLabel, styles.fatColor]}>F</Text>
             <View style={styles.progressBarContainer}>
               <View style={[styles.progressBar, styles.progressBarFat, { width: `${fatProgress}%` }]} />
             </View>
-            <Text style={styles.macroValue}>
-              {consumedMacros.fatGrams}/{macroGoals.fatGrams}g
+            <Text style={[styles.macroValue, styles.fatColor]}>
+              {consumedMacros.fatGrams}/{macroGoals.fatGrams}
             </Text>
           </View>
         </StyledCard>
-      </TouchableOpacity>
-
-      <StyledCard
-        icon="📊"
-        title="Food Tracker"
-        subtitle="Daily calories & macros"
-        onPress={() => navigation.navigate('NutritionDashboard')}
-      />
-
-      <StyledCard
-        icon="📷"
-        title="Scan Food"
-        subtitle="Instant nutrition info"
-        onPress={() => navigation.navigate('FoodScanning')}
-      />
-
-      <StyledCard
-        icon="🔍"
-        title="Search & Add"
-        subtitle="Find from database"
-        onPress={() => navigation.navigate('FoodSearch')}
-      />
-
-      <StyledButton
-        title="My Meals & History"
-        icon="📚"
-        size="lg"
-        fullWidth
-        onPress={() => navigation.navigate('MealsHistory')}
-        style={styles.historyButton}
-      />
-
-      <StyledButton
-        title="Test Food API 🧪"
-        variant="secondary"
-        size="lg"
-        fullWidth
-        onPress={handleTestAPI}
-        style={styles.testButton}
-      />
 
       <MacroGoalsModal
         visible={showMacroModal}
@@ -194,15 +239,35 @@ export default function NutritionScreen({ navigation }) {
 const styles = StyleSheet.create({
   statsCard: {
     alignItems: 'center',
-    position: 'relative',
+  },
+  statsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: Spacing.md,
+  },
+  statsTitle: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+    color: Colors.text,
   },
   editIndicator: {
-    position: 'absolute',
-    top: Spacing.sm,
-    right: Spacing.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.primary + '20',
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.md,
   },
   editIcon: {
-    fontSize: Typography.fontSize.lg,
+    fontSize: 12,
+    marginRight: 4,
+  },
+  editHint: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.primary,
+    fontWeight: '600',
   },
   statsRow: {
     flexDirection: 'row',
@@ -250,15 +315,43 @@ const styles = StyleSheet.create({
     marginTop: Spacing.md,
     position: 'relative',
   },
-  macroRow: {
+  macroGoalsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    paddingVertical: Spacing.sm,
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.sm,
+    marginBottom: Spacing.sm,
+  },
+  macroGoalCompact: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  macroGoalValue: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: 'bold',
+  },
+  macroGoalLabel: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textSecondary,
+    marginBottom: 2,
+  },
+  macroGoalDivider: {
+    width: 1,
+    height: 30,
+    backgroundColor: Colors.border,
+  },
+  macroProgressRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: Spacing.md,
+    marginBottom: Spacing.sm,
   },
   macroLabel: {
     color: Colors.textSecondary,
     fontSize: Typography.fontSize.sm,
-    width: 60,
+    width: 20,
+    fontWeight: '600',
   },
   progressBarContainer: {
     flex: 1,
@@ -272,22 +365,253 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     borderRadius: BorderRadius.round,
   },
+  progressBarProtein: {
+    backgroundColor: '#4CAF50', // Green
+  },
   progressBarCarbs: {
-    backgroundColor: Colors.warning,
+    backgroundColor: '#FF9800', // Orange
   },
   progressBarFat: {
-    backgroundColor: Colors.success,
+    backgroundColor: '#F44336', // Red
+  },
+  proteinColor: {
+    color: '#4CAF50', // Green
+  },
+  carbsColor: {
+    color: '#FF9800', // Orange
+  },
+  fatColor: {
+    color: '#F44336', // Red
   },
   macroValue: {
     color: Colors.textSecondary,
-    fontSize: Typography.fontSize.sm,
-    minWidth: 70,
+    fontSize: Typography.fontSize.xs,
+    minWidth: 45,
     textAlign: 'right',
   },
-  historyButton: {
+  mealsHistoryButton: {
     marginTop: Spacing.md,
   },
   testButton: {
     marginTop: Spacing.sm,
+  },
+  mealSelectorCard: {
+    backgroundColor: Colors.surface,
+    padding: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    marginHorizontal: Spacing.lg,
+    marginTop: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  mealSelectorTitle: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.sm,
+    fontWeight: '600',
+  },
+  mealTabs: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: Spacing.xs,
+  },
+  mealTab: {
+    flex: 1,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.xs,
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+  },
+  mealTabActive: {
+    backgroundColor: Colors.primary,
+  },
+  mealTabText: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textSecondary,
+    fontWeight: '500',
+  },
+  mealTabTextActive: {
+    color: 'white',
+    fontWeight: '600',
+  },
+  mealsSection: {
+    marginTop: Spacing.lg,
+    marginHorizontal: Spacing.lg,
+  },
+  mealsSectionTitle: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: Spacing.md,
+  },
+  mealCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    marginBottom: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  mealHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  mealName: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  mealStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  mealCalories: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.primary,
+    fontWeight: '500',
+  },
+  expandIcon: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textSecondary,
+  },
+  mealItems: {
+    marginTop: Spacing.md,
+    paddingTop: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  foodItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: Spacing.xs,
+  },
+  foodItemName: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.text,
+  },
+  foodItemCalories: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+  },
+  emptyMealText: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textMuted,
+    fontStyle: 'italic',
+    textAlign: 'center',
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginHorizontal: Spacing.lg,
+    marginTop: Spacing.md,
+    gap: Spacing.md,
+  },
+  actionButton: {
+    flex: 1,
+    paddingVertical: Spacing.lg,
+    borderRadius: BorderRadius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+  },
+  scanButton: {
+    backgroundColor: '#1a1a1a',
+    borderColor: Colors.primary,
+  },
+  searchButton: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+    flex: 1.5,  // Make search button 50% wider
+  },
+  recipesButton: {
+    backgroundColor: '#1a1a1a',
+    borderColor: Colors.primary,
+  },
+  actionButtonIcon: {
+    fontSize: 24,
+    marginBottom: Spacing.xs,
+  },
+  actionButtonText: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+  },
+  greenText: {
+    color: Colors.primary,
+  },
+  blackText: {
+    color: '#1a1a1a',
+  },
+  // Compact meal selector styles
+  foodActionsSection: {
+    marginHorizontal: Spacing.lg,
+    marginTop: Spacing.md,
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  mealSelectorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  addingToText: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+    fontWeight: '500',
+    marginRight: Spacing.sm,
+  },
+  mealDropdown: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.background,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
+    flex: 1,
+    marginRight: Spacing.sm,
+  },
+  selectedMealText: {
+    flex: 1,
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  dropdownArrow: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+    marginLeft: Spacing.xs,
+  },
+  historyButton: {
+    backgroundColor: Colors.primary + '20',
+    padding: Spacing.sm,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  historyIcon: {
+    fontSize: 20,
+  },
+  mealOptions: {
+    marginTop: Spacing.sm,
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.md,
+    overflow: 'hidden',
+  },
+  mealOption: {
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  mealOptionText: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.text,
+    fontWeight: '500',
   },
 });

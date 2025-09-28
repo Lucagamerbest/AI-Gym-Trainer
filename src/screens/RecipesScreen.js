@@ -1,0 +1,1090 @@
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+  FlatList,
+  Alert,
+  Modal,
+  ScrollView,
+  Platform,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import ScreenLayout from '../components/ScreenLayout';
+import StyledCard from '../components/StyledCard';
+import StyledButton from '../components/StyledButton';
+import FoodCard from '../components/FoodCard';
+import FoodDetailsView from '../components/FoodDetailsView';
+import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
+import { searchFoods } from '../services/foodDatabaseService';
+import { hybridSearch } from '../services/openFoodFactsService';
+
+const RECIPES_KEY = '@saved_recipes';
+
+export default function RecipesScreen({ navigation, route }) {
+  const { mealType } = route.params || { mealType: 'lunch' };
+
+  // Mock recipes for testing
+  const mockRecipes = [
+    {
+      id: '1',
+      name: 'Protein Power Bowl',
+      servings: 1,
+      ingredients: [
+        { food: { name: 'Grilled Chicken Breast', calories: 165, protein: 31, carbs: 0, fat: 3.6 }, quantity: 150 },
+        { food: { name: 'Brown Rice', calories: 111, protein: 2.6, carbs: 23, fat: 0.9 }, quantity: 100 },
+        { food: { name: 'Broccoli', calories: 34, protein: 2.8, carbs: 7, fat: 0.4 }, quantity: 80 },
+      ],
+      perServingNutrition: { calories: 410, protein: 36.4, carbs: 30, fat: 4.9 },
+    },
+    {
+      id: '2',
+      name: 'Morning Oatmeal',
+      servings: 1,
+      ingredients: [
+        { food: { name: 'Oats', calories: 389, protein: 16.9, carbs: 66, fat: 6.9 }, quantity: 50 },
+        { food: { name: 'Banana', calories: 89, protein: 1.1, carbs: 23, fat: 0.3 }, quantity: 100 },
+        { food: { name: 'Peanut Butter', calories: 588, protein: 25, carbs: 20, fat: 50 }, quantity: 20 },
+      ],
+      perServingNutrition: { calories: 383, protein: 15, carbs: 46.5, fat: 11.4 },
+    },
+    {
+      id: '3',
+      name: 'Greek Salad',
+      servings: 2,
+      ingredients: [
+        { food: { name: 'Cucumber', calories: 16, protein: 0.7, carbs: 3.6, fat: 0.1 }, quantity: 200 },
+        { food: { name: 'Tomatoes', calories: 18, protein: 0.9, carbs: 3.9, fat: 0.2 }, quantity: 150 },
+        { food: { name: 'Feta Cheese', calories: 264, protein: 14, carbs: 4, fat: 21 }, quantity: 50 },
+        { food: { name: 'Olive Oil', calories: 884, protein: 0, carbs: 0, fat: 100 }, quantity: 15 },
+      ],
+      perServingNutrition: { calories: 147, protein: 4.8, carbs: 4.7, fat: 12.2 },
+    },
+  ];
+
+  const [recipes, setRecipes] = useState(mockRecipes);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [modalView, setModalView] = useState('recipe'); // 'recipe' or 'ingredient'
+  const [searchText, setSearchText] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [selectedFood, setSelectedFood] = useState(null);
+
+  const searchTimeoutRef = useRef(null);
+
+  // New recipe state
+  const [newRecipe, setNewRecipe] = useState({
+    name: '',
+    ingredients: [],
+    servings: 1,
+  });
+
+  useEffect(() => {
+    loadRecipes();
+  }, []);
+
+  const loadRecipes = async () => {
+    try {
+      const saved = await AsyncStorage.getItem(RECIPES_KEY);
+      if (saved) {
+        setRecipes(JSON.parse(saved));
+      }
+    } catch (error) {
+      console.error('Error loading recipes:', error);
+    }
+  };
+
+  const saveRecipes = async (updatedRecipes) => {
+    try {
+      await AsyncStorage.setItem(RECIPES_KEY, JSON.stringify(updatedRecipes));
+      setRecipes(updatedRecipes);
+    } catch (error) {
+      console.error('Error saving recipes:', error);
+    }
+  };
+
+  const calculateRecipeNutrition = (ingredients) => {
+    let totals = {
+      calories: 0,
+      protein: 0,
+      carbs: 0,
+      fat: 0,
+    };
+
+    ingredients.forEach(item => {
+      const multiplier = item.quantity / 100; // Convert to per 100g basis
+      totals.calories += (item.food.calories || 0) * multiplier;
+      totals.protein += (item.food.protein || 0) * multiplier;
+      totals.carbs += (item.food.carbs || 0) * multiplier;
+      totals.fat += (item.food.fat || 0) * multiplier;
+    });
+
+    return {
+      calories: Math.round(totals.calories),
+      protein: Math.round(totals.protein * 10) / 10,
+      carbs: Math.round(totals.carbs * 10) / 10,
+      fat: Math.round(totals.fat * 10) / 10,
+    };
+  };
+
+  // Search with debouncing - same as FoodSearchScreen
+  const performSearch = useCallback(async (query) => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      // First search local database
+      const localResults = await searchFoods(query);
+
+      // Import smart search for better ranking
+      const { smartSearchFoods } = await import('../services/smartFoodSearch');
+      const rankedResults = await smartSearchFoods(localResults, query, { limit: 100 });
+
+      // Use hybrid search to combine with API results if needed
+      const { combined } = await hybridSearch(query, rankedResults.all.slice(0, 20));
+
+      // Filter and re-rank the results
+      const finalRanked = await smartSearchFoods(combined, query, { limit: 50 });
+      setSearchResults(finalRanked.all);
+    } catch (error) {
+      console.error('Search error:', error);
+      // Fallback to simple local search
+      const localResults = await searchFoods(query);
+      setSearchResults(localResults.slice(0, 30));
+    }
+    setIsSearching(false);
+  }, []);
+
+  // Handle text input with debouncing
+  const handleSearchChange = (text) => {
+    setSearchText(text);
+
+    // Clear existing timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    // Set new timeout for search
+    searchTimeoutRef.current = setTimeout(() => {
+      performSearch(text);
+    }, 500); // 500ms debounce
+  };
+
+  const addIngredientToRecipe = (food, quantity) => {
+    setNewRecipe(prev => ({
+      ...prev,
+      ingredients: [...prev.ingredients, { food, quantity: quantity || 100 }]
+    }));
+    setModalView('recipe'); // Go back to recipe view
+    setSearchText('');
+    setSearchResults([]);
+  };
+
+  const removeIngredient = (index) => {
+    setNewRecipe(prev => ({
+      ...prev,
+      ingredients: prev.ingredients.filter((_, i) => i !== index)
+    }));
+  };
+
+  const saveNewRecipe = () => {
+    if (!newRecipe.name.trim()) {
+      Alert.alert('Error', 'Please enter a recipe name');
+      return;
+    }
+
+    if (newRecipe.ingredients.length === 0) {
+      Alert.alert('Error', 'Please add at least one ingredient');
+      return;
+    }
+
+    const nutrition = calculateRecipeNutrition(newRecipe.ingredients);
+    const recipeToSave = {
+      id: Date.now().toString(),
+      name: newRecipe.name,
+      ingredients: newRecipe.ingredients,
+      servings: newRecipe.servings,
+      nutrition,
+      totalNutrition: nutrition,
+      perServingNutrition: {
+        calories: Math.round(nutrition.calories / newRecipe.servings),
+        protein: Math.round(nutrition.protein * 10 / newRecipe.servings) / 10,
+        carbs: Math.round(nutrition.carbs * 10 / newRecipe.servings) / 10,
+        fat: Math.round(nutrition.fat * 10 / newRecipe.servings) / 10,
+      },
+      createdAt: new Date().toISOString(),
+    };
+
+    const updatedRecipes = [...recipes, recipeToSave];
+    saveRecipes(updatedRecipes);
+
+    setShowCreateModal(false);
+    setNewRecipe({ name: '', ingredients: [], servings: 1 });
+
+    Alert.alert('Success', 'Recipe saved successfully!');
+  };
+
+  const quickAddRecipe = (recipe) => {
+    Alert.alert(
+      'Add to ' + mealType,
+      `Add "${recipe.name}" to ${mealType}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Add',
+          onPress: () => {
+            // Navigate back to nutrition tracker with recipe data
+            navigation.navigate('Nutrition', {
+              addedFood: {
+                name: recipe.name,
+                calories: recipe.perServingNutrition.calories,
+                protein: recipe.perServingNutrition.protein,
+                carbs: recipe.perServingNutrition.carbs,
+                fat: recipe.perServingNutrition.fat,
+                mealType: mealType,
+              }
+            });
+          }
+        }
+      ]
+    );
+  };
+
+  const deleteRecipe = (recipeId) => {
+    Alert.alert(
+      'Delete Recipe',
+      'Are you sure you want to delete this recipe?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            const updatedRecipes = recipes.filter(r => r.id !== recipeId);
+            saveRecipes(updatedRecipes);
+          }
+        }
+      ]
+    );
+  };
+
+  const renderRecipe = ({ item }) => (
+    <StyledCard style={styles.recipeCard}>
+      <View style={styles.recipeHeader}>
+        <View style={styles.recipeInfo}>
+          <Text style={styles.recipeName}>{item.name}</Text>
+          <Text style={styles.recipeServings}>
+            {item.servings} {item.servings === 1 ? 'serving' : 'servings'}
+          </Text>
+          <Text style={styles.ingredientCount}>
+            {item.ingredients.length} ingredients
+          </Text>
+        </View>
+        <View style={styles.nutritionSummary}>
+          <Text style={styles.caloriesText}>
+            {item.perServingNutrition.calories} cal
+          </Text>
+          <Text style={styles.macroText}>
+            P: {item.perServingNutrition.protein}g
+          </Text>
+          <Text style={styles.macroText}>
+            C: {item.perServingNutrition.carbs}g
+          </Text>
+          <Text style={styles.macroText}>
+            F: {item.perServingNutrition.fat}g
+          </Text>
+        </View>
+      </View>
+      <View style={styles.recipeActions}>
+        <TouchableOpacity
+          style={styles.quickAddButton}
+          onPress={() => quickAddRecipe(item)}
+        >
+          <Text style={styles.quickAddText}>Quick Add</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={() => deleteRecipe(item.id)}
+        >
+          <Text style={styles.deleteText}>Delete</Text>
+        </TouchableOpacity>
+      </View>
+    </StyledCard>
+  );
+
+
+  const renderSearchResult = ({ item }) => (
+    <FoodCard
+      food={item}
+      onPress={(food) => {
+        setSelectedFood(food);
+        setModalView('details');
+      }}
+    />
+  );
+
+  // Handle adding ingredient from the FoodDetailsView
+  const handleAddIngredientFromDetails = ({ food, actualWeight }) => {
+    addIngredientToRecipe(food, actualWeight);
+    setModalView('recipe');
+    setSelectedFood(null);
+  };
+
+  const currentNutrition = calculateRecipeNutrition(newRecipe.ingredients);
+
+  console.log('RecipesScreen rendering, recipes count:', recipes.length);
+  console.log('Platform:', Platform.OS);
+  console.log('Modal states - Create:', showCreateModal, 'View:', modalView);
+
+  return (
+    <ScreenLayout
+      title="My Recipes"
+      subtitle="Create and manage your recipes"
+      navigation={navigation}
+      showBack={true}
+      scrollable={true}
+    >
+      <TouchableOpacity
+        style={styles.createButton}
+        onPress={() => {
+          console.log('Create button pressed');
+          // Reset state before opening
+          setNewRecipe({ name: '', ingredients: [], servings: 1 });
+          setModalView('recipe');
+          setSearchText('');
+          setSearchResults([]);
+          setShowCreateModal(true);
+        }}
+        activeOpacity={0.8}
+      >
+        <Text style={styles.createButtonText}>➕ Create New Recipe</Text>
+      </TouchableOpacity>
+
+      {recipes.length === 0 ? (
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyIcon}>📖</Text>
+          <Text style={styles.emptyTitle}>No Recipes Yet</Text>
+          <Text style={styles.emptyText}>
+            Create your first recipe to quickly add your favorite meals
+          </Text>
+        </View>
+      ) : (
+        <View style={styles.recipesContainer}>
+          {recipes.map((item) => (
+            <View key={item.id}>
+              {renderRecipe({ item })}
+            </View>
+          ))}
+        </View>
+      )}
+
+      {/* Single Modal with Different Views */}
+      <Modal
+        visible={showCreateModal}
+        animationType="slide"
+        onRequestClose={() => {
+          if (modalView === 'details') {
+            setModalView('ingredient');
+            setSelectedFood(null);
+          } else if (modalView === 'ingredient') {
+            setModalView('recipe');
+          } else {
+            setShowCreateModal(false);
+          }
+        }}
+      >
+        <SafeAreaView style={styles.modalContainer}>
+          {modalView === 'recipe' ? (
+            <>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Create Recipe</Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    setShowCreateModal(false);
+                    setNewRecipe({ name: '', ingredients: [], servings: 1 });
+                    setModalView('recipe');
+                  }}
+                  style={styles.closeButton}
+                >
+                  <Text style={styles.closeButtonText}>✕</Text>
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView
+                style={styles.modalContent}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="always"
+                keyboardDismissMode="on-drag"
+                scrollEnabled={true}
+                contentContainerStyle={{ paddingBottom: 100 }}
+                bounces={false}
+              >
+                <Text style={styles.inputLabel}>Recipe Name</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter recipe name"
+                  placeholderTextColor={Colors.textMuted}
+                  value={newRecipe.name}
+                  onChangeText={(text) => setNewRecipe(prev => ({ ...prev, name: text }))}
+                />
+
+                <Text style={styles.inputLabel}>Servings</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="1"
+                  placeholderTextColor={Colors.textMuted}
+                  value={newRecipe.servings.toString()}
+                  onChangeText={(text) => {
+                    const num = parseInt(text) || 1;
+                    setNewRecipe(prev => ({ ...prev, servings: num }));
+                  }}
+                  keyboardType="number-pad"
+                />
+
+                <View style={styles.ingredientsSection}>
+                  <Text style={styles.inputLabel}>Ingredients</Text>
+                  <TouchableOpacity
+                    style={styles.addIngredientButton}
+                    onPress={() => {
+                      console.log('===== ADD INGREDIENT BUTTON PRESSED =====');
+                      console.log('Switching to ingredient view');
+                      setModalView('ingredient');
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.addIngredientText}>+ Add Ingredient</Text>
+                  </TouchableOpacity>
+
+                  {newRecipe.ingredients.map((item, index) => (
+                    <View key={index} style={styles.ingredientItem}>
+                      <View style={styles.ingredientInfo}>
+                        <Text style={styles.ingredientName}>{item.food.name}</Text>
+                        <Text style={styles.ingredientQuantity}>{item.quantity}g</Text>
+                      </View>
+                      <TouchableOpacity
+                        style={styles.removeButton}
+                        onPress={() => removeIngredient(index)}
+                      >
+                        <Text style={styles.removeButtonText}>✕</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </View>
+
+                {newRecipe.ingredients.length > 0 && (
+                  <View style={styles.nutritionPreview}>
+                    <Text style={styles.nutritionTitle}>Total Nutrition</Text>
+                    <View style={styles.nutritionRow}>
+                      <Text style={styles.nutritionLabel}>Calories: {currentNutrition.calories}</Text>
+                      <Text style={styles.nutritionLabel}>Protein: {currentNutrition.protein}g</Text>
+                      <Text style={styles.nutritionLabel}>Carbs: {currentNutrition.carbs}g</Text>
+                      <Text style={styles.nutritionLabel}>Fat: {currentNutrition.fat}g</Text>
+                    </View>
+                    {newRecipe.servings > 1 && (
+                      <>
+                        <Text style={styles.nutritionTitle}>Per Serving</Text>
+                        <View style={styles.nutritionRow}>
+                          <Text style={styles.nutritionLabel}>
+                            Calories: {Math.round(currentNutrition.calories / newRecipe.servings)}
+                          </Text>
+                          <Text style={styles.nutritionLabel}>
+                            Protein: {Math.round(currentNutrition.protein * 10 / newRecipe.servings) / 10}g
+                          </Text>
+                          <Text style={styles.nutritionLabel}>
+                            Carbs: {Math.round(currentNutrition.carbs * 10 / newRecipe.servings) / 10}g
+                          </Text>
+                          <Text style={styles.nutritionLabel}>
+                            Fat: {Math.round(currentNutrition.fat * 10 / newRecipe.servings) / 10}g
+                          </Text>
+                        </View>
+                      </>
+                    )}
+                  </View>
+                )}
+          </ScrollView>
+
+              <View style={styles.modalFooter}>
+                <StyledButton
+                  title="Save Recipe"
+                  onPress={saveNewRecipe}
+                  fullWidth
+                />
+              </View>
+            </>
+          ) : modalView === 'ingredient' ? (
+            <>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Add Ingredient</Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    setModalView('recipe');
+                    setSearchText('');
+                    setSearchResults([]);
+                  }}
+                  style={styles.closeButton}
+                >
+                  <Text style={styles.closeButtonText}>✕</Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.searchBar}>
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder="Search for ingredients..."
+                  placeholderTextColor={Colors.textMuted}
+                  value={searchText}
+                  onChangeText={handleSearchChange}
+                  autoFocus
+                  autoCorrect={false}
+                  autoCapitalize="none"
+                />
+              </View>
+
+              <FlatList
+                data={searchResults}
+                renderItem={renderSearchResult}
+                keyExtractor={(item, index) => index.toString()}
+                contentContainerStyle={styles.searchResultsList}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                ListEmptyComponent={
+                  searchText.length > 0 && !isSearching ? (
+                    <Text style={styles.noResultsText}>No ingredients found</Text>
+                  ) : null
+                }
+              />
+            </>
+          ) : modalView === 'details' && selectedFood ? (
+            <FoodDetailsView
+              food={selectedFood}
+              onAction={(data) => {
+                addIngredientToRecipe(data.food, data.actualWeight);
+                setModalView('recipe');
+                setSelectedFood(null);
+              }}
+              actionButtonText="Add to Recipe"
+              showBackButton={true}
+              onBack={() => {
+                setModalView('ingredient');
+                setSelectedFood(null);
+              }}
+            />
+          ) : null}
+        </SafeAreaView>
+      </Modal>
+
+    </ScreenLayout>
+  );
+}
+
+const styles = StyleSheet.create({
+  createButton: {
+    backgroundColor: '#4CAF50',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    marginHorizontal: Spacing.md,
+    marginBottom: Spacing.md,
+    borderRadius: 12,
+    minHeight: 48,
+  },
+  createButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000000',
+  },
+  recipesContainer: {
+    paddingHorizontal: Spacing.md,
+    paddingBottom: 100,
+  },
+  emptyState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.xl,
+  },
+  emptyIcon: {
+    fontSize: 48,
+    marginBottom: Spacing.md,
+  },
+  emptyTitle: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: Spacing.sm,
+  },
+  emptyText: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+  },
+  recipeCard: {
+    marginBottom: Spacing.md,
+  },
+  recipeHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.md,
+  },
+  recipeInfo: {
+    flex: 1,
+  },
+  recipeName: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 4,
+  },
+  recipeServings: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+  },
+  ingredientCount: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textMuted,
+    marginTop: 2,
+  },
+  nutritionSummary: {
+    alignItems: 'flex-end',
+  },
+  caloriesText: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: '600',
+    color: Colors.primary,
+    marginBottom: 4,
+  },
+  macroText: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textSecondary,
+  },
+  recipeActions: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  quickAddButton: {
+    flex: 1,
+    backgroundColor: Colors.primary,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+  },
+  quickAddText: {
+    color: '#1a1a1a',
+    fontWeight: '600',
+    fontSize: Typography.fontSize.sm,
+  },
+  deleteButton: {
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.error + '20',
+  },
+  deleteText: {
+    color: Colors.error,
+    fontWeight: '600',
+    fontSize: Typography.fontSize.sm,
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: Colors.background,
+    paddingBottom: Platform.OS === 'ios' ? 20 : 0,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    paddingTop: Platform.OS === 'ios' ? Spacing.xl * 2 : Spacing.xl,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  modalTitle: {
+    fontSize: Typography.fontSize.xl,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  closeButton: {
+    padding: Spacing.sm,
+  },
+  closeButtonText: {
+    fontSize: 24,
+    color: Colors.textSecondary,
+  },
+  modalContent: {
+    flex: 1,
+    padding: Spacing.lg,
+  },
+  inputLabel: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: Spacing.xs,
+    marginTop: Spacing.md,
+  },
+  input: {
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    fontSize: Typography.fontSize.md,
+    color: Colors.text,
+  },
+  ingredientsSection: {
+    marginTop: Spacing.lg,
+  },
+  addIngredientButton: {
+    backgroundColor: '#1a1a1a',
+    borderWidth: 2,
+    borderColor: '#00E676',
+    borderStyle: 'dashed',
+    borderRadius: BorderRadius.md,
+    paddingVertical: Platform.OS === 'ios' ? 16 : Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.md,
+    minHeight: Platform.OS === 'ios' ? 50 : 48,
+    width: '100%',
+  },
+  addIngredientText: {
+    color: '#00E676',
+    fontWeight: '700',
+    fontSize: Platform.OS === 'ios' ? 16 : Typography.fontSize.md,
+  },
+  ingredientsList: {
+    maxHeight: 200,
+  },
+  ingredientItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    marginBottom: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  ingredientInfo: {
+    flex: 1,
+  },
+  ingredientName: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.text,
+    fontWeight: '500',
+  },
+  ingredientQuantity: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+    marginTop: 2,
+  },
+  removeButton: {
+    padding: Spacing.sm,
+  },
+  removeButtonText: {
+    fontSize: 18,
+    color: Colors.error,
+  },
+  nutritionPreview: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    marginTop: Spacing.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  nutritionTitle: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: Spacing.sm,
+  },
+  nutritionRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.md,
+    marginBottom: Spacing.sm,
+  },
+  nutritionLabel: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+  },
+  modalFooter: {
+    padding: Spacing.lg,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  searchBar: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+  },
+  searchInput: {
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    fontSize: Typography.fontSize.md,
+    color: Colors.text,
+  },
+  searchResultsList: {
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: 100,
+  },
+  // Food card styles removed - using FoodCard component
+  searchResultItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    marginBottom: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  searchResultName: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.text,
+    flex: 1,
+  },
+  searchResultCalories: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+  },
+  noResultsText: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.textMuted,
+    textAlign: 'center',
+    marginTop: Spacing.xl,
+  },
+  quantityModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  quantityModalContent: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+    width: '80%',
+    maxWidth: 300,
+  },
+  quantityModalTitle: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: Spacing.md,
+    textAlign: 'center',
+  },
+  quantityInput: {
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    fontSize: Typography.fontSize.md,
+    color: Colors.text,
+    marginBottom: Spacing.lg,
+    textAlign: 'center',
+  },
+  quantityModalButtons: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+  },
+  quantityButton: {
+    flex: 1,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+  },
+  cancelButton: {
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  cancelButtonText: {
+    color: Colors.textSecondary,
+    fontWeight: '600',
+  },
+  addButton: {
+    backgroundColor: Colors.primary,
+  },
+  addButtonText: {
+    color: '#1a1a1a',
+    fontWeight: '600',
+  },
+  // Removed Food Details Styles - Now in FoodDetailsView component
+  /*detailsHeader: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    marginBottom: Spacing.md,
+  },
+  detailsFoodName: {
+    fontSize: Typography.fontSize.xl,
+    fontWeight: '700',
+    color: Colors.text,
+    marginBottom: Spacing.xs,
+  },
+  detailsCategory: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+  },
+  ratingCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
+  },
+  ratingHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+  },
+  sectionTitle: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  nutriScoreBadge: {
+    backgroundColor: Colors.primary + '20',
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.sm,
+  },
+  nutriScoreText: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.primary,
+    fontWeight: '600',
+  },
+  ratingStars: {
+    flexDirection: 'row',
+    gap: Spacing.xs,
+  },
+  starIcon: {
+    fontSize: 20,
+  },
+  healthDetails: {
+    marginTop: Spacing.md,
+    paddingTop: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  healthDetailText: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+    lineHeight: 20,
+  },
+  servingSection: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
+  },
+  servingSelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: Spacing.md,
+  },
+  servingButton: {
+    width: 44,
+    height: 44,
+    backgroundColor: Colors.primary,
+    borderRadius: BorderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  servingButtonText: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: '#1a1a1a',
+  },
+  servingAmount: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  servingValue: {
+    fontSize: Typography.fontSize.xxl,
+    fontWeight: '700',
+    color: Colors.text,
+  },
+  servingUnit: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+    marginTop: 2,
+  },
+  nutritionCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+    marginBottom: Spacing.md,
+  },
+  nutritionServing: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+    marginTop: Spacing.xs,
+    marginBottom: Spacing.md,
+  },
+  nutritionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: Spacing.sm,
+  },
+  nutritionSubRow: {
+    paddingLeft: Spacing.lg,
+  },
+  nutritionLabel: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.text,
+  },
+  nutritionSubLabel: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+  },
+  nutritionValue: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  nutritionValueLarge: {
+    fontSize: Typography.fontSize.xl,
+    fontWeight: '700',
+    color: Colors.primary,
+  },
+  nutritionDivider: {
+    height: 2,
+    backgroundColor: Colors.border,
+    marginVertical: Spacing.sm,
+  },
+  addToRecipeButton: {
+    backgroundColor: Colors.primary,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    alignItems: 'center',
+  },
+  addToRecipeText: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: '600',
+    color: '#1a1a1a',
+  },*/
+});
