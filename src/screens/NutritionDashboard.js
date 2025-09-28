@@ -300,9 +300,9 @@ export default function NutritionDashboard({ navigation }) {
         {/* Quick Add Buttons */}
         <View style={styles.quickAddContainer}>
           <StyledButton
-            title="Add Food"
-            icon="➕"
-            onPress={navigateToAddFood}
+            title="Search & Add Food"
+            icon="🔍"
+            onPress={() => navigation.navigate('FoodSearch')}
             style={styles.quickAddButton}
           />
           <StyledButton
