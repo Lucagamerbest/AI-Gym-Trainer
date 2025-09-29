@@ -76,7 +76,7 @@ function HomeScreen({ navigation }) {
   const quickStats = useMemo(() => [
     { label: 'Streak', value: '7', unit: 'days', icon: '🔥' },
     { label: 'This Week', value: '4', unit: 'workouts', icon: '💪' },
-    { label: 'Remaining', value: remainingCalories.toString(), unit: 'calories today', icon: '⚡' },
+    { label: 'Calories', value: remainingCalories.toString(), unit: 'left today', icon: '⚡' },
   ], [remainingCalories]);
 
   return (
@@ -88,7 +88,11 @@ function HomeScreen({ navigation }) {
         <View style={[styles.circle, styles.circle3]} />
       </View>
 
-      <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scrollContainer}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         <LinearGradient
           colors={[Colors.primary, '#059669', '#10B981']}
           start={{ x: 0, y: 0 }}
@@ -104,44 +108,39 @@ function HomeScreen({ navigation }) {
           {/* Quick Stats */}
           <View style={styles.statsContainer}>
             {quickStats.map((stat, index) => {
-              const isRemainingCalories = stat.label === 'Remaining';
+              const isRemainingCalories = stat.label === 'Calories';
 
-              if (isRemainingCalories) {
-                return (
-                  <TouchableOpacity
-                    key={index}
-                    style={styles.statCardWrapper}
-                    onPress={() => navigation.getParent()?.navigate('Nutrition')}
-                    activeOpacity={0.7}
-                  >
-                    <LinearGradient
-                      colors={['rgba(16, 185, 129, 0.1)', 'rgba(5, 150, 105, 0.05)']}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                      style={styles.statCard}
-                    >
-                      <Text style={styles.statIcon}>{stat.icon}</Text>
-                      <Text style={styles.statValue}>{stat.value}</Text>
-                      <Text style={styles.statLabel}>{stat.label}</Text>
-                      <Text style={styles.statUnit}>{stat.unit}</Text>
-                    </LinearGradient>
-                  </TouchableOpacity>
-                );
-              }
-
-              return (
+              const content = (
                 <LinearGradient
-                  key={index}
                   colors={['rgba(16, 185, 129, 0.1)', 'rgba(5, 150, 105, 0.05)']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
-                  style={styles.statCard}
+                  style={styles.statCardInner}
                 >
                   <Text style={styles.statIcon}>{stat.icon}</Text>
                   <Text style={styles.statValue}>{stat.value}</Text>
                   <Text style={styles.statLabel}>{stat.label}</Text>
                   <Text style={styles.statUnit}>{stat.unit}</Text>
                 </LinearGradient>
+              );
+
+              if (isRemainingCalories) {
+                return (
+                  <TouchableOpacity
+                    key={index}
+                    style={styles.statCard}
+                    onPress={() => navigation.getParent()?.navigate('Nutrition')}
+                    activeOpacity={0.7}
+                  >
+                    {content}
+                  </TouchableOpacity>
+                );
+              }
+
+              return (
+                <View key={index} style={styles.statCard}>
+                  {content}
+                </View>
               );
             })}
           </View>
@@ -259,6 +258,9 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flex: 1,
   },
+  scrollContent: {
+    flexGrow: 1,
+  },
   headerGradient: {
     paddingTop: 60,
     paddingBottom: 40,
@@ -298,23 +300,21 @@ const styles = StyleSheet.create({
   },
   statsContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: -25,
-    marginBottom: Spacing.xxl,
+    gap: 8,
+    marginTop: Spacing.md,
+    marginBottom: Spacing.xl,
   },
   statCard: {
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.md,
-    alignItems: 'center',
     flex: 1,
-    marginHorizontal: 4,
+  },
+  statCardInner: {
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+    paddingVertical: Spacing.md,
+    alignItems: 'center',
     borderWidth: 1,
     borderColor: 'rgba(16, 185, 129, 0.2)',
     backgroundColor: Colors.card,
-  },
-  statCardWrapper: {
-    flex: 1,
-    marginHorizontal: 4,
   },
   statIcon: {
     fontSize: 24,
