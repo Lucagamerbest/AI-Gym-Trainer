@@ -77,6 +77,14 @@ export default function NutritionScreen({ navigation, route }) {
       const { addedFood } = route.params;
       const mealType = addedFood.mealType || 'breakfast';
 
+      console.log('=== ADDING NEW FOOD/RECIPE ===');
+      console.log('Food/Recipe Name:', addedFood.name);
+      console.log('Meal Type:', mealType);
+      console.log('Calories to Add:', addedFood.calories);
+      console.log('Protein:', addedFood.protein, 'g');
+      console.log('Carbs:', addedFood.carbs, 'g');
+      console.log('Fat:', addedFood.fat, 'g');
+
       // Clear the params immediately to prevent re-adding
       navigation.setParams({ addedFood: undefined });
 
@@ -85,30 +93,37 @@ export default function NutritionScreen({ navigation, route }) {
 
       // Update all state using functional updates to get latest values
       setMeals(prevMeals => {
+        console.log('Previous meals state:', prevMeals);
+
         const updatedMeals = {
           ...prevMeals,
           [mealType]: [...prevMeals[mealType], addedFood]
         };
 
-        // Update consumed and macros with functional updates
-        setConsumed(prevConsumed => {
-          const newConsumed = prevConsumed + (addedFood.calories || 0);
+        console.log('Updated meals state:', updatedMeals);
 
-          setConsumedMacros(prevMacros => {
-            const newMacros = {
-              proteinGrams: prevMacros.proteinGrams + (addedFood.protein || 0),
-              carbsGrams: prevMacros.carbsGrams + (addedFood.carbs || 0),
-              fatGrams: prevMacros.fatGrams + (addedFood.fat || 0),
-            };
+        // Calculate totals from all meals
+        const totals = calculateTotalsFromMeals(updatedMeals);
+        console.log('=== CALCULATED TOTALS FROM ALL MEALS ===');
+        console.log('Total Calories:', totals.calories);
+        console.log('Total Protein:', totals.protein, 'g');
+        console.log('Total Carbs:', totals.carbs, 'g');
+        console.log('Total Fat:', totals.fat, 'g');
 
-            // Save to AsyncStorage with the updated values
-            saveDailyNutrition(newConsumed, newMacros, updatedMeals, mealType);
-
-            return newMacros;
-          });
-
-          return newConsumed;
+        // Update consumed and macros based on calculated totals
+        setConsumed(totals.calories);
+        setConsumedMacros({
+          proteinGrams: totals.protein,
+          carbsGrams: totals.carbs,
+          fatGrams: totals.fat
         });
+
+        // Save to AsyncStorage with the updated values
+        saveDailyNutrition(totals.calories, {
+          proteinGrams: totals.protein,
+          carbsGrams: totals.carbs,
+          fatGrams: totals.fat
+        }, updatedMeals, mealType);
 
         return updatedMeals;
       });
@@ -154,17 +169,35 @@ export default function NutritionScreen({ navigation, route }) {
     let totalCarbs = 0;
     let totalFat = 0;
 
+    console.log('=== CALCULATING TOTALS FROM MEALS ===');
+
     // Sum up all meals
     ['breakfast', 'lunch', 'dinner', 'snacks'].forEach(mealType => {
       if (mealsData[mealType] && Array.isArray(mealsData[mealType])) {
+        let mealCalories = 0;
+        let mealProtein = 0;
+        let mealCarbs = 0;
+        let mealFat = 0;
+
         mealsData[mealType].forEach(food => {
-          totalCalories += food.calories || 0;
-          totalProtein += food.protein || 0;
-          totalCarbs += food.carbs || 0;
-          totalFat += food.fat || 0;
+          mealCalories += food.calories || 0;
+          mealProtein += food.protein || 0;
+          mealCarbs += food.carbs || 0;
+          mealFat += food.fat || 0;
         });
+
+        if (mealsData[mealType].length > 0) {
+          console.log(`${mealType.toUpperCase()} - Items: ${mealsData[mealType].length}, Calories: ${mealCalories}`);
+        }
+
+        totalCalories += mealCalories;
+        totalProtein += mealProtein;
+        totalCarbs += mealCarbs;
+        totalFat += mealFat;
       }
     });
+
+    console.log('TOTAL CALORIES FROM ALL MEALS:', totalCalories);
 
     return {
       calories: totalCalories,
@@ -175,14 +208,24 @@ export default function NutritionScreen({ navigation, route }) {
   };
 
   const loadDailyNutrition = async () => {
+    console.log('=== LOADING DAILY NUTRITION FROM STORAGE ===');
     try {
       const saved = await AsyncStorage.getItem(DAILY_NUTRITION_KEY);
       if (saved) {
         const data = JSON.parse(saved);
         const loadedMeals = data.meals || { breakfast: [], lunch: [], dinner: [], snacks: [] };
 
+        console.log('Loaded meals from storage:', loadedMeals);
+
         // Recalculate totals from all meals to ensure accuracy
         const totals = calculateTotalsFromMeals(loadedMeals);
+
+        console.log('Setting consumed calories to:', totals.calories);
+        console.log('Setting macros to:', {
+          protein: totals.protein,
+          carbs: totals.carbs,
+          fat: totals.fat
+        });
 
         setConsumed(totals.calories);
         setConsumedMacros({
@@ -192,6 +235,8 @@ export default function NutritionScreen({ navigation, route }) {
         });
         setMeals(loadedMeals);
         setSelectedMeal(data.selectedMeal || 'breakfast');
+      } else {
+        console.log('No saved nutrition data found');
       }
     } catch (error) {
       console.error('Error loading daily nutrition:', error);
@@ -226,6 +271,16 @@ export default function NutritionScreen({ navigation, route }) {
   const carbsProgress = calculateProgress(consumedMacros.carbsGrams, macroGoals.carbsGrams);
   const fatProgress = calculateProgress(consumedMacros.fatGrams, macroGoals.fatGrams);
   const calorieDeficit = macroGoals.calories - consumed - burned;
+
+  // Debug current state on every render
+  useEffect(() => {
+    console.log('=== CURRENT NUTRITION STATE ===');
+    console.log('Current Consumed Calories:', consumed);
+    console.log('Current Macros:', consumedMacros);
+    console.log('Current Meals:', meals);
+    console.log('Calorie Goal:', macroGoals.calories);
+    console.log('Calorie Deficit/Surplus:', calorieDeficit);
+  }, [consumed, consumedMacros, meals]);
 
   return (
     <ScreenLayout
