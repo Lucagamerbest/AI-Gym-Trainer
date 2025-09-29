@@ -79,15 +79,6 @@ export default function NutritionScreen({ navigation, route }) {
       const { addedFood } = route.params;
       const mealType = addedFood.mealType || 'breakfast';
 
-      console.log('=== ADDING NEW FOOD/RECIPE ===');
-      console.log('Food/Recipe Name:', addedFood.name);
-      console.log('Meal Type:', mealType);
-      console.log('Calories to Add:', addedFood.calories);
-      console.log('Protein:', addedFood.protein, 'g');
-      console.log('Carbs:', addedFood.carbs, 'g');
-      console.log('Fat:', addedFood.fat, 'g');
-      console.log('Data Loaded:', dataLoaded);
-      console.log('Current meals before adding:', meals);
 
       // Clear the params immediately to prevent re-adding
       navigation.setParams({ addedFood: undefined });
@@ -101,7 +92,6 @@ export default function NutritionScreen({ navigation, route }) {
         if (saved) {
           const data = JSON.parse(saved);
           currentMeals = data.meals || meals;
-          console.log('Latest meals from storage:', currentMeals);
         }
 
         // Now add the new food to the existing meals
@@ -110,15 +100,9 @@ export default function NutritionScreen({ navigation, route }) {
           [mealType]: [...(currentMeals[mealType] || []), addedFood]
         };
 
-        console.log('Updated meals state:', updatedMeals);
 
         // Calculate totals from all meals
         const totals = calculateTotalsFromMeals(updatedMeals);
-        console.log('=== CALCULATED TOTALS FROM ALL MEALS ===');
-        console.log('Total Calories:', totals.calories);
-        console.log('Total Protein:', totals.protein, 'g');
-        console.log('Total Carbs:', totals.carbs, 'g');
-        console.log('Total Fat:', totals.fat, 'g');
 
         // Update all state
         setMeals(updatedMeals);
@@ -178,7 +162,6 @@ export default function NutritionScreen({ navigation, route }) {
     let totalCarbs = 0;
     let totalFat = 0;
 
-    console.log('=== CALCULATING TOTALS FROM MEALS ===');
 
     // Sum up all meals
     ['breakfast', 'lunch', 'dinner', 'snacks'].forEach(mealType => {
@@ -196,7 +179,6 @@ export default function NutritionScreen({ navigation, route }) {
         });
 
         if (mealsData[mealType].length > 0) {
-          console.log(`${mealType.toUpperCase()} - Items: ${mealsData[mealType].length}, Calories: ${mealCalories}`);
         }
 
         totalCalories += mealCalories;
@@ -206,7 +188,6 @@ export default function NutritionScreen({ navigation, route }) {
       }
     });
 
-    console.log('TOTAL CALORIES FROM ALL MEALS:', totalCalories);
 
     return {
       calories: totalCalories,
@@ -217,24 +198,16 @@ export default function NutritionScreen({ navigation, route }) {
   };
 
   const loadDailyNutrition = async () => {
-    console.log('=== LOADING DAILY NUTRITION FROM STORAGE ===');
     try {
       const saved = await AsyncStorage.getItem(DAILY_NUTRITION_KEY);
       if (saved) {
         const data = JSON.parse(saved);
         const loadedMeals = data.meals || { breakfast: [], lunch: [], dinner: [], snacks: [] };
 
-        console.log('Loaded meals from storage:', loadedMeals);
 
         // Recalculate totals from all meals to ensure accuracy
         const totals = calculateTotalsFromMeals(loadedMeals);
 
-        console.log('Setting consumed calories to:', totals.calories);
-        console.log('Setting macros to:', {
-          protein: totals.protein,
-          carbs: totals.carbs,
-          fat: totals.fat
-        });
 
         setConsumed(totals.calories);
         setConsumedMacros({
@@ -245,7 +218,6 @@ export default function NutritionScreen({ navigation, route }) {
         setMeals(loadedMeals);
         setSelectedMeal(data.selectedMeal || 'breakfast');
       } else {
-        console.log('No saved nutrition data found');
       }
       setDataLoaded(true); // Mark data as loaded
     } catch (error) {
@@ -285,12 +257,6 @@ export default function NutritionScreen({ navigation, route }) {
 
   // Debug current state on every render
   useEffect(() => {
-    console.log('=== CURRENT NUTRITION STATE ===');
-    console.log('Current Consumed Calories:', consumed);
-    console.log('Current Macros:', consumedMacros);
-    console.log('Current Meals:', meals);
-    console.log('Calorie Goal:', macroGoals.calories);
-    console.log('Calorie Deficit/Surplus:', calorieDeficit);
   }, [consumed, consumedMacros, meals]);
 
   return (
@@ -463,6 +429,35 @@ export default function NutritionScreen({ navigation, route }) {
             </Text>
           </View>
         </StyledCard>
+
+        {/* DEBUG RESET BUTTON - REMOVE IN PRODUCTION */}
+        <TouchableOpacity
+          style={styles.debugResetButton}
+          onPress={async () => {
+            // Reset all nutrition data
+            const emptyMeals = {
+              breakfast: [],
+              lunch: [],
+              dinner: [],
+              snacks: []
+            };
+            setMeals(emptyMeals);
+            setConsumed(0);
+            setConsumedMacros({
+              proteinGrams: 0,
+              carbsGrams: 0,
+              fatGrams: 0,
+            });
+
+            // Clear AsyncStorage
+            await AsyncStorage.removeItem(DAILY_NUTRITION_KEY);
+            await AsyncStorage.setItem(LAST_RESET_DATE_KEY, new Date().toISOString());
+
+            Alert.alert('Debug', 'All nutrition data has been reset!');
+          }}
+        >
+          <Text style={styles.debugResetText}>🔧 DEBUG: Reset All Calories</Text>
+        </TouchableOpacity>
 
       <MacroGoalsModal
         visible={showMacroModal}
@@ -850,5 +845,21 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.md,
     color: Colors.text,
     fontWeight: '500',
+  },
+  debugResetButton: {
+    backgroundColor: '#ff4444',
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    marginHorizontal: Spacing.lg,
+    marginTop: Spacing.xl,
+    marginBottom: Spacing.md,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#cc0000',
+  },
+  debugResetText: {
+    color: 'white',
+    fontSize: Typography.fontSize.md,
+    fontWeight: 'bold',
   },
 });

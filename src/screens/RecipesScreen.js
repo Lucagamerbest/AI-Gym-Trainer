@@ -224,11 +224,6 @@ export default function RecipesScreen({ navigation, route }) {
   };
 
   const quickAddRecipe = (recipe) => {
-    console.log('=== QUICK ADD RECIPE ===');
-    console.log('Recipe:', recipe.name);
-    console.log('Meal Type:', mealType);
-    console.log('Per Serving Nutrition:', recipe.perServingNutrition);
-
     Alert.alert(
       'Add to ' + mealType,
       `Add "${recipe.name}" to ${mealType}?`,
@@ -245,9 +240,6 @@ export default function RecipesScreen({ navigation, route }) {
               fat: recipe.perServingNutrition.fat,
               mealType: mealType,
             };
-
-            console.log('=== SENDING RECIPE TO NUTRITION ===');
-            console.log('Food Data:', foodData);
 
             // Navigate back with the recipe data and a flag indicating recipe was added
             navigation.navigate('Nutrition', {
