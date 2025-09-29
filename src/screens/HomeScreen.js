@@ -103,20 +103,38 @@ function HomeScreen({ navigation }) {
         <View style={styles.content}>
           {/* Quick Stats */}
           <View style={styles.statsContainer}>
-            {quickStats.map((stat, index) => (
-              <LinearGradient
-                key={index}
-                colors={['rgba(16, 185, 129, 0.1)', 'rgba(5, 150, 105, 0.05)']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.statCard}
-              >
-                <Text style={styles.statIcon}>{stat.icon}</Text>
-                <Text style={styles.statValue}>{stat.value}</Text>
-                <Text style={styles.statLabel}>{stat.label}</Text>
-                <Text style={styles.statUnit}>{stat.unit}</Text>
-              </LinearGradient>
-            ))}
+            {quickStats.map((stat, index) => {
+              const isRemainingCalories = stat.label === 'Remaining';
+              const StatContent = (
+                <LinearGradient
+                  key={index}
+                  colors={['rgba(16, 185, 129, 0.1)', 'rgba(5, 150, 105, 0.05)']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.statCard}
+                >
+                  <Text style={styles.statIcon}>{stat.icon}</Text>
+                  <Text style={styles.statValue}>{stat.value}</Text>
+                  <Text style={styles.statLabel}>{stat.label}</Text>
+                  <Text style={styles.statUnit}>{stat.unit}</Text>
+                </LinearGradient>
+              );
+
+              if (isRemainingCalories) {
+                return (
+                  <TouchableOpacity
+                    key={index}
+                    style={{ flex: 1, marginHorizontal: 4 }}
+                    onPress={() => navigation.getParent()?.navigate('Nutrition')}
+                    activeOpacity={0.7}
+                  >
+                    {StatContent}
+                  </TouchableOpacity>
+                );
+              }
+
+              return StatContent;
+            })}
           </View>
 
           {/* Main Actions - Simple Two Buttons */}
