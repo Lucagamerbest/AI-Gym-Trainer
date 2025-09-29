@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import ScreenLayout from '../components/ScreenLayout';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 
 export default function FoodDetailScreen({ route, navigation }) {
-  const { food } = route.params;
+  const { food, mealType = 'lunch' } = route.params;
 
   // Determine if this food should be measured in units rather than grams
   const getServingInfo = () => {
@@ -298,14 +298,20 @@ export default function FoodDetailScreen({ route, navigation }) {
   const healthAnalysis = getHealthAnalysis();
 
   const handleAddToLog = () => {
-    // TODO: Implement add to food log functionality
-    const actualWeight = calculateActualWeight();
-    const servingText = servingInfo.isUnit
-      ? `${servingAmount} ${servingAmount === 1 ? servingInfo.unit : servingInfo.unitPlural}`
-      : `${servingAmount}${servingInfo.unit}`;
+    const foodData = {
+      name: food.name,
+      calories: parseFloat(calculateNutrition(food.calories || 0)),
+      protein: parseFloat(calculateNutrition(food.protein || 0)),
+      carbs: parseFloat(calculateNutrition(food.carbs || 0)),
+      fat: parseFloat(calculateNutrition(food.fat || 0)),
+      mealType: mealType,
+    };
 
-    console.log('Add to food log:', food.name, 'Serving:', servingText, 'Weight:', actualWeight);
-    alert(`Would add ${servingText} of ${food.name} to your food log`);
+    // Navigate back to Nutrition screen with the food data
+    navigation.navigate('Nutrition', {
+      addedFood: foodData,
+      fromFoodAdd: true
+    });
   };
 
   const adjustServing = (adjustment) => {
@@ -321,12 +327,13 @@ export default function FoodDetailScreen({ route, navigation }) {
   };
 
   return (
-    <ScreenLayout
-      title="Food Details"
-      navigation={navigation}
-      showBack={true}
-      scrollable={true}
-    >
+    <View style={styles.container}>
+      <ScreenLayout
+        title="Food Details"
+        navigation={navigation}
+        showBack={true}
+        scrollable={true}
+      >
       {/* Food Header */}
       <View style={styles.header}>
         <Text style={styles.foodName}>{food.name || 'Unknown Food'}</Text>
@@ -603,13 +610,23 @@ export default function FoodDetailScreen({ route, navigation }) {
         onPress={handleAddToLog}
         activeOpacity={0.8}
       >
-        <Text style={styles.addButtonText}>Add to Food Log</Text>
+        <Text style={styles.addButtonText}>
+          Add to {mealType.charAt(0).toUpperCase() + mealType.slice(1)}
+        </Text>
       </TouchableOpacity>
-    </ScreenLayout>
+      </ScreenLayout>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
+  scrollContent: {
+    paddingBottom: 80, // Space for the sticky button
+  },
   header: {
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.lg,
@@ -879,6 +896,23 @@ const styles = StyleSheet.create({
   addButtonText: {
     fontSize: Typography.fontSize.lg,
     fontWeight: 'bold',
-    color: 'white',
+    color: 'black',
+  },
+  stickyAddButton: {
+    position: 'absolute',
+    bottom: Spacing.lg,
+    left: '50%',
+    transform: [{ translateX: -120 }], // Half of width (240px / 2)
+    width: 240,
+    backgroundColor: Colors.primary,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: BorderRadius.xl,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 10,
   },
 });

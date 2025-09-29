@@ -20,7 +20,8 @@ const POPULAR_FOODS = [
   'Salmon', 'Greek Yogurt', 'Sweet Potato', 'Avocado', 'Almonds'
 ];
 
-export default function FoodSearchScreen({ navigation }) {
+export default function FoodSearchScreen({ route, navigation }) {
+  const { mealType = 'lunch' } = route.params || {};
   const [searchText, setSearchText] = useState('');
   const [allFoods, setAllFoods] = useState([]);
   const [displayedFoods, setDisplayedFoods] = useState([]);
@@ -123,7 +124,7 @@ export default function FoodSearchScreen({ navigation }) {
   const selectFood = (food) => {
     console.log('Selected food:', food.name);
     // Navigate to food detail screen
-    navigation.navigate('FoodDetail', { food });
+    navigation.navigate('FoodDetail', { food, mealType });
   };
 
   // Render individual food item

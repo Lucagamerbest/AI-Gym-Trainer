@@ -250,6 +250,53 @@ export default function NutritionScreen({ navigation, route }) {
     return Math.min(100, Math.round((consumed / goal) * 100));
   };
 
+  const showConsumedBreakdown = () => {
+    navigation.navigate('CalorieBreakdown', {
+      meals: meals,
+      totalCalories: consumed,
+      onDeleteFood: handleDeleteFood
+    });
+  };
+
+  const handleDeleteFood = async (mealType, foodIndex) => {
+    try {
+      console.log('NutritionScreen: Deleting food at index', foodIndex, 'from', mealType);
+      console.log('Current meals before deletion:', meals[mealType]);
+
+      const updatedMeals = { ...meals };
+      if (updatedMeals[mealType] && updatedMeals[mealType][foodIndex]) {
+        const deletedFood = updatedMeals[mealType][foodIndex];
+        console.log('Deleting food:', deletedFood.name, deletedFood.calories, 'cal');
+
+        updatedMeals[mealType].splice(foodIndex, 1);
+        console.log('Meals after deletion:', updatedMeals[mealType]);
+
+        setMeals(updatedMeals);
+
+        // Recalculate totals
+        const totals = calculateTotalsFromMeals(updatedMeals);
+        setConsumed(totals.calories);
+        setConsumedMacros({
+          proteinGrams: totals.protein,
+          carbsGrams: totals.carbs,
+          fatGrams: totals.fat
+        });
+
+        // Save to storage
+        const nutritionData = {
+          meals: updatedMeals,
+          lastUpdated: new Date().toISOString()
+        };
+        await AsyncStorage.setItem(DAILY_NUTRITION_KEY, JSON.stringify(nutritionData));
+        console.log('Food deleted successfully, new total calories:', totals.calories);
+      } else {
+        console.log('Food not found at index', foodIndex, 'in', mealType);
+      }
+    } catch (error) {
+      console.error('Error deleting food:', error);
+    }
+  };
+
   const proteinProgress = calculateProgress(consumedMacros.proteinGrams, macroGoals.proteinGrams);
   const carbsProgress = calculateProgress(consumedMacros.carbsGrams, macroGoals.carbsGrams);
   const fatProgress = calculateProgress(consumedMacros.fatGrams, macroGoals.fatGrams);
@@ -286,11 +333,15 @@ export default function NutritionScreen({ navigation, route }) {
               <Text style={styles.statUnit}>cal</Text>
             </View>
             <View style={styles.divider} />
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>Consumed</Text>
+            <TouchableOpacity
+              style={[styles.statItem, styles.clickableStatItem]}
+              onPress={showConsumedBreakdown}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.statLabel}>Consumed 👆</Text>
               <Text style={styles.statValue}>{consumed}</Text>
               <Text style={styles.statUnit}>cal</Text>
-            </View>
+            </TouchableOpacity>
             <View style={styles.divider} />
             <View style={styles.statItem}>
               <Text style={styles.statLabel}>Burned</Text>
@@ -510,6 +561,11 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     minWidth: 80,
+  },
+  clickableStatItem: {
+    backgroundColor: 'rgba(16, 185, 129, 0.05)',
+    borderRadius: BorderRadius.sm,
+    paddingVertical: Spacing.xs,
   },
   statLabel: {
     color: Colors.textSecondary,

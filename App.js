@@ -42,6 +42,7 @@ import FoodDetailScreen from './src/screens/FoodDetailScreen';
 import EnhancedFoodSearchScreen from './src/screens/EnhancedFoodSearchScreen';
 import NutritionDashboard from './src/screens/NutritionDashboard';
 import RecipesScreen from './src/screens/RecipesScreen';
+import CalorieBreakdownScreen from './src/screens/CalorieBreakdownScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -129,6 +130,7 @@ function AppNavigator() {
             <Stack.Screen name="FoodDetail" component={FoodDetailScreen} />
             <Stack.Screen name="FoodScanning" component={FoodScanningScreen} />
             <Stack.Screen name="Recipes" component={RecipesScreen} />
+            <Stack.Screen name="CalorieBreakdown" component={CalorieBreakdownScreen} />
             <Stack.Screen name="Camera" component={CameraScreen} />
             <Stack.Screen name="FoodScan" component={FoodScanScreen} />
             <Stack.Screen name="FoodScanResult" component={FoodScanResultScreen} />
