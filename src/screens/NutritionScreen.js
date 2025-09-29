@@ -77,34 +77,43 @@ export default function NutritionScreen({ navigation, route }) {
       const { addedFood } = route.params;
       const mealType = addedFood.mealType || 'breakfast';
 
+      // Clear the params immediately to prevent re-adding
+      navigation.setParams({ addedFood: undefined });
+
       // Update selected meal to match the added food's meal type
       setSelectedMeal(mealType);
 
-      // Add food to the appropriate meal
-      const newMeals = {
-        ...meals,
-        [mealType]: [...meals[mealType], addedFood]
-      };
-      setMeals(newMeals);
+      // Update all state using functional updates to get latest values
+      setMeals(prevMeals => {
+        const updatedMeals = {
+          ...prevMeals,
+          [mealType]: [...prevMeals[mealType], addedFood]
+        };
 
-      // Update consumed calories and macros
-      const newConsumed = consumed + (addedFood.calories || 0);
-      const newMacros = {
-        proteinGrams: consumedMacros.proteinGrams + (addedFood.protein || 0),
-        carbsGrams: consumedMacros.carbsGrams + (addedFood.carbs || 0),
-        fatGrams: consumedMacros.fatGrams + (addedFood.fat || 0),
-      };
+        // Update consumed and macros with functional updates
+        setConsumed(prevConsumed => {
+          const newConsumed = prevConsumed + (addedFood.calories || 0);
 
-      setConsumed(newConsumed);
-      setConsumedMacros(newMacros);
+          setConsumedMacros(prevMacros => {
+            const newMacros = {
+              proteinGrams: prevMacros.proteinGrams + (addedFood.protein || 0),
+              carbsGrams: prevMacros.carbsGrams + (addedFood.carbs || 0),
+              fatGrams: prevMacros.fatGrams + (addedFood.fat || 0),
+            };
 
-      // Save to AsyncStorage
-      saveDailyNutrition(newConsumed, newMacros, newMeals, mealType);
+            // Save to AsyncStorage with the updated values
+            saveDailyNutrition(newConsumed, newMacros, updatedMeals, mealType);
 
-      // Clear the params to prevent re-adding on navigation
-      navigation.setParams({ addedFood: undefined });
+            return newMacros;
+          });
+
+          return newConsumed;
+        });
+
+        return updatedMeals;
+      });
     }
-  }, [route.params?.addedFood, route.params?.fromRecipeAdd, consumed, consumedMacros, meals]);
+  }, [route.params?.addedFood, route.params?.fromRecipeAdd]);
 
   const loadMacroGoals = async () => {
     try {
@@ -138,14 +147,50 @@ export default function NutritionScreen({ navigation, route }) {
     }
   };
 
+  // Helper function to calculate totals from all meals
+  const calculateTotalsFromMeals = (mealsData) => {
+    let totalCalories = 0;
+    let totalProtein = 0;
+    let totalCarbs = 0;
+    let totalFat = 0;
+
+    // Sum up all meals
+    ['breakfast', 'lunch', 'dinner', 'snacks'].forEach(mealType => {
+      if (mealsData[mealType] && Array.isArray(mealsData[mealType])) {
+        mealsData[mealType].forEach(food => {
+          totalCalories += food.calories || 0;
+          totalProtein += food.protein || 0;
+          totalCarbs += food.carbs || 0;
+          totalFat += food.fat || 0;
+        });
+      }
+    });
+
+    return {
+      calories: totalCalories,
+      protein: totalProtein,
+      carbs: totalCarbs,
+      fat: totalFat
+    };
+  };
+
   const loadDailyNutrition = async () => {
     try {
       const saved = await AsyncStorage.getItem(DAILY_NUTRITION_KEY);
       if (saved) {
         const data = JSON.parse(saved);
-        setConsumed(data.consumed || 0);
-        setConsumedMacros(data.consumedMacros || { proteinGrams: 0, carbsGrams: 0, fatGrams: 0 });
-        setMeals(data.meals || { breakfast: [], lunch: [], dinner: [], snacks: [] });
+        const loadedMeals = data.meals || { breakfast: [], lunch: [], dinner: [], snacks: [] };
+
+        // Recalculate totals from all meals to ensure accuracy
+        const totals = calculateTotalsFromMeals(loadedMeals);
+
+        setConsumed(totals.calories);
+        setConsumedMacros({
+          proteinGrams: totals.protein,
+          carbsGrams: totals.carbs,
+          fatGrams: totals.fat
+        });
+        setMeals(loadedMeals);
         setSelectedMeal(data.selectedMeal || 'breakfast');
       }
     } catch (error) {
