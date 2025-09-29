@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ScreenLayout from '../components/ScreenLayout';
 import StyledButton from '../components/StyledButton';
@@ -8,28 +9,102 @@ import MacroGoalsModal from '../components/MacroGoalsModal';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 
 const MACROS_KEY = '@macro_goals';
+const DAILY_NUTRITION_KEY = '@daily_nutrition';
+const LAST_RESET_DATE_KEY = '@last_reset_date';
 
-export default function NutritionScreen({ navigation }) {
-  const [consumed] = useState(0); // Will be updated when food tracking is implemented
+export default function NutritionScreen({ navigation, route }) {
+  const [consumed, setConsumed] = useState(0);
   const [burned] = useState(0); // Will be updated when exercise tracking is implemented
   const [showMacroModal, setShowMacroModal] = useState(false);
   const [selectedMeal, setSelectedMeal] = useState('breakfast');
   const [expandedMeal, setExpandedMeal] = useState(null);
+  const [disableBack, setDisableBack] = useState(false); // Track if back should be disabled
   const [macroGoals, setMacroGoals] = useState({
     calories: 2000,
     proteinGrams: 150,
     carbsGrams: 250,
     fatGrams: 65,
   });
-  const [consumedMacros] = useState({
+  const [consumedMacros, setConsumedMacros] = useState({
     proteinGrams: 0,
     carbsGrams: 0,
     fatGrams: 0,
   });
+  const [meals, setMeals] = useState({
+    breakfast: [],
+    lunch: [],
+    dinner: [],
+    snacks: []
+  });
 
   useEffect(() => {
     loadMacroGoals();
+    loadDailyNutrition();
+    checkAndResetDaily();
   }, []);
+
+  // Use focus effect to ensure swipe is disabled when screen is focused
+  useFocusEffect(
+    React.useCallback(() => {
+      if (disableBack) {
+        // Ensure swipe is disabled when screen is focused
+        navigation.setOptions({
+          gestureEnabled: false
+        });
+      }
+      return () => {
+        // Cleanup if needed
+      };
+    }, [disableBack, navigation])
+  );
+
+  // Handle incoming food/recipe data from navigation
+  useEffect(() => {
+    // Check if we came from adding a recipe
+    if (route.params?.fromRecipeAdd) {
+      setDisableBack(true); // Disable back navigation
+
+      // Disable swipe gesture immediately
+      navigation.setOptions({
+        gestureEnabled: false
+      });
+
+      // Clear the flag after processing but keep swipe disabled
+      navigation.setParams({ fromRecipeAdd: undefined });
+    }
+
+    if (route.params?.addedFood) {
+      const { addedFood } = route.params;
+      const mealType = addedFood.mealType || 'breakfast';
+
+      // Update selected meal to match the added food's meal type
+      setSelectedMeal(mealType);
+
+      // Add food to the appropriate meal
+      const newMeals = {
+        ...meals,
+        [mealType]: [...meals[mealType], addedFood]
+      };
+      setMeals(newMeals);
+
+      // Update consumed calories and macros
+      const newConsumed = consumed + (addedFood.calories || 0);
+      const newMacros = {
+        proteinGrams: consumedMacros.proteinGrams + (addedFood.protein || 0),
+        carbsGrams: consumedMacros.carbsGrams + (addedFood.carbs || 0),
+        fatGrams: consumedMacros.fatGrams + (addedFood.fat || 0),
+      };
+
+      setConsumed(newConsumed);
+      setConsumedMacros(newMacros);
+
+      // Save to AsyncStorage
+      saveDailyNutrition(newConsumed, newMacros, newMeals, mealType);
+
+      // Clear the params to prevent re-adding on navigation
+      navigation.setParams({ addedFood: undefined });
+    }
+  }, [route.params?.addedFood, route.params?.fromRecipeAdd, consumed, consumedMacros, meals]);
 
   const loadMacroGoals = async () => {
     try {
@@ -39,6 +114,57 @@ export default function NutritionScreen({ navigation }) {
       }
     } catch (error) {
       console.error('Error loading macro goals:', error);
+    }
+  };
+
+  const checkAndResetDaily = async () => {
+    try {
+      const lastResetDate = await AsyncStorage.getItem(LAST_RESET_DATE_KEY);
+      const today = new Date().toDateString();
+
+      if (lastResetDate !== today) {
+        // It's a new day, reset the data
+        await AsyncStorage.setItem(LAST_RESET_DATE_KEY, today);
+        await AsyncStorage.removeItem(DAILY_NUTRITION_KEY);
+
+        // Reset state
+        setConsumed(0);
+        setConsumedMacros({ proteinGrams: 0, carbsGrams: 0, fatGrams: 0 });
+        setMeals({ breakfast: [], lunch: [], dinner: [], snacks: [] });
+        setSelectedMeal('breakfast');
+      }
+    } catch (error) {
+      console.error('Error checking daily reset:', error);
+    }
+  };
+
+  const loadDailyNutrition = async () => {
+    try {
+      const saved = await AsyncStorage.getItem(DAILY_NUTRITION_KEY);
+      if (saved) {
+        const data = JSON.parse(saved);
+        setConsumed(data.consumed || 0);
+        setConsumedMacros(data.consumedMacros || { proteinGrams: 0, carbsGrams: 0, fatGrams: 0 });
+        setMeals(data.meals || { breakfast: [], lunch: [], dinner: [], snacks: [] });
+        setSelectedMeal(data.selectedMeal || 'breakfast');
+      }
+    } catch (error) {
+      console.error('Error loading daily nutrition:', error);
+    }
+  };
+
+  const saveDailyNutrition = async (newConsumed, newMacros, newMeals, newSelectedMeal) => {
+    try {
+      const data = {
+        consumed: newConsumed,
+        consumedMacros: newMacros,
+        meals: newMeals,
+        selectedMeal: newSelectedMeal,
+        lastUpdated: new Date().toISOString()
+      };
+      await AsyncStorage.setItem(DAILY_NUTRITION_KEY, JSON.stringify(data));
+    } catch (error) {
+      console.error('Error saving daily nutrition:', error);
     }
   };
 
@@ -61,7 +187,7 @@ export default function NutritionScreen({ navigation }) {
       title="Nutrition Tracker"
       subtitle="Track your daily intake"
       navigation={navigation}
-      showBack={true}
+      showBack={!disableBack}  // Disable back when coming from recipe add
       showHome={true}
     >
       <StyledCard style={styles.statsCard}>

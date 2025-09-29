@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../context/AuthContext';
@@ -9,6 +9,13 @@ import ActiveWorkoutIndicator from '../components/ActiveWorkoutIndicator';
 function HomeScreen({ navigation }) {
   const { user } = useAuth();
   const firstName = useMemo(() => user?.displayName?.split(' ')[0] || 'Champion', [user]);
+
+  // Disable swipe gesture on home screen to prevent accidental navigation
+  useEffect(() => {
+    navigation.setOptions({
+      gestureEnabled: false
+    });
+  }, [navigation]);
 
   // Get greeting based on time of day
   const getGreeting = useMemo(() => {

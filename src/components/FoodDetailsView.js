@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  TextInput,
 } from 'react-native';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 
@@ -127,8 +128,29 @@ export default function FoodDetailsView({
       const newAmount = Math.max(0.5, servingAmount + (adjustment > 0 ? 1 : -1));
       setServingAmount(newAmount);
     } else {
-      const newAmount = Math.max(10, servingAmount + adjustment);
-      setServingAmount(newAmount);
+      // Use 100g increments for quick adjustment
+      const newAmount = Math.max(0, servingAmount + adjustment);
+      setServingAmount(Math.round(newAmount));
+    }
+  };
+
+  const handleServingTextChange = (text) => {
+    // Remove non-numeric characters
+    const numericValue = text.replace(/[^0-9.]/g, '');
+    if (numericValue === '') {
+      setServingAmount(0);
+    } else {
+      const value = parseFloat(numericValue);
+      if (!isNaN(value)) {
+        setServingAmount(value);
+      }
+    }
+  };
+
+  const handleServingEndEditing = () => {
+    // Ensure minimum value when user finishes editing
+    if (servingAmount < 1) {
+      setServingAmount(1);
     }
   };
 
@@ -211,12 +233,20 @@ export default function FoodDetailsView({
           <View style={styles.servingSelector}>
             <TouchableOpacity
               style={styles.servingButton}
-              onPress={() => adjustServing(-10)}
+              onPress={() => adjustServing(-100)}
             >
               <Text style={styles.servingButtonText}>−</Text>
             </TouchableOpacity>
-            <View style={styles.servingAmount}>
-              <Text style={styles.servingValue}>{servingAmount}</Text>
+            <View style={styles.servingInputContainer}>
+              <TextInput
+                style={styles.servingInput}
+                value={servingAmount.toString()}
+                onChangeText={handleServingTextChange}
+                onEndEditing={handleServingEndEditing}
+                keyboardType="numeric"
+                selectTextOnFocus
+                maxLength={6}
+              />
               <Text style={styles.servingUnit}>
                 {servingInfo.isUnit
                   ? (servingAmount === 1 ? servingInfo.unit : servingInfo.unitPlural)
@@ -225,7 +255,7 @@ export default function FoodDetailsView({
             </View>
             <TouchableOpacity
               style={styles.servingButton}
-              onPress={() => adjustServing(10)}
+              onPress={() => adjustServing(100)}
             >
               <Text style={styles.servingButtonText}>+</Text>
             </TouchableOpacity>
@@ -313,9 +343,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
+    paddingTop: Spacing.xl * 2,  // More top padding to avoid being stuck
+    paddingBottom: Spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
+    backgroundColor: Colors.background,  // Ensure header has background
   },
   backButton: {
     padding: Spacing.sm,
@@ -420,6 +452,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
   },
+  servingInputContainer: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  servingInput: {
+    fontSize: Typography.fontSize.xxl,
+    fontWeight: '700',
+    color: Colors.text,
+    textAlign: 'center',
+    minWidth: 80,
+    paddingVertical: Spacing.xs,
+    paddingHorizontal: Spacing.sm,
+    borderBottomWidth: 2,
+    borderBottomColor: Colors.primary,
+  },
   servingValue: {
     fontSize: Typography.fontSize.xxl,
     fontWeight: '700',
@@ -428,7 +475,7 @@ const styles = StyleSheet.create({
   servingUnit: {
     fontSize: Typography.fontSize.sm,
     color: Colors.textSecondary,
-    marginTop: 2,
+    marginTop: 4,
   },
   nutritionCard: {
     backgroundColor: Colors.surface,

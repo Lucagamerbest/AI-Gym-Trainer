@@ -19,8 +19,7 @@ import StyledButton from '../components/StyledButton';
 import FoodCard from '../components/FoodCard';
 import FoodDetailsView from '../components/FoodDetailsView';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
-import { searchFoods } from '../services/foodDatabaseService';
-import { hybridSearch } from '../services/openFoodFactsService';
+import { unifiedFoodSearch } from '../services/unifiedFoodSearch';
 
 const RECIPES_KEY = '@saved_recipes';
 
@@ -130,7 +129,7 @@ export default function RecipesScreen({ navigation, route }) {
     };
   };
 
-  // Search with debouncing - same as FoodSearchScreen
+  // Enhanced search using unified API with API fallback
   const performSearch = useCallback(async (query) => {
     if (!query.trim()) {
       setSearchResults([]);
@@ -140,24 +139,17 @@ export default function RecipesScreen({ navigation, route }) {
 
     setIsSearching(true);
     try {
-      // First search local database
-      const localResults = await searchFoods(query);
+      // Use unified search with API enabled for comprehensive results
+      // This ensures users can find specific products like specialty breads
+      const results = await unifiedFoodSearch(query, {
+        includeAPI: true,  // Enable API for specific products
+        limit: 50
+      });
 
-      // Import smart search for better ranking
-      const { smartSearchFoods } = await import('../services/smartFoodSearch');
-      const rankedResults = await smartSearchFoods(localResults, query, { limit: 100 });
-
-      // Use hybrid search to combine with API results if needed
-      const { combined } = await hybridSearch(query, rankedResults.all.slice(0, 20));
-
-      // Filter and re-rank the results
-      const finalRanked = await smartSearchFoods(combined, query, { limit: 50 });
-      setSearchResults(finalRanked.all);
+      setSearchResults(results);
     } catch (error) {
       console.error('Search error:', error);
-      // Fallback to simple local search
-      const localResults = await searchFoods(query);
-      setSearchResults(localResults.slice(0, 30));
+      setSearchResults([]);
     }
     setIsSearching(false);
   }, []);
@@ -174,7 +166,7 @@ export default function RecipesScreen({ navigation, route }) {
     // Set new timeout for search
     searchTimeoutRef.current = setTimeout(() => {
       performSearch(text);
-    }, 500); // 500ms debounce
+    }, 250); // Fast response for ingredient search
   };
 
   const addIngredientToRecipe = (food, quantity) => {
@@ -240,7 +232,7 @@ export default function RecipesScreen({ navigation, route }) {
         {
           text: 'Add',
           onPress: () => {
-            // Navigate back to nutrition tracker with recipe data
+            // Navigate back with the recipe data and a flag indicating recipe was added
             navigation.navigate('Nutrition', {
               addedFood: {
                 name: recipe.name,
@@ -249,7 +241,8 @@ export default function RecipesScreen({ navigation, route }) {
                 carbs: recipe.perServingNutrition.carbs,
                 fat: recipe.perServingNutrition.fat,
                 mealType: mealType,
-              }
+              },
+              fromRecipeAdd: true  // Flag to indicate we came from adding a recipe
             });
           }
         }
@@ -307,7 +300,7 @@ export default function RecipesScreen({ navigation, route }) {
           style={styles.quickAddButton}
           onPress={() => quickAddRecipe(item)}
         >
-          <Text style={styles.quickAddText}>Quick Add</Text>
+          <Text style={styles.quickAddText}>Add to {mealType.charAt(0).toUpperCase() + mealType.slice(1)}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.deleteButton}
@@ -339,22 +332,18 @@ export default function RecipesScreen({ navigation, route }) {
 
   const currentNutrition = calculateRecipeNutrition(newRecipe.ingredients);
 
-  console.log('RecipesScreen rendering, recipes count:', recipes.length);
-  console.log('Platform:', Platform.OS);
-  console.log('Modal states - Create:', showCreateModal, 'View:', modalView);
-
   return (
     <ScreenLayout
       title="My Recipes"
       subtitle="Create and manage your recipes"
       navigation={navigation}
       showBack={true}
+      showHome={true}
       scrollable={true}
     >
       <TouchableOpacity
         style={styles.createButton}
         onPress={() => {
-          console.log('Create button pressed');
           // Reset state before opening
           setNewRecipe({ name: '', ingredients: [], servings: 1 });
           setModalView('recipe');
@@ -453,8 +442,6 @@ export default function RecipesScreen({ navigation, route }) {
                   <TouchableOpacity
                     style={styles.addIngredientButton}
                     onPress={() => {
-                      console.log('===== ADD INGREDIENT BUTTON PRESSED =====');
-                      console.log('Switching to ingredient view');
                       setModalView('ingredient');
                     }}
                     activeOpacity={0.7}
@@ -556,7 +543,13 @@ export default function RecipesScreen({ navigation, route }) {
                 keyboardShouldPersistTaps="handled"
                 ListEmptyComponent={
                   searchText.length > 0 && !isSearching ? (
-                    <Text style={styles.noResultsText}>No ingredients found</Text>
+                    <View style={styles.noResultsContainer}>
+                      <Text style={styles.noResultsText}>No ingredients found</Text>
+                      <Text style={styles.noResultsHint}>
+                        Try searching in the main Food Search for more options,
+                        or check the spelling of your search
+                      </Text>
+                    </View>
                   ) : null
                 }
               />
@@ -865,11 +858,22 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.sm,
     color: Colors.textSecondary,
   },
+  noResultsContainer: {
+    alignItems: 'center',
+    marginTop: Spacing.xl,
+    paddingHorizontal: Spacing.lg,
+  },
   noResultsText: {
     fontSize: Typography.fontSize.md,
     color: Colors.textMuted,
     textAlign: 'center',
-    marginTop: Spacing.xl,
+    marginBottom: Spacing.sm,
+  },
+  noResultsHint: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 20,
   },
   quantityModalOverlay: {
     flex: 1,

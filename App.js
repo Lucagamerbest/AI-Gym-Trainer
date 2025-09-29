@@ -118,7 +118,11 @@ function AppNavigator() {
           <Stack.Screen name="SignIn" component={SignInScreen} />
         ) : (
           <>
-            <Stack.Screen name="Main" component={TabNavigator} />
+            <Stack.Screen
+              name="Main"
+              component={TabNavigator}
+              options={{ gestureEnabled: false }}
+            />
             <Stack.Screen name="Nutrition" component={NutritionScreen} />
             <Stack.Screen name="NutritionDashboard" component={NutritionDashboard} />
             <Stack.Screen name="FoodSearch" component={FoodSearchScreen} />

@@ -12,7 +12,7 @@ import {
 import ScreenLayout from '../components/ScreenLayout';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { searchFoods, initDatabase } from '../services/foodDatabaseService';
-import { hybridSearch } from '../services/openFoodFactsService';
+import { unifiedFoodSearch } from '../services/unifiedFoodSearch';
 
 // Popular foods to show initially
 const POPULAR_FOODS = [
@@ -76,77 +76,22 @@ export default function FoodSearchScreen({ navigation }) {
     }
 
     setIsSearching(true);
-    const queryLower = query.toLowerCase().trim();
-    const queryWords = queryLower.split(' ');
 
-    // Import the smart search ranking
-    const { smartSearchFoods } = await import('../services/smartFoodSearch');
-
-    // Filter function to exclude overly specific branded products
-    const shouldIncludeFood = (food) => {
-      const nameLower = food.name.toLowerCase();
-      const brandLower = (food.brand || '').toLowerCase();
-
-      // Always include if it's from our local database (not API)
-      if (food.source === 'default' || food.source === 'verified') {
-        // But still filter out specific branded items unless searched for
-        if (brandLower && !queryWords.some(word => brandLower.includes(word))) {
-          // Check if this is a very specific product (has brand + specific flavor/variant)
-          const nameWords = nameLower.split(/[\s,\-–]+/);
-          if (nameWords.length > 4 || nameLower.includes('–') || nameLower.includes(' - ')) {
-            return false; // Too specific, hide it
-          }
-        }
-      }
-
-      // For API results, be more strict
-      if (food.source === 'openfoodfacts') {
-        // Must match query more closely or have brand mentioned
-        if (brandLower) {
-          // Check if user is searching for the brand
-          const searchingForBrand = queryWords.some(word =>
-            word.length > 2 && brandLower.includes(word)
-          );
-
-          // Check if user is searching for specific product details
-          const searchingForSpecific = queryWords.length > 2 ||
-            queryWords.some(word => word.length > 5);
-
-          if (!searchingForBrand && !searchingForSpecific) {
-            // Hide specific branded products for generic searches
-            return false;
-          }
-        }
-      }
-
-      // Always include foods that closely match the search
-      return nameLower.includes(queryLower);
-    };
-
-    // First, search and filter local database
-    const localResults = allFoods.filter(food => {
-      const nameLower = food.name.toLowerCase();
-      // Must contain the query AND pass the inclusion filter
-      return nameLower.includes(queryLower) && shouldIncludeFood(food);
-    });
-
-    // Apply smart ranking to filtered local results
-    const rankedResults = await smartSearchFoods(localResults, query, { limit: 100 });
-
-    // Use hybrid search to combine with API results if needed
     try {
-      const { combined } = await hybridSearch(query, rankedResults.all.slice(0, 20));
+      // Use unified search with API enabled for comprehensive results
+      const results = await unifiedFoodSearch(query, {
+        includeAPI: true,  // Include API results for FoodSearchScreen
+        limit: 50
+      });
 
-      // Filter the combined results to exclude overly specific products
-      const filteredCombined = combined.filter(shouldIncludeFood);
-
-      // Re-rank the filtered results to ensure whole foods are prioritized
-      const finalRanked = await smartSearchFoods(filteredCombined, query, { limit: 50 });
-      setDisplayedFoods(finalRanked.all);
+      setDisplayedFoods(results);
     } catch (error) {
       console.error('Search error:', error);
-      // Fallback to smart-ranked local results if API fails
-      setDisplayedFoods(rankedResults.all.slice(0, 50));
+      // Fallback to local search
+      const localResults = allFoods.filter(food =>
+        food.name.toLowerCase().includes(query.toLowerCase())
+      ).slice(0, 50);
+      setDisplayedFoods(localResults);
     }
 
     setIsSearching(false);
