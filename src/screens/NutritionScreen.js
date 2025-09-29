@@ -19,6 +19,7 @@ export default function NutritionScreen({ navigation, route }) {
   const [selectedMeal, setSelectedMeal] = useState('breakfast');
   const [expandedMeal, setExpandedMeal] = useState(null);
   const [disableBack, setDisableBack] = useState(false); // Track if back should be disabled
+  const [dataLoaded, setDataLoaded] = useState(false); // Track if data has been loaded
   const [macroGoals, setMacroGoals] = useState({
     calories: 2000,
     proteinGrams: 150,
@@ -73,7 +74,8 @@ export default function NutritionScreen({ navigation, route }) {
       navigation.setParams({ fromRecipeAdd: undefined });
     }
 
-    if (route.params?.addedFood) {
+    // Only process added food after data is loaded
+    if (route.params?.addedFood && dataLoaded) {
       const { addedFood } = route.params;
       const mealType = addedFood.mealType || 'breakfast';
 
@@ -84,6 +86,8 @@ export default function NutritionScreen({ navigation, route }) {
       console.log('Protein:', addedFood.protein, 'g');
       console.log('Carbs:', addedFood.carbs, 'g');
       console.log('Fat:', addedFood.fat, 'g');
+      console.log('Data Loaded:', dataLoaded);
+      console.log('Current meals before adding:', meals);
 
       // Clear the params immediately to prevent re-adding
       navigation.setParams({ addedFood: undefined });
@@ -91,13 +95,19 @@ export default function NutritionScreen({ navigation, route }) {
       // Update selected meal to match the added food's meal type
       setSelectedMeal(mealType);
 
-      // Update all state using functional updates to get latest values
-      setMeals(prevMeals => {
-        console.log('Previous meals state:', prevMeals);
+      // First, get the latest meals from AsyncStorage to ensure we have all existing data
+      AsyncStorage.getItem(DAILY_NUTRITION_KEY).then(saved => {
+        let currentMeals = meals;
+        if (saved) {
+          const data = JSON.parse(saved);
+          currentMeals = data.meals || meals;
+          console.log('Latest meals from storage:', currentMeals);
+        }
 
+        // Now add the new food to the existing meals
         const updatedMeals = {
-          ...prevMeals,
-          [mealType]: [...prevMeals[mealType], addedFood]
+          ...currentMeals,
+          [mealType]: [...(currentMeals[mealType] || []), addedFood]
         };
 
         console.log('Updated meals state:', updatedMeals);
@@ -110,7 +120,8 @@ export default function NutritionScreen({ navigation, route }) {
         console.log('Total Carbs:', totals.carbs, 'g');
         console.log('Total Fat:', totals.fat, 'g');
 
-        // Update consumed and macros based on calculated totals
+        // Update all state
+        setMeals(updatedMeals);
         setConsumed(totals.calories);
         setConsumedMacros({
           proteinGrams: totals.protein,
@@ -124,11 +135,9 @@ export default function NutritionScreen({ navigation, route }) {
           carbsGrams: totals.carbs,
           fatGrams: totals.fat
         }, updatedMeals, mealType);
-
-        return updatedMeals;
       });
     }
-  }, [route.params?.addedFood, route.params?.fromRecipeAdd]);
+  }, [route.params?.addedFood, route.params?.fromRecipeAdd, dataLoaded]);
 
   const loadMacroGoals = async () => {
     try {
@@ -238,8 +247,10 @@ export default function NutritionScreen({ navigation, route }) {
       } else {
         console.log('No saved nutrition data found');
       }
+      setDataLoaded(true); // Mark data as loaded
     } catch (error) {
       console.error('Error loading daily nutrition:', error);
+      setDataLoaded(true); // Mark as loaded even on error
     }
   };
 
