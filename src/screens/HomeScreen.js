@@ -314,6 +314,7 @@ const styles = StyleSheet.create({
   },
   statCardWrapper: {
     flex: 1,
+    marginHorizontal: 4,
   },
   statIcon: {
     fontSize: 24,
