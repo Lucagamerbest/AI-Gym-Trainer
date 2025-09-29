@@ -1,14 +1,20 @@
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useFocusEffect } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../context/AuthContext';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import Logo from '../components/Logo';
 import ActiveWorkoutIndicator from '../components/ActiveWorkoutIndicator';
 
+const MACROS_KEY = '@macro_goals';
+const DAILY_NUTRITION_KEY = '@daily_nutrition';
+
 function HomeScreen({ navigation }) {
   const { user } = useAuth();
   const firstName = useMemo(() => user?.displayName?.split(' ')[0] || 'Champion', [user]);
+  const [remainingCalories, setRemainingCalories] = useState(2000);
 
   // Disable swipe gesture on home screen to prevent accidental navigation
   useEffect(() => {
@@ -16,6 +22,48 @@ function HomeScreen({ navigation }) {
       gestureEnabled: false
     });
   }, [navigation]);
+
+  // Load nutrition data when screen is focused
+  useFocusEffect(
+    React.useCallback(() => {
+      loadNutritionData();
+    }, [])
+  );
+
+  const loadNutritionData = async () => {
+    try {
+      // Load macro goals
+      const savedGoals = await AsyncStorage.getItem(MACROS_KEY);
+      let calorieGoal = 2000;
+      if (savedGoals) {
+        const goals = JSON.parse(savedGoals);
+        calorieGoal = goals.calories || 2000;
+      }
+
+      // Load daily nutrition
+      const savedNutrition = await AsyncStorage.getItem(DAILY_NUTRITION_KEY);
+      let consumedCalories = 0;
+      if (savedNutrition) {
+        const nutritionData = JSON.parse(savedNutrition);
+        const meals = nutritionData.meals || {};
+
+        // Calculate total consumed calories
+        Object.values(meals).forEach(mealItems => {
+          if (Array.isArray(mealItems)) {
+            mealItems.forEach(item => {
+              consumedCalories += item.calories || 0;
+            });
+          }
+        });
+      }
+
+      // Calculate remaining calories
+      const remaining = Math.max(0, calorieGoal - consumedCalories);
+      setRemainingCalories(remaining);
+    } catch (error) {
+      console.error('Error loading nutrition data:', error);
+    }
+  };
 
   // Get greeting based on time of day
   const getGreeting = useMemo(() => {
@@ -28,8 +76,8 @@ function HomeScreen({ navigation }) {
   const quickStats = useMemo(() => [
     { label: 'Streak', value: '7', unit: 'days', icon: '🔥' },
     { label: 'This Week', value: '4', unit: 'workouts', icon: '💪' },
-    { label: 'Remaining', value: '650', unit: 'calories today', icon: '⚡' },
-  ], []);
+    { label: 'Remaining', value: remainingCalories.toString(), unit: 'calories today', icon: '⚡' },
+  ], [remainingCalories]);
 
   return (
     <View style={styles.container}>
