@@ -338,7 +338,7 @@ export default function NutritionScreen({ navigation, route }) {
               onPress={showConsumedBreakdown}
               activeOpacity={0.7}
             >
-              <Text style={styles.statLabel}>Consumed 👆</Text>
+              <Text style={styles.statLabel}>Consumed</Text>
               <Text style={styles.statValue}>{consumed}</Text>
               <Text style={styles.statUnit}>cal</Text>
             </TouchableOpacity>
@@ -456,7 +456,7 @@ export default function NutritionScreen({ navigation, route }) {
               <View style={[styles.progressBar, styles.progressBarProtein, { width: `${proteinProgress}%` }]} />
             </View>
             <Text style={[styles.macroValue, styles.proteinColor]}>
-              {consumedMacros.proteinGrams}/{macroGoals.proteinGrams}
+              {parseFloat(consumedMacros.proteinGrams).toFixed(1)}/{macroGoals.proteinGrams}
             </Text>
           </View>
 
@@ -466,7 +466,7 @@ export default function NutritionScreen({ navigation, route }) {
               <View style={[styles.progressBar, styles.progressBarCarbs, { width: `${carbsProgress}%` }]} />
             </View>
             <Text style={[styles.macroValue, styles.carbsColor]}>
-              {consumedMacros.carbsGrams}/{macroGoals.carbsGrams}
+              {parseFloat(consumedMacros.carbsGrams).toFixed(1)}/{macroGoals.carbsGrams}
             </Text>
           </View>
 
@@ -476,7 +476,7 @@ export default function NutritionScreen({ navigation, route }) {
               <View style={[styles.progressBar, styles.progressBarFat, { width: `${fatProgress}%` }]} />
             </View>
             <Text style={[styles.macroValue, styles.fatColor]}>
-              {consumedMacros.fatGrams}/{macroGoals.fatGrams}
+              {parseFloat(consumedMacros.fatGrams).toFixed(1)}/{macroGoals.fatGrams}
             </Text>
           </View>
         </StyledCard>

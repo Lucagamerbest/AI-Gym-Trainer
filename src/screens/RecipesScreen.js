@@ -31,36 +31,33 @@ export default function RecipesScreen({ navigation, route }) {
     {
       id: '1',
       name: 'Protein Power Bowl',
-      servings: 1,
       ingredients: [
         { food: { name: 'Grilled Chicken Breast', calories: 165, protein: 31, carbs: 0, fat: 3.6 }, quantity: 150 },
         { food: { name: 'Brown Rice', calories: 111, protein: 2.6, carbs: 23, fat: 0.9 }, quantity: 100 },
         { food: { name: 'Broccoli', calories: 34, protein: 2.8, carbs: 7, fat: 0.4 }, quantity: 80 },
       ],
-      perServingNutrition: { calories: 410, protein: 36.4, carbs: 30, fat: 4.9 },
+      nutrition: { calories: 410, protein: 36.4, carbs: 30, fat: 4.9 },
     },
     {
       id: '2',
       name: 'Morning Oatmeal',
-      servings: 1,
       ingredients: [
         { food: { name: 'Oats', calories: 389, protein: 16.9, carbs: 66, fat: 6.9 }, quantity: 50 },
         { food: { name: 'Banana', calories: 89, protein: 1.1, carbs: 23, fat: 0.3 }, quantity: 100 },
         { food: { name: 'Peanut Butter', calories: 588, protein: 25, carbs: 20, fat: 50 }, quantity: 20 },
       ],
-      perServingNutrition: { calories: 383, protein: 15, carbs: 46.5, fat: 11.4 },
+      nutrition: { calories: 383, protein: 15, carbs: 46.5, fat: 11.4 },
     },
     {
       id: '3',
       name: 'Greek Salad',
-      servings: 2,
       ingredients: [
         { food: { name: 'Cucumber', calories: 16, protein: 0.7, carbs: 3.6, fat: 0.1 }, quantity: 200 },
         { food: { name: 'Tomatoes', calories: 18, protein: 0.9, carbs: 3.9, fat: 0.2 }, quantity: 150 },
         { food: { name: 'Feta Cheese', calories: 264, protein: 14, carbs: 4, fat: 21 }, quantity: 50 },
         { food: { name: 'Olive Oil', calories: 884, protein: 0, carbs: 0, fat: 100 }, quantity: 15 },
       ],
-      perServingNutrition: { calories: 147, protein: 4.8, carbs: 4.7, fat: 12.2 },
+      nutrition: { calories: 295, protein: 9.6, carbs: 9.4, fat: 24.4 },
     },
   ];
 
@@ -78,7 +75,6 @@ export default function RecipesScreen({ navigation, route }) {
   const [newRecipe, setNewRecipe] = useState({
     name: '',
     ingredients: [],
-    servings: 1,
   });
 
   useEffect(() => {
@@ -202,15 +198,7 @@ export default function RecipesScreen({ navigation, route }) {
       id: Date.now().toString(),
       name: newRecipe.name,
       ingredients: newRecipe.ingredients,
-      servings: newRecipe.servings,
       nutrition,
-      totalNutrition: nutrition,
-      perServingNutrition: {
-        calories: Math.round(nutrition.calories / newRecipe.servings),
-        protein: Math.round(nutrition.protein * 10 / newRecipe.servings) / 10,
-        carbs: Math.round(nutrition.carbs * 10 / newRecipe.servings) / 10,
-        fat: Math.round(nutrition.fat * 10 / newRecipe.servings) / 10,
-      },
       createdAt: new Date().toISOString(),
     };
 
@@ -218,7 +206,7 @@ export default function RecipesScreen({ navigation, route }) {
     saveRecipes(updatedRecipes);
 
     setShowCreateModal(false);
-    setNewRecipe({ name: '', ingredients: [], servings: 1 });
+    setNewRecipe({ name: '', ingredients: [] });
 
     Alert.alert('Success', 'Recipe saved successfully!');
   };
@@ -234,10 +222,10 @@ export default function RecipesScreen({ navigation, route }) {
           onPress: () => {
             const foodData = {
               name: recipe.name,
-              calories: recipe.perServingNutrition.calories,
-              protein: recipe.perServingNutrition.protein,
-              carbs: recipe.perServingNutrition.carbs,
-              fat: recipe.perServingNutrition.fat,
+              calories: recipe.nutrition.calories,
+              protein: recipe.nutrition.protein,
+              carbs: recipe.nutrition.carbs,
+              fat: recipe.nutrition.fat,
               mealType: mealType,
             };
 
@@ -270,30 +258,39 @@ export default function RecipesScreen({ navigation, route }) {
     );
   };
 
+  const editRecipe = (recipe) => {
+    navigation.navigate('EditRecipe', {
+      recipe: recipe,
+      onSave: (updatedRecipe) => {
+        const updatedRecipes = recipes.map(r =>
+          r.id === updatedRecipe.id ? updatedRecipe : r
+        );
+        saveRecipes(updatedRecipes);
+      }
+    });
+  };
+
   const renderRecipe = ({ item }) => (
     <StyledCard style={styles.recipeCard}>
       <View style={styles.recipeHeader}>
         <View style={styles.recipeInfo}>
           <Text style={styles.recipeName}>{item.name}</Text>
-          <Text style={styles.recipeServings}>
-            {item.servings} {item.servings === 1 ? 'serving' : 'servings'}
-          </Text>
           <Text style={styles.ingredientCount}>
             {item.ingredients.length} ingredients
           </Text>
         </View>
         <View style={styles.nutritionSummary}>
           <Text style={styles.caloriesText}>
-            {item.perServingNutrition.calories} cal
+            {item.nutrition.calories} cal
           </Text>
           <Text style={styles.macroText}>
-            P: {item.perServingNutrition.protein}g
+            P: {item.nutrition.protein}g
           </Text>
           <Text style={styles.macroText}>
-            C: {item.perServingNutrition.carbs}g
+            C: {item.nutrition.carbs}g
           </Text>
           <Text style={styles.macroText}>
-            F: {item.perServingNutrition.fat}g
+            F: {item.nutrition.fat}g
           </Text>
         </View>
       </View>
@@ -303,6 +300,12 @@ export default function RecipesScreen({ navigation, route }) {
           onPress={() => quickAddRecipe(item)}
         >
           <Text style={styles.quickAddText}>Add to {mealType.charAt(0).toUpperCase() + mealType.slice(1)}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.editButton}
+          onPress={() => editRecipe(item)}
+        >
+          <Text style={styles.editText}>Edit</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.deleteButton}
@@ -347,7 +350,7 @@ export default function RecipesScreen({ navigation, route }) {
         style={styles.createButton}
         onPress={() => {
           // Reset state before opening
-          setNewRecipe({ name: '', ingredients: [], servings: 1 });
+          setNewRecipe({ name: '', ingredients: [] });
           setModalView('recipe');
           setSearchText('');
           setSearchResults([]);
@@ -399,7 +402,7 @@ export default function RecipesScreen({ navigation, route }) {
                 <TouchableOpacity
                   onPress={() => {
                     setShowCreateModal(false);
-                    setNewRecipe({ name: '', ingredients: [], servings: 1 });
+                    setNewRecipe({ name: '', ingredients: [] });
                     setModalView('recipe');
                   }}
                   style={styles.closeButton}
@@ -424,19 +427,6 @@ export default function RecipesScreen({ navigation, route }) {
                   placeholderTextColor={Colors.textMuted}
                   value={newRecipe.name}
                   onChangeText={(text) => setNewRecipe(prev => ({ ...prev, name: text }))}
-                />
-
-                <Text style={styles.inputLabel}>Servings</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="1"
-                  placeholderTextColor={Colors.textMuted}
-                  value={newRecipe.servings.toString()}
-                  onChangeText={(text) => {
-                    const num = parseInt(text) || 1;
-                    setNewRecipe(prev => ({ ...prev, servings: num }));
-                  }}
-                  keyboardType="number-pad"
                 />
 
                 <View style={styles.ingredientsSection}>
@@ -476,25 +466,6 @@ export default function RecipesScreen({ navigation, route }) {
                       <Text style={styles.nutritionLabel}>Carbs: {currentNutrition.carbs}g</Text>
                       <Text style={styles.nutritionLabel}>Fat: {currentNutrition.fat}g</Text>
                     </View>
-                    {newRecipe.servings > 1 && (
-                      <>
-                        <Text style={styles.nutritionTitle}>Per Serving</Text>
-                        <View style={styles.nutritionRow}>
-                          <Text style={styles.nutritionLabel}>
-                            Calories: {Math.round(currentNutrition.calories / newRecipe.servings)}
-                          </Text>
-                          <Text style={styles.nutritionLabel}>
-                            Protein: {Math.round(currentNutrition.protein * 10 / newRecipe.servings) / 10}g
-                          </Text>
-                          <Text style={styles.nutritionLabel}>
-                            Carbs: {Math.round(currentNutrition.carbs * 10 / newRecipe.servings) / 10}g
-                          </Text>
-                          <Text style={styles.nutritionLabel}>
-                            Fat: {Math.round(currentNutrition.fat * 10 / newRecipe.servings) / 10}g
-                          </Text>
-                        </View>
-                      </>
-                    )}
                   </View>
                 )}
           </ScrollView>
@@ -676,6 +647,18 @@ const styles = StyleSheet.create({
     color: '#1a1a1a',
     fontWeight: '600',
     fontSize: Typography.fontSize.sm,
+  },
+  editButton: {
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.primary + '20',
+    marginRight: Spacing.sm,
+  },
+  editText: {
+    color: Colors.primary,
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
   },
   deleteButton: {
     paddingVertical: Spacing.sm,

@@ -83,9 +83,9 @@ export default function CalorieBreakdownScreen({ route, navigation }) {
                   <Text style={styles.foodName}>{food.name}</Text>
                   <View style={styles.foodMacros}>
                     <Text style={styles.foodCalories}>{food.calories || 0} cal</Text>
-                    {food.protein ? <Text style={styles.foodMacro}>P: {food.protein}g</Text> : null}
-                    {food.carbs ? <Text style={styles.foodMacro}>C: {food.carbs}g</Text> : null}
-                    {food.fat ? <Text style={styles.foodMacro}>F: {food.fat}g</Text> : null}
+                    {food.protein ? <Text style={styles.foodMacro}>P: {parseFloat(food.protein).toFixed(1)}g</Text> : null}
+                    {food.carbs ? <Text style={styles.foodMacro}>C: {parseFloat(food.carbs).toFixed(1)}g</Text> : null}
+                    {food.fat ? <Text style={styles.foodMacro}>F: {parseFloat(food.fat).toFixed(1)}g</Text> : null}
                   </View>
                 </View>
               </View>
