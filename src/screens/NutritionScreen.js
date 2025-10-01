@@ -11,6 +11,7 @@ import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 const MACROS_KEY = '@macro_goals';
 const DAILY_NUTRITION_KEY = '@daily_nutrition';
 const LAST_RESET_DATE_KEY = '@last_reset_date';
+const MEAL_PLANS_KEY = '@meal_plans';
 
 export default function NutritionScreen({ navigation, route }) {
   const [consumed, setConsumed] = useState(0);
@@ -39,9 +40,12 @@ export default function NutritionScreen({ navigation, route }) {
   });
 
   useEffect(() => {
-    loadMacroGoals();
-    loadDailyNutrition();
-    checkAndResetDaily();
+    const initializeData = async () => {
+      await loadMacroGoals();
+      await loadDailyNutrition();
+      await checkAndResetDaily();
+    };
+    initializeData();
   }, []);
 
   // Use focus effect to ensure swipe is disabled when screen is focused
@@ -217,6 +221,9 @@ export default function NutritionScreen({ navigation, route }) {
         });
         setMeals(loadedMeals);
         setSelectedMeal(data.selectedMeal || 'breakfast');
+
+        // Sync to calendar on load
+        await syncMealsToCalendar(loadedMeals);
       } else {
       }
       setDataLoaded(true); // Mark data as loaded
@@ -236,8 +243,33 @@ export default function NutritionScreen({ navigation, route }) {
         lastUpdated: new Date().toISOString()
       };
       await AsyncStorage.setItem(DAILY_NUTRITION_KEY, JSON.stringify(data));
+
+      // Also sync to calendar meal plans
+      await syncMealsToCalendar(newMeals);
     } catch (error) {
       console.error('Error saving daily nutrition:', error);
+    }
+  };
+
+  const syncMealsToCalendar = async (meals) => {
+    try {
+      // Get today's date key
+      const today = new Date().toISOString().split('T')[0];
+
+      // Load existing meal plans
+      const savedPlans = await AsyncStorage.getItem(MEAL_PLANS_KEY);
+      const mealPlans = savedPlans ? JSON.parse(savedPlans) : {};
+
+      // Update today's logged meals
+      mealPlans[today] = {
+        ...mealPlans[today],
+        logged: meals
+      };
+
+      // Save updated meal plans
+      await AsyncStorage.setItem(MEAL_PLANS_KEY, JSON.stringify(mealPlans));
+    } catch (error) {
+      console.error('Error syncing meals to calendar:', error);
     }
   };
 
@@ -288,6 +320,10 @@ export default function NutritionScreen({ navigation, route }) {
           lastUpdated: new Date().toISOString()
         };
         await AsyncStorage.setItem(DAILY_NUTRITION_KEY, JSON.stringify(nutritionData));
+
+        // Also sync to calendar
+        await syncMealsToCalendar(updatedMeals);
+
         console.log('Food deleted successfully, new total calories:', totals.calories);
       } else {
         console.log('Food not found at index', foodIndex, 'in', mealType);
@@ -306,10 +342,17 @@ export default function NutritionScreen({ navigation, route }) {
   useEffect(() => {
   }, [consumed, consumedMacros, meals]);
 
+  // Get current date formatted
+  const getCurrentDate = () => {
+    const today = new Date();
+    const options = { weekday: 'long', month: 'long', day: 'numeric' };
+    return `📅 ${today.toLocaleDateString('en-US', options)}`;
+  };
+
   return (
     <ScreenLayout
       title="Nutrition Tracker"
-      subtitle="Track your daily intake"
+      subtitle={getCurrentDate()}
       navigation={navigation}
       showBack={!disableBack}  // Disable back when coming from recipe add
       showHome={true}

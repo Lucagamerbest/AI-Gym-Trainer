@@ -1,11 +1,23 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import ScreenLayout from '../components/ScreenLayout';
 import StyledCard from '../components/StyledCard';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 
 export default function CalorieBreakdownScreen({ route, navigation }) {
-  const { meals, totalCalories, onDeleteFood } = route.params;
+  const { meals: initialMeals, totalCalories: initialTotal, onDeleteFood } = route.params;
+
+  // Local state to track meals and update UI immediately
+  const [meals, setMeals] = useState(initialMeals);
+  const [totalCalories, setTotalCalories] = useState(initialTotal);
+
+  // Recalculate total calories whenever meals change
+  useEffect(() => {
+    const newTotal = Object.values(meals).reduce((sum, mealItems) => {
+      return sum + mealItems.reduce((mealSum, item) => mealSum + (item.calories || 0), 0);
+    }, 0);
+    setTotalCalories(newTotal);
+  }, [meals]);
 
   const handleDeleteFood = (mealType, foodIndex, foodName, foodCalories) => {
     Alert.alert(
@@ -17,9 +29,16 @@ export default function CalorieBreakdownScreen({ route, navigation }) {
           text: 'Delete',
           style: 'destructive',
           onPress: () => {
+            // Update local state to reflect deletion immediately
+            setMeals(prevMeals => {
+              const updatedMeals = { ...prevMeals };
+              updatedMeals[mealType] = [...updatedMeals[mealType]];
+              updatedMeals[mealType].splice(foodIndex, 1);
+              return updatedMeals;
+            });
+
+            // Also update the parent NutritionScreen
             onDeleteFood(mealType, foodIndex);
-            // Navigate back to refresh the nutrition screen
-            navigation.goBack();
           }
         }
       ]
@@ -41,12 +60,18 @@ export default function CalorieBreakdownScreen({ route, navigation }) {
           text: 'Delete All',
           style: 'destructive',
           onPress: () => {
-            // Delete all foods in this meal
+            // Update local state to clear the meal immediately
+            setMeals(prevMeals => {
+              const updatedMeals = { ...prevMeals };
+              updatedMeals[mealType] = [];
+              return updatedMeals;
+            });
+
+            // Delete all foods in parent NutritionScreen
             const mealItemsCount = mealItems.length;
             for (let i = mealItemsCount - 1; i >= 0; i--) {
               onDeleteFood(mealType, i);
             }
-            navigation.goBack();
           }
         }
       ]
