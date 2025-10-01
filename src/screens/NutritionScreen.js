@@ -42,8 +42,8 @@ export default function NutritionScreen({ navigation, route }) {
   useEffect(() => {
     const initializeData = async () => {
       await loadMacroGoals();
-      await loadDailyNutrition();
       await checkAndResetDaily();
+      await loadDailyNutrition();
     };
     initializeData();
   }, []);
@@ -83,6 +83,11 @@ export default function NutritionScreen({ navigation, route }) {
       const { addedFood } = route.params;
       const mealType = addedFood.mealType || 'breakfast';
 
+      console.log('🔵 NutritionScreen - Received addedFood:', JSON.stringify(addedFood, null, 2));
+      console.log('🔵 Has ingredients?', !!addedFood.ingredients);
+      if (addedFood.ingredients) {
+        console.log('🔵 Ingredients:', JSON.stringify(addedFood.ingredients, null, 2));
+      }
 
       // Clear the params immediately to prevent re-adding
       navigation.setParams({ addedFood: undefined });
@@ -144,7 +149,30 @@ export default function NutritionScreen({ navigation, route }) {
       const today = new Date().toDateString();
 
       if (lastResetDate !== today) {
-        // It's a new day, reset the data
+        // BEFORE resetting, save yesterday's meals to calendar history
+        const savedNutrition = await AsyncStorage.getItem(DAILY_NUTRITION_KEY);
+        if (savedNutrition) {
+          const data = JSON.parse(savedNutrition);
+          if (data.meals && lastResetDate) {
+            // Get yesterday's date key
+            const yesterdayDate = new Date(lastResetDate);
+            const yesterdayKey = yesterdayDate.toISOString().split('T')[0];
+
+            // Save to calendar history
+            const savedPlans = await AsyncStorage.getItem(MEAL_PLANS_KEY);
+            const mealPlans = savedPlans ? JSON.parse(savedPlans) : {};
+
+            mealPlans[yesterdayKey] = {
+              ...mealPlans[yesterdayKey],
+              logged: data.meals
+            };
+
+            await AsyncStorage.setItem(MEAL_PLANS_KEY, JSON.stringify(mealPlans));
+            console.log(`✅ Saved yesterday's meals (${yesterdayKey}) to calendar history`);
+          }
+        }
+
+        // Now reset for new day
         await AsyncStorage.setItem(LAST_RESET_DATE_KEY, today);
         await AsyncStorage.removeItem(DAILY_NUTRITION_KEY);
 
@@ -286,7 +314,8 @@ export default function NutritionScreen({ navigation, route }) {
     navigation.navigate('CalorieBreakdown', {
       meals: meals,
       totalCalories: consumed,
-      onDeleteFood: handleDeleteFood
+      onDeleteFood: handleDeleteFood,
+      onEditFood: handleEditFood
     });
   };
 
@@ -333,10 +362,103 @@ export default function NutritionScreen({ navigation, route }) {
     }
   };
 
+  const handleEditFood = async (mealType, foodIndex, updatedFood) => {
+    try {
+      console.log('NutritionScreen: Editing food at index', foodIndex, 'from', mealType);
+
+      const updatedMeals = { ...meals };
+      if (updatedMeals[mealType] && updatedMeals[mealType][foodIndex]) {
+        updatedMeals[mealType][foodIndex] = updatedFood;
+
+        setMeals(updatedMeals);
+
+        // Recalculate totals
+        const totals = calculateTotalsFromMeals(updatedMeals);
+        setConsumed(totals.calories);
+        setConsumedMacros({
+          proteinGrams: totals.protein,
+          carbsGrams: totals.carbs,
+          fatGrams: totals.fat
+        });
+
+        // Save to storage
+        const nutritionData = {
+          meals: updatedMeals,
+          lastUpdated: new Date().toISOString()
+        };
+        await AsyncStorage.setItem(DAILY_NUTRITION_KEY, JSON.stringify(nutritionData));
+
+        // Also sync to calendar
+        await syncMealsToCalendar(updatedMeals);
+
+        console.log('Food edited successfully');
+      } else {
+        console.log('Food not found at index', foodIndex, 'in', mealType);
+      }
+    } catch (error) {
+      console.error('Error editing food:', error);
+    }
+  };
+
   const proteinProgress = calculateProgress(consumedMacros.proteinGrams, macroGoals.proteinGrams);
   const carbsProgress = calculateProgress(consumedMacros.carbsGrams, macroGoals.carbsGrams);
   const fatProgress = calculateProgress(consumedMacros.fatGrams, macroGoals.fatGrams);
   const calorieDeficit = macroGoals.calories - consumed - burned;
+
+  // Calculate macro breakdown by meal type
+  const getMacroBreakdownByMeal = (macroType) => {
+    const breakdown = {
+      breakfast: 0,
+      lunch: 0,
+      dinner: 0,
+      snacks: 0
+    };
+
+    Object.entries(meals).forEach(([mealType, items]) => {
+      items.forEach(food => {
+        breakdown[mealType] += food[macroType] || 0;
+      });
+    });
+
+    return breakdown;
+  };
+
+  const proteinBreakdown = getMacroBreakdownByMeal('protein');
+  const carbsBreakdown = getMacroBreakdownByMeal('carbs');
+  const fatBreakdown = getMacroBreakdownByMeal('fat');
+
+  // Meal type colors for segmented progress bars
+  const mealTypeColors = {
+    breakfast: '#FF9800', // Orange (same as carbs color)
+    lunch: '#2196F3',     // Blue
+    dinner: '#9C27B0',    // Purple
+    snacks: '#4CAF50'     // Green (same as protein color)
+  };
+
+  // Calculate segment widths as percentages of the goal
+  const getSegmentWidths = (breakdown, goal) => {
+    const segments = [];
+    let cumulativePercent = 0;
+
+    ['breakfast', 'lunch', 'dinner', 'snacks'].forEach(mealType => {
+      const amount = breakdown[mealType];
+      if (amount > 0) {
+        const percent = Math.min((amount / goal) * 100, 100 - cumulativePercent);
+        segments.push({
+          mealType,
+          width: percent,
+          left: cumulativePercent
+        });
+        cumulativePercent += percent;
+      }
+    });
+
+    return segments;
+  };
+
+  const proteinSegments = getSegmentWidths(proteinBreakdown, macroGoals.proteinGrams);
+  const carbsSegments = getSegmentWidths(carbsBreakdown, macroGoals.carbsGrams);
+  const fatSegments = getSegmentWidths(fatBreakdown, macroGoals.fatGrams);
 
   // Debug current state on every render
   useEffect(() => {
@@ -400,7 +522,6 @@ export default function NutritionScreen({ navigation, route }) {
       {/* Compact Meal Selector and Actions */}
       <View style={styles.foodActionsSection}>
         <View style={styles.mealSelectorRow}>
-          <Text style={styles.addingToText}>Adding to:</Text>
           <TouchableOpacity
             style={styles.mealDropdown}
             onPress={() => setExpandedMeal(expandedMeal === 'selector' ? null : 'selector')}
@@ -492,11 +613,23 @@ export default function NutritionScreen({ navigation, route }) {
             </View>
           </View>
 
-          {/* Compact Progress Bars */}
+          {/* Compact Progress Bars with Meal Type Segments */}
           <View style={styles.macroProgressRow}>
             <Text style={[styles.macroLabel, styles.proteinColor]}>P</Text>
             <View style={styles.progressBarContainer}>
-              <View style={[styles.progressBar, styles.progressBarProtein, { width: `${proteinProgress}%` }]} />
+              {proteinSegments.map((segment, index) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.progressBarSegment,
+                    {
+                      width: `${segment.width}%`,
+                      left: `${segment.left}%`,
+                      backgroundColor: mealTypeColors[segment.mealType]
+                    }
+                  ]}
+                />
+              ))}
             </View>
             <Text style={[styles.macroValue, styles.proteinColor]}>
               {parseFloat(consumedMacros.proteinGrams).toFixed(1)}/{macroGoals.proteinGrams}
@@ -506,7 +639,19 @@ export default function NutritionScreen({ navigation, route }) {
           <View style={styles.macroProgressRow}>
             <Text style={[styles.macroLabel, styles.carbsColor]}>C</Text>
             <View style={styles.progressBarContainer}>
-              <View style={[styles.progressBar, styles.progressBarCarbs, { width: `${carbsProgress}%` }]} />
+              {carbsSegments.map((segment, index) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.progressBarSegment,
+                    {
+                      width: `${segment.width}%`,
+                      left: `${segment.left}%`,
+                      backgroundColor: mealTypeColors[segment.mealType]
+                    }
+                  ]}
+                />
+              ))}
             </View>
             <Text style={[styles.macroValue, styles.carbsColor]}>
               {parseFloat(consumedMacros.carbsGrams).toFixed(1)}/{macroGoals.carbsGrams}
@@ -516,11 +661,43 @@ export default function NutritionScreen({ navigation, route }) {
           <View style={styles.macroProgressRow}>
             <Text style={[styles.macroLabel, styles.fatColor]}>F</Text>
             <View style={styles.progressBarContainer}>
-              <View style={[styles.progressBar, styles.progressBarFat, { width: `${fatProgress}%` }]} />
+              {fatSegments.map((segment, index) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.progressBarSegment,
+                    {
+                      width: `${segment.width}%`,
+                      left: `${segment.left}%`,
+                      backgroundColor: mealTypeColors[segment.mealType]
+                    }
+                  ]}
+                />
+              ))}
             </View>
             <Text style={[styles.macroValue, styles.fatColor]}>
               {parseFloat(consumedMacros.fatGrams).toFixed(1)}/{macroGoals.fatGrams}
             </Text>
+          </View>
+
+          {/* Legend for meal types */}
+          <View style={styles.mealLegend}>
+            <View style={styles.legendItem}>
+              <View style={[styles.legendDot, { backgroundColor: mealTypeColors.breakfast }]} />
+              <Text style={styles.legendText}>Breakfast</Text>
+            </View>
+            <View style={styles.legendItem}>
+              <View style={[styles.legendDot, { backgroundColor: mealTypeColors.lunch }]} />
+              <Text style={styles.legendText}>Lunch</Text>
+            </View>
+            <View style={styles.legendItem}>
+              <View style={[styles.legendDot, { backgroundColor: mealTypeColors.dinner }]} />
+              <Text style={styles.legendText}>Dinner</Text>
+            </View>
+            <View style={styles.legendItem}>
+              <View style={[styles.legendDot, { backgroundColor: mealTypeColors.snacks }]} />
+              <Text style={styles.legendText}>Snacks</Text>
+            </View>
           </View>
         </StyledCard>
 
@@ -686,10 +863,18 @@ const styles = StyleSheet.create({
   },
   progressBarContainer: {
     flex: 1,
-    height: 6,
+    height: 10,
     backgroundColor: Colors.surface,
     borderRadius: BorderRadius.round,
     marginHorizontal: Spacing.md,
+    position: 'relative',
+    overflow: 'hidden',
+    flexDirection: 'row',
+  },
+  progressBarSegment: {
+    position: 'absolute',
+    height: '100%',
+    opacity: 0.9,
   },
   progressBar: {
     height: '100%',
@@ -719,6 +904,30 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.xs,
     minWidth: 45,
     textAlign: 'right',
+  },
+  mealLegend: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: Spacing.md,
+    paddingTop: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  legendDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  legendText: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textSecondary,
   },
   mealsHistoryButton: {
     marginTop: Spacing.md,
@@ -890,28 +1099,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    gap: Spacing.sm,
   },
   addingToText: {
     fontSize: Typography.fontSize.sm,
     color: Colors.textSecondary,
     fontWeight: '500',
-    marginRight: Spacing.sm,
+    flexShrink: 0,
   },
   mealDropdown: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.background,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.md,
     borderRadius: BorderRadius.md,
     flex: 1,
-    marginRight: Spacing.sm,
+    minHeight: 56,
   },
   selectedMealText: {
     flex: 1,
-    fontSize: Typography.fontSize.md,
+    fontSize: Typography.fontSize.lg,
     fontWeight: '600',
     color: Colors.text,
+    numberOfLines: 1,
   },
   dropdownArrow: {
     fontSize: Typography.fontSize.sm,
@@ -924,9 +1135,12 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
+    width: 50,
+    height: 56,
+    flexShrink: 0,
   },
   historyIcon: {
-    fontSize: 20,
+    fontSize: 28,
   },
   mealOptions: {
     marginTop: Spacing.sm,

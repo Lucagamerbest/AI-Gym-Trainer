@@ -5,7 +5,7 @@ import StyledCard from '../components/StyledCard';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 
 export default function CalorieBreakdownScreen({ route, navigation }) {
-  const { meals: initialMeals, totalCalories: initialTotal, onDeleteFood } = route.params;
+  const { meals: initialMeals, totalCalories: initialTotal, onDeleteFood, onEditFood } = route.params;
 
   // Local state to track meals and update UI immediately
   const [meals, setMeals] = useState(initialMeals);
@@ -78,6 +78,35 @@ export default function CalorieBreakdownScreen({ route, navigation }) {
     );
   };
 
+  const handleEditFood = (mealType, foodIndex, food) => {
+    console.log('🟢 CalorieBreakdownScreen - Editing food:', food.name);
+    console.log('🟢 Food object:', JSON.stringify(food, null, 2));
+    console.log('🟢 Has ingredients?', !!food.ingredients);
+    if (food.ingredients) {
+      console.log('🟢 Ingredients:', JSON.stringify(food.ingredients, null, 2));
+    }
+
+    navigation.navigate('EditFoodItem', {
+      foodItem: food,
+      onSave: (updatedFood) => {
+        console.log('🟢 Saving updated food:', JSON.stringify(updatedFood, null, 2));
+
+        // Update local state
+        setMeals(prevMeals => {
+          const updatedMeals = { ...prevMeals };
+          updatedMeals[mealType] = [...updatedMeals[mealType]];
+          updatedMeals[mealType][foodIndex] = updatedFood;
+          return updatedMeals;
+        });
+
+        // Update parent NutritionScreen if callback exists
+        if (onEditFood) {
+          onEditFood(mealType, foodIndex, updatedFood);
+        }
+      }
+    });
+  };
+
   const renderMealSection = (mealType, mealItems) => {
     if (!mealItems || mealItems.length === 0) return null;
 
@@ -114,7 +143,15 @@ export default function CalorieBreakdownScreen({ route, navigation }) {
                   </View>
                 </View>
               </View>
-              <View style={styles.deleteZone}>
+              <View style={styles.actionZone}>
+                <TouchableOpacity
+                  style={styles.editFoodButton}
+                  onPress={() => handleEditFood(mealType, index, food)}
+                  activeOpacity={0.7}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <Text style={styles.editFoodButtonText}>✏️</Text>
+                </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.deleteFoodButton}
                   onPress={() => {
@@ -246,10 +283,26 @@ const styles = StyleSheet.create({
   foodInfo: {
     flex: 1,
   },
-  deleteZone: {
-    width: 50,
+  actionZone: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: Spacing.xs,
+  },
+  editFoodButton: {
+    backgroundColor: Colors.primary + '20',
+    padding: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
+    borderColor: Colors.primary + '40',
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  editFoodButtonText: {
+    fontSize: 16,
   },
   foodName: {
     fontSize: Typography.fontSize.sm,

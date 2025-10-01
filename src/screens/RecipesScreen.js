@@ -227,7 +227,13 @@ export default function RecipesScreen({ navigation, route }) {
               carbs: recipe.nutrition.carbs,
               fat: recipe.nutrition.fat,
               mealType: mealType,
+              ingredients: recipe.ingredients, // Include ingredients for editing later
+              isRecipe: true, // Flag to identify this as a recipe
             };
+
+            console.log('🍳 RecipesScreen - Adding recipe:', recipe.name);
+            console.log('🍳 Recipe ingredients:', JSON.stringify(recipe.ingredients, null, 2));
+            console.log('🍳 Food data being passed:', JSON.stringify(foodData, null, 2));
 
             // Navigate back with the recipe data and a flag indicating recipe was added
             navigation.navigate('Nutrition', {

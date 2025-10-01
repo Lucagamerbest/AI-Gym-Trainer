@@ -31,6 +31,87 @@ export default function MealsHistoryScreen({ navigation }) {
     }, [])
   );
 
+  // TEMPORARY TEST FUNCTION - Add fake historical data
+  const addTestHistoricalData = async () => {
+    try {
+      const savedPlans = await AsyncStorage.getItem(MEAL_PLANS_KEY);
+      const mealPlans = savedPlans ? JSON.parse(savedPlans) : {};
+
+      // Add data for yesterday (Sept 30)
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayKey = yesterday.toISOString().split('T')[0];
+
+      // Add data for 3 days ago
+      const threeDaysAgo = new Date();
+      threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+      const threeDaysAgoKey = threeDaysAgo.toISOString().split('T')[0];
+
+      // Add data for a week ago
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      const weekAgoKey = weekAgo.toISOString().split('T')[0];
+
+      mealPlans[yesterdayKey] = {
+        logged: {
+          breakfast: [
+            { name: 'TEST: Pancakes', calories: 350, protein: 10, carbs: 45, fat: 12, mealType: 'breakfast' },
+            { name: 'TEST: Orange Juice', calories: 110, protein: 2, carbs: 26, fat: 0, mealType: 'breakfast' }
+          ],
+          lunch: [
+            { name: 'TEST: Chicken Salad', calories: 420, protein: 35, carbs: 15, fat: 25, mealType: 'lunch' }
+          ],
+          dinner: [
+            { name: 'TEST: Steak & Potatoes', calories: 680, protein: 45, carbs: 50, fat: 30, mealType: 'dinner' }
+          ],
+          snacks: []
+        }
+      };
+
+      mealPlans[threeDaysAgoKey] = {
+        logged: {
+          breakfast: [
+            { name: 'TEST: Oatmeal', calories: 300, protein: 10, carbs: 50, fat: 6, mealType: 'breakfast' }
+          ],
+          lunch: [
+            { name: 'TEST: Turkey Sandwich', calories: 450, protein: 28, carbs: 42, fat: 18, mealType: 'lunch' }
+          ],
+          dinner: [],
+          snacks: [
+            { name: 'TEST: Apple', calories: 95, protein: 0, carbs: 25, fat: 0, mealType: 'snacks' }
+          ]
+        }
+      };
+
+      mealPlans[weekAgoKey] = {
+        logged: {
+          breakfast: [
+            { name: 'TEST: Eggs & Toast', calories: 320, protein: 18, carbs: 28, fat: 15, mealType: 'breakfast' }
+          ],
+          lunch: [
+            { name: 'TEST: Pizza', calories: 550, protein: 22, carbs: 65, fat: 22, mealType: 'lunch' }
+          ],
+          dinner: [
+            { name: 'TEST: Fish Tacos', calories: 480, protein: 32, carbs: 45, fat: 18, mealType: 'dinner' }
+          ],
+          snacks: []
+        }
+      };
+
+      await AsyncStorage.setItem(MEAL_PLANS_KEY, JSON.stringify(mealPlans));
+      console.log('✅ Test historical data added!');
+      console.log(`Yesterday: ${yesterdayKey}`);
+      console.log(`3 days ago: ${threeDaysAgoKey}`);
+      console.log(`Week ago: ${weekAgoKey}`);
+
+      // Reload data to show it
+      await loadMealData();
+      alert('Test data added! Check calendar for green dots on past dates.');
+    } catch (error) {
+      console.error('Error adding test data:', error);
+    }
+  };
+
   const loadMealData = async () => {
     try {
       // Load today's meals from daily nutrition
@@ -172,6 +253,18 @@ export default function MealsHistoryScreen({ navigation }) {
               <Text style={styles.infoText}>• Orange dots = Planned meals (coming soon)</Text>
             </View>
           </View>
+
+          {/* TEMPORARY TEST BUTTON */}
+          <View style={styles.testButtonContainer}>
+            <StyledButton
+              title="🧪 Add Test Historical Data"
+              size="md"
+              variant="secondary"
+              fullWidth
+              onPress={addTestHistoricalData}
+              style={styles.testButton}
+            />
+          </View>
         </View>
       )}
 
@@ -179,9 +272,17 @@ export default function MealsHistoryScreen({ navigation }) {
       <Modal
         visible={showDayPlanner}
         animationType="slide"
+        presentationStyle="pageSheet"
         onRequestClose={() => setShowDayPlanner(false)}
       >
         <SafeAreaView style={styles.modalContainer}>
+          {/* Background Design */}
+          <View style={styles.backgroundDesign}>
+            <View style={[styles.circle, styles.circle1]} />
+            <View style={[styles.circle, styles.circle2]} />
+            <View style={[styles.circle, styles.circle3]} />
+          </View>
+
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>
               {selectedDate.toLocaleDateString('en-US', {
@@ -363,7 +464,39 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: '#1a1a1a',
+  },
+  backgroundDesign: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    overflow: 'hidden',
+  },
+  circle: {
+    position: 'absolute',
+    borderRadius: 999,
+    opacity: 0.1,
+  },
+  circle1: {
+    width: 300,
+    height: 300,
+    backgroundColor: Colors.primary,
+    top: -150,
+    right: -100,
+  },
+  circle2: {
+    width: 250,
+    height: 250,
+    backgroundColor: '#059669',
+    bottom: 100,
+    left: -125,
+  },
+  circle3: {
+    width: 200,
+    height: 200,
+    backgroundColor: '#10B981',
+    bottom: -100,
+    right: -50,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -480,5 +613,14 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     textAlign: 'center',
     paddingHorizontal: Spacing.xl,
+  },
+  testButtonContainer: {
+    marginTop: Spacing.md,
+    marginBottom: Spacing.xl,
+  },
+  testButton: {
+    backgroundColor: Colors.warning + '20',
+    borderWidth: 2,
+    borderColor: Colors.warning,
   },
 });
