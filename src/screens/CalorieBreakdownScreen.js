@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Modal } from 'react-native';
 import ScreenLayout from '../components/ScreenLayout';
 import StyledCard from '../components/StyledCard';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 
 export default function CalorieBreakdownScreen({ route, navigation }) {
-  const { meals: initialMeals, totalCalories: initialTotal, onDeleteFood, onEditFood } = route.params;
+  const { meals: initialMeals, totalCalories: initialTotal } = route.params;
 
   // Local state to track meals and update UI immediately
   const [meals, setMeals] = useState(initialMeals);
   const [totalCalories, setTotalCalories] = useState(initialTotal);
+  const [deleteModal, setDeleteModal] = useState({ visible: false, title: '', message: '', onConfirm: null });
 
   // Recalculate total calories whenever meals change
   useEffect(() => {
@@ -20,29 +21,26 @@ export default function CalorieBreakdownScreen({ route, navigation }) {
   }, [meals]);
 
   const handleDeleteFood = (mealType, foodIndex, foodName, foodCalories) => {
-    Alert.alert(
-      'Delete Food',
-      `Are you sure you want to delete "${foodName}" (${foodCalories} cal) from ${mealType}?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: () => {
-            // Update local state to reflect deletion immediately
-            setMeals(prevMeals => {
-              const updatedMeals = { ...prevMeals };
-              updatedMeals[mealType] = [...updatedMeals[mealType]];
-              updatedMeals[mealType].splice(foodIndex, 1);
-              return updatedMeals;
-            });
+    setDeleteModal({
+      visible: true,
+      title: 'Delete Food',
+      message: `Are you sure you want to delete "${foodName}" (${foodCalories} cal) from ${mealType}?`,
+      onConfirm: () => {
+        // Update local state to reflect deletion immediately
+        setMeals(prevMeals => {
+          const updatedMeals = { ...prevMeals };
+          updatedMeals[mealType] = [...updatedMeals[mealType]];
+          updatedMeals[mealType].splice(foodIndex, 1);
+          return updatedMeals;
+        });
 
-            // Also update the parent NutritionScreen
-            onDeleteFood(mealType, foodIndex);
-          }
-        }
-      ]
-    );
+        // Navigate back and let parent handle the actual deletion
+        navigation.navigate('Nutrition', {
+          deleteFood: { mealType, foodIndex }
+        });
+        setDeleteModal({ visible: false, title: '', message: '', onConfirm: null });
+      }
+    });
   };
 
   const handleDeleteMeal = (mealType) => {
@@ -51,61 +49,58 @@ export default function CalorieBreakdownScreen({ route, navigation }) {
 
     const mealCalories = mealItems.reduce((sum, item) => sum + (item.calories || 0), 0);
 
-    Alert.alert(
-      'Delete Entire Meal',
-      `Are you sure you want to delete all items from ${mealType.charAt(0).toUpperCase() + mealType.slice(1)} (${mealCalories} cal)?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete All',
-          style: 'destructive',
-          onPress: () => {
-            // Update local state to clear the meal immediately
-            setMeals(prevMeals => {
-              const updatedMeals = { ...prevMeals };
-              updatedMeals[mealType] = [];
-              return updatedMeals;
-            });
-
-            // Delete all foods in parent NutritionScreen
-            const mealItemsCount = mealItems.length;
-            for (let i = mealItemsCount - 1; i >= 0; i--) {
-              onDeleteFood(mealType, i);
-            }
-          }
-        }
-      ]
-    );
-  };
-
-  const handleEditFood = (mealType, foodIndex, food) => {
-    console.log('🟢 CalorieBreakdownScreen - Editing food:', food.name);
-    console.log('🟢 Food object:', JSON.stringify(food, null, 2));
-    console.log('🟢 Has ingredients?', !!food.ingredients);
-    if (food.ingredients) {
-      console.log('🟢 Ingredients:', JSON.stringify(food.ingredients, null, 2));
-    }
-
-    navigation.navigate('EditFoodItem', {
-      foodItem: food,
-      onSave: (updatedFood) => {
-        console.log('🟢 Saving updated food:', JSON.stringify(updatedFood, null, 2));
-
-        // Update local state
+    setDeleteModal({
+      visible: true,
+      title: 'Delete Entire Meal',
+      message: `Are you sure you want to delete all items from ${mealType.charAt(0).toUpperCase() + mealType.slice(1)} (${mealCalories} cal)?`,
+      onConfirm: () => {
+        // Update local state to clear the meal immediately
         setMeals(prevMeals => {
           const updatedMeals = { ...prevMeals };
-          updatedMeals[mealType] = [...updatedMeals[mealType]];
-          updatedMeals[mealType][foodIndex] = updatedFood;
+          updatedMeals[mealType] = [];
           return updatedMeals;
         });
 
-        // Update parent NutritionScreen if callback exists
-        if (onEditFood) {
-          onEditFood(mealType, foodIndex, updatedFood);
-        }
+        // Navigate back and let parent handle the actual deletion
+        navigation.navigate('Nutrition', {
+          deleteMeal: { mealType }
+        });
+        setDeleteModal({ visible: false, title: '', message: '', onConfirm: null });
       }
     });
   };
+
+  const handleEditFood = (mealType, foodIndex, food) => {
+    navigation.navigate('EditFoodItem', {
+      foodItem: food,
+      mealType: mealType,
+      foodIndex: foodIndex,
+      returnScreen: 'CalorieBreakdown'
+    });
+  };
+
+  // Handle updates from EditFoodItemScreen
+  useEffect(() => {
+    if (route.params?.updatedFood) {
+      const { mealType, foodIndex, updatedFood } = route.params.updatedFood;
+
+      // Update local state
+      setMeals(prevMeals => {
+        const updatedMeals = { ...prevMeals };
+        updatedMeals[mealType] = [...updatedMeals[mealType]];
+        updatedMeals[mealType][foodIndex] = updatedFood;
+        return updatedMeals;
+      });
+
+      // Navigate back to update parent
+      navigation.navigate('Nutrition', {
+        editFood: { mealType, foodIndex, updatedFood }
+      });
+
+      // Clear the params
+      navigation.setParams({ updatedFood: undefined });
+    }
+  }, [route.params?.updatedFood]);
 
   const renderMealSection = (mealType, mealItems) => {
     if (!mealItems || mealItems.length === 0) return null;
@@ -154,10 +149,7 @@ export default function CalorieBreakdownScreen({ route, navigation }) {
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.deleteFoodButton}
-                  onPress={() => {
-                    console.log('Deleting food:', food.name, 'from', mealType, 'at index', index);
-                    handleDeleteFood(mealType, index, food.name, food.calories);
-                  }}
+                  onPress={() => handleDeleteFood(mealType, index, food.name, food.calories)}
                   activeOpacity={0.7}
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
@@ -199,6 +191,37 @@ export default function CalorieBreakdownScreen({ route, navigation }) {
           <Text style={styles.emptySubtext}>Start adding foods to track your nutrition</Text>
         </StyledCard>
       )}
+
+      {/* Custom Delete Confirmation Modal */}
+      <Modal
+        transparent={true}
+        visible={deleteModal.visible}
+        animationType="fade"
+        onRequestClose={() => setDeleteModal({ visible: false, title: '', message: '', onConfirm: null })}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>{deleteModal.title}</Text>
+            <Text style={styles.modalMessage}>{deleteModal.message}</Text>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={styles.modalCancelButton}
+                onPress={() => setDeleteModal({ visible: false, title: '', message: '', onConfirm: null })}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.modalDeleteButton}
+                onPress={deleteModal.onConfirm}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.modalDeleteText}>Delete</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScreenLayout>
   );
 }
@@ -251,15 +274,15 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   deleteMealButton: {
-    backgroundColor: Colors.error + '20',
+    backgroundColor: Colors.primary,
     paddingHorizontal: Spacing.sm,
     paddingVertical: 6,
     borderRadius: BorderRadius.sm,
     borderWidth: 1,
-    borderColor: Colors.error + '40',
+    borderColor: Colors.primary,
   },
   deleteButtonText: {
-    color: Colors.error,
+    color: Colors.background,
     fontSize: Typography.fontSize.xs,
     fontWeight: '600',
   },
@@ -275,10 +298,10 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: Spacing.xs,
     paddingHorizontal: Spacing.sm,
-    backgroundColor: Colors.background + '40',
+    backgroundColor: Colors.primary + '15',
     borderRadius: BorderRadius.sm,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.primary + '40',
   },
   foodInfo: {
     flex: 1,
@@ -354,5 +377,64 @@ const styles = StyleSheet.create({
   emptySubtext: {
     fontSize: Typography.fontSize.sm,
     color: Colors.textMuted,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: Spacing.lg,
+  },
+  modalContent: {
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.xl,
+    width: '90%',
+    maxWidth: 400,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  modalTitle: {
+    fontSize: Typography.fontSize.xl,
+    fontWeight: 'bold',
+    color: Colors.text,
+    marginBottom: Spacing.md,
+  },
+  modalMessage: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.xl,
+    lineHeight: 22,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: Spacing.md,
+  },
+  modalCancelButton: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.sm,
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  modalCancelText: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.text,
+    fontWeight: '600',
+  },
+  modalDeleteButton: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.sm,
+    backgroundColor: Colors.primary,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+  },
+  modalDeleteText: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.background,
+    fontWeight: '600',
   },
 });

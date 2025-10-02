@@ -21,7 +21,7 @@ const POPULAR_FOODS = [
 ];
 
 export default function FoodSearchScreen({ route, navigation }) {
-  const { mealType = 'lunch' } = route.params || {};
+  const { mealType = 'lunch', isPlannedMeal, plannedDateKey, reopenDate } = route.params || {};
   const [searchText, setSearchText] = useState('');
   const [allFoods, setAllFoods] = useState([]);
   const [displayedFoods, setDisplayedFoods] = useState([]);
@@ -33,11 +33,9 @@ export default function FoodSearchScreen({ route, navigation }) {
   // Initialize database and load foods on mount
   useEffect(() => {
     const initializeData = async () => {
-      console.log('Starting to initialize food database...');
       try {
         await initDatabase();
         const foods = await searchFoods('');
-        console.log('Loaded foods count:', foods.length);
         setAllFoods(foods);
 
         // Show popular foods initially
@@ -47,9 +45,7 @@ export default function FoodSearchScreen({ route, navigation }) {
           )
         ).slice(0, 20);
 
-        console.log('Popular items count:', popularItems.length);
         const itemsToDisplay = popularItems.length > 0 ? popularItems : foods.slice(0, 20);
-        console.log('Items to display:', itemsToDisplay.length);
         setDisplayedFoods(itemsToDisplay);
       } catch (error) {
         console.error('Failed to initialize foods:', error);
@@ -122,9 +118,8 @@ export default function FoodSearchScreen({ route, navigation }) {
 
   // Handle food selection
   const selectFood = (food) => {
-    console.log('Selected food:', food.name);
     // Navigate to food detail screen
-    navigation.navigate('FoodDetail', { food, mealType });
+    navigation.navigate('FoodDetail', { food, mealType, isPlannedMeal, plannedDateKey, reopenDate });
   };
 
   // Render individual food item

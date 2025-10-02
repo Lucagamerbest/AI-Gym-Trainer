@@ -9,13 +9,7 @@ import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { unifiedFoodSearch } from '../services/unifiedFoodSearch';
 
 export default function EditFoodItemScreen({ route, navigation }) {
-  const { foodItem, onSave } = route.params;
-
-  console.log('🟣 EditFoodItemScreen - Received foodItem:', JSON.stringify(foodItem, null, 2));
-  console.log('🟣 Has ingredients?', !!foodItem.ingredients);
-  if (foodItem.ingredients) {
-    console.log('🟣 Number of ingredients:', foodItem.ingredients.length);
-  }
+  const { foodItem, onSave, mealType, foodIndex, returnScreen, isPlannedMeal, plannedDateKey, reopenDate } = route.params;
 
   // If the food item has ingredients (is a recipe), use them, otherwise create a single ingredient from the food item
   const initialIngredients = foodItem.ingredients || [
@@ -30,8 +24,6 @@ export default function EditFoodItemScreen({ route, navigation }) {
       quantity: 100, // Default to 100g
     }
   ];
-
-  console.log('🟣 Initial ingredients:', JSON.stringify(initialIngredients, null, 2));
 
   const [foodName, setFoodName] = useState(foodItem.name || '');
   const [ingredients, setIngredients] = useState(initialIngredients);
@@ -179,8 +171,33 @@ export default function EditFoodItemScreen({ route, navigation }) {
       ingredients: ingredients, // Keep ingredients for future edits
     };
 
-    onSave(updatedFood);
-    navigation.goBack();
+    // If onSave callback exists (old pattern), use it
+    if (onSave) {
+      onSave(updatedFood);
+      navigation.goBack();
+    } else {
+      // New pattern: navigate back with params
+      if (isPlannedMeal) {
+        // Reset navigation stack to prevent swiping back to edit screen
+        // Keep Nutrition in stack so back arrow still works
+        navigation.reset({
+          index: 1,
+          routes: [
+            { name: 'Nutrition' },
+            {
+              name: returnScreen,
+              params: {
+                updatedPlannedFood: { plannedDateKey, mealType, foodIndex, updatedFood, reopenDate }
+              }
+            }
+          ],
+        });
+      } else {
+        navigation.navigate(returnScreen, {
+          updatedFood: { mealType, foodIndex, updatedFood }
+        });
+      }
+    }
   };
 
   const totalNutrition = calculateTotalNutrition(ingredients);

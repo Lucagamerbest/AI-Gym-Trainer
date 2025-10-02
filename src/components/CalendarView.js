@@ -4,7 +4,7 @@ import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 
 const { width: screenWidth } = Dimensions.get('window');
 
-export default function CalendarView({ selectedDate, onDateSelect, mealData = {} }) {
+export default function CalendarView({ selectedDate, onDateSelect, mealData = {}, multiSelectMode = false, selectedDates = [] }) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   // Get calendar grid data
@@ -71,6 +71,10 @@ export default function CalendarView({ selectedDate, onDateSelect, mealData = {}
   };
 
   const isSelected = (date) => {
+    if (multiSelectMode) {
+      const dateKey = date.toISOString().split('T')[0];
+      return selectedDates.some(d => d.toISOString().split('T')[0] === dateKey);
+    }
     return selectedDate && date.toDateString() === selectedDate.toDateString();
   };
 

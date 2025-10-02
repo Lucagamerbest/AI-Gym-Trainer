@@ -155,7 +155,7 @@ export default function EnhancedFoodSearchScreen({ navigation }) {
         performSmartSearch();
       }
     } catch (error) {
-      console.log('API search failed, using local only');
+      // API search failed, continue with local results only
     }
   };
 

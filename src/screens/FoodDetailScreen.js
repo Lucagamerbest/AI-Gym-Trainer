@@ -10,7 +10,7 @@ import ScreenLayout from '../components/ScreenLayout';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 
 export default function FoodDetailScreen({ route, navigation }) {
-  const { food, mealType = 'lunch' } = route.params;
+  const { food, mealType = 'lunch', isPlannedMeal, plannedDateKey, reopenDate } = route.params;
 
   // Determine if this food should be measured in units rather than grams
   const getServingInfo = () => {
@@ -307,11 +307,33 @@ export default function FoodDetailScreen({ route, navigation }) {
       mealType: mealType,
     };
 
-    // Navigate back to Nutrition screen with the food data
-    navigation.navigate('Nutrition', {
-      addedFood: foodData,
-      fromFoodAdd: true
-    });
+    // Navigate back to appropriate screen with the food data
+    if (isPlannedMeal) {
+      // Reset navigation stack to prevent swiping back to search/recipe screens
+      // Keep Nutrition in stack so back arrow still works
+      navigation.reset({
+        index: 1,
+        routes: [
+          { name: 'Nutrition' },
+          {
+            name: 'MealsHistory',
+            params: {
+              addedPlannedFood: {
+                plannedDateKey: plannedDateKey,
+                mealType: mealType,
+                foodItem: foodData,
+                reopenDate: reopenDate
+              }
+            }
+          }
+        ],
+      });
+    } else {
+      navigation.navigate('Nutrition', {
+        addedFood: foodData,
+        fromFoodAdd: true
+      });
+    }
   };
 
   const adjustServing = (adjustment) => {

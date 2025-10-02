@@ -24,7 +24,7 @@ import { unifiedFoodSearch } from '../services/unifiedFoodSearch';
 const RECIPES_KEY = '@saved_recipes';
 
 export default function RecipesScreen({ navigation, route }) {
-  const { mealType } = route.params || { mealType: 'lunch' };
+  const { mealType, isPlannedMeal, plannedDateKey, reopenDate } = route.params || { mealType: 'lunch' };
 
   // Mock recipes for testing
   const mockRecipes = [
@@ -231,15 +231,33 @@ export default function RecipesScreen({ navigation, route }) {
               isRecipe: true, // Flag to identify this as a recipe
             };
 
-            console.log('🍳 RecipesScreen - Adding recipe:', recipe.name);
-            console.log('🍳 Recipe ingredients:', JSON.stringify(recipe.ingredients, null, 2));
-            console.log('🍳 Food data being passed:', JSON.stringify(foodData, null, 2));
-
-            // Navigate back with the recipe data and a flag indicating recipe was added
-            navigation.navigate('Nutrition', {
-              addedFood: foodData,
-              fromRecipeAdd: true  // Flag to indicate we came from adding a recipe
-            });
+            // Navigate back with the recipe data
+            if (isPlannedMeal) {
+              // Reset navigation stack to prevent swiping back to recipe screen
+              // Keep Nutrition in stack so back arrow still works
+              navigation.reset({
+                index: 1,
+                routes: [
+                  { name: 'Nutrition' },
+                  {
+                    name: 'MealsHistory',
+                    params: {
+                      addedPlannedFood: {
+                        plannedDateKey: plannedDateKey,
+                        mealType: mealType,
+                        foodItem: foodData,
+                        reopenDate: reopenDate
+                      }
+                    }
+                  }
+                ],
+              });
+            } else {
+              navigation.navigate('Nutrition', {
+                addedFood: foodData,
+                fromRecipeAdd: true  // Flag to indicate we came from adding a recipe
+              });
+            }
           }
         }
       ]

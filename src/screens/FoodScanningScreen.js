@@ -7,7 +7,8 @@ import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 
 const SCAN_HISTORY_KEY = '@food_scan_history';
 
-export default function FoodScanningScreen({ navigation }) {
+export default function FoodScanningScreen({ navigation, route }) {
+  const { mealType, isPlannedMeal, plannedDateKey } = route.params || {};
   const [scanHistory, setScanHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -59,7 +60,10 @@ export default function FoodScanningScreen({ navigation }) {
   const openCamera = () => {
     navigation.navigate('Camera', {
       returnScreen: 'FoodScanning',
-      onScanComplete: addToHistory
+      onScanComplete: addToHistory,
+      mealType,
+      isPlannedMeal,
+      plannedDateKey
     });
   };
 

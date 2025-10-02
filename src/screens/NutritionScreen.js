@@ -57,14 +57,48 @@ export default function NutritionScreen({ navigation, route }) {
           gestureEnabled: false
         });
       }
+
+      // Listen for delete and edit events from CalorieBreakdownScreen
+      const unsubscribeDelete = navigation.addListener('focus', () => {
+        navigation.setOptions({
+          deleteFood: handleDeleteFood,
+          editFood: handleEditFood
+        });
+      });
+
       return () => {
-        // Cleanup if needed
+        unsubscribeDelete();
       };
     }, [disableBack, navigation])
   );
 
   // Handle incoming food/recipe data from navigation
   useEffect(() => {
+    // Handle delete food request from CalorieBreakdownScreen
+    if (route.params?.deleteFood) {
+      const { mealType, foodIndex } = route.params.deleteFood;
+      handleDeleteFood(mealType, foodIndex);
+      navigation.setParams({ deleteFood: undefined });
+    }
+
+    // Handle delete entire meal request from CalorieBreakdownScreen
+    if (route.params?.deleteMeal) {
+      const { mealType } = route.params.deleteMeal;
+      const mealItems = meals[mealType] || [];
+      const mealItemsCount = mealItems.length;
+      for (let i = mealItemsCount - 1; i >= 0; i--) {
+        handleDeleteFood(mealType, i);
+      }
+      navigation.setParams({ deleteMeal: undefined });
+    }
+
+    // Handle edit food request from CalorieBreakdownScreen
+    if (route.params?.editFood) {
+      const { mealType, foodIndex, updatedFood } = route.params.editFood;
+      handleEditFood(mealType, foodIndex, updatedFood);
+      navigation.setParams({ editFood: undefined });
+    }
+
     // Check if we came from adding a recipe
     if (route.params?.fromRecipeAdd) {
       setDisableBack(true); // Disable back navigation
@@ -82,12 +116,6 @@ export default function NutritionScreen({ navigation, route }) {
     if (route.params?.addedFood && dataLoaded) {
       const { addedFood } = route.params;
       const mealType = addedFood.mealType || 'breakfast';
-
-      console.log('🔵 NutritionScreen - Received addedFood:', JSON.stringify(addedFood, null, 2));
-      console.log('🔵 Has ingredients?', !!addedFood.ingredients);
-      if (addedFood.ingredients) {
-        console.log('🔵 Ingredients:', JSON.stringify(addedFood.ingredients, null, 2));
-      }
 
       // Clear the params immediately to prevent re-adding
       navigation.setParams({ addedFood: undefined });
@@ -168,7 +196,6 @@ export default function NutritionScreen({ navigation, route }) {
             };
 
             await AsyncStorage.setItem(MEAL_PLANS_KEY, JSON.stringify(mealPlans));
-            console.log(`✅ Saved yesterday's meals (${yesterdayKey}) to calendar history`);
           }
         }
 
@@ -176,11 +203,42 @@ export default function NutritionScreen({ navigation, route }) {
         await AsyncStorage.setItem(LAST_RESET_DATE_KEY, today);
         await AsyncStorage.removeItem(DAILY_NUTRITION_KEY);
 
-        // Reset state
-        setConsumed(0);
-        setConsumedMacros({ proteinGrams: 0, carbsGrams: 0, fatGrams: 0 });
-        setMeals({ breakfast: [], lunch: [], dinner: [], snacks: [] });
-        setSelectedMeal('breakfast');
+        // Check if there are planned meals for today
+        const todayKey = new Date().toISOString().split('T')[0];
+        const savedPlans = await AsyncStorage.getItem(MEAL_PLANS_KEY);
+        const mealPlans = savedPlans ? JSON.parse(savedPlans) : {};
+        const todayPlanned = mealPlans[todayKey]?.planned;
+
+        if (todayPlanned && Object.values(todayPlanned).some(meals => meals && meals.length > 0)) {
+          // Load planned meals as today's starting meals
+          const totals = calculateTotalsFromMeals(todayPlanned);
+
+          setMeals(todayPlanned);
+          setConsumed(totals.calories);
+          setConsumedMacros({
+            proteinGrams: totals.protein,
+            carbsGrams: totals.carbs,
+            fatGrams: totals.fat
+          });
+          setSelectedMeal('breakfast');
+
+          // Save as daily nutrition
+          await saveDailyNutrition(totals.calories, {
+            proteinGrams: totals.protein,
+            carbsGrams: totals.carbs,
+            fatGrams: totals.fat
+          }, todayPlanned, 'breakfast');
+
+          // Clear the planned meals for today (they're now logged)
+          delete mealPlans[todayKey].planned;
+          await AsyncStorage.setItem(MEAL_PLANS_KEY, JSON.stringify(mealPlans));
+        } else {
+          // No planned meals, start fresh
+          setConsumed(0);
+          setConsumedMacros({ proteinGrams: 0, carbsGrams: 0, fatGrams: 0 });
+          setMeals({ breakfast: [], lunch: [], dinner: [], snacks: [] });
+          setSelectedMeal('breakfast');
+        }
       }
     } catch (error) {
       console.error('Error checking daily reset:', error);
@@ -313,24 +371,15 @@ export default function NutritionScreen({ navigation, route }) {
   const showConsumedBreakdown = () => {
     navigation.navigate('CalorieBreakdown', {
       meals: meals,
-      totalCalories: consumed,
-      onDeleteFood: handleDeleteFood,
-      onEditFood: handleEditFood
+      totalCalories: consumed
     });
   };
 
   const handleDeleteFood = async (mealType, foodIndex) => {
     try {
-      console.log('NutritionScreen: Deleting food at index', foodIndex, 'from', mealType);
-      console.log('Current meals before deletion:', meals[mealType]);
-
       const updatedMeals = { ...meals };
       if (updatedMeals[mealType] && updatedMeals[mealType][foodIndex]) {
-        const deletedFood = updatedMeals[mealType][foodIndex];
-        console.log('Deleting food:', deletedFood.name, deletedFood.calories, 'cal');
-
         updatedMeals[mealType].splice(foodIndex, 1);
-        console.log('Meals after deletion:', updatedMeals[mealType]);
 
         setMeals(updatedMeals);
 
@@ -352,10 +401,6 @@ export default function NutritionScreen({ navigation, route }) {
 
         // Also sync to calendar
         await syncMealsToCalendar(updatedMeals);
-
-        console.log('Food deleted successfully, new total calories:', totals.calories);
-      } else {
-        console.log('Food not found at index', foodIndex, 'in', mealType);
       }
     } catch (error) {
       console.error('Error deleting food:', error);
@@ -364,8 +409,6 @@ export default function NutritionScreen({ navigation, route }) {
 
   const handleEditFood = async (mealType, foodIndex, updatedFood) => {
     try {
-      console.log('NutritionScreen: Editing food at index', foodIndex, 'from', mealType);
-
       const updatedMeals = { ...meals };
       if (updatedMeals[mealType] && updatedMeals[mealType][foodIndex]) {
         updatedMeals[mealType][foodIndex] = updatedFood;
@@ -390,10 +433,6 @@ export default function NutritionScreen({ navigation, route }) {
 
         // Also sync to calendar
         await syncMealsToCalendar(updatedMeals);
-
-        console.log('Food edited successfully');
-      } else {
-        console.log('Food not found at index', foodIndex, 'in', mealType);
       }
     } catch (error) {
       console.error('Error editing food:', error);
