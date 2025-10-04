@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Vibration, Modal, TextInput, PanResponder, Animated } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import ScreenLayout from '../components/ScreenLayout';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -10,7 +11,7 @@ import { useAuth } from '../context/AuthContext';
 import { useWorkout } from '../context/WorkoutContext';
 
 // Exercise Card Component
-const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exerciseSets, onUpdateSet, onAddSet, onDeleteSet, onShowInfo, onSelectSetType, fromProgram }) => {
+const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exerciseSets, onUpdateSet, onAddSet, onDeleteSet, onShowInfo, onSelectSetType, fromProgram, rpeEnabled }) => {
   // Function to get set type color
   const getSetTypeColor = (type) => {
     switch (type) {
@@ -78,6 +79,7 @@ const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exercise
         <View style={styles.setsContainer}>
           <View style={styles.setsHeader}>
             <Text style={styles.setHeaderText}>Set</Text>
+            {rpeEnabled && <Text style={styles.rpeHeaderText}>RPE</Text>}
             <Text style={styles.setHeaderText}>Weight</Text>
             <Text style={styles.setHeaderText}>Reps</Text>
             <Text style={styles.setHeaderText}>✓</Text>
@@ -104,7 +106,19 @@ const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exercise
                   </Text>
                 )}
               </TouchableOpacity>
-              
+
+              {rpeEnabled && (
+                <TextInput
+                  style={[styles.setInput, styles.rpeInput]}
+                  value={set.rpe}
+                  onChangeText={(value) => onUpdateSet(index, setIndex, 'rpe', value)}
+                  placeholder="1-10"
+                  placeholderTextColor={Colors.textMuted}
+                  keyboardType="numeric"
+                  maxLength={2}
+                />
+              )}
+
               <TextInput
                 style={styles.setInput}
                 value={set.weight}
@@ -182,6 +196,7 @@ export default function WorkoutScreen({ navigation, route }) {
   const [showAIAssistant, setShowAIAssistant] = useState(false);
   const [showSetTypeModal, setShowSetTypeModal] = useState(false);
   const [selectedSetForType, setSelectedSetForType] = useState({ exerciseIndex: null, setIndex: null });
+  const [rpeEnabled, setRpeEnabled] = useState(false);
 
   // Exercise tracking state
   const [exerciseSets, setExerciseSets] = useState({});
@@ -190,6 +205,21 @@ export default function WorkoutScreen({ navigation, route }) {
   const [draggedExercise, setDraggedExercise] = useState(null);
   const [totalVolume, setTotalVolume] = useState(0);
   const [totalSets, setTotalSets] = useState(0);
+
+  // Load RPE setting
+  useEffect(() => {
+    const loadRPESetting = async () => {
+      try {
+        const savedRpeEnabled = await AsyncStorage.getItem('@rpe_enabled');
+        if (savedRpeEnabled !== null) {
+          setRpeEnabled(savedRpeEnabled === 'true');
+        }
+      } catch (error) {
+        console.error('Error loading RPE setting:', error);
+      }
+    };
+    loadRPESetting();
+  }, []);
 
   // Initialize workout - handle all scenarios
   useEffect(() => {
@@ -507,7 +537,7 @@ export default function WorkoutScreen({ navigation, route }) {
     if (!newSets[exerciseIndex]) {
       newSets[exerciseIndex] = [];
     }
-    newSets[exerciseIndex].push({ weight: '', reps: '', completed: false });
+    newSets[exerciseIndex].push({ weight: '', reps: '', rpe: '', completed: false });
     setExerciseSets(newSets);
     // DO NOT update context here - keep it local
   };
@@ -889,6 +919,7 @@ export default function WorkoutScreen({ navigation, route }) {
             onShowInfo={showExerciseDetail}
             onSelectSetType={handleSelectSetType}
             fromProgram={activeWorkout?.fromProgram || false}
+            rpeEnabled={rpeEnabled}
           />
         ))}
       </View>
@@ -1498,6 +1529,7 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.xs,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
+    alignItems: 'center',
   },
   setHeaderText: {
     flex: 1,
@@ -1505,6 +1537,15 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.textSecondary,
     textAlign: 'center',
+    marginHorizontal: 2,
+  },
+  rpeHeaderText: {
+    flex: 0.7,
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    marginHorizontal: 2,
   },
   setRow: {
     flexDirection: 'row',
@@ -1515,6 +1556,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    marginHorizontal: 2,
   },
   setNumber: {
     fontSize: Typography.fontSize.md,
@@ -1531,24 +1573,28 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
     borderRadius: BorderRadius.sm,
     paddingVertical: Spacing.xs,
-    paddingHorizontal: Spacing.sm,
-    marginHorizontal: Spacing.xs,
+    paddingHorizontal: 4,
+    marginHorizontal: 2,
     textAlign: 'center',
     color: Colors.text,
     borderWidth: 1,
     borderColor: Colors.border,
   },
   repsInput: {
-    minWidth: 70,  // Make wider to accommodate ranges like "8-10"
-    flex: 1.2,     // Give it slightly more space than other inputs
+    flex: 1,     // Same as other inputs, not bigger
   },
   programRepsInput: {
     borderColor: Colors.primary + '50',
     backgroundColor: Colors.primary + '10',
   },
+  rpeInput: {
+    flex: 0.7,     // Smaller for RPE
+    marginHorizontal: 2,
+  },
   completeButton: {
     flex: 1,
     alignItems: 'center',
+    marginHorizontal: 2,
   },
   checkboxContainer: {
     width: 28,

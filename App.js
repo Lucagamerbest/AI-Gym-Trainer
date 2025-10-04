@@ -45,6 +45,13 @@ import RecipesScreen from './src/screens/RecipesScreen';
 import CalorieBreakdownScreen from './src/screens/CalorieBreakdownScreen';
 import EditRecipeScreen from './src/screens/EditRecipeScreen';
 import EditFoodItemScreen from './src/screens/EditFoodItemScreen';
+import ExerciseSettingsScreen from './src/screens/ExerciseSettingsScreen';
+import WorkoutHistoryScreen from './src/screens/WorkoutHistoryScreen';
+import TodayWorkoutOptionsScreen from './src/screens/TodayWorkoutOptionsScreen';
+import PlanWorkoutScreen from './src/screens/PlanWorkoutScreen';
+import MyPlansScreen from './src/screens/MyPlansScreen';
+import WorkoutDetailScreen from './src/screens/WorkoutDetailScreen';
+import PlannedWorkoutDetailScreen from './src/screens/PlannedWorkoutDetailScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -153,7 +160,14 @@ function AppNavigator() {
             <Stack.Screen name="WorkoutSummary" component={WorkoutSummaryScreen} />
             <Stack.Screen name="AIAssistant" component={AIAssistantScreen} />
             <Stack.Screen name="Training" component={TrainingScreen} />
+            <Stack.Screen name="WorkoutHistory" component={WorkoutHistoryScreen} />
+            <Stack.Screen name="TodayWorkoutOptions" component={TodayWorkoutOptionsScreen} />
+            <Stack.Screen name="PlanWorkout" component={PlanWorkoutScreen} />
+            <Stack.Screen name="MyPlans" component={MyPlansScreen} />
+            <Stack.Screen name="WorkoutDetail" component={WorkoutDetailScreen} />
+            <Stack.Screen name="PlannedWorkoutDetail" component={PlannedWorkoutDetailScreen} />
             <Stack.Screen name="Settings" component={SettingsScreen} />
+            <Stack.Screen name="ExerciseSettings" component={ExerciseSettingsScreen} />
             <Stack.Screen name="Progress" component={ProgressScreen} />
             <Stack.Screen name="Debug" component={DebugScreen} />
           </>

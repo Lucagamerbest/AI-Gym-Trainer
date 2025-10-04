@@ -8,6 +8,7 @@ import {
   TextInput,
   Alert,
   Modal,
+  BackHandler,
 } from 'react-native';
 import ScreenLayout from '../components/ScreenLayout';
 import StyledButton from '../components/StyledButton';
@@ -17,6 +18,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
 
 const STORAGE_KEY = '@temp_program_state';
+const STANDALONE_WORKOUTS_KEY = '@standalone_workouts';
 
 export default function WorkoutDayEditScreen({ navigation, route }) {
   const [dayData, setDayData] = useState(null);
@@ -24,8 +26,52 @@ export default function WorkoutDayEditScreen({ navigation, route }) {
   const [programData, setProgramData] = useState(null);
   const [showSetTypeModal, setShowSetTypeModal] = useState(false);
   const [selectedSetForType, setSelectedSetForType] = useState({ exerciseIndex: null, setIndex: null });
+  const [rpeEnabled, setRpeEnabled] = useState(false);
+  const [isStandaloneWorkout, setIsStandaloneWorkout] = useState(false);
+  const [showNameModal, setShowNameModal] = useState(false);
+  const [workoutName, setWorkoutName] = useState('');
+  const [workoutDescription, setWorkoutDescription] = useState('');
+  const [isPlanning, setIsPlanning] = useState(false);
+  const [plannedDate, setPlannedDate] = useState(null);
   const lastProcessedExercise = useRef(null);
   const isFocused = useIsFocused();
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // Prevent back navigation when there are unsaved changes
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (hasUnsavedChanges) {
+        Alert.alert(
+          'Unsaved Changes',
+          'You have unsaved changes. Do you want to save before leaving?',
+          [
+            { text: 'Discard', style: 'destructive', onPress: () => navigation.goBack() },
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Save', onPress: () => handleSaveAndReturn() },
+          ]
+        );
+        return true; // Prevent default back behavior
+      }
+      return false; // Allow back if no changes
+    });
+
+    return () => backHandler.remove();
+  }, [hasUnsavedChanges]);
+
+  // Load RPE setting
+  useEffect(() => {
+    const loadRPESetting = async () => {
+      try {
+        const savedRpeEnabled = await AsyncStorage.getItem('@rpe_enabled');
+        if (savedRpeEnabled !== null) {
+          setRpeEnabled(savedRpeEnabled === 'true');
+        }
+      } catch (error) {
+        console.error('Error loading RPE setting:', error);
+      }
+    };
+    loadRPESetting();
+  }, []);
 
   // Load the day data
   useEffect(() => {
@@ -43,6 +89,17 @@ export default function WorkoutDayEditScreen({ navigation, route }) {
           setDayIndex(index);
           setDayData(parsed.workoutDays[index]);
           setProgramData(parsed);
+
+          // Check if this is a standalone workout (only one day)
+          setIsStandaloneWorkout(parsed.workoutDays.length === 1);
+
+          // Check if we're in planning mode
+          console.log('Loading day data - fromPlanning:', parsed.fromPlanning, 'plannedDate:', parsed.plannedDate);
+          if (parsed.fromPlanning) {
+            setIsPlanning(true);
+            setPlannedDate(parsed.plannedDate);
+            console.log('Planning mode activated for date:', parsed.plannedDate);
+          }
         }
       }
     } catch (error) {
@@ -69,7 +126,7 @@ export default function WorkoutDayEditScreen({ navigation, route }) {
           ...exercise,
           uniqueId: Date.now().toString(),
           sets: [
-            { type: 'normal', reps: '10' }  // 1 set by default, single number
+            { type: 'normal', reps: '10', rpe: '' }  // 1 set by default, single number
           ]
         };
 
@@ -95,6 +152,8 @@ export default function WorkoutDayEditScreen({ navigation, route }) {
     }
 
     try {
+      setHasUnsavedChanges(true); // Mark as having unsaved changes
+
       const updatedDays = [...programData.workoutDays];
       updatedDays[dayIndex] = updatedDay || dayData;
 
@@ -117,7 +176,7 @@ export default function WorkoutDayEditScreen({ navigation, route }) {
     if (!updatedExercises[exerciseIndex].sets) {
       updatedExercises[exerciseIndex].sets = [];
     }
-    updatedExercises[exerciseIndex].sets.push({ type: 'normal', reps: '10' });
+    updatedExercises[exerciseIndex].sets.push({ type: 'normal', reps: '10', rpe: '' });
 
     const updatedDay = { ...dayData, exercises: updatedExercises };
     setDayData(updatedDay);
@@ -284,6 +343,256 @@ export default function WorkoutDayEditScreen({ navigation, route }) {
     navigation.navigate('WorkoutProgram', { refresh: Date.now() });
   };
 
+  const handleSaveAndReturn = async () => {
+    if (!dayData || !dayData.exercises || dayData.exercises.length === 0) {
+      Alert.alert('Error', 'Please add at least one exercise before saving');
+      return;
+    }
+
+    setHasUnsavedChanges(false); // Clear unsaved changes flag
+
+    try {
+      // Check if editing from program day selection screen
+      const editingProgramDay = route.params?.dayIndex !== undefined && programData?.programName;
+      const fromWorkoutDetail = route.params?.fromWorkoutDetail;
+      const workoutId = route.params?.workoutId || programData?.workoutId;
+      const programId = route.params?.programId || programData?.programId;
+
+      if (fromWorkoutDetail && workoutId) {
+        // Editing standalone workout - update in storage
+        const existingWorkouts = await AsyncStorage.getItem(STANDALONE_WORKOUTS_KEY);
+        const workouts = existingWorkouts ? JSON.parse(existingWorkouts) : [];
+
+        const workoutIndex = workouts.findIndex(w => w.id === workoutId);
+        if (workoutIndex !== -1) {
+          workouts[workoutIndex] = {
+            ...workouts[workoutIndex],
+            day: dayData,
+            updatedAt: new Date().toISOString(),
+          };
+
+          await AsyncStorage.setItem(STANDALONE_WORKOUTS_KEY, JSON.stringify(workouts));
+          await AsyncStorage.removeItem(STORAGE_KEY);
+
+          Alert.alert('Success', 'Workout saved successfully!', [
+            {
+              text: 'OK',
+              onPress: () => {
+                navigation.reset({
+                  index: 2,
+                  routes: [
+                    { name: 'Main' },
+                    { name: 'MyPlans' },
+                    {
+                      name: 'WorkoutDetail',
+                      params: { workout: workouts[workoutIndex] }
+                    },
+                  ],
+                });
+              }
+            }
+          ]);
+        }
+      } else if (editingProgramDay && programId) {
+        // Editing program day - update program in storage
+        const WORKOUT_PROGRAMS_KEY = '@workout_programs';
+        const storedPrograms = await AsyncStorage.getItem(WORKOUT_PROGRAMS_KEY);
+
+        if (storedPrograms) {
+          const programs = JSON.parse(storedPrograms);
+          const programIndex = programs.findIndex(p => p.id === programId);
+
+          if (programIndex !== -1) {
+            // Update the specific day
+            programs[programIndex].days[dayIndex] = dayData;
+            programs[programIndex].updatedAt = new Date().toISOString();
+
+            await AsyncStorage.setItem(WORKOUT_PROGRAMS_KEY, JSON.stringify(programs));
+            await AsyncStorage.removeItem(STORAGE_KEY);
+
+            Alert.alert('Success', 'Day saved successfully!', [
+              {
+                text: 'OK',
+                onPress: () => {
+                  navigation.reset({
+                    index: 2,
+                    routes: [
+                      { name: 'Main' },
+                      { name: 'MyPlans' },
+                      {
+                        name: 'ProgramDaySelection',
+                        params: { program: programs[programIndex] }
+                      },
+                    ],
+                  });
+                }
+              }
+            ]);
+          }
+        }
+      } else {
+        // Fallback to back to program
+        handleBackToProgram();
+      }
+    } catch (error) {
+      console.error('Error saving:', error);
+      Alert.alert('Error', 'Failed to save changes');
+    }
+  };
+
+  const handleSaveStandaloneWorkout = () => {
+    if (!dayData || !dayData.exercises || dayData.exercises.length === 0) {
+      Alert.alert('Error', 'Please add at least one exercise');
+      return;
+    }
+
+    // Check if name exists in programData
+    if (programData?.programName && programData.programName.trim()) {
+      // Name already exists, save directly
+      performSave(programData.programName, programData.programDescription || '');
+    } else {
+      // No name, show modal to enter name
+      setShowNameModal(true);
+    }
+  };
+
+  const performSave = async (name, description) => {
+    try {
+      console.log('performSave - isPlanning:', isPlanning, 'plannedDate:', plannedDate);
+
+      // Check if we're editing an existing workout
+      const workoutId = route.params?.workoutId || programData?.workoutId;
+      const fromWorkoutDetail = route.params?.fromWorkoutDetail;
+
+      if (fromWorkoutDetail && workoutId) {
+        // Editing existing standalone workout
+        const existingWorkouts = await AsyncStorage.getItem(STANDALONE_WORKOUTS_KEY);
+        const workouts = existingWorkouts ? JSON.parse(existingWorkouts) : [];
+
+        const workoutIndex = workouts.findIndex(w => w.id === workoutId);
+        if (workoutIndex !== -1) {
+          workouts[workoutIndex] = {
+            ...workouts[workoutIndex],
+            name: name,
+            description: description,
+            day: dayData,
+            updatedAt: new Date().toISOString(),
+          };
+
+          await AsyncStorage.setItem(STANDALONE_WORKOUTS_KEY, JSON.stringify(workouts));
+          await AsyncStorage.removeItem(STORAGE_KEY);
+
+          Alert.alert('Success', 'Workout updated successfully!', [
+            {
+              text: 'OK',
+              onPress: () => {
+                navigation.navigate('MyPlans');
+              }
+            }
+          ]);
+        }
+      } else if (isPlanning && plannedDate) {
+        // Save as BOTH planned workout AND standalone workout
+        const PLANNED_WORKOUTS_KEY = '@planned_workouts';
+        const dateKey = new Date(plannedDate).toISOString().split('T')[0];
+
+        // 1. Save to planned workouts for the calendar
+        const plannedWorkouts = await AsyncStorage.getItem(PLANNED_WORKOUTS_KEY);
+        const planned = plannedWorkouts ? JSON.parse(plannedWorkouts) : {};
+
+        console.log('Saving planned workout for date:', dateKey);
+        console.log('Workout data:', { name, description, exercises: dayData.exercises });
+
+        planned[dateKey] = {
+          type: 'custom',
+          workoutName: name,
+          workoutDescription: description,
+          exercises: dayData.exercises || [],
+          plannedDate: dateKey,
+          createdAt: new Date().toISOString(),
+        };
+
+        await AsyncStorage.setItem(PLANNED_WORKOUTS_KEY, JSON.stringify(planned));
+        console.log('Planned workout saved to calendar');
+
+        // 2. ALSO save as standalone workout in My Plans
+        const existingWorkouts = await AsyncStorage.getItem(STANDALONE_WORKOUTS_KEY);
+        const workouts = existingWorkouts ? JSON.parse(existingWorkouts) : [];
+
+        const newWorkout = {
+          id: Date.now().toString(),
+          name: name,
+          description: description,
+          day: dayData,
+          createdAt: new Date().toISOString(),
+        };
+
+        workouts.push(newWorkout);
+        await AsyncStorage.setItem(STANDALONE_WORKOUTS_KEY, JSON.stringify(workouts));
+        console.log('Workout also saved to My Plans');
+
+        // Clear temporary state
+        await AsyncStorage.removeItem(STORAGE_KEY);
+
+        Alert.alert('Success', 'Workout planned successfully!', [
+          {
+            text: 'OK',
+            onPress: () => {
+              // Navigate back to WorkoutHistory (calendar)
+              navigation.navigate('WorkoutHistory');
+            },
+          }
+        ]);
+      } else {
+        // Save as standalone workout
+        const existingWorkouts = await AsyncStorage.getItem(STANDALONE_WORKOUTS_KEY);
+        const workouts = existingWorkouts ? JSON.parse(existingWorkouts) : [];
+
+        const newWorkout = {
+          id: Date.now().toString(),
+          name: name,
+          description: description,
+          day: dayData,
+          createdAt: new Date().toISOString(),
+        };
+
+        workouts.push(newWorkout);
+        await AsyncStorage.setItem(STANDALONE_WORKOUTS_KEY, JSON.stringify(workouts));
+
+        // Clear temporary state
+        await AsyncStorage.removeItem(STORAGE_KEY);
+
+        Alert.alert('Success', 'Workout saved successfully!', [
+          {
+            text: 'OK',
+            onPress: () => {
+              navigation.reset({
+                index: 0,
+                routes: [
+                  { name: 'Main' },
+                  { name: 'MyPlans' }
+                ],
+              });
+            }
+          },
+        ]);
+      }
+    } catch (error) {
+      Alert.alert('Error', `Failed to ${isPlanning ? 'plan' : 'save'} workout`);
+      console.error(error);
+    }
+  };
+
+  const handleConfirmName = () => {
+    if (!workoutName.trim()) {
+      Alert.alert('Error', 'Please enter a workout name');
+      return;
+    }
+
+    setShowNameModal(false);
+    performSave(workoutName, workoutDescription);
+  };
+
   const applySetType = (type) => {
     const { exerciseIndex, setIndex } = selectedSetForType;
     if (exerciseIndex !== null && setIndex !== null) {
@@ -314,6 +623,7 @@ export default function WorkoutDayEditScreen({ navigation, route }) {
         subtitle={`${dayData.exercises?.length || 0} exercises`}
         navigation={navigation}
         showBack={true}
+        gestureEnabled={!hasUnsavedChanges}
     >
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         {(!dayData.exercises || dayData.exercises.length === 0) ? (
@@ -373,6 +683,22 @@ export default function WorkoutDayEditScreen({ navigation, route }) {
                         </Text>
                       </TouchableOpacity>
 
+                      {/* RPE Input (if enabled) */}
+                      {rpeEnabled && (
+                        <View style={styles.inputContainer}>
+                          <TextInput
+                            style={styles.setInput}
+                            value={set.rpe}
+                            onChangeText={(text) => updateSet(exerciseIndex, setIndex, 'rpe', text)}
+                            placeholder="1-10"
+                            keyboardType="numeric"
+                            maxLength={2}
+                            placeholderTextColor={Colors.textSecondary}
+                          />
+                          <Text style={styles.inputLabel}>RPE</Text>
+                        </View>
+                      )}
+
                       {/* Reps Input */}
                       <View style={styles.inputContainer}>
                         <TextInput
@@ -426,12 +752,14 @@ export default function WorkoutDayEditScreen({ navigation, route }) {
           </>
         )}
 
-        <StyledButton
-          title="Back to Program"
-          onPress={handleBackToProgram}
-          style={styles.backButton}
-          secondary
-        />
+        {/* Universal Save Button */}
+        {dayData.exercises && dayData.exercises.length > 0 && (
+          <StyledButton
+            title="Save Changes"
+            onPress={isStandaloneWorkout && !route.params?.fromWorkoutDetail ? handleSaveStandaloneWorkout : handleSaveAndReturn}
+            style={styles.saveButton}
+          />
+        )}
       </ScrollView>
     </ScreenLayout>
 
@@ -483,6 +811,56 @@ export default function WorkoutDayEditScreen({ navigation, route }) {
           >
             <Text style={styles.cancelButtonText}>Cancel</Text>
           </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+
+    {/* Name Workout Modal */}
+    <Modal
+      visible={showNameModal}
+      transparent={true}
+      animationType="slide"
+      onRequestClose={() => setShowNameModal(false)}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.nameModalContent}>
+          <Text style={styles.modalTitle}>{isPlanning ? 'Plan Your Workout' : 'Name Your Workout'}</Text>
+
+          <Text style={styles.modalLabel}>Workout Name</Text>
+          <TextInput
+            style={styles.modalInput}
+            placeholder="e.g., Upper Body Blast"
+            placeholderTextColor={Colors.textSecondary}
+            value={workoutName}
+            onChangeText={setWorkoutName}
+            autoFocus
+          />
+
+          <Text style={styles.modalLabel}>Description (Optional)</Text>
+          <TextInput
+            style={[styles.modalInput, styles.modalTextArea]}
+            placeholder="Add details about this workout..."
+            placeholderTextColor={Colors.textSecondary}
+            value={workoutDescription}
+            onChangeText={setWorkoutDescription}
+            multiline
+            numberOfLines={3}
+          />
+
+          <View style={styles.modalActions}>
+            <TouchableOpacity
+              style={styles.modalCancelButton}
+              onPress={() => setShowNameModal(false)}
+            >
+              <Text style={styles.modalCancelText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.modalConfirmButton}
+              onPress={handleConfirmName}
+            >
+              <Text style={styles.modalConfirmText}>{isPlanning ? 'Plan Workout' : 'Save Workout'}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </Modal>
@@ -576,9 +954,10 @@ const styles = StyleSheet.create({
   setRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'flex-start',
+    justifyContent: 'space-between',
     marginBottom: Spacing.sm,
     paddingVertical: Spacing.xs,
+    paddingRight: Spacing.sm,
   },
   setNumber: {
     fontSize: Typography.fontSize.md,
@@ -593,7 +972,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
-    marginHorizontal: Spacing.sm,
+    marginRight: Spacing.xs,
   },
   setTypeText: {
     fontSize: Typography.fontSize.sm,
@@ -603,25 +982,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    flex: 1,
-    marginHorizontal: Spacing.sm,
+    marginHorizontal: Spacing.xs,
   },
   setInput: {
     backgroundColor: Colors.card,
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.sm,
     fontSize: Typography.fontSize.md,
     color: Colors.text,
-    width: 120,  // Fixed width to match Add Set button
+    minWidth: 55,
     textAlign: 'center',
   },
   inputLabel: {
-    fontSize: Typography.fontSize.sm,
+    fontSize: Typography.fontSize.xs,
     color: Colors.textSecondary,
-    marginLeft: Spacing.xs,
+    marginLeft: 4,
+    minWidth: 30,
   },
   removeSetButton: {
     width: 28,
@@ -630,7 +1009,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.error + '20',
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: Spacing.sm,
+    marginLeft: Spacing.xs,
+    flexShrink: 0,
   },
   removeSetText: {
     color: Colors.error,
@@ -674,6 +1054,10 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.md,
     fontWeight: 'bold',
     color: Colors.background,
+  },
+  saveButton: {
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.md,
   },
   backButton: {
     marginBottom: Spacing.xxl,
@@ -742,5 +1126,67 @@ const styles = StyleSheet.create({
   cancelButtonText: {
     fontSize: Typography.fontSize.md,
     color: Colors.textSecondary,
+  },
+  nameModalContent: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.xl,
+    width: '90%',
+    maxWidth: 400,
+    borderWidth: 2,
+    borderColor: Colors.border,
+  },
+  modalLabel: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: Spacing.sm,
+    marginTop: Spacing.md,
+  },
+  modalInput: {
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    fontSize: Typography.fontSize.md,
+    color: Colors.text,
+    marginBottom: Spacing.sm,
+  },
+  modalTextArea: {
+    minHeight: 80,
+    textAlignVertical: 'top',
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: Spacing.lg,
+    gap: Spacing.md,
+  },
+  modalCancelButton: {
+    flex: 1,
+    padding: Spacing.md,
+    alignItems: 'center',
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  modalCancelText: {
+    color: Colors.textSecondary,
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+  },
+  modalConfirmButton: {
+    flex: 1,
+    padding: Spacing.md,
+    alignItems: 'center',
+    backgroundColor: Colors.primary,
+    borderRadius: BorderRadius.md,
+  },
+  modalConfirmText: {
+    color: Colors.background,
+    fontSize: Typography.fontSize.md,
+    fontWeight: 'bold',
   },
 });

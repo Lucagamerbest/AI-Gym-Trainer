@@ -6,31 +6,6 @@ import StyledCard from '../components/StyledCard';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 
 export default function SettingsScreen({ navigation }) {
-  const [displayMode, setDisplayMode] = useState('compact'); // 'compact' or 'detailed'
-
-  // Load display mode preference on component mount
-  useEffect(() => {
-    loadDisplayMode();
-  }, []);
-
-  const loadDisplayMode = async () => {
-    try {
-      const saved = await AsyncStorage.getItem('exerciseDisplayMode');
-      if (saved) {
-        setDisplayMode(saved);
-      }
-    } catch (error) {
-    }
-  };
-
-  const saveDisplayMode = async (mode) => {
-    try {
-      await AsyncStorage.setItem('exerciseDisplayMode', mode);
-      setDisplayMode(mode);
-    } catch (error) {
-    }
-  };
-
   return (
     <ScreenLayout
       title="Settings"
@@ -39,54 +14,24 @@ export default function SettingsScreen({ navigation }) {
       showBack={true}
       showHome={true}
     >
-      <StyledCard variant="elevated" style={styles.displayOptionsCard}>
-        <Text style={styles.sectionTitle}>Exercise Display Options</Text>
-        <Text style={styles.sectionSubtitle}>Choose how exercises are displayed in the library</Text>
-
-        <View style={styles.optionContainer}>
-          <TouchableOpacity
-            style={[
-              styles.optionButton,
-              displayMode === 'compact' && styles.optionButtonSelected
-            ]}
-            onPress={() => saveDisplayMode('compact')}
-          >
-            <View style={styles.optionContent}>
-              <View style={styles.optionIcon}>
-                <Text style={styles.optionEmoji}>⊞</Text>
-              </View>
-              <View style={styles.optionText}>
-                <Text style={styles.optionTitle}>Compact View</Text>
-                <Text style={styles.optionDescription}>2x2 grid, smaller exercises, more per screen</Text>
-              </View>
-              <View style={styles.radioButton}>
-                {displayMode === 'compact' && <View style={styles.radioSelected} />}
-              </View>
+      {/* Exercise Settings */}
+      <TouchableOpacity
+        onPress={() => navigation.navigate('ExerciseSettings')}
+        activeOpacity={0.7}
+      >
+        <StyledCard variant="elevated" style={styles.settingCard}>
+          <View style={styles.settingRow}>
+            <View style={styles.settingIcon}>
+              <Text style={styles.settingEmoji}>🏋️</Text>
             </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.optionButton,
-              displayMode === 'detailed' && styles.optionButtonSelected
-            ]}
-            onPress={() => saveDisplayMode('detailed')}
-          >
-            <View style={styles.optionContent}>
-              <View style={styles.optionIcon}>
-                <Text style={styles.optionEmoji}>📋</Text>
-              </View>
-              <View style={styles.optionText}>
-                <Text style={styles.optionTitle}>Detailed View</Text>
-                <Text style={styles.optionDescription}>One per row, larger with exercise images</Text>
-              </View>
-              <View style={styles.radioButton}>
-                {displayMode === 'detailed' && <View style={styles.radioSelected} />}
-              </View>
+            <View style={styles.settingContent}>
+              <Text style={styles.settingTitle}>Exercise Settings</Text>
+              <Text style={styles.settingDescription}>Display options & RPE tracking</Text>
             </View>
-          </TouchableOpacity>
-        </View>
-      </StyledCard>
+            <Text style={styles.chevron}>›</Text>
+          </View>
+        </StyledCard>
+      </TouchableOpacity>
 
       {/* Other Settings Sections */}
       <StyledCard variant="elevated" style={styles.sectionCard}>
@@ -105,9 +50,43 @@ export default function SettingsScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  displayOptionsCard: {
+  settingCard: {
     marginBottom: Spacing.lg,
     padding: Spacing.lg,
+  },
+  settingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  settingIcon: {
+    width: 50,
+    height: 50,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.primary + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: Spacing.md,
+  },
+  settingEmoji: {
+    fontSize: 24,
+  },
+  settingContent: {
+    flex: 1,
+  },
+  settingTitle: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: 'bold',
+    color: Colors.text,
+    marginBottom: 4,
+  },
+  settingDescription: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+  },
+  chevron: {
+    fontSize: 28,
+    color: Colors.textMuted,
+    marginLeft: Spacing.sm,
   },
   sectionCard: {
     marginBottom: Spacing.lg,
@@ -123,63 +102,5 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.sm,
     color: Colors.textSecondary,
     marginBottom: Spacing.lg,
-  },
-  optionContainer: {
-    gap: Spacing.md,
-  },
-  optionButton: {
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  optionButtonSelected: {
-    borderColor: Colors.primary,
-    backgroundColor: Colors.primary + '10',
-  },
-  optionContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: Spacing.md,
-  },
-  optionIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: BorderRadius.md,
-    backgroundColor: Colors.primary + '20',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: Spacing.md,
-  },
-  optionEmoji: {
-    fontSize: 20,
-  },
-  optionText: {
-    flex: 1,
-  },
-  optionTitle: {
-    fontSize: Typography.fontSize.md,
-    fontWeight: '600',
-    color: Colors.text,
-    marginBottom: Spacing.xs,
-  },
-  optionDescription: {
-    fontSize: Typography.fontSize.sm,
-    color: Colors.textSecondary,
-  },
-  radioButton: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: Colors.border,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  radioSelected: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: Colors.primary,
   },
 });

@@ -42,7 +42,9 @@
       "Bash(git log:*)",
       "Bash(netstat:*)",
       "Bash(findstr:*)",
-      "Bash(git config:*)"
+      "Bash(git config:*)",
+      "Bash(npm start:*)",
+      "Bash(powershell:*)"
     ],
     "deny": [],
     "ask": []

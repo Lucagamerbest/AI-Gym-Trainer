@@ -10,77 +10,68 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ScreenLayout from '../components/ScreenLayout';
-import StyledButton from '../components/StyledButton';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useWorkout } from '../context/WorkoutContext';
 
-const WORKOUT_PROGRAMS_KEY = '@workout_programs';
+const STANDALONE_WORKOUTS_KEY = '@standalone_workouts';
 
-export default function ProgramDaySelectionScreen({ navigation, route }) {
-  const { program } = route.params;
+export default function WorkoutDetailScreen({ navigation, route }) {
+  const { workout } = route.params;
   const { startWorkout } = useWorkout();
-  const [viewDetailsDay, setViewDetailsDay] = useState(null);
+  const [viewDetails, setViewDetails] = useState(false);
 
-  const handleStartDay = (day, dayIndex) => {
+  const handleStartWorkout = () => {
+    const day = workout.day;
+
     if (!day.exercises || day.exercises.length === 0) {
-      Alert.alert('No Exercises', 'This day has no exercises configured.');
+      Alert.alert('No Exercises', 'This workout has no exercises configured.');
       return;
     }
 
     // Format exercises to match the workout screen's expected format
     const formattedExercises = day.exercises.map(exercise => ({
       ...exercise,
-      // Ensure the exercise has the expected structure
       name: exercise.name,
       targetMuscle: exercise.targetMuscle || '',
       equipment: exercise.equipment || 'Not specified',
       difficulty: exercise.difficulty || 'Intermediate',
-      // Keep the original sets data for reference
       programSets: exercise.sets,
     }));
 
     // Initialize the exercise sets
     const initializedSets = initializeExerciseSets(day.exercises);
 
-    // Start workout with the program's exercises
+    // Start workout
     startWorkout({
       exercises: formattedExercises,
       startTime: new Date().toISOString(),
       exerciseSets: initializedSets,
       currentExerciseIndex: 0,
-      fromProgram: true,
-      programName: program.name,
-      dayName: day.name,
-      dayIndex: dayIndex,
+      fromProgram: false,
+      workoutName: workout.name,
     });
 
-    // Navigate directly to workout screen
+    // Navigate to workout screen
     navigation.navigate('Workout', {
-      fromProgram: true,
-      programExercises: formattedExercises,
-      programName: program.name,
-      dayName: day.name,
+      fromProgram: false,
+      workoutName: workout.name,
     });
   };
 
-  // Initialize sets based on program configuration
   const initializeExerciseSets = (exercises) => {
     const sets = {};
     exercises.forEach((exercise, index) => {
       if (exercise.sets && exercise.sets.length > 0) {
-        // Use the sets defined in the program - preserve ALL set data
         sets[index] = exercise.sets.map(set => ({
-          weight: '',  // User will fill this in
-          reps: set.reps || '10',  // Pre-fill with program's rep target
+          weight: '',
+          reps: set.reps || '10',
           completed: false,
           type: set.type || 'normal',
           rest: set.rest || '90',
-          // Store the original program reps for display purposes
           programReps: set.reps || '10',
         }));
       } else {
-        // Default to 3 sets if none defined
         sets[index] = [
           { weight: '', reps: '', completed: false, type: 'normal' },
           { weight: '', reps: '', completed: false, type: 'normal' },
@@ -98,82 +89,33 @@ export default function ProgramDaySelectionScreen({ navigation, route }) {
     }, 0);
   };
 
-  const handleEditDay = async (dayIndex) => {
-    // Save temp state for editing
+  const handleEditWorkout = async () => {
     try {
       await AsyncStorage.setItem('@temp_program_state', JSON.stringify({
-        programName: program.name,
-        programDescription: program.description,
-        workoutDays: program.days,
-        currentDayIndex: dayIndex,
-        programId: program.id
-      }));
-
-      navigation.navigate('WorkoutDayEdit', {
-        dayIndex: dayIndex,
-        programId: program.id,
-        refresh: Date.now()
-      });
-    } catch (error) {
-      console.error('Error saving temp state:', error);
-      Alert.alert('Error', 'Failed to edit day');
-    }
-  };
-
-  const handleDeleteProgram = () => {
-    Alert.alert(
-      'Delete Program',
-      'Are you sure you want to delete this entire program?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const storedPrograms = await AsyncStorage.getItem(WORKOUT_PROGRAMS_KEY);
-              if (storedPrograms) {
-                const programs = JSON.parse(storedPrograms);
-                const updatedPrograms = programs.filter(p => p.id !== program.id);
-                await AsyncStorage.setItem(WORKOUT_PROGRAMS_KEY, JSON.stringify(updatedPrograms));
-                Alert.alert('Success', 'Program deleted successfully');
-                navigation.goBack();
-              }
-            } catch (error) {
-              Alert.alert('Error', 'Failed to delete program');
-              console.error(error);
-            }
-          },
-        },
-      ]
-    );
-  };
-
-  const handleEditProgram = async () => {
-    try {
-      await AsyncStorage.setItem('@temp_program_state', JSON.stringify({
-        programName: program.name,
-        programDescription: program.description,
-        workoutDays: program.days,
-        programId: program.id,
+        programName: workout.name,
+        programDescription: workout.description,
+        workoutDays: [workout.day],
+        currentDayIndex: 0,
+        workoutId: workout.id,
         editMode: true
       }));
 
-      navigation.navigate('WorkoutProgram', {
-        editMode: true,
-        programId: program.id,
+      navigation.navigate('WorkoutDayEdit', {
+        dayIndex: 0,
+        fromWorkoutDetail: true,
+        workoutId: workout.id,
         refresh: Date.now()
       });
     } catch (error) {
-      console.error('Error editing program:', error);
-      Alert.alert('Error', 'Failed to edit program');
+      console.error('Error editing workout:', error);
+      Alert.alert('Error', 'Failed to edit workout');
     }
   };
 
-  const handleDeleteDay = async (dayIndex) => {
+  const handleDeleteWorkout = () => {
     Alert.alert(
-      'Delete Workout Day',
-      `Are you sure you want to delete ${program.days[dayIndex].name}?`,
+      'Delete Workout',
+      'Are you sure you want to delete this workout?',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -181,23 +123,16 @@ export default function ProgramDaySelectionScreen({ navigation, route }) {
           style: 'destructive',
           onPress: async () => {
             try {
-              const storedPrograms = await AsyncStorage.getItem(WORKOUT_PROGRAMS_KEY);
-              if (storedPrograms) {
-                const programs = JSON.parse(storedPrograms);
-                const programIndex = programs.findIndex(p => p.id === program.id);
-
-                if (programIndex !== -1) {
-                  programs[programIndex].days.splice(dayIndex, 1);
-                  await AsyncStorage.setItem(WORKOUT_PROGRAMS_KEY, JSON.stringify(programs));
-
-                  // Refresh the screen with updated program
-                  navigation.replace('ProgramDaySelection', {
-                    program: programs[programIndex]
-                  });
-                }
+              const storedWorkouts = await AsyncStorage.getItem(STANDALONE_WORKOUTS_KEY);
+              if (storedWorkouts) {
+                const workouts = JSON.parse(storedWorkouts);
+                const updatedWorkouts = workouts.filter(w => w.id !== workout.id);
+                await AsyncStorage.setItem(STANDALONE_WORKOUTS_KEY, JSON.stringify(updatedWorkouts));
+                Alert.alert('Success', 'Workout deleted successfully');
+                navigation.goBack();
               }
             } catch (error) {
-              Alert.alert('Error', 'Failed to delete day');
+              Alert.alert('Error', 'Failed to delete workout');
               console.error(error);
             }
           },
@@ -228,15 +163,15 @@ export default function ProgramDaySelectionScreen({ navigation, route }) {
 
   return (
     <ScreenLayout
-      title={program.name}
-      subtitle="Select a workout day to begin"
+      title={workout.name}
+      subtitle="Workout Details"
       navigation={navigation}
       showBack={true}
     >
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        {program.description && (
+        {workout.description && (
           <View style={styles.descriptionCard}>
-            <Text style={styles.descriptionText}>{program.description}</Text>
+            <Text style={styles.descriptionText}>{workout.description}</Text>
           </View>
         )}
 
@@ -244,7 +179,7 @@ export default function ProgramDaySelectionScreen({ navigation, route }) {
         <View style={styles.actionButtonsContainer}>
           <TouchableOpacity
             style={styles.actionButtonWrapper}
-            onPress={handleEditProgram}
+            onPress={() => setViewDetails(true)}
             activeOpacity={0.7}
           >
             <LinearGradient
@@ -253,14 +188,14 @@ export default function ProgramDaySelectionScreen({ navigation, route }) {
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
             >
-              <Text style={styles.buttonIcon}>✏️</Text>
+              <Text style={styles.buttonIcon}>👁️</Text>
             </LinearGradient>
-            <Text style={styles.buttonLabel}>Edit</Text>
+            <Text style={styles.buttonLabel}>View</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.actionButtonWrapper}
-            onPress={handleDeleteProgram}
+            onPress={handleDeleteWorkout}
             activeOpacity={0.7}
           >
             <LinearGradient
@@ -275,111 +210,88 @@ export default function ProgramDaySelectionScreen({ navigation, route }) {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.daysContainer}>
-          {program.days.map((day, index) => (
-            <TouchableOpacity
-              key={day.id || index}
-              style={styles.dayCard}
-              onPress={() => handleStartDay(day, index)}
-              activeOpacity={0.9}
-            >
-              <LinearGradient
-                colors={[Colors.primary + '10', Colors.primary + '05']}
-                style={styles.dayGradient}
-              >
-                <View style={styles.dayHeader}>
-                  <View style={styles.dayHeaderLeft}>
-                    <Text style={styles.dayNumber}>Day {index + 1}</Text>
-                    <Text style={styles.dayName}>{day.name}</Text>
-                  </View>
-                  <View style={styles.dayHeaderRight}>
-                    <TouchableOpacity
-                      style={styles.viewDayButton}
-                      onPress={(e) => {
-                        e.stopPropagation();
-                        setViewDetailsDay(day);
-                      }}
-                    >
-                      <Text style={styles.dayActionIcon}>👁️</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.editDayButton}
-                      onPress={(e) => {
-                        e.stopPropagation();
-                        handleEditDay(index);
-                      }}
-                    >
-                      <Text style={styles.dayActionIcon}>✏️</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.deleteDayButton}
-                      onPress={(e) => {
-                        e.stopPropagation();
-                        handleDeleteDay(index);
-                      }}
-                    >
-                      <Text style={styles.dayActionIcon}>🗑️</Text>
-                    </TouchableOpacity>
-                    <View style={styles.startIcon}>
-                      <Text style={styles.startIconText}>▶</Text>
-                    </View>
-                  </View>
+        {/* Workout Card */}
+        <TouchableOpacity
+          style={styles.workoutCard}
+          onPress={handleStartWorkout}
+          activeOpacity={0.9}
+        >
+          <LinearGradient
+            colors={[Colors.primary + '10', Colors.primary + '05']}
+            style={styles.workoutGradient}
+          >
+            <View style={styles.workoutHeader}>
+              <View style={styles.workoutHeaderLeft}>
+                <Text style={styles.workoutTitle}>Start Workout</Text>
+              </View>
+              <View style={styles.workoutHeaderRight}>
+                <TouchableOpacity
+                  style={styles.editWorkoutButton}
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    handleEditWorkout();
+                  }}
+                >
+                  <Text style={styles.editWorkoutIcon}>✏️</Text>
+                </TouchableOpacity>
+                <View style={styles.startIcon}>
+                  <Text style={styles.startIconText}>▶</Text>
                 </View>
+              </View>
+            </View>
 
-                <View style={styles.dayStats}>
-                  <View style={styles.statItem}>
-                    <Text style={styles.statValue}>{day.exercises.length}</Text>
-                    <Text style={styles.statLabel}>Exercises</Text>
-                  </View>
-                  <View style={styles.statDivider} />
-                  <View style={styles.statItem}>
-                    <Text style={styles.statValue}>{getTotalSets(day.exercises)}</Text>
-                    <Text style={styles.statLabel}>Total Sets</Text>
-                  </View>
-                </View>
+            <View style={styles.workoutStats}>
+              <View style={styles.statItem}>
+                <Text style={styles.statValue}>{workout.day?.exercises?.length || 0}</Text>
+                <Text style={styles.statLabel}>Exercises</Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statItem}>
+                <Text style={styles.statValue}>{getTotalSets(workout.day?.exercises || [])}</Text>
+                <Text style={styles.statLabel}>Total Sets</Text>
+              </View>
+            </View>
 
-                {/* Exercise preview */}
-                <View style={styles.exercisePreview}>
-                  <Text style={styles.exercisePreviewTitle}>Exercises:</Text>
-                  {day.exercises.slice(0, 3).map((exercise, exIndex) => (
-                    <View key={exIndex} style={styles.exercisePreviewItem}>
-                      <Text style={styles.exercisePreviewText}>
-                        • {exercise.name}
-                        {exercise.sets && exercise.sets.length > 0 && (
-                          <Text style={styles.setsPreviewText}>
-                            {' '}({exercise.sets.length} sets)
-                          </Text>
-                        )}
+            {/* Exercise preview */}
+            <View style={styles.exercisePreview}>
+              <Text style={styles.exercisePreviewTitle}>Exercises:</Text>
+              {workout.day?.exercises?.slice(0, 5).map((exercise, exIndex) => (
+                <View key={exIndex} style={styles.exercisePreviewItem}>
+                  <Text style={styles.exercisePreviewText}>
+                    • {exercise.name}
+                    {exercise.sets && exercise.sets.length > 0 && (
+                      <Text style={styles.setsPreviewText}>
+                        {' '}({exercise.sets.length} sets)
                       </Text>
-                    </View>
-                  ))}
-                  {day.exercises.length > 3 && (
-                    <Text style={styles.moreExercisesText}>
-                      +{day.exercises.length - 3} more exercises
-                    </Text>
-                  )}
+                    )}
+                  </Text>
                 </View>
-              </LinearGradient>
-            </TouchableOpacity>
-          ))}
-        </View>
+              ))}
+              {workout.day?.exercises?.length > 5 && (
+                <Text style={styles.moreExercisesText}>
+                  +{workout.day.exercises.length - 5} more exercises
+                </Text>
+              )}
+            </View>
+          </LinearGradient>
+        </TouchableOpacity>
       </ScrollView>
 
       {/* View Details Modal */}
       <Modal
-        visible={viewDetailsDay !== null}
+        visible={viewDetails}
         transparent={true}
         animationType="slide"
-        onRequestClose={() => setViewDetailsDay(null)}
+        onRequestClose={() => setViewDetails(false)}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.detailsModalContent}>
             <View style={styles.detailsModalHeader}>
               <Text style={styles.detailsModalTitle}>
-                {viewDetailsDay?.name || 'Workout Details'}
+                {workout.name || 'Workout Details'}
               </Text>
               <TouchableOpacity
-                onPress={() => setViewDetailsDay(null)}
+                onPress={() => setViewDetails(false)}
                 style={styles.closeModalButton}
               >
                 <Text style={styles.closeModalText}>✕</Text>
@@ -387,7 +299,7 @@ export default function ProgramDaySelectionScreen({ navigation, route }) {
             </View>
 
             <ScrollView style={styles.detailsScrollView} showsVerticalScrollIndicator={false}>
-              {viewDetailsDay?.exercises?.map((exercise, index) => (
+              {workout.day?.exercises?.map((exercise, index) => (
                 <View key={index} style={styles.detailExerciseCard}>
                   <Text style={styles.detailExerciseName}>{exercise.name}</Text>
                   <Text style={styles.detailExerciseMuscle}>
@@ -426,7 +338,7 @@ export default function ProgramDaySelectionScreen({ navigation, route }) {
 
             <TouchableOpacity
               style={styles.closeDetailsButton}
-              onPress={() => setViewDetailsDay(null)}
+              onPress={() => setViewDetails(false)}
             >
               <Text style={styles.closeDetailsButtonText}>Close</Text>
             </TouchableOpacity>
@@ -455,10 +367,38 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     lineHeight: 20,
   },
-  daysContainer: {
-    gap: Spacing.md,
+  actionButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: Spacing.xl,
+    marginBottom: Spacing.lg,
+    paddingVertical: Spacing.sm,
   },
-  dayCard: {
+  actionButtonWrapper: {
+    alignItems: 'center',
+  },
+  circularButton: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+  },
+  buttonIcon: {
+    fontSize: 28,
+  },
+  buttonLabel: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
+    color: Colors.text,
+    marginTop: Spacing.xs,
+  },
+  workoutCard: {
     marginBottom: Spacing.md,
     borderRadius: BorderRadius.lg,
     overflow: 'hidden',
@@ -468,71 +408,43 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
-  dayGradient: {
+  workoutGradient: {
     padding: Spacing.lg,
     borderWidth: 1,
     borderColor: Colors.primary + '20',
     borderRadius: BorderRadius.lg,
   },
-  dayHeader: {
+  workoutHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: Spacing.md,
   },
-  dayHeaderLeft: {
+  workoutHeaderLeft: {
     flex: 1,
   },
-  dayHeaderRight: {
+  workoutHeaderRight: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
   },
-  dayNumber: {
-    fontSize: Typography.fontSize.xs,
-    color: Colors.primary,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  dayName: {
+  workoutTitle: {
     fontSize: Typography.fontSize.lg,
     fontWeight: 'bold',
     color: Colors.text,
-    marginTop: 2,
   },
-  viewDayButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: '#3498DB' + '40',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  editDayButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+  editWorkoutButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: Colors.surface,
     borderWidth: 1,
     borderColor: Colors.primary + '40',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  deleteDayButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: '#DC2626' + '40',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  dayActionIcon: {
-    fontSize: 14,
+  editWorkoutIcon: {
+    fontSize: 16,
   },
   startIcon: {
     width: 40,
@@ -546,7 +458,7 @@ const styles = StyleSheet.create({
     color: Colors.background,
     fontSize: 16,
   },
-  dayStats: {
+  workoutStats: {
     flexDirection: 'row',
     backgroundColor: Colors.background,
     borderRadius: BorderRadius.md,
@@ -599,37 +511,6 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     fontStyle: 'italic',
     marginTop: 4,
-  },
-  actionButtonsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: Spacing.xl,
-    marginBottom: Spacing.lg,
-    paddingVertical: Spacing.sm,
-  },
-  actionButtonWrapper: {
-    alignItems: 'center',
-  },
-  circularButton: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-  },
-  buttonIcon: {
-    fontSize: 28,
-  },
-  buttonLabel: {
-    fontSize: Typography.fontSize.sm,
-    fontWeight: '600',
-    color: Colors.text,
-    marginTop: Spacing.xs,
   },
   modalOverlay: {
     flex: 1,

@@ -17,8 +17,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
 
 const STORAGE_KEY = '@workout_programs';
+const STANDALONE_WORKOUTS_KEY = '@standalone_workouts';
 
 export default function WorkoutProgramScreen({ navigation, route }) {
+  const { isStandaloneWorkout = false, fromPlanning = false, plannedDate = null } = route.params || {};
   const [programName, setProgramName] = useState('');
   const [programDescription, setProgramDescription] = useState('');
   const [workoutDays, setWorkoutDays] = useState([]);
@@ -37,10 +39,33 @@ export default function WorkoutProgramScreen({ navigation, route }) {
     { name: 'Arms & Abs', muscles: ['biceps', 'triceps', 'abs'] },
   ];
 
+  // Auto-create a day for standalone workouts and clear any cached state
+  useEffect(() => {
+    const initStandaloneWorkout = async () => {
+      if (isStandaloneWorkout && workoutDays.length === 0 && !route.params?.stateLoaded) {
+        // Clear any previous temp state to prevent bench press bug
+        await AsyncStorage.removeItem('@temp_program_state');
+
+        setWorkoutDays([{
+          id: Date.now().toString(),
+          name: 'Workout',
+          exercises: [],
+        }]);
+      }
+    };
+
+    initStandaloneWorkout();
+  }, [isStandaloneWorkout]);
+
   // Load temporary state on mount and when focused
   useEffect(() => {
     const loadTempState = async () => {
       try {
+        // Skip loading temp state for new standalone workouts
+        if (isStandaloneWorkout && !route.params?.editMode) {
+          return;
+        }
+
         const tempState = await AsyncStorage.getItem('@temp_program_state');
         if (tempState && !route.params?.stateLoaded) {
           const parsed = JSON.parse(tempState);
@@ -106,7 +131,9 @@ export default function WorkoutProgramScreen({ navigation, route }) {
         programName,
         programDescription,
         workoutDays: daysToSave,
-        currentDayIndex: dayIndex
+        currentDayIndex: dayIndex,
+        fromPlanning,
+        plannedDate
       }));
 
       // Navigate to day edit screen if there are exercises, otherwise to muscle selection
@@ -159,7 +186,7 @@ export default function WorkoutProgramScreen({ navigation, route }) {
 
   const handleSaveProgram = async () => {
     if (!programName.trim()) {
-      Alert.alert('Error', 'Please enter a program name');
+      Alert.alert('Error', `Please enter a ${isStandaloneWorkout ? 'workout' : 'program'} name`);
       return;
     }
 
@@ -175,28 +202,53 @@ export default function WorkoutProgramScreen({ navigation, route }) {
     }
 
     try {
-      const existingPrograms = await AsyncStorage.getItem(STORAGE_KEY);
-      const programs = existingPrograms ? JSON.parse(existingPrograms) : [];
+      if (isStandaloneWorkout) {
+        // Save as standalone workout
+        const existingWorkouts = await AsyncStorage.getItem(STANDALONE_WORKOUTS_KEY);
+        const workouts = existingWorkouts ? JSON.parse(existingWorkouts) : [];
 
-      const newProgram = {
-        id: Date.now().toString(),
-        name: programName,
-        description: programDescription,
-        days: workoutDays,
-        createdAt: new Date().toISOString(),
-      };
+        const newWorkout = {
+          id: Date.now().toString(),
+          name: programName,
+          description: programDescription,
+          day: workoutDays[0], // Only one day for standalone workouts
+          createdAt: new Date().toISOString(),
+        };
 
-      programs.push(newProgram);
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(programs));
+        workouts.push(newWorkout);
+        await AsyncStorage.setItem(STANDALONE_WORKOUTS_KEY, JSON.stringify(workouts));
 
-      // Clear temporary state
-      await AsyncStorage.removeItem('@temp_program_state');
+        // Clear temporary state
+        await AsyncStorage.removeItem('@temp_program_state');
 
-      Alert.alert('Success', 'Workout program saved successfully!', [
-        { text: 'OK', onPress: () => navigation.goBack() },
-      ]);
+        Alert.alert('Success', 'Workout saved successfully!', [
+          { text: 'OK', onPress: () => navigation.goBack() },
+        ]);
+      } else {
+        // Save as program
+        const existingPrograms = await AsyncStorage.getItem(STORAGE_KEY);
+        const programs = existingPrograms ? JSON.parse(existingPrograms) : [];
+
+        const newProgram = {
+          id: Date.now().toString(),
+          name: programName,
+          description: programDescription,
+          days: workoutDays,
+          createdAt: new Date().toISOString(),
+        };
+
+        programs.push(newProgram);
+        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(programs));
+
+        // Clear temporary state
+        await AsyncStorage.removeItem('@temp_program_state');
+
+        Alert.alert('Success', 'Workout program saved successfully!', [
+          { text: 'OK', onPress: () => navigation.goBack() },
+        ]);
+      }
     } catch (error) {
-      Alert.alert('Error', 'Failed to save workout program');
+      Alert.alert('Error', `Failed to save ${isStandaloneWorkout ? 'workout' : 'workout program'}`);
       console.error(error);
     }
   };
@@ -265,17 +317,17 @@ export default function WorkoutProgramScreen({ navigation, route }) {
 
   return (
     <ScreenLayout
-      title="Create Program"
-      subtitle="Design your workout program"
+      title={isStandaloneWorkout ? "Create Workout" : "Create Program"}
+      subtitle={isStandaloneWorkout ? "Design your workout" : "Design your workout program"}
       navigation={navigation}
       showBack={true}
     >
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         <View style={styles.section}>
-          <Text style={styles.label}>Program Name</Text>
+          <Text style={styles.label}>{isStandaloneWorkout ? 'Workout Name' : 'Program Name'}</Text>
           <TextInput
             style={styles.input}
-            placeholder="e.g., 12 Week Strength Program"
+            placeholder={isStandaloneWorkout ? "e.g., Upper Body Blast" : "e.g., 12 Week Strength Program"}
             placeholderTextColor={Colors.textSecondary}
             value={programName}
             onChangeText={setProgramName}
@@ -297,17 +349,19 @@ export default function WorkoutProgramScreen({ navigation, route }) {
 
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Workout Days</Text>
-            <TouchableOpacity
-              style={styles.addButton}
-              onPress={() => setShowAddDayModal(true)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.addButtonText}>+ Add Day</Text>
-            </TouchableOpacity>
+            <Text style={styles.sectionTitle}>{isStandaloneWorkout ? 'Exercises' : 'Workout Days'}</Text>
+            {!isStandaloneWorkout && (
+              <TouchableOpacity
+                style={styles.addButton}
+                onPress={() => setShowAddDayModal(true)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.addButtonText}>+ Add Day</Text>
+              </TouchableOpacity>
+            )}
           </View>
 
-          {workoutDays.length === 0 ? (
+          {workoutDays.length === 0 && !isStandaloneWorkout ? (
             <View style={styles.emptyState}>
               <Text style={styles.emptyStateText}>No workout days added yet</Text>
               <Text style={styles.emptyStateSubtext}>Tap "Add Day" to get started</Text>
@@ -315,23 +369,25 @@ export default function WorkoutProgramScreen({ navigation, route }) {
           ) : (
             workoutDays.map((day, dayIndex) => (
               <View key={day.id} style={styles.dayCard}>
-                <View style={styles.dayHeader}>
-                  <Text style={styles.dayTitle}>Day {dayIndex + 1}: {day.name}</Text>
-                  <View style={styles.dayActions}>
-                    <TouchableOpacity
-                      style={styles.iconButton}
-                      onPress={() => handleNavigateToExerciseSelection(dayIndex)}
-                    >
-                      <Text style={styles.iconButtonText}>+</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.iconButton, styles.deleteButton]}
-                      onPress={() => handleRemoveDay(dayIndex)}
-                    >
-                      <Text style={styles.iconButtonText}>×</Text>
-                    </TouchableOpacity>
+                {!isStandaloneWorkout && (
+                  <View style={styles.dayHeader}>
+                    <Text style={styles.dayTitle}>Day {dayIndex + 1}: {day.name}</Text>
+                    <View style={styles.dayActions}>
+                      <TouchableOpacity
+                        style={styles.iconButton}
+                        onPress={() => handleNavigateToExerciseSelection(dayIndex)}
+                      >
+                        <Text style={styles.iconButtonText}>+</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.iconButton, styles.deleteButton]}
+                        onPress={() => handleRemoveDay(dayIndex)}
+                      >
+                        <Text style={styles.iconButtonText}>×</Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
-                </View>
+                )}
 
                 <TouchableOpacity
                   style={styles.editDayButton}
@@ -349,7 +405,7 @@ export default function WorkoutProgramScreen({ navigation, route }) {
         </View>
 
         <StyledButton
-          title="Save Program"
+          title={isStandaloneWorkout ? "Save Workout" : "Save Program"}
           onPress={handleSaveProgram}
           style={styles.saveButton}
         />

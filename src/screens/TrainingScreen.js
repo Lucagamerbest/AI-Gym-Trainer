@@ -23,6 +23,25 @@ export default function TrainingScreen({ navigation }) {
     >
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
 
+        {/* Workout History Button */}
+        <TouchableOpacity
+          style={styles.historyButton}
+          onPress={() => navigation.navigate('WorkoutHistory')}
+          activeOpacity={0.9}
+        >
+          <LinearGradient
+            colors={[Colors.primary + '20', Colors.primary + '10']}
+            style={styles.historyGradient}
+          >
+            <Text style={styles.historyIcon}>📅</Text>
+            <View style={styles.historyTextContainer}>
+              <Text style={styles.historyTitle}>Workout History</Text>
+              <Text style={styles.historySubtitle}>View past workouts & track progress</Text>
+            </View>
+            <Text style={styles.arrow}>›</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+
         {/* Quick Start Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Quick Start</Text>
@@ -97,6 +116,36 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: Spacing.lg,
+  },
+  historyButton: {
+    marginBottom: Spacing.lg,
+    borderRadius: BorderRadius.lg,
+    overflow: 'hidden',
+  },
+  historyGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.lg,
+    borderWidth: 1,
+    borderColor: Colors.primary + '30',
+    borderRadius: BorderRadius.lg,
+  },
+  historyIcon: {
+    fontSize: 28,
+    marginRight: Spacing.md,
+  },
+  historyTextContainer: {
+    flex: 1,
+  },
+  historyTitle: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: 'bold',
+    color: Colors.text,
+    marginBottom: 2,
+  },
+  historySubtitle: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
   },
   section: {
     marginBottom: Spacing.xxl,
