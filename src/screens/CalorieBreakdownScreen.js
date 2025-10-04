@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import ScreenLayout from '../components/ScreenLayout';
 import StyledCard from '../components/StyledCard';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 
 export default function CalorieBreakdownScreen({ route, navigation }) {
-  const { meals: initialMeals, totalCalories: initialTotal } = route.params;
+  const { meals: initialMeals, totalCalories: initialTotal } = route.params || {};
 
-  // Local state to track meals and update UI immediately
-  const [meals, setMeals] = useState(initialMeals);
-  const [totalCalories, setTotalCalories] = useState(initialTotal);
+  const [meals, setMeals] = useState(initialMeals || { breakfast: [], lunch: [], dinner: [], snacks: [] });
+  const [totalCalories, setTotalCalories] = useState(initialTotal || 0);
   const [deleteModal, setDeleteModal] = useState({ visible: false, title: '', message: '', onConfirm: null });
 
   // Recalculate total calories whenever meals change
@@ -20,25 +20,30 @@ export default function CalorieBreakdownScreen({ route, navigation }) {
     setTotalCalories(newTotal);
   }, [meals]);
 
-  const handleDeleteFood = (mealType, foodIndex, foodName, foodCalories) => {
+  // Helper function to navigate back to Nutrition after delete/edit
+  const navigateToNutrition = (params) => {
+    setDeleteModal({ visible: false, title: '', message: '', onConfirm: null });
+    navigation.reset({
+      index: 1,
+      routes: [
+        { name: 'Main' },
+        { name: 'Nutrition', params }
+      ]
+    });
+  };
+
+  const handleDeleteFood = async (mealType, foodIndex, foodName, foodCalories) => {
     setDeleteModal({
       visible: true,
       title: 'Delete Food',
       message: `Are you sure you want to delete "${foodName}" (${foodCalories} cal) from ${mealType}?`,
-      onConfirm: () => {
-        // Update local state to reflect deletion immediately
-        setMeals(prevMeals => {
-          const updatedMeals = { ...prevMeals };
-          updatedMeals[mealType] = [...updatedMeals[mealType]];
-          updatedMeals[mealType].splice(foodIndex, 1);
-          return updatedMeals;
-        });
+      onConfirm: async () => {
+        const updatedMeals = { ...meals };
+        updatedMeals[mealType] = [...updatedMeals[mealType]];
+        updatedMeals[mealType].splice(foodIndex, 1);
+        setMeals(updatedMeals);
 
-        // Navigate back and let parent handle the actual deletion
-        navigation.navigate('Nutrition', {
-          deleteFood: { mealType, foodIndex }
-        });
-        setDeleteModal({ visible: false, title: '', message: '', onConfirm: null });
+        navigateToNutrition({ deleteFood: { mealType, foodIndex } });
       }
     });
   };
@@ -54,18 +59,11 @@ export default function CalorieBreakdownScreen({ route, navigation }) {
       title: 'Delete Entire Meal',
       message: `Are you sure you want to delete all items from ${mealType.charAt(0).toUpperCase() + mealType.slice(1)} (${mealCalories} cal)?`,
       onConfirm: () => {
-        // Update local state to clear the meal immediately
-        setMeals(prevMeals => {
-          const updatedMeals = { ...prevMeals };
-          updatedMeals[mealType] = [];
-          return updatedMeals;
-        });
+        const updatedMeals = { ...meals };
+        updatedMeals[mealType] = [];
+        setMeals(updatedMeals);
 
-        // Navigate back and let parent handle the actual deletion
-        navigation.navigate('Nutrition', {
-          deleteMeal: { mealType }
-        });
-        setDeleteModal({ visible: false, title: '', message: '', onConfirm: null });
+        navigateToNutrition({ deleteMeal: { mealType } });
       }
     });
   };
@@ -79,28 +77,16 @@ export default function CalorieBreakdownScreen({ route, navigation }) {
     });
   };
 
-  // Handle updates from EditFoodItemScreen
-  useEffect(() => {
-    if (route.params?.updatedFood) {
-      const { mealType, foodIndex, updatedFood } = route.params.updatedFood;
+  // Refresh data when coming back from EditFoodItem
+  useFocusEffect(
+    React.useCallback(() => {
+      if (route.params?.meals && route.params?.totalCalories !== undefined) {
+        setMeals(route.params.meals);
+        setTotalCalories(route.params.totalCalories);
+      }
+    }, [route.params])
+  );
 
-      // Update local state
-      setMeals(prevMeals => {
-        const updatedMeals = { ...prevMeals };
-        updatedMeals[mealType] = [...updatedMeals[mealType]];
-        updatedMeals[mealType][foodIndex] = updatedFood;
-        return updatedMeals;
-      });
-
-      // Navigate back to update parent
-      navigation.navigate('Nutrition', {
-        editFood: { mealType, foodIndex, updatedFood }
-      });
-
-      // Clear the params
-      navigation.setParams({ updatedFood: undefined });
-    }
-  }, [route.params?.updatedFood]);
 
   const renderMealSection = (mealType, mealItems) => {
     if (!mealItems || mealItems.length === 0) return null;

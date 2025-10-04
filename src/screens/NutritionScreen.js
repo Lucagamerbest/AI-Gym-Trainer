@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -21,6 +21,7 @@ export default function NutritionScreen({ navigation, route }) {
   const [expandedMeal, setExpandedMeal] = useState(null);
   const [disableBack, setDisableBack] = useState(false); // Track if back should be disabled
   const [dataLoaded, setDataLoaded] = useState(false); // Track if data has been loaded
+  const processedParams = useRef({}); // Track which params have been processed
   const [macroGoals, setMacroGoals] = useState({
     calories: 2000,
     proteinGrams: 150,
@@ -38,6 +39,12 @@ export default function NutritionScreen({ navigation, route }) {
     dinner: [],
     snacks: []
   });
+  const [plannedMeals, setPlannedMeals] = useState({
+    breakfast: [],
+    lunch: [],
+    dinner: [],
+    snacks: []
+  });
 
   useEffect(() => {
     const initializeData = async () => {
@@ -47,6 +54,19 @@ export default function NutritionScreen({ navigation, route }) {
     };
     initializeData();
   }, []);
+
+  // Reload data when screen is focused (e.g., coming back from CalorieBreakdown)
+  // Skip reload if we're coming back with edit/delete params (handled by useEffect)
+  useFocusEffect(
+    React.useCallback(() => {
+      // Reset processed params when screen is focused
+      processedParams.current = {};
+
+      if (!route.params?.deleteFood && !route.params?.deleteMeal && !route.params?.editFood) {
+        loadDailyNutrition();
+      }
+    }, [route.params])
+  );
 
   // Use focus effect to ensure swipe is disabled when screen is focused
   useFocusEffect(
@@ -74,51 +94,53 @@ export default function NutritionScreen({ navigation, route }) {
 
   // Handle incoming food/recipe data from navigation
   useEffect(() => {
+    // Only process these if data has been loaded
+    if (!dataLoaded) {
+      return;
+    }
+
     // Handle delete food request from CalorieBreakdownScreen
-    if (route.params?.deleteFood) {
+    if (route.params?.deleteFood && !processedParams.current.deleteFood) {
       const { mealType, foodIndex } = route.params.deleteFood;
+      processedParams.current.deleteFood = true;
       handleDeleteFood(mealType, foodIndex);
-      navigation.setParams({ deleteFood: undefined });
     }
 
     // Handle delete entire meal request from CalorieBreakdownScreen
-    if (route.params?.deleteMeal) {
+    if (route.params?.deleteMeal && !processedParams.current.deleteMeal) {
       const { mealType } = route.params.deleteMeal;
+      processedParams.current.deleteMeal = true;
       const mealItems = meals[mealType] || [];
       const mealItemsCount = mealItems.length;
       for (let i = mealItemsCount - 1; i >= 0; i--) {
         handleDeleteFood(mealType, i);
       }
-      navigation.setParams({ deleteMeal: undefined });
     }
 
     // Handle edit food request from CalorieBreakdownScreen
-    if (route.params?.editFood) {
+    if (route.params?.editFood && !processedParams.current.editFood) {
       const { mealType, foodIndex, updatedFood } = route.params.editFood;
+      processedParams.current.editFood = true;
       handleEditFood(mealType, foodIndex, updatedFood);
-      navigation.setParams({ editFood: undefined });
     }
 
     // Check if we came from adding a recipe
-    if (route.params?.fromRecipeAdd) {
+    if (route.params?.fromRecipeAdd && !processedParams.current.fromRecipeAdd) {
+      processedParams.current.fromRecipeAdd = true;
       setDisableBack(true); // Disable back navigation
 
       // Disable swipe gesture immediately
       navigation.setOptions({
         gestureEnabled: false
       });
-
-      // Clear the flag after processing but keep swipe disabled
-      navigation.setParams({ fromRecipeAdd: undefined });
     }
 
     // Only process added food after data is loaded
-    if (route.params?.addedFood && dataLoaded) {
+    if (route.params?.addedFood && dataLoaded && !processedParams.current.addedFood) {
       const { addedFood } = route.params;
       const mealType = addedFood.mealType || 'breakfast';
 
-      // Clear the params immediately to prevent re-adding
-      navigation.setParams({ addedFood: undefined });
+      processedParams.current.addedFood = true;
 
       // Update selected meal to match the added food's meal type
       setSelectedMeal(mealType);
@@ -158,7 +180,7 @@ export default function NutritionScreen({ navigation, route }) {
         }, updatedMeals, mealType);
       });
     }
-  }, [route.params?.addedFood, route.params?.fromRecipeAdd, dataLoaded]);
+  }, [route.params?.addedFood, route.params?.fromRecipeAdd, route.params?.deleteFood, route.params?.deleteMeal, route.params?.editFood, dataLoaded, meals]);
 
   const loadMacroGoals = async () => {
     try {
@@ -210,33 +232,18 @@ export default function NutritionScreen({ navigation, route }) {
         const todayPlanned = mealPlans[todayKey]?.planned;
 
         if (todayPlanned && Object.values(todayPlanned).some(meals => meals && meals.length > 0)) {
-          // Load planned meals as today's starting meals
-          const totals = calculateTotalsFromMeals(todayPlanned);
-
-          setMeals(todayPlanned);
-          setConsumed(totals.calories);
-          setConsumedMacros({
-            proteinGrams: totals.protein,
-            carbsGrams: totals.carbs,
-            fatGrams: totals.fat
-          });
+          // Load planned meals separately (don't count toward nutrition yet)
+          setPlannedMeals(todayPlanned);
+          setMeals({ breakfast: [], lunch: [], dinner: [], snacks: [] });
+          setConsumed(0);
+          setConsumedMacros({ proteinGrams: 0, carbsGrams: 0, fatGrams: 0 });
           setSelectedMeal('breakfast');
-
-          // Save as daily nutrition
-          await saveDailyNutrition(totals.calories, {
-            proteinGrams: totals.protein,
-            carbsGrams: totals.carbs,
-            fatGrams: totals.fat
-          }, todayPlanned, 'breakfast');
-
-          // Clear the planned meals for today (they're now logged)
-          delete mealPlans[todayKey].planned;
-          await AsyncStorage.setItem(MEAL_PLANS_KEY, JSON.stringify(mealPlans));
         } else {
           // No planned meals, start fresh
           setConsumed(0);
           setConsumedMacros({ proteinGrams: 0, carbsGrams: 0, fatGrams: 0 });
           setMeals({ breakfast: [], lunch: [], dinner: [], snacks: [] });
+          setPlannedMeals({ breakfast: [], lunch: [], dinner: [], snacks: [] });
           setSelectedMeal('breakfast');
         }
       }
@@ -290,14 +297,32 @@ export default function NutritionScreen({ navigation, route }) {
   const loadDailyNutrition = async () => {
     try {
       const saved = await AsyncStorage.getItem(DAILY_NUTRITION_KEY);
+
       if (saved) {
         const data = JSON.parse(saved);
-        const loadedMeals = data.meals || { breakfast: [], lunch: [], dinner: [], snacks: [] };
+
+        let loadedMeals = data.meals || { breakfast: [], lunch: [], dinner: [], snacks: [] };
+        let loadedPlannedMeals = data.plannedMeals || { breakfast: [], lunch: [], dinner: [], snacks: [] };
 
 
-        // Recalculate totals from all meals to ensure accuracy
+        // MIGRATION: If plannedMeals doesn't exist in saved data, check if current meals came from today's plan
+        if (!data.plannedMeals) {
+          const todayKey = new Date().toISOString().split('T')[0];
+          const savedPlans = await AsyncStorage.getItem(MEAL_PLANS_KEY);
+          const mealPlans = savedPlans ? JSON.parse(savedPlans) : {};
+          const todayPlanned = mealPlans[todayKey]?.planned;
+
+          // If there were planned meals for today that match current meals, move them to planned
+          if (todayPlanned && Object.values(todayPlanned).some(meals => meals && meals.length > 0)) {
+            // Move current meals to planned meals
+            loadedPlannedMeals = todayPlanned;
+            // Clear consumed meals (user will mark them as consumed)
+            loadedMeals = { breakfast: [], lunch: [], dinner: [], snacks: [] };
+          }
+        }
+
+        // Recalculate totals from consumed meals only
         const totals = calculateTotalsFromMeals(loadedMeals);
-
 
         setConsumed(totals.calories);
         setConsumedMacros({
@@ -306,7 +331,18 @@ export default function NutritionScreen({ navigation, route }) {
           fatGrams: totals.fat
         });
         setMeals(loadedMeals);
+        setPlannedMeals(loadedPlannedMeals);
         setSelectedMeal(data.selectedMeal || 'breakfast');
+
+
+        // Save the migrated data
+        if (!data.plannedMeals && Object.values(loadedPlannedMeals).some(meals => meals.length > 0)) {
+          await saveDailyNutrition(totals.calories, {
+            proteinGrams: totals.protein,
+            carbsGrams: totals.carbs,
+            fatGrams: totals.fat
+          }, loadedMeals, data.selectedMeal || 'breakfast', loadedPlannedMeals);
+        }
 
         // Sync to calendar on load
         await syncMealsToCalendar(loadedMeals);
@@ -314,26 +350,37 @@ export default function NutritionScreen({ navigation, route }) {
       }
       setDataLoaded(true); // Mark data as loaded
     } catch (error) {
-      console.error('Error loading daily nutrition:', error);
+      console.error('💾 Error loading daily nutrition:', error);
       setDataLoaded(true); // Mark as loaded even on error
     }
   };
 
-  const saveDailyNutrition = async (newConsumed, newMacros, newMeals, newSelectedMeal) => {
+  const saveDailyNutrition = async (newConsumed, newMacros, newMeals, newSelectedMeal, newPlannedMeals = null) => {
+
     try {
+      // Ensure we have valid objects
+      const safeMeals = newMeals || { breakfast: [], lunch: [], dinner: [], snacks: [] };
+      const safePlannedMeals = newPlannedMeals !== null
+        ? (newPlannedMeals || { breakfast: [], lunch: [], dinner: [], snacks: [] })
+        : (plannedMeals || { breakfast: [], lunch: [], dinner: [], snacks: [] });
+
+
       const data = {
-        consumed: newConsumed,
-        consumedMacros: newMacros,
-        meals: newMeals,
-        selectedMeal: newSelectedMeal,
+        consumed: newConsumed || 0,
+        consumedMacros: newMacros || { proteinGrams: 0, carbsGrams: 0, fatGrams: 0 },
+        meals: safeMeals,
+        plannedMeals: safePlannedMeals,
+        selectedMeal: newSelectedMeal || 'breakfast',
         lastUpdated: new Date().toISOString()
       };
+
       await AsyncStorage.setItem(DAILY_NUTRITION_KEY, JSON.stringify(data));
 
       // Also sync to calendar meal plans
-      await syncMealsToCalendar(newMeals);
+      await syncMealsToCalendar(safeMeals);
     } catch (error) {
-      console.error('Error saving daily nutrition:', error);
+      console.error('💿 Error saving daily nutrition:', error);
+      console.error('💿 Error stack:', error.stack);
     }
   };
 
@@ -378,13 +425,13 @@ export default function NutritionScreen({ navigation, route }) {
   const handleDeleteFood = async (mealType, foodIndex) => {
     try {
       const updatedMeals = { ...meals };
-      if (updatedMeals[mealType] && updatedMeals[mealType][foodIndex]) {
+      if (updatedMeals[mealType] && updatedMeals[mealType][foodIndex] !== undefined) {
         updatedMeals[mealType].splice(foodIndex, 1);
-
         setMeals(updatedMeals);
 
         // Recalculate totals
         const totals = calculateTotalsFromMeals(updatedMeals);
+
         setConsumed(totals.calories);
         setConsumedMacros({
           proteinGrams: totals.protein,
@@ -392,31 +439,37 @@ export default function NutritionScreen({ navigation, route }) {
           fatGrams: totals.fat
         });
 
-        // Save to storage
-        const nutritionData = {
-          meals: updatedMeals,
-          lastUpdated: new Date().toISOString()
-        };
-        await AsyncStorage.setItem(DAILY_NUTRITION_KEY, JSON.stringify(nutritionData));
+
+        // Ensure plannedMeals has a default value
+        const currentPlannedMeals = plannedMeals || { breakfast: [], lunch: [], dinner: [], snacks: [] };
+
+        // Save to storage with plannedMeals
+        await saveDailyNutrition(totals.calories, {
+          proteinGrams: totals.protein,
+          carbsGrams: totals.carbs,
+          fatGrams: totals.fat
+        }, updatedMeals, selectedMeal, currentPlannedMeals);
 
         // Also sync to calendar
         await syncMealsToCalendar(updatedMeals);
+
+      } else {
       }
     } catch (error) {
-      console.error('Error deleting food:', error);
+      console.error('🔴 Error deleting food:', error);
     }
   };
 
   const handleEditFood = async (mealType, foodIndex, updatedFood) => {
     try {
       const updatedMeals = { ...meals };
-      if (updatedMeals[mealType] && updatedMeals[mealType][foodIndex]) {
+      if (updatedMeals[mealType] && updatedMeals[mealType][foodIndex] !== undefined) {
         updatedMeals[mealType][foodIndex] = updatedFood;
-
         setMeals(updatedMeals);
 
         // Recalculate totals
         const totals = calculateTotalsFromMeals(updatedMeals);
+
         setConsumed(totals.calories);
         setConsumedMacros({
           proteinGrams: totals.protein,
@@ -424,18 +477,93 @@ export default function NutritionScreen({ navigation, route }) {
           fatGrams: totals.fat
         });
 
-        // Save to storage
-        const nutritionData = {
-          meals: updatedMeals,
-          lastUpdated: new Date().toISOString()
-        };
-        await AsyncStorage.setItem(DAILY_NUTRITION_KEY, JSON.stringify(nutritionData));
+        // Ensure plannedMeals has a default value
+        const currentPlannedMeals = plannedMeals || { breakfast: [], lunch: [], dinner: [], snacks: [] };
+
+        // Save to storage with plannedMeals
+        await saveDailyNutrition(totals.calories, {
+          proteinGrams: totals.protein,
+          carbsGrams: totals.carbs,
+          fatGrams: totals.fat
+        }, updatedMeals, selectedMeal, currentPlannedMeals);
 
         // Also sync to calendar
         await syncMealsToCalendar(updatedMeals);
+
+      } else {
       }
     } catch (error) {
-      console.error('Error editing food:', error);
+      console.error('🟢 Error editing food:', error);
+      console.error('🟢 Error stack:', error.stack);
+    }
+  };
+
+  const clearAllPlannedMeals = async () => {
+    try {
+      const emptyPlanned = { breakfast: [], lunch: [], dinner: [], snacks: [] };
+      setPlannedMeals(emptyPlanned);
+
+      // Save to storage
+      await saveDailyNutrition(consumed, consumedMacros, meals, selectedMeal, emptyPlanned);
+
+      Alert.alert('Success', 'All planned meals have been cleared');
+    } catch (error) {
+      console.error('Error clearing planned meals:', error);
+      Alert.alert('Error', 'Failed to clear planned meals');
+    }
+  };
+
+  const markPlannedAsConsumed = async (mealType, foodIndex) => {
+    try {
+      const plannedFood = plannedMeals[mealType][foodIndex];
+
+      // Add to consumed meals
+      const updatedMeals = {
+        ...meals,
+        [mealType]: [...meals[mealType], plannedFood]
+      };
+
+      // Remove from planned meals
+      const updatedPlannedMeals = { ...plannedMeals };
+      updatedPlannedMeals[mealType] = [...plannedMeals[mealType]];
+      updatedPlannedMeals[mealType].splice(foodIndex, 1);
+
+      // Recalculate totals
+      const totals = calculateTotalsFromMeals(updatedMeals);
+
+      // Update state
+      setMeals(updatedMeals);
+      setPlannedMeals(updatedPlannedMeals);
+      setConsumed(totals.calories);
+      setConsumedMacros({
+        proteinGrams: totals.protein,
+        carbsGrams: totals.carbs,
+        fatGrams: totals.fat
+      });
+
+      // Save to storage
+      await saveDailyNutrition(totals.calories, {
+        proteinGrams: totals.protein,
+        carbsGrams: totals.carbs,
+        fatGrams: totals.fat
+      }, updatedMeals, selectedMeal, updatedPlannedMeals);
+    } catch (error) {
+      console.error('Error marking planned food as consumed:', error);
+    }
+  };
+
+  const deletePlannedFood = async (mealType, foodIndex) => {
+    try {
+      const updatedPlannedMeals = { ...plannedMeals };
+      updatedPlannedMeals[mealType] = [...plannedMeals[mealType]];
+      updatedPlannedMeals[mealType].splice(foodIndex, 1);
+
+      setPlannedMeals(updatedPlannedMeals);
+
+      // Save to storage
+      await saveDailyNutrition(consumed, consumedMacros, meals, selectedMeal, updatedPlannedMeals);
+    } catch (error) {
+      console.error('Error deleting planned food:', error);
     }
   };
 
@@ -632,6 +760,77 @@ export default function NutritionScreen({ navigation, route }) {
           <Text style={[styles.actionButtonText, styles.greenText]}>Recipes</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Planned Meals Section */}
+      {Object.values(plannedMeals).some(meals => meals.length > 0) && (
+        <View style={styles.plannedSection}>
+          <View style={styles.plannedHeader}>
+            <Text style={styles.plannedTitle}>📅 Planned for Today</Text>
+            <TouchableOpacity
+              style={styles.clearAllButton}
+              onPress={() => {
+                Alert.alert(
+                  'Clear All Planned Meals',
+                  'Are you sure you want to clear all planned meals for today?',
+                  [
+                    { text: 'Cancel', style: 'cancel' },
+                    { text: 'Clear', style: 'destructive', onPress: clearAllPlannedMeals }
+                  ]
+                );
+              }}
+            >
+              <Text style={styles.clearAllText}>Clear All</Text>
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.plannedSubtitle}>
+            These meals are planned but not yet consumed. Mark them as eaten throughout the day.
+          </Text>
+
+          {Object.entries(plannedMeals).map(([mealType, items]) => (
+            items.length > 0 && (
+              <View key={mealType} style={styles.plannedMealSection}>
+                <Text style={styles.plannedMealType}>
+                  {mealType === 'breakfast' && '🌅 Breakfast'}
+                  {mealType === 'lunch' && '☀️ Lunch'}
+                  {mealType === 'dinner' && '🌙 Dinner'}
+                  {mealType === 'snacks' && '🍿 Snacks'}
+                </Text>
+                {items.map((item, index) => (
+                  <View key={index} style={styles.plannedFoodItem}>
+                    <View style={styles.plannedFoodInfo}>
+                      <Text style={styles.plannedFoodName}>{item.name}</Text>
+                      <Text style={styles.plannedFoodCalories}>{item.calories} cal</Text>
+                    </View>
+                    <View style={styles.plannedFoodActions}>
+                      <TouchableOpacity
+                        style={styles.checkButton}
+                        onPress={() => markPlannedAsConsumed(mealType, index)}
+                      >
+                        <Text style={styles.checkButtonText}>✓</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.deletePlannedButton}
+                        onPress={() => {
+                          Alert.alert(
+                            'Remove Planned Food',
+                            `Remove ${item.name} from planned meals?`,
+                            [
+                              { text: 'Cancel', style: 'cancel' },
+                              { text: 'Remove', style: 'destructive', onPress: () => deletePlannedFood(mealType, index) }
+                            ]
+                          );
+                        }}
+                      >
+                        <Text style={styles.deletePlannedButtonText}>✕</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )
+          ))}
+        </View>
+      )}
 
       <StyledCard title="Macros" style={styles.macroCard}>
           {/* Compact Macro Goals Display */}
@@ -1212,6 +1411,113 @@ const styles = StyleSheet.create({
   debugResetText: {
     color: 'white',
     fontSize: Typography.fontSize.md,
+    fontWeight: 'bold',
+  },
+  plannedSection: {
+    marginHorizontal: Spacing.lg,
+    marginTop: Spacing.lg,
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+    borderWidth: 2,
+    borderColor: Colors.warning + '60',
+  },
+  plannedHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+  },
+  plannedTitle: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: '600',
+    color: Colors.warning,
+  },
+  clearAllButton: {
+    backgroundColor: Colors.error + '20',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.error,
+  },
+  clearAllText: {
+    color: Colors.error,
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
+  },
+  plannedSubtitle: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.md,
+    lineHeight: 18,
+  },
+  plannedMealSection: {
+    marginTop: Spacing.md,
+    paddingTop: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  plannedMealType: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: Spacing.sm,
+  },
+  plannedFoodItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.sm,
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.xs,
+  },
+  plannedFoodInfo: {
+    flex: 1,
+    marginRight: Spacing.sm,
+  },
+  plannedFoodName: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.text,
+    fontWeight: '500',
+  },
+  plannedFoodCalories: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+    marginTop: 2,
+  },
+  plannedFoodActions: {
+    flexDirection: 'row',
+    gap: Spacing.xs,
+  },
+  checkButton: {
+    backgroundColor: Colors.primary,
+    width: 36,
+    height: 36,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkButtonText: {
+    color: Colors.background,
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  deletePlannedButton: {
+    backgroundColor: Colors.error + '20',
+    width: 36,
+    height: 36,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Colors.error + '40',
+  },
+  deletePlannedButtonText: {
+    color: Colors.error,
+    fontSize: 18,
     fontWeight: 'bold',
   },
 });

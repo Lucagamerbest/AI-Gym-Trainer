@@ -9,21 +9,31 @@ import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { unifiedFoodSearch } from '../services/unifiedFoodSearch';
 
 export default function EditFoodItemScreen({ route, navigation }) {
-  const { foodItem, onSave, mealType, foodIndex, returnScreen, isPlannedMeal, plannedDateKey, reopenDate } = route.params;
+
+  const { foodItem, onSave, mealType, foodIndex, returnScreen, isPlannedMeal, plannedDateKey, reopenDate } = route.params || {};
+
+
+  if (!foodItem) {
+    console.error('📝 ERROR: No foodItem provided in route params!');
+    Alert.alert('Error', 'No food item data provided');
+    navigation.goBack();
+    return null;
+  }
 
   // If the food item has ingredients (is a recipe), use them, otherwise create a single ingredient from the food item
   const initialIngredients = foodItem.ingredients || [
     {
       food: {
-        name: foodItem.name,
-        calories: foodItem.calories || 0,
-        protein: foodItem.protein || 0,
-        carbs: foodItem.carbs || 0,
-        fat: foodItem.fat || 0,
+        name: foodItem?.name || 'Unknown',
+        calories: foodItem?.calories || 0,
+        protein: foodItem?.protein || 0,
+        carbs: foodItem?.carbs || 0,
+        fat: foodItem?.fat || 0,
       },
       quantity: 100, // Default to 100g
     }
   ];
+
 
   const [foodName, setFoodName] = useState(foodItem.name || '');
   const [ingredients, setIngredients] = useState(initialIngredients);
@@ -150,6 +160,7 @@ export default function EditFoodItemScreen({ route, navigation }) {
   };
 
   const saveFood = () => {
+
     if (!foodName.trim()) {
       Alert.alert('Error', 'Please enter a food name');
       return;
@@ -161,6 +172,7 @@ export default function EditFoodItemScreen({ route, navigation }) {
     }
 
     const nutrition = calculateTotalNutrition(ingredients);
+
     const updatedFood = {
       ...foodItem,
       name: foodName.trim(),
@@ -176,6 +188,7 @@ export default function EditFoodItemScreen({ route, navigation }) {
       onSave(updatedFood);
       navigation.goBack();
     } else {
+
       // New pattern: navigate back with params
       if (isPlannedMeal) {
         // Reset navigation stack to prevent swiping back to edit screen
@@ -193,8 +206,19 @@ export default function EditFoodItemScreen({ route, navigation }) {
           ],
         });
       } else {
-        navigation.navigate(returnScreen, {
-          updatedFood: { mealType, foodIndex, updatedFood }
+        // Reset navigation to Nutrition, removing EditFoodItem and CalorieBreakdown from stack
+        // Include Main so back button works
+        navigation.reset({
+          index: 1,
+          routes: [
+            { name: 'Main' },
+            {
+              name: 'Nutrition',
+              params: {
+                editFood: { mealType, foodIndex, updatedFood }
+              }
+            }
+          ]
         });
       }
     }
