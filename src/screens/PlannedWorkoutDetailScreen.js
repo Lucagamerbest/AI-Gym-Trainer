@@ -6,14 +6,17 @@ import StyledCard from '../components/StyledCard';
 import StyledButton from '../components/StyledButton';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { LinearGradient } from 'expo-linear-gradient';
-
-const PLANNED_WORKOUTS_KEY = '@planned_workouts';
+import { WorkoutStorageService } from '../services/workoutStorage';
+import { useAuth } from '../context/AuthContext';
 
 export default function PlannedWorkoutDetailScreen({ navigation, route }) {
+  const { user } = useAuth();
   const { plannedWorkout, selectedDate } = route.params || {};
 
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
+    // Parse date string correctly to avoid timezone issues
+    const [year, month, day] = dateString.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
     return date.toLocaleDateString('en-US', {
       weekday: 'long',
       month: 'long',
@@ -33,12 +36,8 @@ export default function PlannedWorkoutDetailScreen({ navigation, route }) {
           style: 'destructive',
           onPress: async () => {
             try {
-              const plannedWorkouts = await AsyncStorage.getItem(PLANNED_WORKOUTS_KEY);
-              const planned = plannedWorkouts ? JSON.parse(plannedWorkouts) : {};
-
-              delete planned[selectedDate];
-
-              await AsyncStorage.setItem(PLANNED_WORKOUTS_KEY, JSON.stringify(planned));
+              const userId = user?.email || 'guest';
+              await WorkoutStorageService.deletePlannedWorkout(selectedDate, userId);
 
               Alert.alert(
                 'Success',

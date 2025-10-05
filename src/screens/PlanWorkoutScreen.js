@@ -5,11 +5,13 @@ import ScreenLayout from '../components/ScreenLayout';
 import StyledButton from '../components/StyledButton';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { LinearGradient } from 'expo-linear-gradient';
+import { WorkoutStorageService } from '../services/workoutStorage';
+import { useAuth } from '../context/AuthContext';
 
-const PLANNED_WORKOUTS_KEY = '@planned_workouts';
 const STANDALONE_WORKOUTS_KEY = '@standalone_workouts';
 
 export default function PlanWorkoutScreen({ navigation, route }) {
+  const { user } = useAuth();
   const { selectedDate } = route.params || {};
   const [userPrograms, setUserPrograms] = useState([]);
   const [standaloneWorkouts, setStandaloneWorkouts] = useState([]);
@@ -58,17 +60,16 @@ export default function PlanWorkoutScreen({ navigation, route }) {
 
   const savePlannedWorkout = async (workoutData) => {
     try {
+      const userId = user?.email || 'guest';
       const dateKey = new Date(selectedDate).toISOString().split('T')[0];
-      const plannedWorkouts = await AsyncStorage.getItem(PLANNED_WORKOUTS_KEY);
-      const planned = plannedWorkouts ? JSON.parse(plannedWorkouts) : {};
 
-      planned[dateKey] = {
+      const plannedWorkoutData = {
         ...workoutData,
         plannedDate: dateKey,
         createdAt: new Date().toISOString(),
       };
 
-      await AsyncStorage.setItem(PLANNED_WORKOUTS_KEY, JSON.stringify(planned));
+      await WorkoutStorageService.savePlannedWorkout(dateKey, plannedWorkoutData, userId);
 
       Alert.alert(
         'Success',

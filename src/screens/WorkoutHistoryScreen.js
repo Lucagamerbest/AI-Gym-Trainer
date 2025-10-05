@@ -18,6 +18,9 @@ export default function WorkoutHistoryScreen({ navigation }) {
   const [markedDates, setMarkedDates] = useState({});
   const [showWorkoutModal, setShowWorkoutModal] = useState(false);
   const [selectedWorkout, setSelectedWorkout] = useState(null);
+  const [showCopyModal, setShowCopyModal] = useState(false);
+  const [copySourceWorkout, setCopySourceWorkout] = useState(null);
+  const [selectedFutureDates, setSelectedFutureDates] = useState([]);
 
   // Load workout history on focus
   useFocusEffect(
@@ -40,8 +43,8 @@ export default function WorkoutHistoryScreen({ navigation }) {
 
   const loadPlannedWorkouts = async () => {
     try {
-      const planned = await AsyncStorage.getItem('@planned_workouts');
-      const plannedData = planned ? JSON.parse(planned) : {};
+      const userId = user?.email || 'guest';
+      const plannedData = await WorkoutStorageService.getPlannedWorkouts(userId);
       setPlannedWorkouts(plannedData);
       updateMarkedDates(workoutHistory, plannedData);
     } catch (error) {
@@ -51,42 +54,28 @@ export default function WorkoutHistoryScreen({ navigation }) {
 
   const updateMarkedDates = (history, planned) => {
     const marked = {};
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-    // Mark completed workouts (green)
+    // Convert completed workouts to CalendarView format
     history.forEach(workout => {
       const dateKey = new Date(workout.date).toISOString().split('T')[0];
       marked[dateKey] = {
-        marked: true,
-        dotColor: Colors.primary,
-        customStyles: {
-          container: {
-            backgroundColor: Colors.primary + '20',
-            borderRadius: BorderRadius.sm,
-          },
-          text: {
-            color: Colors.text,
-            fontWeight: 'bold',
-          }
-        }
+        logged: { workout: [workout] } // CalendarView expects logged property
       };
     });
 
-    // Mark planned workouts (orange)
+    // Convert planned workouts to CalendarView format - only if not already completed
     Object.keys(planned).forEach(dateKey => {
-      if (!marked[dateKey]) { // Don't override completed workouts
+      const plannedDate = new Date(dateKey);
+      plannedDate.setHours(0, 0, 0, 0);
+
+      // Only mark as planned (orange) if:
+      // 1. It's a future date OR today
+      // 2. There's no completed workout for this date
+      if (plannedDate >= today && !marked[dateKey]) {
         marked[dateKey] = {
-          marked: true,
-          dotColor: '#FFA500',
-          customStyles: {
-            container: {
-              backgroundColor: '#FFA50020',
-              borderRadius: BorderRadius.sm,
-            },
-            text: {
-              color: Colors.text,
-              fontWeight: 'bold',
-            }
-          }
+          planned: { workout: [planned[dateKey]] } // CalendarView expects planned property
         };
       }
     });
@@ -113,7 +102,7 @@ export default function WorkoutHistoryScreen({ navigation }) {
     const plannedWorkout = plannedWorkouts[dateKey];
 
     if (workout) {
-      // Past workout - show details
+      // Past/completed workout - show details modal
       setSelectedWorkout(workout);
       setShowWorkoutModal(true);
     } else if (plannedWorkout) {
@@ -128,6 +117,10 @@ export default function WorkoutHistoryScreen({ navigation }) {
     } else if (clickedDate > todayDate) {
       // Future date - navigate to plan workout screen
       navigation.navigate('PlanWorkout', { selectedDate: dateKey });
+    } else {
+      // Past date with no workout - show modal with empty state
+      setSelectedWorkout(null);
+      setShowWorkoutModal(true);
     }
   };
 
@@ -167,6 +160,140 @@ export default function WorkoutHistoryScreen({ navigation }) {
     return duration || '00:00';
   };
 
+  const isFutureDate = (date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return date > today;
+  };
+
+  const toggleDateSelection = (date) => {
+    const dateKey = date.toISOString().split('T')[0];
+    const isSelected = selectedFutureDates.some(d => d.toISOString().split('T')[0] === dateKey);
+
+    if (isSelected) {
+      setSelectedFutureDates(selectedFutureDates.filter(d => d.toISOString().split('T')[0] !== dateKey));
+    } else {
+      setSelectedFutureDates([...selectedFutureDates, date]);
+    }
+  };
+
+  const copyWorkoutToMultipleDates = async () => {
+    try {
+      const userId = user?.email || 'guest';
+      const targetDateKeys = selectedFutureDates.map(date => date.toISOString().split('T')[0]);
+
+      // Create workout data to copy (without the original id and date)
+      const workoutToCopy = {
+        exercises: copySourceWorkout.exercises,
+        duration: copySourceWorkout.duration,
+        startTime: copySourceWorkout.startTime,
+        endTime: copySourceWorkout.endTime
+      };
+
+      await WorkoutStorageService.copyWorkoutToMultipleDates(workoutToCopy, targetDateKeys, userId);
+
+      // Reload both history and planned workouts
+      await loadWorkoutHistory();
+      await loadPlannedWorkouts();
+
+      // Close modal and reset
+      setShowCopyModal(false);
+      setCopySourceWorkout(null);
+      setSelectedFutureDates([]);
+
+      alert(`Workout copied to ${targetDateKeys.length} day${targetDateKeys.length > 1 ? 's' : ''}`);
+    } catch (error) {
+      console.error('Error copying workout:', error);
+      alert('Failed to copy workout');
+    }
+  };
+
+  const addTestWorkoutData = async () => {
+    try {
+      const userId = user?.email || 'guest';
+
+      // Create mock workout for October 4th, 2025
+      const mockWorkout = {
+        exercises: [
+          {
+            name: 'Bench Press',
+            equipment: 'Barbell',
+            primaryMuscle: 'Chest',
+            sets: [
+              { weight: '135', reps: '10', completed: true, rpe: '7' },
+              { weight: '185', reps: '8', completed: true, rpe: '8' },
+              { weight: '205', reps: '6', completed: true, rpe: '9' },
+            ]
+          },
+          {
+            name: 'Squat',
+            equipment: 'Barbell',
+            primaryMuscle: 'Quadriceps',
+            sets: [
+              { weight: '225', reps: '8', completed: true, rpe: '8' },
+              { weight: '275', reps: '6', completed: true, rpe: '9' },
+              { weight: '315', reps: '4', completed: true, rpe: '10' },
+            ]
+          },
+          {
+            name: 'Pull-ups',
+            equipment: 'Body Weight',
+            primaryMuscle: 'Back',
+            sets: [
+              { weight: '0', reps: '12', completed: true, rpe: '7' },
+              { weight: '0', reps: '10', completed: true, rpe: '8' },
+              { weight: '0', reps: '8', completed: true, rpe: '9' },
+            ]
+          }
+        ],
+        duration: '01:15:30',
+        startTime: '10:00 AM',
+        endTime: '11:15 AM'
+      };
+
+      const exerciseSets = mockWorkout.exercises.map(ex => ex.sets);
+
+      // Set the date to October 4th, 2025
+      const oct4 = new Date('2025-10-04T10:00:00');
+
+      const workoutData = {
+        ...mockWorkout,
+        startTime: mockWorkout.startTime,
+        endTime: mockWorkout.endTime,
+        duration: mockWorkout.duration
+      };
+
+      // Manually create the workout with the specific date
+      const workout = {
+        id: Date.now().toString(),
+        userId,
+        date: oct4.toISOString(),
+        startTime: workoutData.startTime,
+        endTime: workoutData.endTime,
+        duration: workoutData.duration,
+        exercises: workoutData.exercises.map((exercise, index) => ({
+          ...exercise,
+          sets: exerciseSets[index] || [],
+          completedSets: exerciseSets[index]?.filter(set => set.completed).length || 0,
+          totalSets: exerciseSets[index]?.length || 0
+        }))
+      };
+
+      // Save directly to workout history
+      const history = await WorkoutStorageService.getWorkoutHistory(userId);
+      history.push(workout);
+      await AsyncStorage.setItem(`workout_history_${userId}`, JSON.stringify(history));
+
+      // Reload data
+      await loadWorkoutHistory();
+
+      alert('Test workout added for October 4th! Check the calendar.');
+    } catch (error) {
+      console.error('Error adding test workout:', error);
+      alert('Failed to add test workout');
+    }
+  };
+
   return (
     <ScreenLayout
       title="Workout History"
@@ -198,6 +325,15 @@ export default function WorkoutHistoryScreen({ navigation }) {
               <Text style={styles.legendText}>Planned</Text>
             </View>
           </View>
+        </StyledCard>
+
+        {/* Test Button */}
+        <StyledCard variant="elevated" style={styles.testCard}>
+          <StyledButton
+            title="🧪 Add Test Workout (Oct 4th)"
+            variant="secondary"
+            onPress={addTestWorkoutData}
+          />
         </StyledCard>
 
         {/* Workout Stats Summary */}
@@ -244,10 +380,23 @@ export default function WorkoutHistoryScreen({ navigation }) {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <ScrollView>
-              {selectedWorkout && (
+              {!selectedWorkout ? (
+                <>
+                  <Text style={styles.modalTitle}>No Workout Logged</Text>
+                  <Text style={styles.modalDate}>{formatDate(selectedDate)}</Text>
+
+                  <View style={styles.emptyWorkoutContainer}>
+                    <Text style={styles.emptyWorkoutIcon}>📋</Text>
+                    <Text style={styles.emptyWorkoutText}>No workout logged for this date</Text>
+                    <Text style={styles.emptyWorkoutSubtext}>
+                      You didn't record a workout on this day. Start logging your workouts to track your progress!
+                    </Text>
+                  </View>
+                </>
+              ) : (
                 <>
                   <Text style={styles.modalTitle}>Workout Details</Text>
-                  <Text style={styles.modalDate}>{formatDate(selectedWorkout.date)}</Text>
+                  <Text style={styles.modalDate}>{formatDate(selectedWorkout.date || selectedWorkout.dateKey)}</Text>
 
                   {/* Workout Stats */}
                   <View style={styles.modalStats}>
@@ -296,10 +445,11 @@ export default function WorkoutHistoryScreen({ navigation }) {
 
                   {/* Actions */}
                   <StyledButton
-                    title="Repeat This Workout"
+                    title="Copy to Future Date"
                     onPress={() => {
-                      // TODO: Implement repeat workout functionality
+                      setCopySourceWorkout(selectedWorkout);
                       setShowWorkoutModal(false);
+                      setTimeout(() => setShowCopyModal(true), 300);
                     }}
                     style={styles.repeatButton}
                   />
@@ -313,6 +463,81 @@ export default function WorkoutHistoryScreen({ navigation }) {
             >
               <Text style={styles.closeButtonText}>Close</Text>
             </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Copy Workout Modal */}
+      <Modal
+        visible={showCopyModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => {
+          setShowCopyModal(false);
+          setCopySourceWorkout(null);
+          setSelectedFutureDates([]);
+        }}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.copyModalContent}>
+            <Text style={styles.modalTitle}>Copy to Future Dates</Text>
+
+            <ScrollView
+              showsVerticalScrollIndicator={true}
+              contentContainerStyle={styles.copyModalScrollContent}
+            >
+              <Text style={styles.copyInstructions}>
+                Select future dates to copy this workout to:
+              </Text>
+
+              <View style={styles.calendarContainer}>
+                <CalendarView
+                  selectedDate={new Date()}
+                  multiSelectMode={true}
+                  selectedDates={selectedFutureDates}
+                  onDateSelect={(date) => {
+                    if (isFutureDate(date)) {
+                      toggleDateSelection(date);
+                    } else {
+                      alert('Please select a future date');
+                    }
+                  }}
+                  mealData={markedDates}
+                />
+              </View>
+
+              {selectedFutureDates.length > 0 && (
+                <View style={styles.confirmSection}>
+                  <View style={styles.selectedDatesInfo}>
+                    <Text style={styles.selectedDatesCount}>
+                      {selectedFutureDates.length} date{selectedFutureDates.length > 1 ? 's' : ''} selected
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => setSelectedFutureDates([])}
+                      style={styles.clearSelectionButton}
+                    >
+                      <Text style={styles.clearSelectionText}>Clear All</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <StyledButton
+                    title={`Copy to ${selectedFutureDates.length} Day${selectedFutureDates.length > 1 ? 's' : ''}`}
+                    onPress={copyWorkoutToMultipleDates}
+                    style={styles.confirmButton}
+                  />
+                </View>
+              )}
+
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={() => {
+                  setShowCopyModal(false);
+                  setCopySourceWorkout(null);
+                  setSelectedFutureDates([]);
+                }}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -482,5 +707,97 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.md,
     fontWeight: '600',
     color: Colors.text,
+  },
+  copyModalContent: {
+    backgroundColor: Colors.surface,
+    borderTopLeftRadius: BorderRadius.xl,
+    borderTopRightRadius: BorderRadius.xl,
+    paddingTop: Spacing.xl,
+    paddingHorizontal: Spacing.xl,
+    maxHeight: '85%',
+    minHeight: '70%',
+  },
+  copyModalScrollContent: {
+    paddingBottom: Spacing.xxl,
+  },
+  copyInstructions: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.md,
+    textAlign: 'center',
+  },
+  calendarContainer: {
+    marginVertical: Spacing.md,
+  },
+  confirmSection: {
+    marginTop: Spacing.lg,
+    paddingTop: Spacing.lg,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  selectedDatesInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
+  selectedDatesCount: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  clearSelectionButton: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  clearSelectionText: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+    fontWeight: '500',
+  },
+  confirmButton: {
+    marginTop: Spacing.sm,
+  },
+  cancelButton: {
+    backgroundColor: Colors.border,
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    marginTop: Spacing.md,
+  },
+  cancelButtonText: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  testCard: {
+    marginBottom: Spacing.md,
+  },
+  emptyWorkoutContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.xxl * 2,
+    paddingHorizontal: Spacing.xl,
+  },
+  emptyWorkoutIcon: {
+    fontSize: 64,
+    marginBottom: Spacing.lg,
+  },
+  emptyWorkoutText: {
+    fontSize: Typography.fontSize.xl,
+    fontWeight: 'bold',
+    color: Colors.textMuted,
+    marginBottom: Spacing.md,
+    textAlign: 'center',
+  },
+  emptyWorkoutSubtext: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 22,
   },
 });

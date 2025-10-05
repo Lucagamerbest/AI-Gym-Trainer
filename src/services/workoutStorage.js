@@ -3,7 +3,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const STORAGE_KEYS = {
   WORKOUT_HISTORY: 'workout_history',
   EXERCISE_PROGRESS: 'exercise_progress',
-  USER_STATS: 'user_stats'
+  USER_STATS: 'user_stats',
+  PLANNED_WORKOUTS: 'planned_workouts'
 };
 
 export class WorkoutStorageService {
@@ -211,6 +212,85 @@ export class WorkoutStorageService {
       await AsyncStorage.removeItem(`${STORAGE_KEYS.WORKOUT_HISTORY}_${userId}`);
       await AsyncStorage.removeItem(`${STORAGE_KEYS.EXERCISE_PROGRESS}_${userId}`);
       await AsyncStorage.removeItem(`${STORAGE_KEYS.USER_STATS}_${userId}`);
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  // ============ PLANNED WORKOUTS ============
+
+  // Save a planned workout for a specific date
+  static async savePlannedWorkout(dateKey, workoutData, userId = 'guest') {
+    try {
+      const plannedWorkouts = await this.getPlannedWorkouts(userId);
+
+      // Create the planned workout object
+      const plannedWorkout = {
+        id: Date.now().toString(),
+        dateKey,
+        ...workoutData,
+        createdAt: new Date().toISOString()
+      };
+
+      // Store by date key
+      plannedWorkouts[dateKey] = plannedWorkout;
+
+      await AsyncStorage.setItem(`${STORAGE_KEYS.PLANNED_WORKOUTS}_${userId}`, JSON.stringify(plannedWorkouts));
+      return { success: true, workoutId: plannedWorkout.id };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Get all planned workouts
+  static async getPlannedWorkouts(userId = 'guest') {
+    try {
+      const planned = await AsyncStorage.getItem(`${STORAGE_KEYS.PLANNED_WORKOUTS}_${userId}`);
+      return planned ? JSON.parse(planned) : {};
+    } catch (error) {
+      return {};
+    }
+  }
+
+  // Get planned workout for a specific date
+  static async getPlannedWorkoutByDate(dateKey, userId = 'guest') {
+    try {
+      const plannedWorkouts = await this.getPlannedWorkouts(userId);
+      return plannedWorkouts[dateKey] || null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  // Delete planned workout for a specific date
+  static async deletePlannedWorkout(dateKey, userId = 'guest') {
+    try {
+      const plannedWorkouts = await this.getPlannedWorkouts(userId);
+      delete plannedWorkouts[dateKey];
+      await AsyncStorage.setItem(`${STORAGE_KEYS.PLANNED_WORKOUTS}_${userId}`, JSON.stringify(plannedWorkouts));
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Copy workout to multiple dates
+  static async copyWorkoutToMultipleDates(workoutData, targetDateKeys, userId = 'guest') {
+    try {
+      const plannedWorkouts = await this.getPlannedWorkouts(userId);
+
+      targetDateKeys.forEach(dateKey => {
+        const plannedWorkout = {
+          id: Date.now().toString() + Math.random(),
+          dateKey,
+          ...JSON.parse(JSON.stringify(workoutData)), // Deep copy
+          createdAt: new Date().toISOString()
+        };
+        plannedWorkouts[dateKey] = plannedWorkout;
+      });
+
+      await AsyncStorage.setItem(`${STORAGE_KEYS.PLANNED_WORKOUTS}_${userId}`, JSON.stringify(plannedWorkouts));
       return { success: true };
     } catch (error) {
       return { success: false, error: error.message };

@@ -10,16 +10,23 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ScreenLayout from '../components/ScreenLayout';
+import StyledButton from '../components/StyledButton';
+import CalendarView from '../components/CalendarView';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useWorkout } from '../context/WorkoutContext';
+import { WorkoutStorageService } from '../services/workoutStorage';
+import { useAuth } from '../context/AuthContext';
 
 const STANDALONE_WORKOUTS_KEY = '@standalone_workouts';
 
 export default function WorkoutDetailScreen({ navigation, route }) {
+  const { user } = useAuth();
   const { workout } = route.params;
   const { startWorkout } = useWorkout();
   const [viewDetails, setViewDetails] = useState(false);
+  const [showCalendarModal, setShowCalendarModal] = useState(false);
+  const [selectedFutureDates, setSelectedFutureDates] = useState([]);
 
   const handleStartWorkout = () => {
     const day = workout.day;
@@ -178,6 +185,61 @@ export default function WorkoutDetailScreen({ navigation, route }) {
     }
   };
 
+  const isFutureDate = (date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return date > today;
+  };
+
+  const toggleDateSelection = (date) => {
+    const dateKey = date.toISOString().split('T')[0];
+    const isSelected = selectedFutureDates.some(d => d.toISOString().split('T')[0] === dateKey);
+
+    if (isSelected) {
+      setSelectedFutureDates(selectedFutureDates.filter(d => d.toISOString().split('T')[0] !== dateKey));
+    } else {
+      setSelectedFutureDates([...selectedFutureDates, date]);
+    }
+  };
+
+  const handleAddToCalendar = async () => {
+    try {
+      const userId = user?.email || 'guest';
+      const targetDateKeys = selectedFutureDates.map(date => date.toISOString().split('T')[0]);
+
+      // Create workout data to add
+      const workoutToAdd = {
+        type: 'standalone',
+        workoutId: workout.id,
+        workoutName: workout.name,
+        exercises: workout.day?.exercises || [],
+      };
+
+      await WorkoutStorageService.copyWorkoutToMultipleDates(workoutToAdd, targetDateKeys, userId);
+
+      // Close modal and reset
+      setShowCalendarModal(false);
+      setSelectedFutureDates([]);
+
+      // Navigate to calendar to show the planned workouts
+      Alert.alert(
+        'Success',
+        `Workout added to ${targetDateKeys.length} day${targetDateKeys.length > 1 ? 's' : ''}!`,
+        [
+          {
+            text: 'View Calendar',
+            onPress: () => {
+              navigation.navigate('WorkoutHistory');
+            }
+          }
+        ]
+      );
+    } catch (error) {
+      console.error('Error adding workout to calendar:', error);
+      Alert.alert('Error', 'Failed to add workout to calendar');
+    }
+  };
+
   return (
     <ScreenLayout
       title={workout.name}
@@ -191,6 +253,48 @@ export default function WorkoutDetailScreen({ navigation, route }) {
             <Text style={styles.descriptionText}>{workout.description}</Text>
           </View>
         )}
+
+        {/* Action Buttons */}
+        <View style={styles.actionButtonsContainer}>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => setShowCalendarModal(true)}
+            activeOpacity={0.8}
+          >
+            <View style={styles.actionButtonContent}>
+              <View style={[styles.actionIconCircle, { backgroundColor: Colors.primary + '20' }]}>
+                <Text style={styles.actionIcon}>📅</Text>
+              </View>
+              <Text style={styles.actionText}>Calendar</Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={handleEditWorkout}
+            activeOpacity={0.8}
+          >
+            <View style={styles.actionButtonContent}>
+              <View style={[styles.actionIconCircle, { backgroundColor: '#3B82F620' }]}>
+                <Text style={styles.actionIcon}>✏️</Text>
+              </View>
+              <Text style={styles.actionText}>Edit</Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={handleDeleteWorkout}
+            activeOpacity={0.8}
+          >
+            <View style={styles.actionButtonContent}>
+              <View style={[styles.actionIconCircle, { backgroundColor: '#EF444420' }]}>
+                <Text style={styles.actionIcon}>🗑️</Text>
+              </View>
+              <Text style={styles.actionText}>Delete</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
 
         {/* Workout Card */}
         <TouchableOpacity
@@ -318,6 +422,79 @@ export default function WorkoutDetailScreen({ navigation, route }) {
           </View>
         </View>
       </Modal>
+
+      {/* Calendar Modal */}
+      <Modal
+        visible={showCalendarModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => {
+          setShowCalendarModal(false);
+          setSelectedFutureDates([]);
+        }}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.calendarModalContent}>
+            <Text style={styles.calendarModalTitle}>Add to Calendar</Text>
+
+            <ScrollView
+              showsVerticalScrollIndicator={true}
+              contentContainerStyle={styles.calendarScrollContent}
+            >
+              <Text style={styles.calendarInstructions}>
+                Select future dates to add this workout:
+              </Text>
+
+              <View style={styles.calendarContainer}>
+                <CalendarView
+                  selectedDate={new Date()}
+                  multiSelectMode={true}
+                  selectedDates={selectedFutureDates}
+                  onDateSelect={(date) => {
+                    if (isFutureDate(date)) {
+                      toggleDateSelection(date);
+                    } else {
+                      Alert.alert('Invalid Date', 'Please select a future date');
+                    }
+                  }}
+                  mealData={{}}
+                />
+              </View>
+
+              {selectedFutureDates.length > 0 && (
+                <View style={styles.confirmSection}>
+                  <View style={styles.selectedDatesInfo}>
+                    <Text style={styles.selectedDatesCount}>
+                      {selectedFutureDates.length} date{selectedFutureDates.length > 1 ? 's' : ''} selected
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => setSelectedFutureDates([])}
+                      style={styles.clearSelectionButton}
+                    >
+                      <Text style={styles.clearSelectionText}>Clear All</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <StyledButton
+                    title={`Add to ${selectedFutureDates.length} Day${selectedFutureDates.length > 1 ? 's' : ''}`}
+                    onPress={handleAddToCalendar}
+                    style={styles.confirmButton}
+                  />
+                </View>
+              )}
+
+              <TouchableOpacity
+                style={styles.cancelCalendarButton}
+                onPress={() => {
+                  setShowCalendarModal(false);
+                  setSelectedFutureDates([]);
+                }}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </ScreenLayout>
   );
 }
@@ -342,10 +519,36 @@ const styles = StyleSheet.create({
   },
   actionButtonsContainer: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    gap: Spacing.xl,
+    gap: Spacing.md,
     marginBottom: Spacing.lg,
-    paddingVertical: Spacing.sm,
+  },
+  actionButton: {
+    flex: 1,
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    overflow: 'hidden',
+  },
+  actionButtonContent: {
+    alignItems: 'center',
+    padding: Spacing.md,
+  },
+  actionIconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.xs,
+  },
+  actionIcon: {
+    fontSize: 24,
+  },
+  actionText: {
+    fontSize: Typography.fontSize.xs,
+    fontWeight: '600',
+    color: Colors.text,
   },
   actionButtonWrapper: {
     alignItems: 'center',
@@ -587,5 +790,78 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.md,
     fontWeight: 'bold',
     color: Colors.background,
+  },
+  calendarModalContent: {
+    backgroundColor: Colors.surface,
+    borderTopLeftRadius: BorderRadius.xl,
+    borderTopRightRadius: BorderRadius.xl,
+    paddingTop: Spacing.xl,
+    paddingHorizontal: Spacing.xl,
+    maxHeight: '85%',
+    minHeight: '70%',
+  },
+  calendarModalTitle: {
+    fontSize: Typography.fontSize.xxl,
+    fontWeight: 'bold',
+    color: Colors.text,
+    marginBottom: Spacing.md,
+    textAlign: 'center',
+  },
+  calendarScrollContent: {
+    paddingBottom: Spacing.xxl,
+  },
+  calendarInstructions: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.md,
+    textAlign: 'center',
+  },
+  calendarContainer: {
+    marginVertical: Spacing.md,
+  },
+  confirmSection: {
+    marginTop: Spacing.lg,
+    paddingTop: Spacing.lg,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  selectedDatesInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
+  selectedDatesCount: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  clearSelectionButton: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  clearSelectionText: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+    fontWeight: '500',
+  },
+  confirmButton: {
+    marginTop: Spacing.sm,
+  },
+  cancelCalendarButton: {
+    backgroundColor: Colors.border,
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    marginTop: Spacing.md,
+  },
+  cancelButtonText: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+    color: Colors.text,
   },
 });

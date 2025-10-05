@@ -234,11 +234,26 @@ export default function NutritionDashboard({ navigation }) {
           <View style={styles.calorieDetails}>
             <View style={styles.calorieDetailItem}>
               <Text style={styles.detailLabel}>Goal</Text>
-              <Text style={styles.detailValue}>{calorieGoal}</Text>
+              <Text
+                style={[
+                  styles.detailValue,
+                  { fontSize: calorieGoal >= 1000 ? Typography.fontSize.md : Typography.fontSize.lg },
+                ]}
+              >
+                {calorieGoal}
+              </Text>
             </View>
             <View style={styles.calorieDetailItem}>
               <Text style={styles.detailLabel}>Consumed</Text>
-              <Text style={[styles.detailValue, { color: Colors.primary }]}>
+              <Text
+                style={[
+                  styles.detailValue,
+                  {
+                    color: Colors.primary,
+                    fontSize: totalCalories >= 1000 ? Typography.fontSize.md : Typography.fontSize.lg,
+                  },
+                ]}
+              >
                 {totalCalories}
               </Text>
             </View>
@@ -247,7 +262,10 @@ export default function NutritionDashboard({ navigation }) {
               <Text
                 style={[
                   styles.detailValue,
-                  { color: remainingCalories < 0 ? Colors.error : Colors.success },
+                  {
+                    color: remainingCalories < 0 ? Colors.error : Colors.success,
+                    fontSize: Math.abs(remainingCalories) >= 1000 ? Typography.fontSize.md : Typography.fontSize.lg,
+                  },
                 ]}
               >
                 {Math.abs(remainingCalories)}
