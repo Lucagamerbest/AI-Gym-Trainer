@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Vibration, Modal, TextInput, PanResponder, Animated } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Vibration, Modal, TextInput, PanResponder, Animated, AppState, Platform } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Notifications from 'expo-notifications';
 import ScreenLayout from '../components/ScreenLayout';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -10,8 +11,21 @@ import { WorkoutStorageService } from '../services/workoutStorage';
 import { useAuth } from '../context/AuthContext';
 import { useWorkout } from '../context/WorkoutContext';
 
+// Configure notification handler - always show notifications
+Notifications.setNotificationHandler({
+  handleNotification: async (notification) => {
+    return {
+      shouldShowBanner: true, // Always show notification banner
+      shouldShowList: true,   // Always add to notification list
+      shouldPlaySound: true,  // Always play sound
+      shouldSetBadge: false,
+    };
+  },
+});
+
 // Exercise Card Component
 const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exerciseSets, onUpdateSet, onAddSet, onDeleteSet, onShowInfo, onSelectSetType, fromProgram, rpeEnabled }) => {
+
   // Function to get set type color
   const getSetTypeColor = (type) => {
     switch (type) {
@@ -184,7 +198,9 @@ export default function WorkoutScreen({ navigation, route }) {
   const [restTimer, setRestTimer] = useState(0);
   const [isRestTimerRunning, setIsRestTimerRunning] = useState(false);
   const [restTargetSeconds, setRestTargetSeconds] = useState(60);
+  const [restTimerEndTime, setRestTimerEndTime] = useState(null);
   const restIntervalRef = useRef(null);
+  const appState = useRef(AppState.currentState);
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [isWorkoutPaused, setIsWorkoutPaused] = useState(false);
   const [pausedDuration, setPausedDuration] = useState(0);
@@ -206,7 +222,7 @@ export default function WorkoutScreen({ navigation, route }) {
   const [totalVolume, setTotalVolume] = useState(0);
   const [totalSets, setTotalSets] = useState(0);
 
-  // Load RPE setting
+  // Load RPE setting and request notification permissions
   useEffect(() => {
     const loadRPESetting = async () => {
       try {
@@ -218,8 +234,103 @@ export default function WorkoutScreen({ navigation, route }) {
         console.error('Error loading RPE setting:', error);
       }
     };
+
+    const requestNotificationPermissions = async () => {
+      try {
+        const { status: existingStatus } = await Notifications.getPermissionsAsync();
+        let finalStatus = existingStatus;
+
+        if (existingStatus !== 'granted') {
+          const { status } = await Notifications.requestPermissionsAsync();
+          finalStatus = status;
+        }
+
+        // Permissions handled silently
+
+        // Set up notification channel for Android
+        if (Platform.OS === 'android') {
+          await Notifications.setNotificationChannelAsync('rest-timer', {
+            name: 'Rest Timer',
+            importance: Notifications.AndroidImportance.HIGH,
+            vibrationPattern: [0, 250, 250, 250],
+            sound: 'default',
+            enableVibrate: true,
+          });
+        }
+      } catch (error) {
+        console.error('Error setting up notifications:', error);
+      }
+    };
+
+    // Set up notification listeners
+    const notificationReceivedSubscription = Notifications.addNotificationReceivedListener(notification => {
+      // Notification received
+    });
+
+    const notificationResponseSubscription = Notifications.addNotificationResponseReceivedListener(response => {
+      // Notification tapped
+    });
+
     loadRPESetting();
+    requestNotificationPermissions();
+
+    return () => {
+      notificationReceivedSubscription.remove();
+      notificationResponseSubscription.remove();
+    };
   }, []);
+
+  // AppState listener to handle background/foreground transitions
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', async (nextAppState) => {
+      if (
+        appState.current.match(/inactive|background/) &&
+        nextAppState === 'active'
+      ) {
+        // App has come to foreground - check AsyncStorage for timer
+        try {
+          const storedEndTime = await AsyncStorage.getItem('@rest_timer_end');
+
+          if (storedEndTime) {
+            const endTime = parseInt(storedEndTime);
+            const now = new Date().getTime();
+            const remaining = Math.max(0, Math.ceil((endTime - now) / 1000));
+
+            if (remaining > 0) {
+              // Timer still running - restore state
+              setRestTimerEndTime(endTime);
+              setRestTimer(remaining);
+              setIsRestTimerRunning(true);
+            } else {
+              // Timer expired while in background - just clean up (notification already sent)
+              await AsyncStorage.removeItem('@rest_timer_end');
+              setIsRestTimerRunning(false);
+              setRestTimer(0);
+              setRestTimerEndTime(null);
+            }
+          } else if (isRestTimerRunning && restTimerEndTime) {
+            // Fallback to state-based check
+            const now = new Date().getTime();
+            const remaining = Math.max(0, Math.ceil((restTimerEndTime - now) / 1000));
+            setRestTimer(remaining);
+
+            if (remaining <= 0) {
+              // Timer expired - just clean up (notification already sent)
+              setIsRestTimerRunning(false);
+              setRestTimerEndTime(null);
+            }
+          }
+        } catch (error) {
+          console.error('Error checking timer on resume:', error);
+        }
+      }
+      appState.current = nextAppState;
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [isRestTimerRunning, restTimerEndTime]);
 
   // Initialize workout - handle all scenarios
   useEffect(() => {
@@ -285,6 +396,12 @@ export default function WorkoutScreen({ navigation, route }) {
       return;
     }
 
+    // If activeWorkout already has exerciseSets, don't override them
+    // (they were already set in the first useEffect)
+    if (activeWorkout?.exerciseSets && Object.keys(activeWorkout.exerciseSets).length > 0) {
+      return;
+    }
+
     const newSets = { ...exerciseSets };
     let hasChanges = false;
 
@@ -323,20 +440,23 @@ export default function WorkoutScreen({ navigation, route }) {
 
   // Removed problematic sync effect that was causing infinite loops
 
-  // Rest timer logic
+  // Rest timer logic - using timestamp-based calculation for background support
   useEffect(() => {
-    if (isRestTimerRunning && restTimer > 0) {
+    if (isRestTimerRunning && restTimerEndTime) {
       restIntervalRef.current = setInterval(() => {
-        setRestTimer(prev => {
-          if (prev <= 1) {
-            // Timer finished - ring and vibrate
-            handleRestTimerComplete();
-            setIsRestTimerRunning(false);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
+        const now = new Date().getTime();
+        const remaining = Math.max(0, Math.ceil((restTimerEndTime - now) / 1000));
+
+        setRestTimer(remaining);
+
+        if (remaining <= 0) {
+          handleRestTimerComplete(); // This triggers notification + alert
+          setIsRestTimerRunning(false);
+          setRestTimerEndTime(null);
+          clearInterval(restIntervalRef.current);
+          restIntervalRef.current = null;
+        }
+      }, 100); // Check every 100ms for smoother countdown
     } else {
       if (restIntervalRef.current) {
         clearInterval(restIntervalRef.current);
@@ -349,7 +469,7 @@ export default function WorkoutScreen({ navigation, route }) {
         clearInterval(restIntervalRef.current);
       }
     };
-  }, [isRestTimerRunning, restTimer]);
+  }, [isRestTimerRunning, restTimerEndTime]);
 
   // Calculate elapsed time
   const getElapsedTime = () => {
@@ -373,32 +493,93 @@ export default function WorkoutScreen({ navigation, route }) {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Handle rest timer completion
-  const handleRestTimerComplete = () => {
+  // Handle rest timer completion (only for in-app handling)
+  const handleRestTimerComplete = async () => {
     try {
-      // Vibration pattern - long, short, long
-      Vibration.vibrate([500, 200, 500, 200, 500]);
-      
-      // Show alert
-      Alert.alert(
-        '⏰ Rest Time Complete!',
-        'Time to get back to your workout!',
-        [{ text: 'Let\'s Go!', style: 'default' }]
-      );
+      // Clear from AsyncStorage
+      await AsyncStorage.removeItem('@rest_timer_end');
+
+      const currentState = AppState.currentState;
+
+      // Only vibrate and show alert if app is ACTIVE (foreground)
+      if (currentState === 'active') {
+        // Vibration pattern - long, short, long
+        Vibration.vibrate([500, 200, 500, 200, 500]);
+
+        // Send immediate notification
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: '⏰ Rest Time Complete!',
+            body: 'Time to get back to your workout!',
+            sound: 'default',
+            priority: Notifications.AndroidNotificationPriority.HIGH,
+          },
+          trigger: null, // Fire immediately
+        });
+
+        // Show alert
+        Alert.alert(
+          '⏰ Rest Time Complete!',
+          'Time to get back to your workout!',
+          [{ text: 'Let\'s Go!', style: 'default' }]
+        );
+      }
+      // If app is background/inactive - scheduled notification already fired, do nothing
     } catch (error) {
+      console.error('Error in handleRestTimerComplete:', error);
     }
   };
 
   // Start rest timer
-  const startRestTimer = (seconds = restTargetSeconds) => {
+  const startRestTimer = async (seconds = restTargetSeconds) => {
+    // Prevent starting if already running
+    if (isRestTimerRunning) {
+      return;
+    }
+
+    const now = new Date();
+    const endTime = now.getTime() + (seconds * 1000);
+    const expectedEndTime = new Date(endTime);
+
+    setRestTimerEndTime(endTime);
     setRestTimer(seconds);
     setIsRestTimerRunning(true);
+
+    // Store in AsyncStorage for background persistence
+    try {
+      await AsyncStorage.setItem('@rest_timer_end', endTime.toString());
+
+      // Schedule notification using proper TIME_INTERVAL type
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: '⏰ Rest Time Complete!',
+          body: 'Time to get back to your workout!',
+          sound: 'default',
+          priority: Notifications.AndroidNotificationPriority.HIGH,
+        },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+          seconds: seconds,
+          repeats: false,
+        },
+      });
+    } catch (error) {
+      console.error('Error storing timer:', error);
+    }
   };
 
   // Stop rest timer
-  const stopRestTimer = () => {
+  const stopRestTimer = async () => {
     setIsRestTimerRunning(false);
     setRestTimer(0);
+    setRestTimerEndTime(null);
+
+    // Clear from AsyncStorage
+    try {
+      await AsyncStorage.removeItem('@rest_timer_end');
+    } catch (error) {
+      console.error('Error clearing timer:', error);
+    }
   };
 
   // Pause/Resume workout timer

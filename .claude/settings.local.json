@@ -44,7 +44,10 @@
       "Bash(findstr:*)",
       "Bash(git config:*)",
       "Bash(npm start:*)",
-      "Bash(powershell:*)"
+      "Bash(powershell:*)",
+      "Bash(npx eas-cli:*)",
+      "Bash(npx eas build:*)",
+      "WebFetch(domain:docs.expo.dev)"
     ],
     "deny": [],
     "ask": []

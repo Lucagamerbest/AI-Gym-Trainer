@@ -92,11 +92,9 @@ export default function TodayWorkoutOptionsScreen({ navigation }) {
                 key={index}
                 style={styles.programCard}
                 onPress={() => {
-                  // Navigate directly to WorkoutDayEdit for standalone workout
-                  navigation.navigate('WorkoutDayEdit', {
-                    dayIndex: 0,
-                    standaloneWorkout: workout,
-                    fromToday: true,
+                  // Navigate to WorkoutDetail to view and start the workout
+                  navigation.navigate('WorkoutDetail', {
+                    workout: workout,
                   });
                 }}
                 activeOpacity={0.9}

@@ -24,14 +24,31 @@
       "adaptiveIcon": {
         "backgroundColor": "#000000"
       },
-      "package": "com.workoutwave.app"
+      "package": "com.workoutwave.app",
+      "permissions": [
+        "VIBRATE",
+        "POST_NOTIFICATIONS"
+      ]
     },
     "web": {
       "bundler": "metro"
     },
     "plugins": [
       "expo-web-browser",
-      "expo-sqlite"
-    ]
+      "expo-sqlite",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#4CAF50"
+        }
+      ]
+    ],
+    "notification": {
+      "icon": "./assets/icon.png",
+      "color": "#4CAF50",
+      "androidMode": "default",
+      "androidCollapsedTitle": "Rest Timer"
+    }
   }
 }

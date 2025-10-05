@@ -29,18 +29,27 @@ export default function WorkoutDetailScreen({ navigation, route }) {
       return;
     }
 
+    console.log('=== WORKOUT DETAIL: Starting Workout ===');
+    console.log('Raw workout exercises:', JSON.stringify(day.exercises, null, 2));
+
     // Format exercises to match the workout screen's expected format
-    const formattedExercises = day.exercises.map(exercise => ({
-      ...exercise,
-      name: exercise.name,
-      targetMuscle: exercise.targetMuscle || '',
-      equipment: exercise.equipment || 'Not specified',
-      difficulty: exercise.difficulty || 'Intermediate',
-      programSets: exercise.sets,
-    }));
+    const formattedExercises = day.exercises.map(exercise => {
+      console.log(`\nExercise: ${exercise.name}`);
+      console.log('Exercise sets:', JSON.stringify(exercise.sets, null, 2));
+      return {
+        ...exercise,
+        name: exercise.name,
+        targetMuscle: exercise.targetMuscle || '',
+        equipment: exercise.equipment || 'Not specified',
+        difficulty: exercise.difficulty || 'Intermediate',
+        programSets: exercise.sets,
+      };
+    });
 
     // Initialize the exercise sets
     const initializedSets = initializeExerciseSets(day.exercises);
+    console.log('\n=== Initialized Sets ===');
+    console.log(JSON.stringify(initializedSets, null, 2));
 
     // Start workout
     startWorkout({
@@ -62,15 +71,23 @@ export default function WorkoutDetailScreen({ navigation, route }) {
   const initializeExerciseSets = (exercises) => {
     const sets = {};
     exercises.forEach((exercise, index) => {
+      console.log(`\nInitializing sets for exercise ${index}: ${exercise.name}`);
+      console.log('Exercise.sets:', JSON.stringify(exercise.sets, null, 2));
+
       if (exercise.sets && exercise.sets.length > 0) {
-        sets[index] = exercise.sets.map(set => ({
-          weight: '',
-          reps: set.reps || '10',
-          completed: false,
-          type: set.type || 'normal',
-          rest: set.rest || '90',
-          programReps: set.reps || '10',
-        }));
+        sets[index] = exercise.sets.map((set, setIndex) => {
+          const initializedSet = {
+            weight: '',
+            reps: set.reps || '10',
+            completed: false,
+            type: set.type || 'normal',
+            rest: set.rest || '90',
+            programReps: set.reps || '10',
+            rpe: set.rpe || '',
+          };
+          console.log(`  Set ${setIndex}:`, JSON.stringify(initializedSet, null, 2));
+          return initializedSet;
+        });
       } else {
         sets[index] = [
           { weight: '', reps: '', completed: false, type: 'normal' },
@@ -175,41 +192,6 @@ export default function WorkoutDetailScreen({ navigation, route }) {
           </View>
         )}
 
-        {/* Action Buttons */}
-        <View style={styles.actionButtonsContainer}>
-          <TouchableOpacity
-            style={styles.actionButtonWrapper}
-            onPress={() => setViewDetails(true)}
-            activeOpacity={0.7}
-          >
-            <LinearGradient
-              colors={[Colors.primary, '#059669']}
-              style={styles.circularButton}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            >
-              <Text style={styles.buttonIcon}>👁️</Text>
-            </LinearGradient>
-            <Text style={styles.buttonLabel}>View</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.actionButtonWrapper}
-            onPress={handleDeleteWorkout}
-            activeOpacity={0.7}
-          >
-            <LinearGradient
-              colors={['#DC2626', '#B91C1C']}
-              style={styles.circularButton}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            >
-              <Text style={styles.buttonIcon}>🗑️</Text>
-            </LinearGradient>
-            <Text style={styles.buttonLabel}>Delete</Text>
-          </TouchableOpacity>
-        </View>
-
         {/* Workout Card */}
         <TouchableOpacity
           style={styles.workoutCard}
@@ -225,15 +207,6 @@ export default function WorkoutDetailScreen({ navigation, route }) {
                 <Text style={styles.workoutTitle}>Start Workout</Text>
               </View>
               <View style={styles.workoutHeaderRight}>
-                <TouchableOpacity
-                  style={styles.editWorkoutButton}
-                  onPress={(e) => {
-                    e.stopPropagation();
-                    handleEditWorkout();
-                  }}
-                >
-                  <Text style={styles.editWorkoutIcon}>✏️</Text>
-                </TouchableOpacity>
                 <View style={styles.startIcon}>
                   <Text style={styles.startIconText}>▶</Text>
                 </View>

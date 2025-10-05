@@ -80,6 +80,22 @@ export default function WorkoutDayEditScreen({ navigation, route }) {
 
   const loadDayData = async () => {
     try {
+      // Check if a standalone workout was passed directly via route params
+      if (route.params?.standaloneWorkout) {
+        const workout = route.params.standaloneWorkout;
+        setDayIndex(0);
+        setDayData(workout.day); // Standalone workouts use 'day' property
+        setProgramData({
+          programName: workout.name,
+          programDescription: workout.description || '',
+          workoutDays: [workout.day], // Wrap in array for consistency
+          workoutId: workout.id
+        });
+        setIsStandaloneWorkout(true);
+        return;
+      }
+
+      // Otherwise, load from temp storage
       const tempState = await AsyncStorage.getItem(STORAGE_KEY);
       if (tempState) {
         const parsed = JSON.parse(tempState);
