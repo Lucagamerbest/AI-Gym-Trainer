@@ -1,11 +1,42 @@
-import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Animated } from 'react-native';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 
 const { width: screenWidth } = Dimensions.get('window');
 
 export default function CalendarView({ selectedDate, onDateSelect, mealData = {}, multiSelectMode = false, selectedDates = [], highlightedDates = [] }) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  // Pulse animation for today with planned workout
+  useEffect(() => {
+    const today = new Date();
+    const todayKey = today.toISOString().split('T')[0];
+    const todayHasPlannedWorkout = mealData[todayKey]?.planned &&
+      Object.values(mealData[todayKey].planned).some(meals => meals && meals.length > 0);
+
+    if (todayHasPlannedWorkout) {
+      // Create pulse animation
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.15,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    }
+
+    return () => {
+      pulseAnim.setValue(1);
+    };
+  }, [mealData]);
 
   // Get calendar grid data
   const calendarData = useMemo(() => {
@@ -101,6 +132,12 @@ export default function CalendarView({ selectedDate, onDateSelect, mealData = {}
     const hasPlannedMeals = dayMealData?.planned && Object.values(dayMealData.planned).some(meals => meals && meals.length > 0);
     const futureDate = isFutureDate(date);
     const highlighted = isHighlighted(date);
+    const isTodayDate = isToday(date);
+    const todayWithPlan = isTodayDate && hasPlannedMeals;
+
+    // Use Animated.View for today with planned workout
+    const CellWrapper = todayWithPlan ? Animated.View : View;
+    const animatedStyle = todayWithPlan ? { transform: [{ scale: pulseAnim }] } : {};
 
     return (
       <TouchableOpacity
@@ -108,32 +145,41 @@ export default function CalendarView({ selectedDate, onDateSelect, mealData = {}
         style={[
           styles.dayCell,
           !isCurrentMonth && styles.dayCellInactive,
-          isToday(date) && styles.dayCellToday,
-          isSelected(date) && styles.dayCellSelected,
-          highlighted && styles.dayCellHighlighted,
         ]}
         onPress={() => onDateSelect(date)}
         activeOpacity={0.7}
       >
-        <Text
+        <CellWrapper
           style={[
-            styles.dayText,
-            !isCurrentMonth && styles.dayTextInactive,
-            isToday(date) && styles.dayTextToday,
-            isSelected(date) && styles.dayTextSelected,
-            highlighted && styles.dayTextHighlighted,
+            styles.dayCellInner,
+            isTodayDate && styles.dayCellToday,
+            todayWithPlan && styles.dayCellTodayWithPlan,
+            isSelected(date) && styles.dayCellSelected,
+            highlighted && styles.dayCellHighlighted,
+            animatedStyle,
           ]}
         >
-          {date.getDate()}
-        </Text>
-        <View style={styles.indicators}>
-          {hasLoggedMeals && (
-            <View style={[styles.indicator, styles.indicatorLogged]} />
-          )}
-          {hasPlannedMeals && (
-            <View style={[styles.indicator, styles.indicatorPlanned]} />
-          )}
-        </View>
+          <Text
+            style={[
+              styles.dayText,
+              !isCurrentMonth && styles.dayTextInactive,
+              isTodayDate && styles.dayTextToday,
+              todayWithPlan && styles.dayTextTodayWithPlan,
+              isSelected(date) && styles.dayTextSelected,
+              highlighted && styles.dayTextHighlighted,
+            ]}
+          >
+            {date.getDate()}
+          </Text>
+          <View style={styles.indicators}>
+            {hasLoggedMeals && (
+              <View style={[styles.indicator, styles.indicatorLogged]} />
+            )}
+            {hasPlannedMeals && !todayWithPlan && (
+              <View style={[styles.indicator, styles.indicatorPlanned]} />
+            )}
+          </View>
+        </CellWrapper>
       </TouchableOpacity>
     );
   };
@@ -270,17 +316,31 @@ const styles = StyleSheet.create({
   dayCellInactive: {
     opacity: 0.3,
   },
+  dayCellInner: {
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: BorderRadius.sm,
+  },
   dayCellToday: {
     backgroundColor: Colors.primary + '20',
-    borderRadius: BorderRadius.sm,
+  },
+  dayCellTodayWithPlan: {
+    backgroundColor: '#FF9800',
+    borderWidth: 2,
+    borderColor: '#F57C00',
+    shadowColor: '#FF9800',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
+    elevation: 5,
   },
   dayCellSelected: {
     backgroundColor: Colors.primary,
-    borderRadius: BorderRadius.sm,
   },
   dayCellHighlighted: {
     backgroundColor: '#DC2626',
-    borderRadius: BorderRadius.sm,
     borderWidth: 2,
     borderColor: '#991B1B',
   },
@@ -295,6 +355,11 @@ const styles = StyleSheet.create({
   dayTextToday: {
     color: Colors.primary,
     fontWeight: '700',
+  },
+  dayTextTodayWithPlan: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: Typography.fontSize.lg,
   },
   dayTextSelected: {
     color: '#1a1a1a',
