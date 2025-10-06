@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, Alert, Image, FlatList } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ScreenLayout from '../components/ScreenLayout';
 import StyledCard from '../components/StyledCard';
@@ -12,6 +13,7 @@ import { useAuth } from '../context/AuthContext';
 
 export default function WorkoutHistoryScreen({ navigation }) {
   const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState('calendar'); // 'calendar' or 'history'
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [workoutHistory, setWorkoutHistory] = useState([]);
   const [plannedWorkouts, setPlannedWorkouts] = useState({});
@@ -23,6 +25,8 @@ export default function WorkoutHistoryScreen({ navigation }) {
   const [selectedFutureDates, setSelectedFutureDates] = useState([]);
   const [deleteMode, setDeleteMode] = useState(false);
   const [selectedDatesToDelete, setSelectedDatesToDelete] = useState([]);
+  const [filterDateRange, setFilterDateRange] = useState('all'); // 'week', 'month', '3months', 'all'
+  const [filterWorkoutType, setFilterWorkoutType] = useState('all'); // 'all', 'program', 'standalone', 'quick'
 
   // Load workout history on focus
   useFocusEffect(
@@ -31,6 +35,12 @@ export default function WorkoutHistoryScreen({ navigation }) {
       loadPlannedWorkouts();
     }, [])
   );
+
+  // Debug modal state
+  useEffect(() => {
+    console.log('🟢 showWorkoutModal changed:', showWorkoutModal);
+    console.log('🟢 selectedWorkout:', selectedWorkout?.id, selectedWorkout?.workoutTitle);
+  }, [showWorkoutModal, selectedWorkout]);
 
   const loadWorkoutHistory = async () => {
     try {
@@ -48,7 +58,10 @@ export default function WorkoutHistoryScreen({ navigation }) {
       const userId = user?.email || 'guest';
       const plannedData = await WorkoutStorageService.getPlannedWorkouts(userId);
       setPlannedWorkouts(plannedData);
-      updateMarkedDates(workoutHistory, plannedData);
+
+      // Load history to ensure we have both
+      const history = await WorkoutStorageService.getWorkoutHistory(userId);
+      updateMarkedDates(history, plannedData);
     } catch (error) {
       console.error('Error loading planned workouts:', error);
     }
@@ -58,6 +71,7 @@ export default function WorkoutHistoryScreen({ navigation }) {
     const marked = {};
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const todayKey = today.toISOString().split('T')[0];
 
     // Convert completed workouts to CalendarView format
     history.forEach(workout => {
@@ -69,7 +83,9 @@ export default function WorkoutHistoryScreen({ navigation }) {
 
     // Convert planned workouts to CalendarView format - only if not already completed
     Object.keys(planned).forEach(dateKey => {
-      const plannedDate = new Date(dateKey);
+      // Parse date correctly to avoid timezone issues
+      const [year, month, day] = dateKey.split('-').map(Number);
+      const plannedDate = new Date(year, month - 1, day);
       plannedDate.setHours(0, 0, 0, 0);
 
       // Only mark as planned (orange) if:
@@ -357,6 +373,129 @@ export default function WorkoutHistoryScreen({ navigation }) {
     }
   };
 
+  // Filter workouts based on date range and type
+  const getFilteredWorkouts = () => {
+    let filtered = [...workoutHistory];
+
+    // Sort by date (newest first)
+    filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    // Filter by date range
+    if (filterDateRange !== 'all') {
+      const now = new Date();
+      const cutoffDate = new Date();
+
+      switch (filterDateRange) {
+        case 'week':
+          cutoffDate.setDate(now.getDate() - 7);
+          break;
+        case 'month':
+          cutoffDate.setDate(now.getDate() - 30);
+          break;
+        case '3months':
+          cutoffDate.setDate(now.getDate() - 90);
+          break;
+      }
+
+      filtered = filtered.filter(w => new Date(w.date) >= cutoffDate);
+    }
+
+    // Filter by workout type
+    if (filterWorkoutType !== 'all') {
+      filtered = filtered.filter(w => w.workoutType === filterWorkoutType);
+    }
+
+    return filtered;
+  };
+
+  const handleDeleteWorkout = (workoutId) => {
+    Alert.alert(
+      'Delete Workout',
+      'Are you sure you want to delete this workout? This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const userId = user?.email || 'guest';
+              const updatedHistory = workoutHistory.filter(w => w.id !== workoutId);
+              await AsyncStorage.setItem(`workout_history_${userId}`, JSON.stringify(updatedHistory));
+              setWorkoutHistory(updatedHistory);
+              setShowWorkoutModal(false);
+              Alert.alert('Success', 'Workout deleted successfully');
+            } catch (error) {
+              console.error('Error deleting workout:', error);
+              Alert.alert('Error', 'Failed to delete workout');
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const handleRepeatWorkout = (workout) => {
+    Alert.alert(
+      'Repeat Workout',
+      'Schedule this workout for today?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Schedule',
+          onPress: () => {
+            // Navigate to plan workout screen with this workout
+            navigation.navigate('PlanWorkout', {
+              selectedDate: new Date().toISOString().split('T')[0],
+              repeatWorkout: workout
+            });
+            setShowWorkoutModal(false);
+          }
+        }
+      ]
+    );
+  };
+
+  const renderWorkoutCard = ({ item: workout }) => {
+    const stats = calculateWorkoutStats(workout);
+    const firstPhoto = workout.photos && workout.photos.length > 0 ? workout.photos[0] : null;
+    const workoutTypeIcon = workout.workoutType === 'program' ? '📋' : workout.workoutType === 'standalone' ? '💪' : '⚡';
+
+    return (
+      <TouchableOpacity
+        key={workout.id}
+        style={styles.workoutCard}
+        onPress={() => {
+          console.log('🔵 Workout card pressed:', workout.id, workout.workoutTitle);
+          setSelectedWorkout(workout);
+          setShowWorkoutModal(true);
+          console.log('🔵 Modal should open now');
+        }}
+        activeOpacity={0.7}
+      >
+        <View style={styles.workoutCardContent}>
+          {firstPhoto && (
+            <Image
+              source={{ uri: `data:image/jpeg;base64,${firstPhoto}` }}
+              style={styles.workoutCardThumbnail}
+            />
+          )}
+          <View style={styles.workoutCardInfo}>
+            <Text style={styles.workoutCardTitle}>
+              {workoutTypeIcon} {workout.workoutTitle || 'Quick Workout'}
+            </Text>
+            <Text style={styles.workoutCardDate}>{formatDate(workout.date)}</Text>
+            <View style={styles.workoutCardStats}>
+              <Text style={styles.workoutCardStat}>⏱️ {workout.duration}</Text>
+              <Text style={styles.workoutCardStat}>💪 {workout.exercises.length} exercises</Text>
+              <Text style={styles.workoutCardStat}>📊 {Math.round(stats.totalVolume)} lbs</Text>
+            </View>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
   return (
     <ScreenLayout
       title="Workout History"
@@ -364,10 +503,34 @@ export default function WorkoutHistoryScreen({ navigation }) {
       navigation={navigation}
       showBack={true}
       showHome={true}
+      scrollable={true}
     >
       <View style={styles.container}>
-        {/* Delete Mode Banner */}
-        {deleteMode && (
+        {/* Tab Navigation */}
+        <View style={styles.tabContainer}>
+          <TouchableOpacity
+            style={[styles.tab, activeTab === 'calendar' && styles.tabActive]}
+            onPress={() => setActiveTab('calendar')}
+          >
+            <Text style={[styles.tabText, activeTab === 'calendar' && styles.tabTextActive]}>
+              📅 Calendar
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tab, activeTab === 'history' && styles.tabActive]}
+            onPress={() => setActiveTab('history')}
+          >
+            <Text style={[styles.tabText, activeTab === 'history' && styles.tabTextActive]}>
+              📜 History
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Calendar View */}
+        {activeTab === 'calendar' && (
+          <>
+            {/* Delete Mode Banner */}
+            {deleteMode && (
           <StyledCard variant="elevated" style={styles.deleteBanner}>
             <Text style={styles.deleteBannerText}>
               🗑️ Delete Mode: Tap planned workouts to select ({selectedDatesToDelete.length} selected)
@@ -476,6 +639,59 @@ export default function WorkoutHistoryScreen({ navigation }) {
             </View>
           </StyledCard>
         )}
+          </>
+        )}
+
+        {/* History List View */}
+        {activeTab === 'history' && (
+          <View style={styles.historyContainer}>
+            {/* Filters */}
+            <View style={styles.filtersContainer}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filtersScroll}>
+                {/* Date Range Filters */}
+                {['all', 'week', 'month', '3months'].map(range => (
+                  <TouchableOpacity
+                    key={range}
+                    style={[styles.filterChip, filterDateRange === range && styles.filterChipActive]}
+                    onPress={() => setFilterDateRange(range)}
+                  >
+                    <Text style={[styles.filterChipText, filterDateRange === range && styles.filterChipTextActive]}>
+                      {range === 'all' ? 'All Time' : range === 'week' ? 'Last 7 Days' : range === 'month' ? 'Last 30 Days' : 'Last 90 Days'}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+
+                {/* Workout Type Filters */}
+                {['all', 'program', 'standalone', 'quick'].map(type => (
+                  <TouchableOpacity
+                    key={type}
+                    style={[styles.filterChip, filterWorkoutType === type && styles.filterChipActive]}
+                    onPress={() => setFilterWorkoutType(type)}
+                  >
+                    <Text style={[styles.filterChipText, filterWorkoutType === type && styles.filterChipTextActive]}>
+                      {type === 'all' ? '🏋️ All' : type === 'program' ? '📋 Programs' : type === 'standalone' ? '💪 Standalone' : '⚡ Quick'}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+
+            {/* Workout List */}
+            {getFilteredWorkouts().length === 0 ? (
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyStateIcon}>🏋️</Text>
+                <Text style={styles.emptyStateTitle}>No Workouts Yet</Text>
+                <Text style={styles.emptyStateText}>
+                  Start your first workout to see it here!
+                </Text>
+              </View>
+            ) : (
+              <View style={styles.workoutList}>
+                {getFilteredWorkouts().map((workout) => renderWorkoutCard({ item: workout }))}
+              </View>
+            )}
+          </View>
+        )}
       </View>
 
       {/* Workout Details Modal */}
@@ -483,11 +699,47 @@ export default function WorkoutHistoryScreen({ navigation }) {
         visible={showWorkoutModal}
         transparent={true}
         animationType="slide"
-        onRequestClose={() => setShowWorkoutModal(false)}
+        onRequestClose={() => {
+          console.log('🔴 Modal onRequestClose called');
+          setShowWorkoutModal(false);
+        }}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <ScrollView>
+            {/* Close Button */}
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => {
+                console.log('🔴 X button pressed - closing modal');
+                setShowWorkoutModal(false);
+              }}
+            >
+              <Text style={styles.modalCloseButtonText}>✕</Text>
+            </TouchableOpacity>
+
+            {/* Sticky Header */}
+            {selectedWorkout && (
+              <View style={styles.modalHeader}>
+                {selectedWorkout.photos && selectedWorkout.photos.length > 0 && (
+                  <Image
+                    source={{ uri: `data:image/jpeg;base64,${selectedWorkout.photos[0]}` }}
+                    style={styles.modalHeaderPhoto}
+                  />
+                )}
+                <View style={styles.modalHeaderText}>
+                  <Text style={styles.modalHeaderTitle} numberOfLines={1}>
+                    {selectedWorkout.workoutTitle || 'Workout Details'}
+                  </Text>
+                  <Text style={styles.modalHeaderDate}>{formatDate(selectedWorkout.date || selectedWorkout.dateKey)}</Text>
+                </View>
+              </View>
+            )}
+
+            <ScrollView
+              showsVerticalScrollIndicator={true}
+              nestedScrollEnabled={true}
+              contentContainerStyle={styles.modalScrollContent}
+            >
               {!selectedWorkout ? (
                 <>
                   <Text style={styles.modalTitle}>No Workout Logged</Text>
@@ -503,8 +755,14 @@ export default function WorkoutHistoryScreen({ navigation }) {
                 </>
               ) : (
                 <>
-                  <Text style={styles.modalTitle}>Workout Details</Text>
-                  <Text style={styles.modalDate}>{formatDate(selectedWorkout.date || selectedWorkout.dateKey)}</Text>
+
+                  {/* Notes */}
+                  {selectedWorkout.notes && (
+                    <View style={styles.modalNotes}>
+                      <Text style={styles.modalNotesLabel}>📝 Notes</Text>
+                      <Text style={styles.modalNotesText}>{selectedWorkout.notes}</Text>
+                    </View>
+                  )}
 
                   {/* Workout Stats */}
                   <View style={styles.modalStats}>
@@ -561,16 +819,40 @@ export default function WorkoutHistoryScreen({ navigation }) {
                     }}
                     style={styles.repeatButton}
                   />
+
+                  {/* Action Buttons */}
+                  <View style={styles.modalActions}>
+                    <TouchableOpacity
+                      style={styles.modalActionButton}
+                      activeOpacity={0.8}
+                      onPress={() => handleRepeatWorkout(selectedWorkout)}
+                    >
+                      <LinearGradient
+                        colors={[Colors.primary, '#059669']}
+                        style={styles.modalActionGradient}
+                      >
+                        <Text style={styles.modalActionIcon}>🔄</Text>
+                        <Text style={styles.modalActionText}>Repeat</Text>
+                      </LinearGradient>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={styles.modalActionButton}
+                      activeOpacity={0.8}
+                      onPress={() => handleDeleteWorkout(selectedWorkout.id)}
+                    >
+                      <LinearGradient
+                        colors={['#DC2626', '#991B1B']}
+                        style={styles.modalActionGradient}
+                      >
+                        <Text style={styles.modalActionIcon}>🗑️</Text>
+                        <Text style={styles.modalActionText}>Delete</Text>
+                      </LinearGradient>
+                    </TouchableOpacity>
+                  </View>
                 </>
               )}
             </ScrollView>
-
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => setShowWorkoutModal(false)}
-            >
-              <Text style={styles.closeButtonText}>Close</Text>
-            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -657,6 +939,184 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  scrollContent: {
+    flex: 1,
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    padding: 4,
+    marginBottom: Spacing.md,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+  },
+  tabActive: {
+    backgroundColor: Colors.primary,
+  },
+  tabText: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+  },
+  tabTextActive: {
+    color: '#FFFFFF',
+  },
+  historyContainer: {
+    flex: 1,
+  },
+  filtersContainer: {
+    marginBottom: Spacing.md,
+  },
+  filtersScroll: {
+    flexGrow: 0,
+  },
+  filterChip: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.full,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    marginRight: Spacing.sm,
+  },
+  filterChipActive: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  filterChipText: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+    fontWeight: '600',
+  },
+  filterChipTextActive: {
+    color: '#FFFFFF',
+  },
+  workoutList: {
+    paddingBottom: Spacing.xl,
+  },
+  workoutCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    marginBottom: Spacing.md,
+    overflow: 'hidden',
+  },
+  workoutCardContent: {
+    flexDirection: 'row',
+    padding: Spacing.md,
+  },
+  workoutCardThumbnail: {
+    width: 80,
+    height: 80,
+    borderRadius: BorderRadius.md,
+    marginRight: Spacing.md,
+    backgroundColor: Colors.border,
+  },
+  workoutCardInfo: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  workoutCardTitle: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: 'bold',
+    color: Colors.text,
+    marginBottom: Spacing.xs,
+  },
+  workoutCardDate: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.xs,
+  },
+  workoutCardStats: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+  },
+  workoutCardStat: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textMuted,
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.xxl * 2,
+  },
+  emptyStateIcon: {
+    fontSize: 64,
+    marginBottom: Spacing.md,
+  },
+  emptyStateTitle: {
+    fontSize: Typography.fontSize.xl,
+    fontWeight: 'bold',
+    color: Colors.text,
+    marginBottom: Spacing.sm,
+  },
+  emptyStateText: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    paddingHorizontal: Spacing.xl,
+  },
+  modalPhotos: {
+    marginVertical: Spacing.md,
+  },
+  modalPhoto: {
+    width: 200,
+    height: 200,
+    borderRadius: BorderRadius.md,
+    marginRight: Spacing.md,
+    backgroundColor: Colors.border,
+  },
+  modalNotes: {
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    marginVertical: Spacing.md,
+  },
+  modalNotesLabel: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+    marginBottom: Spacing.xs,
+  },
+  modalNotesText: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.text,
+    lineHeight: 22,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+    marginTop: Spacing.md,
+    marginBottom: Spacing.sm,
+  },
+  modalActionButton: {
+    flex: 1,
+    borderRadius: BorderRadius.lg,
+    overflow: 'hidden',
+  },
+  modalActionGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: Spacing.md,
+    gap: Spacing.xs,
+  },
+  modalActionIcon: {
+    fontSize: 20,
+  },
+  modalActionText: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
   calendarCard: {
     marginBottom: Spacing.md,
     padding: Spacing.md,
@@ -732,8 +1192,60 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderTopLeftRadius: BorderRadius.xl,
     borderTopRightRadius: BorderRadius.xl,
+    position: 'relative',
+    maxHeight: '85%',
+    width: '100%',
+  },
+  modalScrollContent: {
     padding: Spacing.xl,
-    maxHeight: '80%',
+    paddingTop: Spacing.md,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.md,
+    paddingTop: Spacing.xl,
+    paddingRight: 50, // Space for X button
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    backgroundColor: Colors.surface,
+  },
+  modalHeaderPhoto: {
+    width: 50,
+    height: 50,
+    borderRadius: BorderRadius.md,
+    marginRight: Spacing.md,
+    backgroundColor: Colors.border,
+  },
+  modalHeaderText: {
+    flex: 1,
+  },
+  modalHeaderTitle: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: 'bold',
+    color: Colors.text,
+    marginBottom: 2,
+  },
+  modalHeaderDate: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textSecondary,
+  },
+  modalCloseButton: {
+    position: 'absolute',
+    top: Spacing.md,
+    right: Spacing.md,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
+  },
+  modalCloseButtonText: {
+    fontSize: 24,
+    color: Colors.text,
+    fontWeight: 'bold',
   },
   modalTitle: {
     fontSize: Typography.fontSize.xxl,

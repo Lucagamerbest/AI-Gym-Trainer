@@ -52,6 +52,7 @@ import PlanWorkoutScreen from './src/screens/PlanWorkoutScreen';
 import MyPlansScreen from './src/screens/MyPlansScreen';
 import WorkoutDetailScreen from './src/screens/WorkoutDetailScreen';
 import PlannedWorkoutDetailScreen from './src/screens/PlannedWorkoutDetailScreen';
+import WorkoutFinalizationScreen from './src/screens/WorkoutFinalizationScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -157,6 +158,7 @@ function AppNavigator() {
             <Stack.Screen name="ExerciseList" component={ExerciseListScreen} />
             <Stack.Screen name="ExerciseDetail" component={ExerciseDetailScreen} />
             <Stack.Screen name="Workout" component={WorkoutScreen} />
+            <Stack.Screen name="WorkoutFinalization" component={WorkoutFinalizationScreen} />
             <Stack.Screen name="WorkoutSummary" component={WorkoutSummaryScreen} />
             <Stack.Screen name="AIAssistant" component={AIAssistantScreen} />
             <Stack.Screen name="Training" component={TrainingScreen} />

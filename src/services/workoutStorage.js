@@ -18,6 +18,10 @@ export class WorkoutStorageService {
         startTime: workoutData.startTime,
         endTime: workoutData.endTime,
         duration: workoutData.duration,
+        workoutTitle: workoutData.workoutTitle || 'Quick Workout',
+        workoutType: workoutData.workoutType || 'quick', // 'program', 'standalone', 'quick'
+        notes: workoutData.notes || '',
+        photos: workoutData.photos || [], // Array of base64 strings
         exercises: workoutData.exercises.map((exercise, index) => ({
           ...exercise,
           sets: exerciseSets[index] || [],

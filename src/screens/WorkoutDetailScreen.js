@@ -36,27 +36,18 @@ export default function WorkoutDetailScreen({ navigation, route }) {
       return;
     }
 
-    console.log('=== WORKOUT DETAIL: Starting Workout ===');
-    console.log('Raw workout exercises:', JSON.stringify(day.exercises, null, 2));
-
     // Format exercises to match the workout screen's expected format
-    const formattedExercises = day.exercises.map(exercise => {
-      console.log(`\nExercise: ${exercise.name}`);
-      console.log('Exercise sets:', JSON.stringify(exercise.sets, null, 2));
-      return {
-        ...exercise,
-        name: exercise.name,
-        targetMuscle: exercise.targetMuscle || '',
-        equipment: exercise.equipment || 'Not specified',
-        difficulty: exercise.difficulty || 'Intermediate',
-        programSets: exercise.sets,
-      };
-    });
+    const formattedExercises = day.exercises.map(exercise => ({
+      ...exercise,
+      name: exercise.name,
+      targetMuscle: exercise.targetMuscle || '',
+      equipment: exercise.equipment || 'Not specified',
+      difficulty: exercise.difficulty || 'Intermediate',
+      programSets: exercise.sets,
+    }));
 
     // Initialize the exercise sets
     const initializedSets = initializeExerciseSets(day.exercises);
-    console.log('\n=== Initialized Sets ===');
-    console.log(JSON.stringify(initializedSets, null, 2));
 
     // Start workout
     startWorkout({
@@ -78,9 +69,6 @@ export default function WorkoutDetailScreen({ navigation, route }) {
   const initializeExerciseSets = (exercises) => {
     const sets = {};
     exercises.forEach((exercise, index) => {
-      console.log(`\nInitializing sets for exercise ${index}: ${exercise.name}`);
-      console.log('Exercise.sets:', JSON.stringify(exercise.sets, null, 2));
-
       if (exercise.sets && exercise.sets.length > 0) {
         sets[index] = exercise.sets.map((set, setIndex) => {
           const initializedSet = {
@@ -92,7 +80,6 @@ export default function WorkoutDetailScreen({ navigation, route }) {
             programReps: set.reps || '10',
             rpe: set.rpe || '',
           };
-          console.log(`  Set ${setIndex}:`, JSON.stringify(initializedSet, null, 2));
           return initializedSet;
         });
       } else {

@@ -627,27 +627,18 @@ export default function WorkoutScreen({ navigation, route }) {
       endTime: new Date().toISOString(),
       totalVolume: totalVolume,
       totalSets: totalSets,
-      volumePerExercise: calculateVolumePerExercise()
+      volumePerExercise: calculateVolumePerExercise(),
+      programName: activeWorkout?.programName || null,
+      dayName: activeWorkout?.dayName || null,
+      workoutName: activeWorkout?.workoutName || null,
     };
-
-    // Save workout data with exercise sets
-    const userId = user?.email || 'guest';
-    const saveResult = await WorkoutStorageService.saveWorkout(workoutData, exerciseSets, userId);
-
-    if (!saveResult.success) {
-      Alert.alert('Error', 'Failed to save workout data. Continuing anyway.');
-    }
-
-    // Clear workout from global context
-    finishWorkout();
 
     setShowFinishConfirmation(false);
 
-    // Navigate with replace to prevent going back to workout
-    navigation.replace('WorkoutSummary', {
+    // Navigate to finalization screen first (no saving yet)
+    navigation.replace('WorkoutFinalization', {
       workoutData,
-      exerciseSets,
-      saveResult
+      exerciseSets
     });
   };
 

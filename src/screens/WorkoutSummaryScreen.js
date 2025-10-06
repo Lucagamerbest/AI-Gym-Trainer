@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView as RNScrollView } from 'react-native';
 import ScreenLayout from '../components/ScreenLayout';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -12,7 +12,11 @@ export default function WorkoutSummaryScreen({ navigation, route }) {
     exercisesCompleted = 0,
     exercises = [],
     startTime,
-    endTime
+    endTime,
+    workoutTitle = 'Quick Workout',
+    workoutType = 'quick',
+    notes = '',
+    photos = []
   } = workoutData || {};
 
   // Calculate summary stats from exercise sets
@@ -53,15 +57,47 @@ export default function WorkoutSummaryScreen({ navigation, route }) {
     });
   };
 
+  const getWorkoutTypeEmoji = () => {
+    switch (workoutType) {
+      case 'program': return '📋';
+      case 'standalone': return '💪';
+      case 'quick': return '⚡';
+      default: return '🏋️';
+    }
+  };
+
   return (
     <ScreenLayout
       title="Workout Complete! 🎉"
-      subtitle="Great job on your workout!"
+      subtitle={workoutTitle}
       navigation={navigation}
       showBack={false}
       showHome={false}
       scrollable={true}
     >
+      {/* Workout Title & Photos */}
+      {(photos.length > 0 || notes) && (
+        <View style={styles.mediaSection}>
+          {photos.length > 0 && (
+            <RNScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.photoScroll}>
+              {photos.map((photo, index) => (
+                <Image
+                  key={index}
+                  source={{ uri: `data:image/jpeg;base64,${photo}` }}
+                  style={styles.summaryPhoto}
+                />
+              ))}
+            </RNScrollView>
+          )}
+          {notes && (
+            <View style={styles.notesCard}>
+              <Text style={styles.notesLabel}>📝 Notes</Text>
+              <Text style={styles.notesText}>{notes}</Text>
+            </View>
+          )}
+        </View>
+      )}
+
       {/* Summary Card */}
       <View style={styles.summaryCard}>
         <LinearGradient
@@ -216,6 +252,37 @@ export default function WorkoutSummaryScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
+  mediaSection: {
+    marginBottom: Spacing.lg,
+  },
+  photoScroll: {
+    marginBottom: Spacing.md,
+  },
+  summaryPhoto: {
+    width: 200,
+    height: 200,
+    borderRadius: BorderRadius.md,
+    marginRight: Spacing.md,
+    backgroundColor: Colors.border,
+  },
+  notesCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: Spacing.md,
+  },
+  notesLabel: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+    marginBottom: Spacing.xs,
+  },
+  notesText: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.text,
+    lineHeight: 22,
+  },
   summaryCard: {
     marginBottom: Spacing.lg,
     borderRadius: BorderRadius.lg,
