@@ -146,9 +146,57 @@ export default function PlannedWorkoutDetailScreen({ navigation, route }) {
   };
 
   const handleStartWorkout = () => {
-    // Start the workout with the planned exercises
-    startWorkout(plannedWorkout.exercises);
-    navigation.navigate('ActiveWorkout');
+    if (!plannedWorkout.exercises || plannedWorkout.exercises.length === 0) {
+      Alert.alert('No Exercises', 'This workout has no exercises configured.');
+      return;
+    }
+
+    // Format exercises to match the workout screen's expected format
+    const formattedExercises = plannedWorkout.exercises.map(exercise => ({
+      ...exercise,
+      name: exercise.name,
+      targetMuscle: exercise.targetMuscle || exercise.primaryMuscle || '',
+      equipment: exercise.equipment || 'Not specified',
+      difficulty: exercise.difficulty || 'Intermediate',
+      programSets: exercise.sets,
+    }));
+
+    // Initialize the exercise sets
+    const initializedSets = {};
+    plannedWorkout.exercises.forEach((exercise, index) => {
+      if (exercise.sets && exercise.sets.length > 0) {
+        initializedSets[index] = exercise.sets.map(set => ({
+          ...set,
+          completed: false,
+        }));
+      } else {
+        // Default sets if none are defined
+        initializedSets[index] = [
+          { reps: '10', weight: '', completed: false },
+          { reps: '10', weight: '', completed: false },
+          { reps: '10', weight: '', completed: false },
+        ];
+      }
+    });
+
+    // Start workout with the planned exercises
+    startWorkout({
+      exercises: formattedExercises,
+      startTime: new Date().toISOString(),
+      exerciseSets: initializedSets,
+      currentExerciseIndex: 0,
+      fromProgram: plannedWorkout.type === 'program',
+      programName: plannedWorkout.programName || null,
+      dayName: plannedWorkout.dayName || getWorkoutName(),
+    });
+
+    // Navigate directly to workout screen
+    navigation.navigate('Workout', {
+      fromProgram: plannedWorkout.type === 'program',
+      programExercises: formattedExercises,
+      programName: plannedWorkout.programName || null,
+      dayName: plannedWorkout.dayName || getWorkoutName(),
+    });
   };
 
   return (
