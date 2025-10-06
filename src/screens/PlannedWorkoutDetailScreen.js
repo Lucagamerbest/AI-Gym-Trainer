@@ -8,9 +8,11 @@ import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { LinearGradient } from 'expo-linear-gradient';
 import { WorkoutStorageService } from '../services/workoutStorage';
 import { useAuth } from '../context/AuthContext';
+import { useWorkout } from '../context/WorkoutContext';
 
 export default function PlannedWorkoutDetailScreen({ navigation, route }) {
   const { user } = useAuth();
+  const { startWorkout } = useWorkout();
   const { plannedWorkout, selectedDate } = route.params || {};
 
   const formatDate = (dateString) => {
@@ -143,6 +145,12 @@ export default function PlannedWorkoutDetailScreen({ navigation, route }) {
     return '';
   };
 
+  const handleStartWorkout = () => {
+    // Start the workout with the planned exercises
+    startWorkout(plannedWorkout.exercises);
+    navigation.navigate('ActiveWorkout');
+  };
+
   return (
     <ScreenLayout
       title="Planned Workout"
@@ -164,6 +172,29 @@ export default function PlannedWorkoutDetailScreen({ navigation, route }) {
             <Text style={styles.workoutSubtitle}>{getWorkoutSubtitle()}</Text>
           )}
         </StyledCard>
+
+        {/* Start Workout Button */}
+        <TouchableOpacity
+          style={styles.startWorkoutButton}
+          onPress={handleStartWorkout}
+          activeOpacity={0.9}
+        >
+          <LinearGradient
+            colors={[Colors.primary, '#059669']}
+            style={styles.startWorkoutGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
+            <Text style={styles.startWorkoutIcon}>🏋️</Text>
+            <View style={styles.startWorkoutTextContainer}>
+              <Text style={styles.startWorkoutText}>Start Workout</Text>
+              <Text style={styles.startWorkoutSubtext}>
+                {plannedWorkout.exercises?.length || 0} exercises ready
+              </Text>
+            </View>
+            <Text style={styles.startWorkoutArrow}>→</Text>
+          </LinearGradient>
+        </TouchableOpacity>
 
         {/* Exercises List */}
         {plannedWorkout.exercises && plannedWorkout.exercises.length > 0 && (
@@ -278,6 +309,39 @@ const styles = StyleSheet.create({
   workoutSubtitle: {
     fontSize: Typography.fontSize.md,
     color: Colors.textSecondary,
+  },
+  startWorkoutButton: {
+    borderRadius: BorderRadius.lg,
+    overflow: 'hidden',
+    marginBottom: Spacing.lg,
+  },
+  startWorkoutGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.lg,
+  },
+  startWorkoutIcon: {
+    fontSize: 32,
+    marginRight: Spacing.md,
+  },
+  startWorkoutTextContainer: {
+    flex: 1,
+  },
+  startWorkoutText: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 2,
+  },
+  startWorkoutSubtext: {
+    fontSize: Typography.fontSize.sm,
+    color: '#FFFFFF',
+    opacity: 0.9,
+  },
+  startWorkoutArrow: {
+    fontSize: 28,
+    color: '#FFFFFF',
+    fontWeight: 'bold',
   },
   section: {
     marginBottom: Spacing.lg,
