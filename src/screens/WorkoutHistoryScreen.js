@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ScreenLayout from '../components/ScreenLayout';
@@ -21,6 +21,8 @@ export default function WorkoutHistoryScreen({ navigation }) {
   const [showCopyModal, setShowCopyModal] = useState(false);
   const [copySourceWorkout, setCopySourceWorkout] = useState(null);
   const [selectedFutureDates, setSelectedFutureDates] = useState([]);
+  const [deleteMode, setDeleteMode] = useState(false);
+  const [selectedDatesToDelete, setSelectedDatesToDelete] = useState([]);
 
   // Load workout history on focus
   useFocusEffect(
@@ -84,6 +86,18 @@ export default function WorkoutHistoryScreen({ navigation }) {
   };
 
   const handleDatePress = (date) => {
+    const dateKey = date.toISOString().split('T')[0];
+
+    // If in delete mode, toggle selection
+    if (deleteMode) {
+      const plannedWorkout = plannedWorkouts[dateKey];
+      if (plannedWorkout) {
+        toggleDeleteSelection(dateKey);
+      }
+      return;
+    }
+
+    // Normal date press behavior
     // Date comes as a Date object from CalendarView
     setSelectedDate(date);
 
@@ -91,8 +105,6 @@ export default function WorkoutHistoryScreen({ navigation }) {
     const clickedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     const today = new Date();
     const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-
-    const dateKey = date.toISOString().split('T')[0];
 
     const workout = workoutHistory.find(w =>
       new Date(w.date).toISOString().split('T')[0] === dateKey
@@ -122,6 +134,57 @@ export default function WorkoutHistoryScreen({ navigation }) {
       setSelectedWorkout(null);
       setShowWorkoutModal(true);
     }
+  };
+
+  const toggleDeleteSelection = (dateKey) => {
+    if (selectedDatesToDelete.includes(dateKey)) {
+      setSelectedDatesToDelete(selectedDatesToDelete.filter(d => d !== dateKey));
+    } else {
+      setSelectedDatesToDelete([...selectedDatesToDelete, dateKey]);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedDatesToDelete.length === 0) {
+      Alert.alert('Error', 'Please select at least one planned workout to delete');
+      return;
+    }
+
+    const count = selectedDatesToDelete.length;
+
+    Alert.alert(
+      `Delete ${count} Planned Workout${count > 1 ? 's' : ''}?`,
+      'This will permanently delete the selected planned workouts.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const userId = user?.email || 'guest';
+
+              // Delete each selected planned workout
+              for (const dateKey of selectedDatesToDelete) {
+                await WorkoutStorageService.deletePlannedWorkout(dateKey, userId);
+              }
+
+              // Reload data
+              await loadPlannedWorkouts();
+
+              // Reset delete mode
+              setDeleteMode(false);
+              setSelectedDatesToDelete([]);
+
+              Alert.alert('Success', `Successfully deleted ${count} planned workout${count > 1 ? 's' : ''}!`);
+            } catch (error) {
+              console.error('Error deleting planned workouts:', error);
+              Alert.alert('Error', 'Failed to delete some planned workouts');
+            }
+          }
+        }
+      ]
+    );
   };
 
   const calculateWorkoutStats = (workout) => {
@@ -303,12 +366,22 @@ export default function WorkoutHistoryScreen({ navigation }) {
       showHome={true}
     >
       <View style={styles.container}>
+        {/* Delete Mode Banner */}
+        {deleteMode && (
+          <StyledCard variant="elevated" style={styles.deleteBanner}>
+            <Text style={styles.deleteBannerText}>
+              🗑️ Delete Mode: Tap planned workouts to select ({selectedDatesToDelete.length} selected)
+            </Text>
+          </StyledCard>
+        )}
+
         {/* Calendar */}
         <StyledCard variant="elevated" style={styles.calendarCard}>
           <CalendarView
             selectedDate={selectedDate}
             onDateSelect={handleDatePress}
             mealData={markedDates}
+            highlightedDates={deleteMode ? selectedDatesToDelete : []}
           />
         </StyledCard>
 
@@ -325,6 +398,41 @@ export default function WorkoutHistoryScreen({ navigation }) {
               <Text style={styles.legendText}>Planned</Text>
             </View>
           </View>
+        </StyledCard>
+
+        {/* Delete Planned Workouts Button */}
+        <StyledCard variant="elevated" style={styles.actionCard}>
+          {!deleteMode ? (
+            <StyledButton
+              title="🗑️ Delete Planned Workouts"
+              variant="secondary"
+              onPress={() => setDeleteMode(true)}
+            />
+          ) : (
+            <View style={styles.deleteActions}>
+              <TouchableOpacity
+                style={styles.deleteCancelButton}
+                onPress={() => {
+                  setDeleteMode(false);
+                  setSelectedDatesToDelete([]);
+                }}
+              >
+                <Text style={styles.deleteCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.deleteConfirmButton,
+                  selectedDatesToDelete.length === 0 && styles.deleteConfirmButtonDisabled
+                ]}
+                onPress={handleBulkDelete}
+                disabled={selectedDatesToDelete.length === 0}
+              >
+                <Text style={styles.deleteConfirmText}>
+                  Delete {selectedDatesToDelete.length > 0 ? `(${selectedDatesToDelete.length})` : ''}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </StyledCard>
 
         {/* Test Button */}
@@ -776,6 +884,56 @@ const styles = StyleSheet.create({
   },
   testCard: {
     marginBottom: Spacing.md,
+  },
+  actionCard: {
+    marginBottom: Spacing.md,
+  },
+  deleteBanner: {
+    marginBottom: Spacing.md,
+    padding: Spacing.md,
+    backgroundColor: '#DC2626' + '20',
+    borderWidth: 1,
+    borderColor: '#DC2626',
+  },
+  deleteBannerText: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
+    color: '#DC2626',
+    textAlign: 'center',
+  },
+  deleteActions: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+  },
+  deleteCancelButton: {
+    flex: 1,
+    padding: Spacing.md,
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+  },
+  deleteCancelText: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  deleteConfirmButton: {
+    flex: 1,
+    padding: Spacing.md,
+    backgroundColor: '#DC2626',
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+  },
+  deleteConfirmButtonDisabled: {
+    backgroundColor: Colors.border,
+    opacity: 0.5,
+  },
+  deleteConfirmText: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
   },
   emptyWorkoutContainer: {
     alignItems: 'center',

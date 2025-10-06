@@ -296,4 +296,133 @@ export class WorkoutStorageService {
       return { success: false, error: error.message };
     }
   }
+
+  // ============ PROGRAM SCHEDULE MANAGEMENT ============
+
+  // Shift all future program workouts forward by one day
+  static async shiftProgramScheduleForward(programId, startDate, userId = 'guest') {
+    try {
+      const plannedWorkouts = await this.getPlannedWorkouts(userId);
+      const startDateObj = new Date(startDate);
+
+      // Find all planned workouts for this program starting from startDate
+      const programWorkouts = [];
+      Object.entries(plannedWorkouts).forEach(([dateKey, workout]) => {
+        const workoutDate = new Date(dateKey);
+        if (workout.type === 'program' &&
+            workout.programId === programId &&
+            workoutDate >= startDateObj) {
+          programWorkouts.push({ dateKey, workout, date: workoutDate });
+        }
+      });
+
+      // Sort by date
+      programWorkouts.sort((a, b) => a.date - b.date);
+
+      // Remove old entries
+      programWorkouts.forEach(({ dateKey }) => {
+        delete plannedWorkouts[dateKey];
+      });
+
+      // Re-add workouts shifted by one day
+      programWorkouts.forEach(({ workout }) => {
+        const oldDate = new Date(workout.dateKey);
+        const newDate = new Date(oldDate);
+        newDate.setDate(newDate.getDate() + 1);
+        const newDateKey = newDate.toISOString().split('T')[0];
+
+        plannedWorkouts[newDateKey] = {
+          ...workout,
+          dateKey: newDateKey,
+          shiftedAt: new Date().toISOString()
+        };
+      });
+
+      await AsyncStorage.setItem(`${STORAGE_KEYS.PLANNED_WORKOUTS}_${userId}`, JSON.stringify(plannedWorkouts));
+      return { success: true, shiftedCount: programWorkouts.length };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Get the next scheduled workout date for a program based on weekly schedule
+  static getNextWorkoutDate(weeklySchedule, startDate = new Date()) {
+    if (!weeklySchedule || weeklySchedule.length === 0) {
+      return null;
+    }
+
+    const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const today = new Date(startDate);
+    const currentDayIndex = today.getDay();
+
+    // Find the next workout day in the schedule
+    for (let i = 1; i <= 7; i++) {
+      const nextDayIndex = (currentDayIndex + i) % 7;
+      const nextDayName = daysOfWeek[nextDayIndex];
+      const scheduleDay = weeklySchedule.find(s => s.day === nextDayName);
+
+      if (scheduleDay && scheduleDay.type === 'workout') {
+        const nextDate = new Date(today);
+        nextDate.setDate(today.getDate() + i);
+        return {
+          date: nextDate,
+          dayName: nextDayName,
+          workoutIndex: scheduleDay.workoutIndex
+        };
+      }
+    }
+
+    return null;
+  }
+
+  // Schedule a program's workouts based on weekly schedule for the next N weeks
+  static async scheduleProgramWorkouts(program, startDate, weeksAhead = 4, userId = 'guest') {
+    try {
+      if (!program.weeklySchedule || program.weeklySchedule.length === 0) {
+        return { success: false, error: 'Program has no weekly schedule defined' };
+      }
+
+      const plannedWorkouts = await this.getPlannedWorkouts(userId);
+      const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const startDateObj = new Date(startDate);
+      const totalDays = weeksAhead * 7;
+
+      let scheduledCount = 0;
+
+      for (let dayOffset = 0; dayOffset < totalDays; dayOffset++) {
+        const currentDate = new Date(startDateObj);
+        currentDate.setDate(startDateObj.getDate() + dayOffset);
+        const dayOfWeek = currentDate.getDay();
+        const dayName = daysOfWeek[dayOfWeek];
+
+        const scheduleDay = program.weeklySchedule.find(s => s.day === dayName);
+
+        if (scheduleDay && scheduleDay.type === 'workout' && scheduleDay.workoutIndex !== null) {
+          const workoutDay = program.days[scheduleDay.workoutIndex];
+
+          if (workoutDay) {
+            const dateKey = currentDate.toISOString().split('T')[0];
+
+            plannedWorkouts[dateKey] = {
+              id: Date.now().toString() + Math.random(),
+              dateKey,
+              type: 'program',
+              programId: program.id,
+              programName: program.name,
+              dayId: workoutDay.id,
+              dayName: workoutDay.name,
+              exercises: workoutDay.exercises || [],
+              scheduledAt: new Date().toISOString()
+            };
+            scheduledCount++;
+          }
+        }
+      }
+
+      await AsyncStorage.setItem(`${STORAGE_KEYS.PLANNED_WORKOUTS}_${userId}`, JSON.stringify(plannedWorkouts));
+      return { success: true, scheduledCount };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
 }

@@ -4,7 +4,7 @@ import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 
 const { width: screenWidth } = Dimensions.get('window');
 
-export default function CalendarView({ selectedDate, onDateSelect, mealData = {}, multiSelectMode = false, selectedDates = [] }) {
+export default function CalendarView({ selectedDate, onDateSelect, mealData = {}, multiSelectMode = false, selectedDates = [], highlightedDates = [] }) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   // Get calendar grid data
@@ -89,12 +89,18 @@ export default function CalendarView({ selectedDate, onDateSelect, mealData = {}
     return mealData[dateKey] || null;
   };
 
+  const isHighlighted = (date) => {
+    const dateKey = date.toISOString().split('T')[0];
+    return highlightedDates.includes(dateKey);
+  };
+
   const renderDayCell = (item, index) => {
     const { date, isCurrentMonth } = item;
     const dayMealData = getMealDataForDate(date);
     const hasLoggedMeals = dayMealData?.logged && Object.values(dayMealData.logged).some(meals => meals && meals.length > 0);
     const hasPlannedMeals = dayMealData?.planned && Object.values(dayMealData.planned).some(meals => meals && meals.length > 0);
     const futureDate = isFutureDate(date);
+    const highlighted = isHighlighted(date);
 
     return (
       <TouchableOpacity
@@ -104,6 +110,7 @@ export default function CalendarView({ selectedDate, onDateSelect, mealData = {}
           !isCurrentMonth && styles.dayCellInactive,
           isToday(date) && styles.dayCellToday,
           isSelected(date) && styles.dayCellSelected,
+          highlighted && styles.dayCellHighlighted,
         ]}
         onPress={() => onDateSelect(date)}
         activeOpacity={0.7}
@@ -114,6 +121,7 @@ export default function CalendarView({ selectedDate, onDateSelect, mealData = {}
             !isCurrentMonth && styles.dayTextInactive,
             isToday(date) && styles.dayTextToday,
             isSelected(date) && styles.dayTextSelected,
+            highlighted && styles.dayTextHighlighted,
           ]}
         >
           {date.getDate()}
@@ -270,6 +278,12 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     borderRadius: BorderRadius.sm,
   },
+  dayCellHighlighted: {
+    backgroundColor: '#DC2626',
+    borderRadius: BorderRadius.sm,
+    borderWidth: 2,
+    borderColor: '#991B1B',
+  },
   dayText: {
     fontSize: Typography.fontSize.md,
     color: Colors.text,
@@ -284,6 +298,10 @@ const styles = StyleSheet.create({
   },
   dayTextSelected: {
     color: '#1a1a1a',
+    fontWeight: '700',
+  },
+  dayTextHighlighted: {
+    color: '#FFFFFF',
     fontWeight: '700',
   },
   indicators: {

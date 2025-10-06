@@ -71,6 +71,60 @@ export default function PlannedWorkoutDetailScreen({ navigation, route }) {
     navigation.navigate('PlanWorkout', { selectedDate });
   };
 
+  const handleShiftProgram = async () => {
+    if (plannedWorkout.type !== 'program') {
+      Alert.alert('Info', 'This feature is only available for program workouts');
+      return;
+    }
+
+    Alert.alert(
+      'Shift Program Schedule',
+      'This will move all future workouts in this program forward by one day. Do you want to continue?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Shift Forward',
+          onPress: async () => {
+            try {
+              const userId = user?.email || 'guest';
+              const result = await WorkoutStorageService.shiftProgramScheduleForward(
+                plannedWorkout.programId,
+                selectedDate,
+                userId
+              );
+
+              if (result.success) {
+                Alert.alert(
+                  'Success',
+                  `Shifted ${result.shiftedCount} workout${result.shiftedCount > 1 ? 's' : ''} forward by one day`,
+                  [
+                    {
+                      text: 'OK',
+                      onPress: () => {
+                        navigation.reset({
+                          index: 1,
+                          routes: [
+                            { name: 'Main' },
+                            { name: 'WorkoutHistory' },
+                          ],
+                        });
+                      },
+                    }
+                  ]
+                );
+              } else {
+                Alert.alert('Error', result.error || 'Failed to shift program schedule');
+              }
+            } catch (error) {
+              console.error('Error shifting program schedule:', error);
+              Alert.alert('Error', 'Failed to shift program schedule');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const getWorkoutName = () => {
     if (plannedWorkout.type === 'program') {
       return plannedWorkout.dayName;
@@ -161,6 +215,29 @@ export default function PlannedWorkoutDetailScreen({ navigation, route }) {
             </LinearGradient>
           </TouchableOpacity>
         </View>
+
+        {/* Shift Program Button - Only for program workouts */}
+        {plannedWorkout.type === 'program' && (
+          <View style={styles.shiftContainer}>
+            <Text style={styles.shiftTitle}>Program Controls</Text>
+            <TouchableOpacity
+              style={styles.shiftButton}
+              onPress={handleShiftProgram}
+              activeOpacity={0.9}
+            >
+              <LinearGradient
+                colors={[Colors.primary, '#059669']}
+                style={styles.shiftGradient}
+              >
+                <Text style={styles.shiftIcon}>⏭️</Text>
+                <View style={styles.shiftTextContainer}>
+                  <Text style={styles.shiftText}>Shift Program Forward</Text>
+                  <Text style={styles.shiftSubtext}>Move all future workouts by 1 day</Text>
+                </View>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        )}
 
         <View style={styles.bottomSpacer} />
       </ScrollView>
@@ -258,5 +335,41 @@ const styles = StyleSheet.create({
   },
   bottomSpacer: {
     height: Spacing.xxl,
+  },
+  shiftContainer: {
+    marginTop: Spacing.xxl,
+  },
+  shiftTitle: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: 'bold',
+    color: Colors.text,
+    marginBottom: Spacing.md,
+  },
+  shiftButton: {
+    borderRadius: BorderRadius.lg,
+    overflow: 'hidden',
+  },
+  shiftGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.lg,
+  },
+  shiftIcon: {
+    fontSize: 28,
+    marginRight: Spacing.md,
+  },
+  shiftTextContainer: {
+    flex: 1,
+  },
+  shiftText: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 2,
+  },
+  shiftSubtext: {
+    fontSize: Typography.fontSize.sm,
+    color: '#FFFFFF',
+    opacity: 0.8,
   },
 });

@@ -27,6 +27,16 @@ export default function WorkoutProgramScreen({ navigation, route }) {
   const [showAddDayModal, setShowAddDayModal] = useState(false);
   const [currentDayIndex, setCurrentDayIndex] = useState(null);
   const [dayName, setDayName] = useState('');
+  const [weeklySchedule, setWeeklySchedule] = useState([
+    { day: 'Monday', type: 'rest', workoutIndex: null },
+    { day: 'Tuesday', type: 'rest', workoutIndex: null },
+    { day: 'Wednesday', type: 'rest', workoutIndex: null },
+    { day: 'Thursday', type: 'rest', workoutIndex: null },
+    { day: 'Friday', type: 'rest', workoutIndex: null },
+    { day: 'Saturday', type: 'rest', workoutIndex: null },
+    { day: 'Sunday', type: 'rest', workoutIndex: null },
+  ]);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
   const isFocused = useIsFocused();
 
   const dayTemplates = [
@@ -234,6 +244,7 @@ export default function WorkoutProgramScreen({ navigation, route }) {
           name: programName,
           description: programDescription,
           days: workoutDays,
+          weeklySchedule: weeklySchedule, // Add weekly schedule
           createdAt: new Date().toISOString(),
         };
 
@@ -404,6 +415,15 @@ export default function WorkoutProgramScreen({ navigation, route }) {
           )}
         </View>
 
+        {!isStandaloneWorkout && workoutDays.length > 0 && (
+          <StyledButton
+            title="Set Weekly Schedule"
+            onPress={() => setShowScheduleModal(true)}
+            style={styles.scheduleButton}
+            secondary
+          />
+        )}
+
         <StyledButton
           title={isStandaloneWorkout ? "Save Workout" : "Save Program"}
           onPress={handleSaveProgram}
@@ -459,6 +479,87 @@ export default function WorkoutProgramScreen({ navigation, route }) {
                   onPress={handleAddDay}
                 >
                   <Text style={styles.modalAddText}>Add Day</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
+        {/* Weekly Schedule Modal */}
+        <Modal
+          visible={showScheduleModal}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setShowScheduleModal(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Weekly Schedule</Text>
+              <Text style={styles.modalSubtitle}>
+                Assign your workout days and rest days for the week
+              </Text>
+
+              <ScrollView style={styles.scheduleScrollView} showsVerticalScrollIndicator={false}>
+                {weeklySchedule.map((scheduleDay, index) => (
+                  <View key={index} style={styles.scheduleRow}>
+                    <Text style={styles.scheduleDayName}>{scheduleDay.day}</Text>
+
+                    <View style={styles.scheduleOptions}>
+                      <TouchableOpacity
+                        style={[
+                          styles.scheduleOptionButton,
+                          scheduleDay.type === 'rest' && styles.scheduleOptionActive
+                        ]}
+                        onPress={() => {
+                          const updated = [...weeklySchedule];
+                          updated[index] = { ...updated[index], type: 'rest', workoutIndex: null };
+                          setWeeklySchedule(updated);
+                        }}
+                      >
+                        <Text style={[
+                          styles.scheduleOptionText,
+                          scheduleDay.type === 'rest' && styles.scheduleOptionTextActive
+                        ]}>Rest</Text>
+                      </TouchableOpacity>
+
+                      {workoutDays.map((workout, workoutIdx) => (
+                        <TouchableOpacity
+                          key={workoutIdx}
+                          style={[
+                            styles.scheduleOptionButton,
+                            scheduleDay.type === 'workout' && scheduleDay.workoutIndex === workoutIdx && styles.scheduleOptionActive
+                          ]}
+                          onPress={() => {
+                            const updated = [...weeklySchedule];
+                            updated[index] = { ...updated[index], type: 'workout', workoutIndex: workoutIdx };
+                            setWeeklySchedule(updated);
+                          }}
+                        >
+                          <Text style={[
+                            styles.scheduleOptionText,
+                            scheduleDay.type === 'workout' && scheduleDay.workoutIndex === workoutIdx && styles.scheduleOptionTextActive
+                          ]} numberOfLines={1}>
+                            {workout.name.length > 10 ? workout.name.substring(0, 10) + '...' : workout.name}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </View>
+                ))}
+              </ScrollView>
+
+              <View style={styles.modalActions}>
+                <TouchableOpacity
+                  style={styles.modalCancelButton}
+                  onPress={() => setShowScheduleModal(false)}
+                >
+                  <Text style={styles.modalCancelText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.modalAddButton}
+                  onPress={() => setShowScheduleModal(false)}
+                >
+                  <Text style={styles.modalAddText}>Done</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -776,5 +877,54 @@ const styles = StyleSheet.create({
     color: Colors.background,
     fontSize: Typography.fontSize.md,
     fontWeight: 'bold',
+  },
+  scheduleButton: {
+    marginVertical: Spacing.md,
+  },
+  modalSubtitle: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: Spacing.md,
+  },
+  scheduleScrollView: {
+    maxHeight: 400,
+    marginBottom: Spacing.md,
+  },
+  scheduleRow: {
+    marginBottom: Spacing.lg,
+  },
+  scheduleDayName: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: 'bold',
+    color: Colors.text,
+    marginBottom: Spacing.sm,
+  },
+  scheduleOptions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.xs,
+  },
+  scheduleOptionButton: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface,
+    minWidth: 60,
+    alignItems: 'center',
+  },
+  scheduleOptionActive: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  scheduleOptionText: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+    fontWeight: '600',
+  },
+  scheduleOptionTextActive: {
+    color: Colors.background,
   },
 });
