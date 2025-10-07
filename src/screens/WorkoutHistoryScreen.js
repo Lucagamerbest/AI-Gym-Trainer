@@ -36,6 +36,28 @@ export default function WorkoutHistoryScreen({ navigation }) {
     }, [])
   );
 
+  // Listen for return from image viewer
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      const state = navigation.getState();
+      const currentRoute = state.routes[state.index];
+
+      if (currentRoute.params?.reopenWorkout) {
+        // Restore the active tab if provided
+        if (currentRoute.params.activeTab) {
+          setActiveTab(currentRoute.params.activeTab);
+        }
+        // Reopen the workout modal
+        setSelectedWorkout(currentRoute.params.reopenWorkout);
+        setShowWorkoutModal(true);
+        // Clear the params
+        navigation.setParams({ reopenWorkout: null, activeTab: null });
+      }
+    });
+
+    return unsubscribe;
+  }, [navigation]);
+
   // Debug modal state
   useEffect(() => {
     console.log('🟢 showWorkoutModal changed:', showWorkoutModal);
@@ -456,6 +478,16 @@ export default function WorkoutHistoryScreen({ navigation }) {
     );
   };
 
+  const handleImagePress = (imageBase64, workout) => {
+    // Close the modal and navigate immediately
+    setShowWorkoutModal(false);
+    navigation.navigate('ImageViewer', {
+      imageBase64,
+      returnToWorkout: workout,
+      activeTab: activeTab // Remember which tab we're on
+    });
+  };
+
   const renderWorkoutCard = ({ item: workout }) => {
     const stats = calculateWorkoutStats(workout);
     const firstPhoto = workout.photos && workout.photos.length > 0 ? workout.photos[0] : null;
@@ -475,10 +507,18 @@ export default function WorkoutHistoryScreen({ navigation }) {
       >
         <View style={styles.workoutCardContent}>
           {firstPhoto && (
-            <Image
-              source={{ uri: `data:image/jpeg;base64,${firstPhoto}` }}
-              style={styles.workoutCardThumbnail}
-            />
+            <TouchableOpacity
+              onPress={(e) => {
+                e.stopPropagation();
+                handleImagePress(firstPhoto, workout);
+              }}
+              activeOpacity={0.8}
+            >
+              <Image
+                source={{ uri: `data:image/jpeg;base64,${firstPhoto}` }}
+                style={styles.workoutCardThumbnail}
+              />
+            </TouchableOpacity>
           )}
           <View style={styles.workoutCardInfo}>
             <Text style={styles.workoutCardTitle}>
@@ -721,10 +761,15 @@ export default function WorkoutHistoryScreen({ navigation }) {
             {selectedWorkout && (
               <View style={styles.modalHeader}>
                 {selectedWorkout.photos && selectedWorkout.photos.length > 0 && (
-                  <Image
-                    source={{ uri: `data:image/jpeg;base64,${selectedWorkout.photos[0]}` }}
-                    style={styles.modalHeaderPhoto}
-                  />
+                  <TouchableOpacity
+                    onPress={() => handleImagePress(selectedWorkout.photos[0], selectedWorkout)}
+                    activeOpacity={0.8}
+                  >
+                    <Image
+                      source={{ uri: `data:image/jpeg;base64,${selectedWorkout.photos[0]}` }}
+                      style={styles.modalHeaderPhoto}
+                    />
+                  </TouchableOpacity>
                 )}
                 <View style={styles.modalHeaderText}>
                   <Text style={styles.modalHeaderTitle} numberOfLines={1}>
