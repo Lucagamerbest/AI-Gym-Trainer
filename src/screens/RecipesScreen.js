@@ -12,6 +12,7 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { CommonActions } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ScreenLayout from '../components/ScreenLayout';
 import StyledCard from '../components/StyledCard';
@@ -24,7 +25,23 @@ import { unifiedFoodSearch } from '../services/unifiedFoodSearch';
 const RECIPES_KEY = '@saved_recipes';
 
 export default function RecipesScreen({ navigation, route }) {
-  const { mealType, isPlannedMeal, plannedDateKey, reopenDate } = route.params || { mealType: 'lunch' };
+  const {
+    mealType,
+    isPlannedMeal,
+    plannedDateKey,
+    reopenDate,
+    fromMealPlanTemplate,
+    templateDayIndex,
+    templateMealType,
+    screenId
+  } = route.params || { mealType: 'lunch' };
+
+  // Log screen ID when RecipesScreen receives it
+  useEffect(() => {
+    if (fromMealPlanTemplate && screenId) {
+      console.log('📖 RecipesScreen opened from CreateMealPlan ID:', screenId);
+    }
+  }, [fromMealPlanTemplate, screenId]);
 
   // Mock recipes for testing
   const mockRecipes = [
@@ -232,7 +249,46 @@ export default function RecipesScreen({ navigation, route }) {
             };
 
             // Navigate back with the recipe data
-            if (isPlannedMeal) {
+            if (fromMealPlanTemplate) {
+              console.log('⬅️ RecipesScreen navigating back to CreateMealPlan ID:', screenId);
+
+              // Calculate how many screens to pop to get back to CreateMealPlan
+              const state = navigation.getState();
+              const currentIndex = state.index;
+              const createMealPlanIndex = state.routes.findIndex(r => r.name === 'CreateMealPlan');
+
+              if (createMealPlanIndex !== -1) {
+                console.log('✅ Found existing CreateMealPlan at index:', createMealPlanIndex);
+                console.log('   Current index:', currentIndex, '- will pop', currentIndex - createMealPlanIndex, 'screen(s)');
+                console.log('   Current screenId:', state.routes[createMealPlanIndex].params?.screenId);
+
+                // First, dispatch action to update the target screen's params
+                navigation.dispatch({
+                  ...CommonActions.setParams({
+                    addedFood: foodData,
+                    templateDayIndex: templateDayIndex,
+                    templateMealType: templateMealType,
+                    modalShown: true,
+                    screenId: screenId,
+                  }),
+                  source: state.routes[createMealPlanIndex].key,
+                });
+
+                // Then pop back to that screen
+                const screensToPop = currentIndex - createMealPlanIndex;
+                navigation.pop(screensToPop);
+              } else {
+                console.log('⚠️ CreateMealPlan not found in stack, creating new one');
+                // Fallback
+                navigation.navigate('CreateMealPlan', {
+                  addedFood: foodData,
+                  templateDayIndex: templateDayIndex,
+                  templateMealType: templateMealType,
+                  screenId: screenId,
+                  modalShown: true,
+                });
+              }
+            } else if (isPlannedMeal) {
               // Reset navigation stack to prevent swiping back to recipe screen
               // Keep Nutrition in stack so back arrow still works
               navigation.reset({

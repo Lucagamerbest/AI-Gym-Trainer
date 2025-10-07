@@ -21,7 +21,23 @@ const POPULAR_FOODS = [
 ];
 
 export default function FoodSearchScreen({ route, navigation }) {
-  const { mealType = 'lunch', isPlannedMeal, plannedDateKey, reopenDate } = route.params || {};
+  const {
+    mealType = 'lunch',
+    isPlannedMeal,
+    plannedDateKey,
+    reopenDate,
+    fromMealPlanTemplate,
+    templateDayIndex,
+    templateMealType,
+    screenId
+  } = route.params || {};
+
+  // Log screen ID when FoodSearchScreen receives it
+  useEffect(() => {
+    if (fromMealPlanTemplate && screenId) {
+      console.log('🔍 FoodSearchScreen opened from CreateMealPlan ID:', screenId);
+    }
+  }, [fromMealPlanTemplate, screenId]);
   const [searchText, setSearchText] = useState('');
   const [allFoods, setAllFoods] = useState([]);
   const [displayedFoods, setDisplayedFoods] = useState([]);
@@ -118,8 +134,19 @@ export default function FoodSearchScreen({ route, navigation }) {
 
   // Handle food selection
   const selectFood = (food) => {
+    console.log('🔍 FoodSearchScreen navigating to FoodDetail for CreateMealPlan ID:', screenId);
     // Navigate to food detail screen
-    navigation.navigate('FoodDetail', { food, mealType, isPlannedMeal, plannedDateKey, reopenDate });
+    navigation.navigate('FoodDetail', {
+      food,
+      mealType,
+      isPlannedMeal,
+      plannedDateKey,
+      reopenDate,
+      fromMealPlanTemplate,
+      templateDayIndex,
+      templateMealType,
+      screenId: screenId, // Pass screen ID for tracking
+    });
   };
 
   // Render individual food item

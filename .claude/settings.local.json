@@ -48,7 +48,9 @@
       "Bash(npx eas-cli:*)",
       "Bash(npx eas build:*)",
       "WebFetch(domain:docs.expo.dev)",
-      "Bash(npx:*)"
+      "Bash(npx:*)",
+      "Bash(dir:*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []

@@ -735,6 +735,89 @@ export default function NutritionScreen({ navigation, route }) {
         )}
       </View>
 
+      {/* Planned Meals Status Indicator */}
+      {(() => {
+        const currentPlannedMeals = plannedMeals[selectedMeal] || [];
+        const hasMeals = currentPlannedMeals.length > 0;
+        const totalCals = currentPlannedMeals.reduce((sum, item) => sum + (item.calories || 0), 0);
+
+        return (
+          <View style={styles.plannedStatusContainer}>
+            <TouchableOpacity
+              style={[
+                styles.plannedStatusBar,
+                hasMeals ? styles.plannedStatusBarActive : styles.plannedStatusBarEmpty
+              ]}
+              onPress={() => {
+                if (hasMeals) {
+                  setExpandedMeal(expandedMeal === 'planned' ? null : 'planned');
+                }
+              }}
+            >
+              <View style={styles.plannedStatusLeft}>
+                <Text style={styles.plannedStatusIcon}>📅</Text>
+                <View>
+                  <Text style={[
+                    styles.plannedStatusText,
+                    !hasMeals && styles.plannedStatusTextMuted
+                  ]}>
+                    {hasMeals
+                      ? `${currentPlannedMeals.length} item${currentPlannedMeals.length !== 1 ? 's' : ''} planned`
+                      : `No meals planned`
+                    }
+                  </Text>
+                  {hasMeals && (
+                    <Text style={styles.plannedStatusSubtext}>{Math.round(totalCals)} calories</Text>
+                  )}
+                </View>
+              </View>
+              {hasMeals && (
+                <Text style={styles.plannedStatusArrow}>
+                  {expandedMeal === 'planned' ? '▲' : '▼'}
+                </Text>
+              )}
+            </TouchableOpacity>
+
+            {/* Expanded Planned Meals */}
+            {expandedMeal === 'planned' && hasMeals && (
+              <View style={styles.plannedItemsExpanded}>
+                {currentPlannedMeals.map((item, index) => (
+                  <View key={index} style={styles.plannedItemRow}>
+                    <View style={styles.plannedItemInfo}>
+                      <Text style={styles.plannedItemName}>{item.name}</Text>
+                      <Text style={styles.plannedItemCals}>{item.calories} cal</Text>
+                    </View>
+                    <View style={styles.plannedItemActions}>
+                      <TouchableOpacity
+                        style={styles.plannedItemCheckButton}
+                        onPress={() => markPlannedAsConsumed(selectedMeal, index)}
+                      >
+                        <Text style={styles.plannedItemCheckText}>✓</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.plannedItemDeleteButton}
+                        onPress={() => deletePlannedFood(selectedMeal, index)}
+                      >
+                        <Text style={styles.plannedItemDeleteText}>×</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ))}
+                <TouchableOpacity
+                  style={styles.addAllPlannedButton}
+                  onPress={() => {
+                    currentPlannedMeals.forEach(() => markPlannedAsConsumed(selectedMeal, 0));
+                    setExpandedMeal(null);
+                  }}
+                >
+                  <Text style={styles.addAllPlannedText}>✓ Mark All as Consumed</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        );
+      })()}
+
       <View style={styles.actionButtons}>
         <TouchableOpacity
           style={[styles.actionButton, styles.scanButton]}
@@ -760,6 +843,15 @@ export default function NutritionScreen({ navigation, route }) {
           <Text style={[styles.actionButtonText, styles.greenText]}>Recipes</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Meal Plans button - wide and horizontal below */}
+      <TouchableOpacity
+        style={styles.mealPlansButton}
+        onPress={() => navigation.navigate('MealPlanTemplates')}
+      >
+        <Text style={styles.mealPlansIcon}>📋</Text>
+        <Text style={styles.mealPlansText}>Meal Plan Templates</Text>
+      </TouchableOpacity>
 
       {/* Planned Meals Section */}
       {Object.values(plannedMeals).some(meals => meals.length > 0) && (
@@ -1322,6 +1414,158 @@ const styles = StyleSheet.create({
   },
   blackText: {
     color: '#1a1a1a',
+  },
+  orangeText: {
+    color: '#FF9800',
+  },
+  mealPlansButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FF980020',
+    borderWidth: 2,
+    borderColor: '#FF980050',
+    borderRadius: BorderRadius.md,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    marginHorizontal: Spacing.lg,
+    marginTop: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  mealPlansIcon: {
+    fontSize: 20,
+    marginRight: Spacing.xs,
+  },
+  mealPlansText: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+    color: '#FF9800',
+  },
+  // Planned Status Indicator styles
+  plannedStatusContainer: {
+    marginHorizontal: Spacing.lg,
+    marginTop: Spacing.md,
+    marginBottom: Spacing.sm,
+  },
+  plannedStatusBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.md,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderWidth: 2,
+    borderColor: Colors.border,
+  },
+  plannedStatusBarActive: {
+    borderColor: Colors.primary,
+    backgroundColor: `${Colors.primary}10`,
+  },
+  plannedStatusBarEmpty: {
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface,
+    opacity: 0.6,
+  },
+  plannedStatusLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    flex: 1,
+  },
+  plannedStatusIcon: {
+    fontSize: 20,
+  },
+  plannedStatusText: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  plannedStatusTextMuted: {
+    color: Colors.textMuted,
+    fontWeight: '400',
+  },
+  plannedStatusSubtext: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textSecondary,
+    marginTop: 2,
+  },
+  plannedStatusArrow: {
+    fontSize: 14,
+    color: Colors.primary,
+    fontWeight: 'bold',
+  },
+  plannedItemsExpanded: {
+    marginTop: Spacing.sm,
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  plannedItemRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: Spacing.xs,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    marginBottom: Spacing.xs,
+  },
+  plannedItemInfo: {
+    flex: 1,
+  },
+  plannedItemName: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.text,
+    fontWeight: '500',
+  },
+  plannedItemCals: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textSecondary,
+    marginTop: 2,
+  },
+  plannedItemActions: {
+    flexDirection: 'row',
+    gap: Spacing.xs,
+  },
+  plannedItemCheckButton: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  plannedItemCheckText: {
+    color: Colors.background,
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  plannedItemDeleteButton: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: Colors.error,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  plannedItemDeleteText: {
+    color: Colors.background,
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  addAllPlannedButton: {
+    backgroundColor: Colors.primary,
+    borderRadius: BorderRadius.md,
+    paddingVertical: Spacing.sm,
+    alignItems: 'center',
+    marginTop: Spacing.sm,
+  },
+  addAllPlannedText: {
+    color: Colors.background,
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
   },
   // Compact meal selector styles
   foodActionsSection: {
