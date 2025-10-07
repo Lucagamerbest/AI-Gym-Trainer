@@ -11,6 +11,9 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.workoutwave.app",
       "infoPlist": {
+        "UIBackgroundModes": [
+          "audio"
+        ],
         "CFBundleURLTypes": [
           {
             "CFBundleURLSchemes": [

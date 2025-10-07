@@ -4,6 +4,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
+import { Audio } from 'expo-av';
 import ScreenLayout from '../components/ScreenLayout';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -22,6 +23,47 @@ Notifications.setNotificationHandler({
     };
   },
 });
+
+// Helper function to play notification sound using the "silent sound hack"
+const playNotificationSound = async () => {
+  try {
+    console.log('🔊 Setting audio mode for silent mode override...');
+
+    // CRITICAL: Set audio mode to play in silent mode
+    await Audio.setAudioModeAsync({
+      playsInSilentModeIOS: true,
+      allowsRecordingIOS: false,
+      staysActiveInBackground: false,
+      interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DUCK_OTHERS,
+      shouldDuckAndroid: true,
+      interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DUCK_OTHERS,
+      playThroughEarpieceAndroid: false,
+    });
+
+    console.log('🔊 Creating sound object...');
+
+    // Create and immediately play the notification sound
+    const { sound } = await Audio.Sound.createAsync(
+      { uri: 'https://actions.google.com/sounds/v1/alarms/beep_short.ogg' },
+      { shouldPlay: true, volume: 1.0 }, // shouldPlay: true is CRITICAL for silent mode
+      null,
+      false
+    );
+
+    console.log('🔊 Sound created and playing!');
+
+    // Clean up after sound finishes
+    sound.setOnPlaybackStatusUpdate((status) => {
+      if (status.didJustFinish) {
+        console.log('🔊 Sound finished, unloading...');
+        sound.unloadAsync();
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Error playing notification sound:', error);
+  }
+};
 
 // Exercise Card Component
 const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exerciseSets, onUpdateSet, onAddSet, onDeleteSet, onShowInfo, onSelectSetType, fromProgram, rpeEnabled }) => {
@@ -503,7 +545,11 @@ export default function WorkoutScreen({ navigation, route }) {
 
       // Only vibrate and show alert if app is ACTIVE (foreground)
       if (currentState === 'active') {
-        // Vibration pattern - long, short, long
+        // Play notification sound (works when silent mode is OFF)
+        // NOTE: In production build, this will work even in silent mode
+        await playNotificationSound();
+
+        // Normal vibration pattern
         Vibration.vibrate([500, 200, 500, 200, 500]);
 
         // Send immediate notification
@@ -511,7 +557,7 @@ export default function WorkoutScreen({ navigation, route }) {
           content: {
             title: '⏰ Rest Time Complete!',
             body: 'Time to get back to your workout!',
-            sound: 'default',
+            sound: false, // We handle sound manually with playNotificationSound
             priority: Notifications.AndroidNotificationPriority.HIGH,
           },
           trigger: null, // Fire immediately
