@@ -50,7 +50,8 @@
       "WebFetch(domain:docs.expo.dev)",
       "Bash(npx:*)",
       "Bash(dir:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []
