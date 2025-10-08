@@ -45,6 +45,12 @@ export default function NutritionScreen({ navigation, route }) {
     dinner: [],
     snacks: []
   });
+  const [consumedPlannedMeals, setConsumedPlannedMeals] = useState({
+    breakfast: [],
+    lunch: [],
+    dinner: [],
+    snacks: []
+  });
 
   useEffect(() => {
     const initializeData = async () => {
@@ -303,6 +309,7 @@ export default function NutritionScreen({ navigation, route }) {
 
         let loadedMeals = data.meals || { breakfast: [], lunch: [], dinner: [], snacks: [] };
         let loadedPlannedMeals = data.plannedMeals || { breakfast: [], lunch: [], dinner: [], snacks: [] };
+        let loadedConsumedPlanned = data.consumedPlannedMeals || { breakfast: [], lunch: [], dinner: [], snacks: [] };
 
 
         // MIGRATION: If plannedMeals doesn't exist in saved data, check if current meals came from today's plan
@@ -332,6 +339,7 @@ export default function NutritionScreen({ navigation, route }) {
         });
         setMeals(loadedMeals);
         setPlannedMeals(loadedPlannedMeals);
+        setConsumedPlannedMeals(loadedConsumedPlanned);
         setSelectedMeal(data.selectedMeal || 'breakfast');
 
 
@@ -341,7 +349,16 @@ export default function NutritionScreen({ navigation, route }) {
             proteinGrams: totals.protein,
             carbsGrams: totals.carbs,
             fatGrams: totals.fat
-          }, loadedMeals, data.selectedMeal || 'breakfast', loadedPlannedMeals);
+          }, loadedMeals, data.selectedMeal || 'breakfast', loadedPlannedMeals, loadedConsumedPlanned);
+        }
+
+        // Migration: Save consumedPlannedMeals if it doesn't exist
+        if (!data.consumedPlannedMeals) {
+          await saveDailyNutrition(totals.calories, {
+            proteinGrams: totals.protein,
+            carbsGrams: totals.carbs,
+            fatGrams: totals.fat
+          }, loadedMeals, data.selectedMeal || 'breakfast', loadedPlannedMeals, loadedConsumedPlanned);
         }
 
         // Sync to calendar on load
@@ -355,7 +372,7 @@ export default function NutritionScreen({ navigation, route }) {
     }
   };
 
-  const saveDailyNutrition = async (newConsumed, newMacros, newMeals, newSelectedMeal, newPlannedMeals = null) => {
+  const saveDailyNutrition = async (newConsumed, newMacros, newMeals, newSelectedMeal, newPlannedMeals = null, newConsumedPlanned = null) => {
 
     try {
       // Ensure we have valid objects
@@ -363,6 +380,9 @@ export default function NutritionScreen({ navigation, route }) {
       const safePlannedMeals = newPlannedMeals !== null
         ? (newPlannedMeals || { breakfast: [], lunch: [], dinner: [], snacks: [] })
         : (plannedMeals || { breakfast: [], lunch: [], dinner: [], snacks: [] });
+      const safeConsumedPlanned = newConsumedPlanned !== null
+        ? (newConsumedPlanned || { breakfast: [], lunch: [], dinner: [], snacks: [] })
+        : (consumedPlannedMeals || { breakfast: [], lunch: [], dinner: [], snacks: [] });
 
 
       const data = {
@@ -370,6 +390,7 @@ export default function NutritionScreen({ navigation, route }) {
         consumedMacros: newMacros || { proteinGrams: 0, carbsGrams: 0, fatGrams: 0 },
         meals: safeMeals,
         plannedMeals: safePlannedMeals,
+        consumedPlannedMeals: safeConsumedPlanned,
         selectedMeal: newSelectedMeal || 'breakfast',
         lastUpdated: new Date().toISOString()
       };
@@ -529,12 +550,17 @@ export default function NutritionScreen({ navigation, route }) {
       updatedPlannedMeals[mealType] = [...plannedMeals[mealType]];
       updatedPlannedMeals[mealType].splice(foodIndex, 1);
 
+      // Add to consumed planned meals history
+      const updatedConsumedPlanned = { ...consumedPlannedMeals };
+      updatedConsumedPlanned[mealType] = [...consumedPlannedMeals[mealType], plannedFood];
+
       // Recalculate totals
       const totals = calculateTotalsFromMeals(updatedMeals);
 
       // Update state
       setMeals(updatedMeals);
       setPlannedMeals(updatedPlannedMeals);
+      setConsumedPlannedMeals(updatedConsumedPlanned);
       setConsumed(totals.calories);
       setConsumedMacros({
         proteinGrams: totals.protein,
@@ -542,12 +568,12 @@ export default function NutritionScreen({ navigation, route }) {
         fatGrams: totals.fat
       });
 
-      // Save to storage
+      // Save to storage (now includes consumed planned meals)
       await saveDailyNutrition(totals.calories, {
         proteinGrams: totals.protein,
         carbsGrams: totals.carbs,
         fatGrams: totals.fat
-      }, updatedMeals, selectedMeal, updatedPlannedMeals);
+      }, updatedMeals, selectedMeal, updatedPlannedMeals, updatedConsumedPlanned);
     } catch (error) {
       console.error('Error marking planned food as consumed:', error);
     }
@@ -741,7 +767,9 @@ export default function NutritionScreen({ navigation, route }) {
       {/* Planned Meals Status Indicator */}
       {(() => {
         const currentPlannedMeals = plannedMeals[selectedMeal] || [];
+        const currentConsumedPlanned = consumedPlannedMeals[selectedMeal] || [];
         const hasMeals = currentPlannedMeals.length > 0;
+        const hasConsumedMeals = currentConsumedPlanned.length > 0;
         const totalCals = currentPlannedMeals.reduce((sum, item) => sum + (item.calories || 0), 0);
 
         return (
@@ -749,24 +777,26 @@ export default function NutritionScreen({ navigation, route }) {
             <TouchableOpacity
               style={[
                 styles.plannedStatusBar,
-                hasMeals ? styles.plannedStatusBarActive : styles.plannedStatusBarEmpty
+                hasMeals ? styles.plannedStatusBarActive : (hasConsumedMeals ? styles.plannedStatusBarConsumed : styles.plannedStatusBarEmpty)
               ]}
               onPress={() => {
-                if (hasMeals) {
+                if (hasMeals || hasConsumedMeals) {
                   setExpandedMeal(expandedMeal === 'planned' ? null : 'planned');
                 }
               }}
             >
               <View style={styles.plannedStatusLeft}>
-                <Text style={styles.plannedStatusIcon}>📅</Text>
+                <Text style={styles.plannedStatusIcon}>{hasMeals ? '📅' : (hasConsumedMeals ? '✓' : '📅')}</Text>
                 <View>
                   <Text style={[
                     styles.plannedStatusText,
-                    !hasMeals && styles.plannedStatusTextMuted
+                    (!hasMeals && !hasConsumedMeals) && styles.plannedStatusTextMuted
                   ]}>
                     {hasMeals
                       ? `${currentPlannedMeals.length} item${currentPlannedMeals.length !== 1 ? 's' : ''} planned`
-                      : `No meals planned`
+                      : (hasConsumedMeals
+                          ? `${currentConsumedPlanned.length} consumed (View)`
+                          : `No meals planned`)
                     }
                   </Text>
                   {hasMeals && (
@@ -774,7 +804,7 @@ export default function NutritionScreen({ navigation, route }) {
                   )}
                 </View>
               </View>
-              {hasMeals && (
+              {(hasMeals || hasConsumedMeals) && (
                 <Text style={styles.plannedStatusArrow}>
                   {expandedMeal === 'planned' ? '▲' : '▼'}
                 </Text>
@@ -782,39 +812,61 @@ export default function NutritionScreen({ navigation, route }) {
             </TouchableOpacity>
 
             {/* Expanded Planned Meals */}
-            {expandedMeal === 'planned' && hasMeals && (
+            {expandedMeal === 'planned' && (hasMeals || hasConsumedMeals) && (
               <View style={styles.plannedItemsExpanded}>
-                {currentPlannedMeals.map((item, index) => (
-                  <View key={index} style={styles.plannedItemRow}>
-                    <View style={styles.plannedItemInfo}>
-                      <Text style={styles.plannedItemName}>{item.name}</Text>
-                      <Text style={styles.plannedItemCals}>{item.calories} cal</Text>
-                    </View>
-                    <View style={styles.plannedItemActions}>
-                      <TouchableOpacity
-                        style={styles.plannedItemCheckButton}
-                        onPress={() => markPlannedAsConsumed(selectedMeal, index)}
-                      >
-                        <Text style={styles.plannedItemCheckText}>✓</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={styles.plannedItemDeleteButton}
-                        onPress={() => deletePlannedFood(selectedMeal, index)}
-                      >
-                        <Text style={styles.plannedItemDeleteText}>×</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                ))}
-                <TouchableOpacity
-                  style={styles.addAllPlannedButton}
-                  onPress={() => {
-                    currentPlannedMeals.forEach(() => markPlannedAsConsumed(selectedMeal, 0));
-                    setExpandedMeal(null);
-                  }}
-                >
-                  <Text style={styles.addAllPlannedText}>✓ Mark All as Consumed</Text>
-                </TouchableOpacity>
+                {/* Pending Planned Meals */}
+                {hasMeals && (
+                  <>
+                    <Text style={styles.plannedSectionLabel}>📅 To Be Consumed</Text>
+                    {currentPlannedMeals.map((item, index) => (
+                      <View key={index} style={styles.plannedItemRow}>
+                        <View style={styles.plannedItemInfo}>
+                          <Text style={styles.plannedItemName}>{item.name}</Text>
+                          <Text style={styles.plannedItemCals}>{item.calories} cal</Text>
+                        </View>
+                        <View style={styles.plannedItemActions}>
+                          <TouchableOpacity
+                            style={styles.plannedItemCheckButton}
+                            onPress={() => markPlannedAsConsumed(selectedMeal, index)}
+                          >
+                            <Text style={styles.plannedItemCheckText}>✓</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={styles.plannedItemDeleteButton}
+                            onPress={() => deletePlannedFood(selectedMeal, index)}
+                          >
+                            <Text style={styles.plannedItemDeleteText}>×</Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    ))}
+                    <TouchableOpacity
+                      style={styles.addAllPlannedButton}
+                      onPress={() => {
+                        currentPlannedMeals.forEach(() => markPlannedAsConsumed(selectedMeal, 0));
+                        setExpandedMeal(null);
+                      }}
+                    >
+                      <Text style={styles.addAllPlannedText}>✓ Mark All as Consumed</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
+
+                {/* Consumed Planned Meals */}
+                {hasConsumedMeals && (
+                  <>
+                    {hasMeals && <View style={styles.plannedDivider} />}
+                    <Text style={styles.plannedSectionLabel}>✅ Already Consumed</Text>
+                    {currentConsumedPlanned.map((item, index) => (
+                      <View key={index} style={styles.consumedPlannedItemRow}>
+                        <View style={styles.plannedItemInfo}>
+                          <Text style={styles.consumedPlannedItemName}>✓ {item.name}</Text>
+                          <Text style={styles.plannedItemCals}>{item.calories} cal</Text>
+                        </View>
+                      </View>
+                    ))}
+                  </>
+                )}
               </View>
             )}
           </View>
@@ -1470,6 +1522,11 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     opacity: 0.6,
   },
+  plannedStatusBarConsumed: {
+    borderColor: Colors.success,
+    backgroundColor: `${Colors.success}10`,
+    opacity: 0.9,
+  },
   plannedStatusLeft: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1569,6 +1626,34 @@ const styles = StyleSheet.create({
     color: Colors.background,
     fontSize: Typography.fontSize.md,
     fontWeight: '600',
+  },
+  plannedSectionLabel: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+    marginBottom: Spacing.sm,
+    marginTop: Spacing.xs,
+  },
+  plannedDivider: {
+    height: 1,
+    backgroundColor: Colors.border,
+    marginVertical: Spacing.md,
+  },
+  consumedPlannedItemRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: Spacing.xs,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    marginBottom: Spacing.xs,
+    opacity: 0.7,
+  },
+  consumedPlannedItemName: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.success,
+    fontWeight: '500',
+    textDecorationLine: 'line-through',
   },
   // Compact meal selector styles
   foodActionsSection: {
@@ -1674,23 +1759,25 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: Spacing.sm,
+    gap: Spacing.md,
   },
   plannedTitle: {
     fontSize: Typography.fontSize.lg,
     fontWeight: '600',
     color: Colors.warning,
+    flex: 1,
   },
   clearAllButton: {
-    backgroundColor: Colors.error + '20',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.sm,
+    backgroundColor: Colors.error + '15',
     borderWidth: 1,
-    borderColor: Colors.error,
+    borderColor: Colors.error + '40',
   },
   clearAllText: {
     color: Colors.error,
-    fontSize: Typography.fontSize.sm,
+    fontSize: 11,
     fontWeight: '600',
   },
   plannedSubtitle: {

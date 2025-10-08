@@ -216,6 +216,7 @@ export default function RecipesScreen({ navigation, route }) {
       name: newRecipe.name,
       ingredients: newRecipe.ingredients,
       nutrition,
+      isFavorite: false, // Default to not favorite
       createdAt: new Date().toISOString(),
     };
 
@@ -350,9 +351,25 @@ export default function RecipesScreen({ navigation, route }) {
     });
   };
 
+  const toggleFavorite = (recipeId) => {
+    const updatedRecipes = recipes.map(r =>
+      r.id === recipeId ? { ...r, isFavorite: !r.isFavorite } : r
+    );
+    saveRecipes(updatedRecipes);
+  };
+
   const renderRecipe = ({ item }) => (
     <StyledCard style={styles.recipeCard}>
       <View style={styles.recipeHeader}>
+        <TouchableOpacity
+          style={styles.favoriteButton}
+          onPress={() => toggleFavorite(item.id)}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.favoriteStar}>
+            {item.isFavorite ? '⭐' : '☆'}
+          </Text>
+        </TouchableOpacity>
         <View style={styles.recipeInfo}>
           <Text style={styles.recipeName}>{item.name}</Text>
           <Text style={styles.ingredientCount}>
@@ -417,6 +434,18 @@ export default function RecipesScreen({ navigation, route }) {
 
   const currentNutrition = calculateRecipeNutrition(newRecipe.ingredients);
 
+  // Sort recipes: favorites first, then by creation date (newest first)
+  const sortedRecipes = [...recipes].sort((a, b) => {
+    // First, sort by favorite status
+    if (a.isFavorite && !b.isFavorite) return -1;
+    if (!a.isFavorite && b.isFavorite) return 1;
+
+    // If both have same favorite status, sort by creation date (newest first)
+    const dateA = new Date(a.createdAt || 0);
+    const dateB = new Date(b.createdAt || 0);
+    return dateB - dateA;
+  });
+
   return (
     <ScreenLayout
       title="My Recipes"
@@ -451,7 +480,7 @@ export default function RecipesScreen({ navigation, route }) {
         </View>
       ) : (
         <View style={styles.recipesContainer}>
-          {recipes.map((item) => (
+          {sortedRecipes.map((item) => (
             <View key={item.id}>
               {renderRecipe({ item })}
             </View>
@@ -679,7 +708,16 @@ const styles = StyleSheet.create({
   recipeHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'flex-start',
     marginBottom: Spacing.md,
+  },
+  favoriteButton: {
+    padding: 4,
+    marginRight: Spacing.sm,
+  },
+  favoriteStar: {
+    fontSize: 24,
+    color: '#FFFFFF',
   },
   recipeInfo: {
     flex: 1,

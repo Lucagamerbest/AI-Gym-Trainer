@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import ScreenLayout from '../components/ScreenLayout';
 import StyledCard from '../components/StyledCard';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
+
+const DAILY_NUTRITION_KEY = '@daily_nutrition';
 
 export default function CalorieBreakdownScreen({ route, navigation }) {
   const { meals: initialMeals, totalCalories: initialTotal, plannedMeals: initialPlannedMeals } = route.params || {};
@@ -11,7 +14,6 @@ export default function CalorieBreakdownScreen({ route, navigation }) {
   const [meals, setMeals] = useState(initialMeals || { breakfast: [], lunch: [], dinner: [], snacks: [] });
   const [plannedMeals, setPlannedMeals] = useState(initialPlannedMeals || { breakfast: [], lunch: [], dinner: [], snacks: [] });
   const [totalCalories, setTotalCalories] = useState(initialTotal || 0);
-  const [deleteModal, setDeleteModal] = useState({ visible: false, title: '', message: '', onConfirm: null });
   const [filterMode, setFilterMode] = useState('all'); // 'all', 'logged', 'planned'
 
   // Recalculate total calories whenever meals change
@@ -22,73 +24,150 @@ export default function CalorieBreakdownScreen({ route, navigation }) {
     setTotalCalories(newTotal);
   }, [meals]);
 
-  // Helper function to navigate back to Nutrition after delete/edit
-  const navigateToNutrition = (params) => {
-    setDeleteModal({ visible: false, title: '', message: '', onConfirm: null });
-    navigation.reset({
-      index: 1,
-      routes: [
-        { name: 'Main' },
-        { name: 'Nutrition', params }
-      ]
-    });
-  };
-
-  const handleDeleteFood = async (mealType, foodIndex, foodName, foodCalories) => {
-    setDeleteModal({
-      visible: true,
-      title: 'Delete Food',
-      message: `Are you sure you want to delete "${foodName}" (${foodCalories} cal) from ${mealType}?`,
-      onConfirm: async () => {
-        const updatedMeals = { ...meals };
-        updatedMeals[mealType] = [...updatedMeals[mealType]];
-        updatedMeals[mealType].splice(foodIndex, 1);
-        setMeals(updatedMeals);
-
-        navigateToNutrition({ deleteFood: { mealType, foodIndex } });
-      }
-    });
-  };
-
-  const handleDeleteMeal = (mealType) => {
-    const mealItems = meals[mealType] || [];
-    if (mealItems.length === 0) return;
-
-    const mealCalories = mealItems.reduce((sum, item) => sum + (item.calories || 0), 0);
-
-    setDeleteModal({
-      visible: true,
-      title: 'Delete Entire Meal',
-      message: `Are you sure you want to delete all items from ${mealType.charAt(0).toUpperCase() + mealType.slice(1)} (${mealCalories} cal)?`,
-      onConfirm: () => {
-        const updatedMeals = { ...meals };
-        updatedMeals[mealType] = [];
-        setMeals(updatedMeals);
-
-        navigateToNutrition({ deleteMeal: { mealType } });
-      }
-    });
-  };
-
-  const handleEditFood = (mealType, foodIndex, food) => {
-    navigation.navigate('EditFoodItem', {
-      foodItem: food,
-      mealType: mealType,
-      foodIndex: foodIndex,
-      returnScreen: 'CalorieBreakdown'
-    });
-  };
-
-  // Refresh data when coming back from EditFoodItem
+  // Auto-reload data when coming back from unlog
   useFocusEffect(
     React.useCallback(() => {
-      if (route.params?.meals && route.params?.totalCalories !== undefined) {
-        setMeals(route.params.meals);
-        setTotalCalories(route.params.totalCalories);
-      }
-    }, [route.params])
+      const loadLatestData = async () => {
+        try {
+          const saved = await AsyncStorage.getItem(DAILY_NUTRITION_KEY);
+          if (saved) {
+            const data = JSON.parse(saved);
+            if (data.meals) {
+              setMeals(data.meals);
+            }
+            if (data.plannedMeals) {
+              setPlannedMeals(data.plannedMeals);
+            }
+            if (data.consumed !== undefined) {
+              setTotalCalories(data.consumed);
+            }
+          }
+        } catch (error) {
+          console.error('Error loading latest data:', error);
+        }
+      };
+
+      loadLatestData();
+    }, [])
   );
 
+  // Un-log handler - moves logged meal to planned instantly (no confirmation)
+  const handleUnlogFood = async (mealType, foodIndex, food) => {
+    try {
+      const updatedMeals = { ...meals };
+      const updatedPlannedMeals = { ...plannedMeals };
+
+      // Get the food item
+      const foodItem = updatedMeals[mealType][foodIndex];
+
+      // Remove from logged meals
+      updatedMeals[mealType].splice(foodIndex, 1);
+
+      // Add to planned meals
+      if (!updatedPlannedMeals[mealType]) {
+        updatedPlannedMeals[mealType] = [];
+      }
+      updatedPlannedMeals[mealType].push(foodItem);
+
+      // Update local state immediately
+      setMeals(updatedMeals);
+      setPlannedMeals(updatedPlannedMeals);
+
+      // Recalculate calories
+      const newTotal = Object.values(updatedMeals).reduce((sum, mealItems) => {
+        return sum + mealItems.reduce((mealSum, item) => mealSum + (item.calories || 0), 0);
+      }, 0);
+      setTotalCalories(newTotal);
+
+      // Update AsyncStorage
+      const saved = await AsyncStorage.getItem(DAILY_NUTRITION_KEY);
+      if (saved) {
+        const data = JSON.parse(saved);
+        data.meals = updatedMeals;
+        data.plannedMeals = updatedPlannedMeals;
+        data.consumed = newTotal;
+
+        // Recalculate macros
+        const totals = Object.values(updatedMeals).reduce((acc, mealItems) => {
+          mealItems.forEach(item => {
+            acc.protein += parseFloat(item.protein || 0);
+            acc.carbs += parseFloat(item.carbs || 0);
+            acc.fat += parseFloat(item.fat || 0);
+          });
+          return acc;
+        }, { protein: 0, carbs: 0, fat: 0 });
+
+        data.consumedMacros = {
+          proteinGrams: totals.protein,
+          carbsGrams: totals.carbs,
+          fatGrams: totals.fat
+        };
+
+        await AsyncStorage.setItem(DAILY_NUTRITION_KEY, JSON.stringify(data));
+      }
+    } catch (error) {
+      console.error('Error un-logging food:', error);
+    }
+  };
+
+  // Re-log handler - moves planned meal back to logged
+  const handleRelogFood = async (mealType, foodIndex, food) => {
+    try {
+      const updatedMeals = { ...meals };
+      const updatedPlannedMeals = { ...plannedMeals };
+
+      // Get the food item from planned
+      const foodItem = updatedPlannedMeals[mealType][foodIndex];
+
+      // Remove from planned meals
+      updatedPlannedMeals[mealType].splice(foodIndex, 1);
+
+      // Add to logged meals
+      if (!updatedMeals[mealType]) {
+        updatedMeals[mealType] = [];
+      }
+      updatedMeals[mealType].push(foodItem);
+
+      // Update local state immediately
+      setMeals(updatedMeals);
+      setPlannedMeals(updatedPlannedMeals);
+
+      // Recalculate calories
+      const newTotal = Object.values(updatedMeals).reduce((sum, mealItems) => {
+        return sum + mealItems.reduce((mealSum, item) => mealSum + (item.calories || 0), 0);
+      }, 0);
+      setTotalCalories(newTotal);
+
+      // Update AsyncStorage
+      const saved = await AsyncStorage.getItem(DAILY_NUTRITION_KEY);
+      if (saved) {
+        const data = JSON.parse(saved);
+        data.meals = updatedMeals;
+        data.plannedMeals = updatedPlannedMeals;
+        data.consumed = newTotal;
+
+        // Recalculate macros
+        const totals = Object.values(updatedMeals).reduce((acc, mealItems) => {
+          mealItems.forEach(item => {
+            acc.protein += parseFloat(item.protein || 0);
+            acc.carbs += parseFloat(item.carbs || 0);
+            acc.fat += parseFloat(item.fat || 0);
+          });
+          return acc;
+        }, { protein: 0, carbs: 0, fat: 0 });
+
+        data.consumedMacros = {
+          proteinGrams: totals.protein,
+          carbsGrams: totals.carbs,
+          fatGrams: totals.fat
+        };
+
+        await AsyncStorage.setItem(DAILY_NUTRITION_KEY, JSON.stringify(data));
+      }
+    } catch (error) {
+      console.error('Error re-logging food:', error);
+    }
+  };
 
   const renderMealSection = (mealType) => {
     const loggedItems = meals[mealType] || [];
@@ -122,24 +201,20 @@ export default function CalorieBreakdownScreen({ route, navigation }) {
               )}
             </View>
           </View>
-          {loggedItems.length > 0 && (
-            <TouchableOpacity
-              style={styles.deleteMealButton}
-              onPress={() => handleDeleteMeal(mealType)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.deleteButtonText}>Delete All</Text>
-            </TouchableOpacity>
-          )}
         </View>
 
         <View style={styles.foodsList}>
-          {/* Logged meals */}
+          {/* Logged meals - click checkmark to un-log */}
           {filteredLoggedItems.map((food, index) => (
             <View key={`logged-${index}`} style={styles.foodRow}>
-              <View style={[styles.statusBadge, styles.statusBadgeLogged]}>
+              <TouchableOpacity
+                style={[styles.statusBadge, styles.statusBadgeLogged]}
+                onPress={() => handleUnlogFood(mealType, index, food)}
+                activeOpacity={0.7}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
                 <Text style={styles.statusBadgeText}>✓</Text>
-              </View>
+              </TouchableOpacity>
               <View style={[styles.foodItem, styles.foodItemLogged]}>
                 <View style={styles.foodInfo}>
                   <View style={styles.foodNameRow}>
@@ -154,33 +229,20 @@ export default function CalorieBreakdownScreen({ route, navigation }) {
                   </View>
                 </View>
               </View>
-              <View style={styles.actionZone}>
-                <TouchableOpacity
-                  style={styles.editFoodButton}
-                  onPress={() => handleEditFood(mealType, index, food)}
-                  activeOpacity={0.7}
-                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                >
-                  <Text style={styles.editFoodButtonText}>✏️</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.deleteFoodButton}
-                  onPress={() => handleDeleteFood(mealType, index, food.name, food.calories)}
-                  activeOpacity={0.7}
-                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                >
-                  <Text style={styles.deleteFoodButtonText}>🗑️</Text>
-                </TouchableOpacity>
-              </View>
             </View>
           ))}
 
-          {/* Planned meals */}
+          {/* Planned meals - click calendar to re-log */}
           {filteredPlannedItems.map((food, index) => (
             <View key={`planned-${index}`} style={styles.foodRow}>
-              <View style={[styles.statusBadge, styles.statusBadgePlanned]}>
+              <TouchableOpacity
+                style={[styles.statusBadge, styles.statusBadgePlanned]}
+                onPress={() => handleRelogFood(mealType, index, food)}
+                activeOpacity={0.7}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
                 <Text style={styles.statusBadgeText}>📅</Text>
-              </View>
+              </TouchableOpacity>
               <View style={[styles.foodItem, styles.foodItemPlanned]}>
                 <View style={styles.foodInfo}>
                   <View style={styles.foodNameRow}>
@@ -194,24 +256,6 @@ export default function CalorieBreakdownScreen({ route, navigation }) {
                     {food.fat ? <Text style={styles.foodMacro}>F: {parseFloat(food.fat).toFixed(1)}g</Text> : null}
                   </View>
                 </View>
-              </View>
-              <View style={styles.actionZone}>
-                <TouchableOpacity
-                  style={[styles.editFoodButton, styles.editFoodButtonPlanned]}
-                  onPress={() => handleEditFood(mealType, index, food)}
-                  activeOpacity={0.7}
-                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                >
-                  <Text style={styles.editFoodButtonText}>✏️</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.deleteFoodButton}
-                  onPress={() => handleDeleteFood(mealType, index, food.name, food.calories)}
-                  activeOpacity={0.7}
-                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                >
-                  <Text style={styles.deleteFoodButtonText}>🗑️</Text>
-                </TouchableOpacity>
               </View>
             </View>
           ))}
@@ -273,43 +317,22 @@ export default function CalorieBreakdownScreen({ route, navigation }) {
         )}
       </View>
 
-      {totalCalories === 0 && (
+      {/* Empty state for no logged foods */}
+      {totalCalories === 0 && filterMode !== 'planned' && (
         <StyledCard style={styles.emptyCard}>
           <Text style={styles.emptyText}>No foods logged today</Text>
           <Text style={styles.emptySubtext}>Start adding foods to track your nutrition</Text>
         </StyledCard>
       )}
 
-      {/* Custom Delete Confirmation Modal */}
-      <Modal
-        transparent={true}
-        visible={deleteModal.visible}
-        animationType="fade"
-        onRequestClose={() => setDeleteModal({ visible: false, title: '', message: '', onConfirm: null })}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>{deleteModal.title}</Text>
-            <Text style={styles.modalMessage}>{deleteModal.message}</Text>
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={styles.modalCancelButton}
-                onPress={() => setDeleteModal({ visible: false, title: '', message: '', onConfirm: null })}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.modalCancelText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.modalDeleteButton}
-                onPress={deleteModal.onConfirm}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.modalDeleteText}>Delete</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      {/* Empty state for Planned tab when no planned meals */}
+      {filterMode === 'planned' && Object.values(plannedMeals).every(meals => meals.length === 0) && (
+        <StyledCard style={styles.emptyCard}>
+          <Text style={styles.emptyPlannedIcon}>📅</Text>
+          <Text style={styles.emptyText}>No meals planned</Text>
+          <Text style={styles.emptySubtext}>All planned meals have been logged</Text>
+        </StyledCard>
+      )}
     </ScreenLayout>
   );
 }
@@ -401,19 +424,6 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
     fontStyle: 'italic',
   },
-  deleteMealButton: {
-    backgroundColor: Colors.primary,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 6,
-    borderRadius: BorderRadius.sm,
-    borderWidth: 1,
-    borderColor: Colors.primary,
-  },
-  deleteButtonText: {
-    color: Colors.background,
-    fontSize: Typography.fontSize.xs,
-    fontWeight: '600',
-  },
   foodsList: {
     gap: Spacing.xs,
   },
@@ -482,31 +492,6 @@ const styles = StyleSheet.create({
   statusPillPlanned: {
     backgroundColor: '#FF9800',
   },
-  actionZone: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.xs,
-  },
-  editFoodButton: {
-    backgroundColor: Colors.primary + '20',
-    padding: Spacing.sm,
-    borderRadius: BorderRadius.sm,
-    borderWidth: 1,
-    borderColor: Colors.primary + '40',
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  editFoodButtonPlanned: {
-    backgroundColor: '#FF9800' + '20',
-    borderColor: '#FF9800' + '40',
-  },
-  editFoodButtonText: {
-    fontSize: 16,
-  },
   foodName: {
     fontSize: Typography.fontSize.sm,
     color: Colors.text,
@@ -532,21 +517,6 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.xs,
     color: Colors.textSecondary,
   },
-  deleteFoodButton: {
-    backgroundColor: Colors.error + '20',
-    padding: Spacing.sm,
-    borderRadius: BorderRadius.sm,
-    borderWidth: 1,
-    borderColor: Colors.error + '40',
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  deleteFoodButtonText: {
-    fontSize: 18,
-  },
   emptyCard: {
     marginHorizontal: Spacing.lg,
     alignItems: 'center',
@@ -561,63 +531,8 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.sm,
     color: Colors.textMuted,
   },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: Spacing.lg,
-  },
-  modalContent: {
-    backgroundColor: Colors.background,
-    borderRadius: BorderRadius.md,
-    padding: Spacing.xl,
-    width: '90%',
-    maxWidth: 400,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  modalTitle: {
-    fontSize: Typography.fontSize.xl,
-    fontWeight: 'bold',
-    color: Colors.text,
-    marginBottom: Spacing.md,
-  },
-  modalMessage: {
-    fontSize: Typography.fontSize.md,
-    color: Colors.textSecondary,
-    marginBottom: Spacing.xl,
-    lineHeight: 22,
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: Spacing.md,
-  },
-  modalCancelButton: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.sm,
-    backgroundColor: Colors.background,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  modalCancelText: {
-    fontSize: Typography.fontSize.md,
-    color: Colors.text,
-    fontWeight: '600',
-  },
-  modalDeleteButton: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.sm,
-    backgroundColor: Colors.primary,
-    borderWidth: 1,
-    borderColor: Colors.primary,
-  },
-  modalDeleteText: {
-    fontSize: Typography.fontSize.md,
-    color: Colors.background,
-    fontWeight: '600',
+  emptyPlannedIcon: {
+    fontSize: 32,
+    marginBottom: Spacing.sm,
   },
 });

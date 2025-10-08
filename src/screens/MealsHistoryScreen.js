@@ -27,6 +27,7 @@ export default function MealsHistoryScreen({ navigation, route }) {
     dinner: [],
     snacks: []
   });
+  const [deleteModal, setDeleteModal] = useState({ visible: false, title: '', message: '', onConfirm: null });
   
   // Load meal data on focus
   useFocusEffect(
@@ -427,6 +428,51 @@ export default function MealsHistoryScreen({ navigation, route }) {
     return date.toDateString() === new Date().toDateString();
   };
 
+  // Delete/Edit handlers for Today tab (copied from CalorieBreakdownScreen)
+  const handleDeleteFood = async (mealType, foodIndex, foodName, foodCalories) => {
+    setDeleteModal({
+      visible: true,
+      title: 'Delete Food',
+      message: `Are you sure you want to delete "${foodName}" (${foodCalories} cal) from ${mealType}?`,
+      onConfirm: async () => {
+        setDeleteModal({ visible: false, title: '', message: '', onConfirm: null });
+        // Navigate back to Nutrition with delete params
+        navigation.navigate('Nutrition', {
+          deleteFood: { mealType, foodIndex }
+        });
+      }
+    });
+  };
+
+  const handleDeleteMeal = (mealType) => {
+    const mealItems = todayMeals[mealType] || [];
+    if (mealItems.length === 0) return;
+
+    const mealCalories = mealItems.reduce((sum, item) => sum + (item.calories || 0), 0);
+
+    setDeleteModal({
+      visible: true,
+      title: 'Delete Entire Meal',
+      message: `Are you sure you want to delete all items from ${mealType.charAt(0).toUpperCase() + mealType.slice(1)} (${mealCalories} cal)?`,
+      onConfirm: () => {
+        setDeleteModal({ visible: false, title: '', message: '', onConfirm: null });
+        // Navigate back to Nutrition with delete params
+        navigation.navigate('Nutrition', {
+          deleteMeal: { mealType }
+        });
+      }
+    });
+  };
+
+  const handleEditFood = (mealType, foodIndex, food) => {
+    navigation.navigate('EditFoodItem', {
+      foodItem: food,
+      mealType: mealType,
+      foodIndex: foodIndex,
+      returnScreen: 'MealsHistory'
+    });
+  };
+
   return (
     <ScreenLayout
       title="Meal Planner & History"
@@ -457,21 +503,68 @@ export default function MealsHistoryScreen({ navigation, route }) {
 
       {activeTab === 'meals' ? (
         <View>
-          {Object.entries(todayMeals).flatMap(([mealType, items]) =>
-            items.map((item, index) => (
-              <StyledCard key={`${mealType}-${index}`} style={styles.mealCard}>
-                <View style={styles.mealHeader}>
-                  <View>
-                    <Text style={styles.mealType}>{mealType}</Text>
-                    <Text style={styles.mealName}>{item.name}</Text>
+          {/* Render meals by type with edit/delete functionality */}
+          {['breakfast', 'lunch', 'dinner', 'snacks'].map((mealType) => {
+            const items = todayMeals[mealType] || [];
+            if (items.length === 0) return null;
+
+            const mealTotal = items.reduce((sum, item) => sum + (item.calories || 0), 0);
+            const mealName = mealType.charAt(0).toUpperCase() + mealType.slice(1);
+
+            return (
+              <StyledCard key={mealType} style={styles.todayMealCard}>
+                <View style={styles.todayMealHeader}>
+                  <View style={styles.todayMealTitleContainer}>
+                    <Text style={styles.todayMealTitle}>{mealName}</Text>
+                    <Text style={styles.todayMealTotal}>{mealTotal} cal</Text>
                   </View>
-                  <View style={styles.mealDetails}>
-                    <Text style={styles.mealCalories}>{item.calories} cal</Text>
-                  </View>
+                  <TouchableOpacity
+                    style={styles.deleteMealButton}
+                    onPress={() => handleDeleteMeal(mealType)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.deleteButtonText}>Delete All</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.todayFoodsList}>
+                  {items.map((food, index) => (
+                    <View key={index} style={styles.todayFoodRow}>
+                      <View style={styles.todayFoodItem}>
+                        <View style={styles.todayFoodInfo}>
+                          <Text style={styles.todayFoodName}>{food.name}</Text>
+                          <View style={styles.todayFoodMacros}>
+                            <Text style={styles.todayFoodCalories}>{food.calories || 0} cal</Text>
+                            {food.protein ? <Text style={styles.todayFoodMacro}>P: {parseFloat(food.protein).toFixed(1)}g</Text> : null}
+                            {food.carbs ? <Text style={styles.todayFoodMacro}>C: {parseFloat(food.carbs).toFixed(1)}g</Text> : null}
+                            {food.fat ? <Text style={styles.todayFoodMacro}>F: {parseFloat(food.fat).toFixed(1)}g</Text> : null}
+                          </View>
+                        </View>
+                      </View>
+                      <View style={styles.todayActionZone}>
+                        <TouchableOpacity
+                          style={styles.editFoodButton}
+                          onPress={() => handleEditFood(mealType, index, food)}
+                          activeOpacity={0.7}
+                          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                        >
+                          <Text style={styles.editFoodButtonText}>✏️</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={styles.deleteFoodButton}
+                          onPress={() => handleDeleteFood(mealType, index, food.name, food.calories)}
+                          activeOpacity={0.7}
+                          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                        >
+                          <Text style={styles.deleteFoodButtonText}>🗑️</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  ))}
                 </View>
               </StyledCard>
-            ))
-          )}
+            );
+          })}
 
           {Object.values(todayMeals).every(meals => meals.length === 0) && (
             <View style={styles.emptyContainer}>
@@ -965,6 +1058,37 @@ export default function MealsHistoryScreen({ navigation, route }) {
             )}
           </ScrollView>
         </SafeAreaView>
+      </Modal>
+
+      {/* Delete Confirmation Modal for Today Tab */}
+      <Modal
+        transparent={true}
+        visible={deleteModal.visible}
+        animationType="fade"
+        onRequestClose={() => setDeleteModal({ visible: false, title: '', message: '', onConfirm: null })}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.deleteModalContent}>
+            <Text style={styles.deleteModalTitle}>{deleteModal.title}</Text>
+            <Text style={styles.deleteModalMessage}>{deleteModal.message}</Text>
+            <View style={styles.deleteModalButtons}>
+              <TouchableOpacity
+                style={styles.modalCancelButton}
+                onPress={() => setDeleteModal({ visible: false, title: '', message: '', onConfirm: null })}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.modalDeleteButton}
+                onPress={deleteModal.onConfirm}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.modalDeleteText}>Delete</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
       </Modal>
     </ScreenLayout>
   );
@@ -1553,5 +1677,178 @@ const styles = StyleSheet.create({
   },
   mealTypeTabLabelActive: {
     color: Colors.primary,
+  },
+  // Today Tab Styles (copied from CalorieBreakdownScreen)
+  todayMealCard: {
+    marginBottom: Spacing.md,
+  },
+  todayMealHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
+  todayMealTitleContainer: {
+    flex: 1,
+  },
+  todayMealTitle: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 2,
+  },
+  todayMealTotal: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.primary,
+    fontWeight: '500',
+  },
+  deleteMealButton: {
+    backgroundColor: Colors.primary,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 6,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+  },
+  deleteButtonText: {
+    color: Colors.background,
+    fontSize: Typography.fontSize.xs,
+    fontWeight: '600',
+  },
+  todayFoodsList: {
+    gap: Spacing.xs,
+  },
+  todayFoodRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  todayFoodItem: {
+    flex: 1,
+    paddingVertical: Spacing.xs,
+    paddingHorizontal: Spacing.sm,
+    backgroundColor: '#4CAF50' + '15',
+    borderRadius: BorderRadius.sm,
+    borderWidth: 2,
+    borderColor: '#4CAF50' + '40',
+  },
+  todayFoodInfo: {
+    flex: 1,
+  },
+  todayFoodName: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.text,
+    fontWeight: '500',
+    marginBottom: 2,
+  },
+  todayFoodMacros: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.xs,
+  },
+  todayFoodCalories: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.primary,
+    fontWeight: '600',
+  },
+  todayFoodMacro: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textSecondary,
+  },
+  todayActionZone: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.xs,
+  },
+  editFoodButton: {
+    backgroundColor: Colors.primary + '20',
+    padding: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
+    borderColor: Colors.primary + '40',
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  editFoodButtonText: {
+    fontSize: 16,
+  },
+  deleteFoodButton: {
+    backgroundColor: Colors.error + '20',
+    padding: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
+    borderColor: Colors.error + '40',
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  deleteFoodButtonText: {
+    fontSize: 18,
+  },
+  // Delete Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: Spacing.lg,
+  },
+  deleteModalContent: {
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.xl,
+    width: '90%',
+    maxWidth: 400,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  deleteModalTitle: {
+    fontSize: Typography.fontSize.xl,
+    fontWeight: 'bold',
+    color: Colors.text,
+    marginBottom: Spacing.md,
+  },
+  deleteModalMessage: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.xl,
+    lineHeight: 22,
+  },
+  deleteModalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: Spacing.md,
+  },
+  modalCancelButton: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.sm,
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  modalCancelText: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.text,
+    fontWeight: '600',
+  },
+  modalDeleteButton: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.sm,
+    backgroundColor: Colors.primary,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+  },
+  modalDeleteText: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.background,
+    fontWeight: '600',
   },
 });

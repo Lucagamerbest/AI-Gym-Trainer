@@ -252,32 +252,37 @@ export default function MealPlanTemplatesScreen({ navigation }) {
 
                     <View style={styles.templateActions}>
                       <TouchableOpacity
-                        style={styles.actionButton}
+                        style={styles.applyTodayButton}
                         onPress={(e) => {
                           e.stopPropagation();
                           quickApplyToday(template);
                         }}
+                        activeOpacity={0.7}
                       >
-                        <Text style={styles.actionButtonText}>📅 Apply Today</Text>
+                        <Text style={styles.applyTodayIcon}>📅</Text>
+                        <Text style={styles.applyTodayText}>Apply Today</Text>
                       </TouchableOpacity>
                       <TouchableOpacity
-                        style={styles.actionButton}
+                        style={styles.scheduleButton}
                         onPress={(e) => {
                           e.stopPropagation();
                           setSelectedTemplate(template);
                           setShowScheduleModal(true);
                         }}
+                        activeOpacity={0.7}
                       >
-                        <Text style={styles.actionButtonText}>🗓️ Schedule</Text>
+                        <Text style={styles.scheduleIcon}>🗓️</Text>
+                        <Text style={styles.scheduleText}>Schedule</Text>
                       </TouchableOpacity>
                       <TouchableOpacity
-                        style={[styles.actionButton, styles.deleteActionButton]}
+                        style={styles.deleteButton}
                         onPress={(e) => {
                           e.stopPropagation();
                           deleteTemplate(template.id);
                         }}
+                        activeOpacity={0.7}
                       >
-                        <Text style={[styles.actionButtonText, styles.deleteActionText]}>🗑️</Text>
+                        <Text style={styles.deleteIcon}>🗑️</Text>
                       </TouchableOpacity>
                     </View>
                   </LinearGradient>
@@ -477,28 +482,62 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: Spacing.sm,
   },
-  actionButton: {
+  applyTodayButton: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.primary,
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    borderRadius: BorderRadius.lg,
     paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.md,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  deleteActionButton: {
-    flex: 0,
     paddingHorizontal: Spacing.md,
-    backgroundColor: Colors.error + '20',
-    borderColor: Colors.error + '40',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  actionButtonText: {
+  applyTodayIcon: {
+    fontSize: 16,
+    marginRight: Spacing.xs,
+  },
+  applyTodayText: {
     fontSize: Typography.fontSize.sm,
     fontWeight: '600',
-    color: Colors.text,
+    color: '#1a1a1a',
   },
-  deleteActionText: {
-    color: Colors.error,
+  scheduleButton: {
+    flex: 1,
+    backgroundColor: '#1a1a1a',
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    borderRadius: BorderRadius.lg,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  scheduleIcon: {
+    fontSize: 16,
+    marginRight: Spacing.xs,
+  },
+  scheduleText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: Colors.primary,
+    flexShrink: 0,
+  },
+  deleteButton: {
+    backgroundColor: '#1a1a1a',
+    borderWidth: 2,
+    borderColor: Colors.error,
+    borderRadius: BorderRadius.lg,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 48,
+  },
+  deleteIcon: {
+    fontSize: 18,
   },
   modalOverlay: {
     flex: 1,
