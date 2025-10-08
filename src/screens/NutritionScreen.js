@@ -418,6 +418,7 @@ export default function NutritionScreen({ navigation, route }) {
   const showConsumedBreakdown = () => {
     navigation.navigate('CalorieBreakdown', {
       meals: meals,
+      plannedMeals: plannedMeals,
       totalCalories: consumed
     });
   };
@@ -721,6 +722,8 @@ export default function NutritionScreen({ navigation, route }) {
                 onPress={() => {
                   setSelectedMeal(mealType);
                   setExpandedMeal(null);
+                  // Save the selected meal immediately so it persists across navigation
+                  saveDailyNutrition(consumed, consumedMacros, meals, mealType, plannedMeals);
                 }}
               >
                 <Text style={styles.mealOptionText}>

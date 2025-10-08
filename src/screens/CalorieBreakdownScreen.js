@@ -6,11 +6,13 @@ import StyledCard from '../components/StyledCard';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 
 export default function CalorieBreakdownScreen({ route, navigation }) {
-  const { meals: initialMeals, totalCalories: initialTotal } = route.params || {};
+  const { meals: initialMeals, totalCalories: initialTotal, plannedMeals: initialPlannedMeals } = route.params || {};
 
   const [meals, setMeals] = useState(initialMeals || { breakfast: [], lunch: [], dinner: [], snacks: [] });
+  const [plannedMeals, setPlannedMeals] = useState(initialPlannedMeals || { breakfast: [], lunch: [], dinner: [], snacks: [] });
   const [totalCalories, setTotalCalories] = useState(initialTotal || 0);
   const [deleteModal, setDeleteModal] = useState({ visible: false, title: '', message: '', onConfirm: null });
+  const [filterMode, setFilterMode] = useState('all'); // 'all', 'logged', 'planned'
 
   // Recalculate total calories whenever meals change
   useEffect(() => {
@@ -88,10 +90,22 @@ export default function CalorieBreakdownScreen({ route, navigation }) {
   );
 
 
-  const renderMealSection = (mealType, mealItems) => {
-    if (!mealItems || mealItems.length === 0) return null;
+  const renderMealSection = (mealType) => {
+    const loggedItems = meals[mealType] || [];
+    const plannedItems = plannedMeals[mealType] || [];
 
-    const mealTotal = mealItems.reduce((sum, item) => sum + (item.calories || 0), 0);
+    // Apply filter
+    const showLogged = filterMode === 'all' || filterMode === 'logged';
+    const showPlanned = filterMode === 'all' || filterMode === 'planned';
+
+    const filteredLoggedItems = showLogged ? loggedItems : [];
+    const filteredPlannedItems = showPlanned ? plannedItems : [];
+
+    if (filteredLoggedItems.length === 0 && filteredPlannedItems.length === 0) return null;
+
+    const loggedTotal = filteredLoggedItems.reduce((sum, item) => sum + (item.calories || 0), 0);
+    const plannedTotal = filteredPlannedItems.reduce((sum, item) => sum + (item.calories || 0), 0);
+    const mealTotal = loggedTotal + plannedTotal;
     const mealName = mealType.charAt(0).toUpperCase() + mealType.slice(1);
 
     return (
@@ -99,23 +113,39 @@ export default function CalorieBreakdownScreen({ route, navigation }) {
         <View style={styles.mealHeader}>
           <View style={styles.mealTitleContainer}>
             <Text style={styles.mealTitle}>{mealName}</Text>
-            <Text style={styles.mealTotal}>{mealTotal} cal</Text>
+            <View style={styles.mealTotalContainer}>
+              <Text style={styles.mealTotal}>{mealTotal} cal</Text>
+              {showLogged && showPlanned && loggedItems.length > 0 && plannedItems.length > 0 && (
+                <Text style={styles.mealBreakdown}>
+                  ({loggedTotal} logged • {plannedTotal} planned)
+                </Text>
+              )}
+            </View>
           </View>
-          <TouchableOpacity
-            style={styles.deleteMealButton}
-            onPress={() => handleDeleteMeal(mealType)}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.deleteButtonText}>Delete All</Text>
-          </TouchableOpacity>
+          {loggedItems.length > 0 && (
+            <TouchableOpacity
+              style={styles.deleteMealButton}
+              onPress={() => handleDeleteMeal(mealType)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.deleteButtonText}>Delete All</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         <View style={styles.foodsList}>
-          {mealItems.map((food, index) => (
-            <View key={index} style={styles.foodRow}>
-              <View style={styles.foodItem}>
+          {/* Logged meals */}
+          {filteredLoggedItems.map((food, index) => (
+            <View key={`logged-${index}`} style={styles.foodRow}>
+              <View style={[styles.statusBadge, styles.statusBadgeLogged]}>
+                <Text style={styles.statusBadgeText}>✓</Text>
+              </View>
+              <View style={[styles.foodItem, styles.foodItemLogged]}>
                 <View style={styles.foodInfo}>
-                  <Text style={styles.foodName}>{food.name}</Text>
+                  <View style={styles.foodNameRow}>
+                    <Text style={styles.foodName}>{food.name}</Text>
+                    <Text style={styles.statusPill}>Logged</Text>
+                  </View>
                   <View style={styles.foodMacros}>
                     <Text style={styles.foodCalories}>{food.calories || 0} cal</Text>
                     {food.protein ? <Text style={styles.foodMacro}>P: {parseFloat(food.protein).toFixed(1)}g</Text> : null}
@@ -127,6 +157,47 @@ export default function CalorieBreakdownScreen({ route, navigation }) {
               <View style={styles.actionZone}>
                 <TouchableOpacity
                   style={styles.editFoodButton}
+                  onPress={() => handleEditFood(mealType, index, food)}
+                  activeOpacity={0.7}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <Text style={styles.editFoodButtonText}>✏️</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.deleteFoodButton}
+                  onPress={() => handleDeleteFood(mealType, index, food.name, food.calories)}
+                  activeOpacity={0.7}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <Text style={styles.deleteFoodButtonText}>🗑️</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ))}
+
+          {/* Planned meals */}
+          {filteredPlannedItems.map((food, index) => (
+            <View key={`planned-${index}`} style={styles.foodRow}>
+              <View style={[styles.statusBadge, styles.statusBadgePlanned]}>
+                <Text style={styles.statusBadgeText}>📅</Text>
+              </View>
+              <View style={[styles.foodItem, styles.foodItemPlanned]}>
+                <View style={styles.foodInfo}>
+                  <View style={styles.foodNameRow}>
+                    <Text style={styles.foodName}>{food.name}</Text>
+                    <Text style={[styles.statusPill, styles.statusPillPlanned]}>Planned</Text>
+                  </View>
+                  <View style={styles.foodMacros}>
+                    <Text style={[styles.foodCalories, styles.foodCaloriesPlanned]}>{food.calories || 0} cal</Text>
+                    {food.protein ? <Text style={styles.foodMacro}>P: {parseFloat(food.protein).toFixed(1)}g</Text> : null}
+                    {food.carbs ? <Text style={styles.foodMacro}>C: {parseFloat(food.carbs).toFixed(1)}g</Text> : null}
+                    {food.fat ? <Text style={styles.foodMacro}>F: {parseFloat(food.fat).toFixed(1)}g</Text> : null}
+                  </View>
+                </View>
+              </View>
+              <View style={styles.actionZone}>
+                <TouchableOpacity
+                  style={[styles.editFoodButton, styles.editFoodButtonPlanned]}
                   onPress={() => handleEditFood(mealType, index, food)}
                   activeOpacity={0.7}
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -164,10 +235,41 @@ export default function CalorieBreakdownScreen({ route, navigation }) {
         </View>
       </StyledCard>
 
+      {/* Filter Toggle */}
+      <View style={styles.filterContainer}>
+        <TouchableOpacity
+          style={[styles.filterButton, filterMode === 'all' && styles.filterButtonActive]}
+          onPress={() => setFilterMode('all')}
+          activeOpacity={0.7}
+        >
+          <Text style={[styles.filterButtonText, filterMode === 'all' && styles.filterButtonTextActive]}>
+            All
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.filterButton, filterMode === 'logged' && styles.filterButtonActive]}
+          onPress={() => setFilterMode('logged')}
+          activeOpacity={0.7}
+        >
+          <Text style={[styles.filterButtonText, filterMode === 'logged' && styles.filterButtonTextActive]}>
+            ✓ Logged
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.filterButton, filterMode === 'planned' && styles.filterButtonActive]}
+          onPress={() => setFilterMode('planned')}
+          activeOpacity={0.7}
+        >
+          <Text style={[styles.filterButtonText, filterMode === 'planned' && styles.filterButtonTextActive]}>
+            📅 Planned
+          </Text>
+        </TouchableOpacity>
+      </View>
+
       {/* Meals Breakdown */}
       <View style={styles.mealsContainer}>
-        {Object.entries(meals).map(([mealType, mealItems]) =>
-          renderMealSection(mealType, mealItems)
+        {['breakfast', 'lunch', 'dinner', 'snacks'].map((mealType) =>
+          renderMealSection(mealType)
         )}
       </View>
 
@@ -232,6 +334,35 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: Colors.primary,
   },
+  filterContainer: {
+    flexDirection: 'row',
+    marginHorizontal: Spacing.lg,
+    marginBottom: Spacing.md,
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.xs,
+    gap: Spacing.xs,
+  },
+  filterButton: {
+    flex: 1,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+  },
+  filterButtonActive: {
+    backgroundColor: Colors.primary,
+  },
+  filterButtonText: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+  },
+  filterButtonTextActive: {
+    color: Colors.background,
+  },
   mealsContainer: {
     paddingHorizontal: Spacing.lg,
     gap: Spacing.md,
@@ -254,10 +385,21 @@ const styles = StyleSheet.create({
     color: Colors.text,
     marginBottom: 2,
   },
+  mealTotalContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    flexWrap: 'wrap',
+  },
   mealTotal: {
     fontSize: Typography.fontSize.sm,
     color: Colors.primary,
     fontWeight: '500',
+  },
+  mealBreakdown: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textMuted,
+    fontStyle: 'italic',
   },
   deleteMealButton: {
     backgroundColor: Colors.primary,
@@ -280,6 +422,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.sm,
   },
+  statusBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: BorderRadius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  statusBadgeLogged: {
+    backgroundColor: '#4CAF50',
+  },
+  statusBadgePlanned: {
+    backgroundColor: '#FF9800',
+  },
+  statusBadgeText: {
+    fontSize: 14,
+  },
   foodItem: {
     flex: 1,
     paddingVertical: Spacing.xs,
@@ -289,8 +448,39 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.primary + '40',
   },
+  foodItemLogged: {
+    backgroundColor: '#4CAF50' + '15',
+    borderColor: '#4CAF50' + '40',
+    borderWidth: 2,
+  },
+  foodItemPlanned: {
+    backgroundColor: '#FF9800' + '10',
+    borderColor: '#FF9800',
+    borderWidth: 1,
+    borderStyle: 'dashed',
+  },
   foodInfo: {
     flex: 1,
+  },
+  foodNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 2,
+    gap: Spacing.xs,
+  },
+  statusPill: {
+    backgroundColor: '#4CAF50',
+    paddingHorizontal: Spacing.xs,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.xs,
+    fontSize: Typography.fontSize.xs - 2,
+    fontWeight: '600',
+    color: Colors.background,
+    overflow: 'hidden',
+  },
+  statusPillPlanned: {
+    backgroundColor: '#FF9800',
   },
   actionZone: {
     flexDirection: 'row',
@@ -309,6 +499,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
+  },
+  editFoodButtonPlanned: {
+    backgroundColor: '#FF9800' + '20',
+    borderColor: '#FF9800' + '40',
   },
   editFoodButtonText: {
     fontSize: 16,
@@ -330,6 +524,9 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.xs,
     color: Colors.primary,
     fontWeight: '600',
+  },
+  foodCaloriesPlanned: {
+    color: '#FF9800',
   },
   foodMacro: {
     fontSize: Typography.fontSize.xs,

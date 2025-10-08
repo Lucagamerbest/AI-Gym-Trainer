@@ -166,8 +166,12 @@ export default function MealsHistoryScreen({ navigation, route }) {
     }
   };
 
-  const handleDateSelect = (date) => {
+  const handleDateSelect = async (date) => {
     setSelectedDate(date);
+
+    // Reload data to ensure we have the latest meals for today
+    await loadMealData();
+
     setShowDayPlanner(true);
     // Remember we're in calendar tab when opening date modal
     if (activeTab !== 'calendar') {
@@ -580,14 +584,19 @@ export default function MealsHistoryScreen({ navigation, route }) {
                 {/* Show planned meals if they exist */}
                 {Object.entries(getSelectedDateMeals()).map(([mealType, items]) => (
                   items.length > 0 && (
-                    <View key={mealType} style={styles.modalMealSection}>
+                    <View key={mealType} style={[styles.modalMealSection, styles.modalMealSectionPlanned]}>
                       <View style={styles.plannedMealHeader}>
-                        <Text style={styles.modalMealType}>
-                          {mealType === 'breakfast' && '🌅 Breakfast'}
-                          {mealType === 'lunch' && '☀️ Lunch'}
-                          {mealType === 'dinner' && '🌙 Dinner'}
-                          {mealType === 'snacks' && '🍿 Snacks'}
-                        </Text>
+                        <View style={styles.modalMealTypeContainer}>
+                          <Text style={styles.modalMealType}>
+                            {mealType === 'breakfast' && '🌅 Breakfast'}
+                            {mealType === 'lunch' && '☀️ Lunch'}
+                            {mealType === 'dinner' && '🌙 Dinner'}
+                            {mealType === 'snacks' && '🍿 Snacks'}
+                          </Text>
+                          <View style={styles.plannedBadge}>
+                            <Text style={styles.plannedBadgeText}>📅 Planned</Text>
+                          </View>
+                        </View>
                         <TouchableOpacity
                           onPress={() => deletePlannedMealType(getDateKey(selectedDate), mealType)}
                           style={styles.deletePlannedButton}
@@ -757,16 +766,23 @@ export default function MealsHistoryScreen({ navigation, route }) {
                 {Object.entries(getSelectedDateMeals()).map(([mealType, items]) => (
                   items.length > 0 && (
                     <View key={mealType} style={styles.modalMealSection}>
-                      <Text style={styles.modalMealType}>
-                        {mealType === 'breakfast' && '🌅 Breakfast'}
-                        {mealType === 'lunch' && '☀️ Lunch'}
-                        {mealType === 'dinner' && '🌙 Dinner'}
-                        {mealType === 'snacks' && '🍿 Snacks'}
-                      </Text>
+                      <View style={styles.modalMealHeader}>
+                        <Text style={styles.modalMealType}>
+                          {mealType === 'breakfast' && '🌅 Breakfast'}
+                          {mealType === 'lunch' && '☀️ Lunch'}
+                          {mealType === 'dinner' && '🌙 Dinner'}
+                          {mealType === 'snacks' && '🍿 Snacks'}
+                        </Text>
+                        <View style={styles.loggedBadge}>
+                          <Text style={styles.loggedBadgeText}>✓ Logged</Text>
+                        </View>
+                      </View>
                       {items.map((item, index) => (
-                        <View key={index} style={styles.modalMealItem}>
-                          <Text style={styles.modalMealName}>{item.name}</Text>
-                          <Text style={styles.modalMealCalories}>{item.calories} cal</Text>
+                        <View key={index} style={[styles.modalMealItem, styles.modalMealItemLogged]}>
+                          <View style={styles.modalMealItemContent}>
+                            <Text style={styles.modalMealName}>{item.name}</Text>
+                            <Text style={styles.modalMealCalories}>{item.calories} cal</Text>
+                          </View>
                         </View>
                       ))}
                     </View>
@@ -1177,22 +1193,71 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.lg,
     padding: Spacing.lg,
     marginBottom: Spacing.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    borderWidth: 2,
+    borderColor: '#4CAF50' + '40',
+  },
+  modalMealSectionPlanned: {
+    borderColor: '#FF9800',
+    borderStyle: 'dashed',
+    backgroundColor: '#FF9800' + '05',
+  },
+  modalMealHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
+  modalMealTypeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    flex: 1,
   },
   modalMealType: {
     fontSize: Typography.fontSize.lg,
     fontWeight: '600',
     color: Colors.text,
-    marginBottom: Spacing.md,
+  },
+  loggedBadge: {
+    backgroundColor: '#4CAF50',
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.sm,
+  },
+  loggedBadgeText: {
+    fontSize: Typography.fontSize.xs,
+    fontWeight: '600',
+    color: Colors.background,
+  },
+  plannedBadge: {
+    backgroundColor: '#FF9800',
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.sm,
+  },
+  plannedBadgeText: {
+    fontSize: Typography.fontSize.xs,
+    fontWeight: '600',
+    color: Colors.background,
   },
   modalMealItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     paddingVertical: Spacing.sm,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
+  },
+  modalMealItemLogged: {
+    backgroundColor: '#4CAF50' + '08',
+    paddingHorizontal: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+    marginBottom: Spacing.xs,
+    borderBottomWidth: 0,
+    borderLeftWidth: 3,
+    borderLeftColor: '#4CAF50',
+  },
+  modalMealItemContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   modalMealName: {
     fontSize: Typography.fontSize.md,
