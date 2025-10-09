@@ -11,14 +11,6 @@ export class WorkoutStorageService {
   // Save a completed workout with detailed exercise sets
   static async saveWorkout(workoutData, exerciseSets, userId = 'guest') {
     try {
-      console.log('========================================');
-      console.log('💾 WORKOUT STORAGE SERVICE - saveWorkout');
-      console.log('========================================');
-      console.log('\n📥 Input Data:');
-      console.log('workoutData.exercises:', workoutData.exercises);
-      console.log('exerciseSets:', JSON.stringify(exerciseSets, null, 2));
-      console.log('userId:', userId);
-
       const workout = {
         id: Date.now().toString(),
         userId,
@@ -32,10 +24,6 @@ export class WorkoutStorageService {
         photos: workoutData.photos || [], // Array of base64 strings
         exercises: workoutData.exercises.map((exercise, index) => {
           const setsForExercise = exerciseSets[index] || [];
-          console.log(`\n🏋️ Exercise ${index}: ${exercise.name}`);
-          console.log(`  Raw sets from exerciseSets[${index}]:`, setsForExercise);
-          console.log(`  Number of sets: ${setsForExercise.length}`);
-          console.log(`  Sets data:`, JSON.stringify(setsForExercise, null, 2));
 
           return {
             ...exercise,
@@ -45,15 +33,6 @@ export class WorkoutStorageService {
           };
         })
       };
-
-      console.log('\n📦 Workout object created:');
-      console.log('Total exercises:', workout.exercises.length);
-      workout.exercises.forEach((ex, idx) => {
-        console.log(`  Exercise ${idx}: ${ex.name}`);
-        console.log(`    completedSets: ${ex.completedSets}`);
-        console.log(`    totalSets: ${ex.totalSets}`);
-        console.log(`    sets:`, ex.sets);
-      });
 
       // Save to workout history
       const history = await this.getWorkoutHistory(userId);

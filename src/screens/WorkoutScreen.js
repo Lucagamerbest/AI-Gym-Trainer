@@ -848,23 +848,6 @@ export default function WorkoutScreen({ navigation, route }) {
   };
 
   const confirmFinishWorkout = async () => {
-    console.log('========================================');
-    console.log('🏋️ WORKOUT COMPLETE - DEBUG INFO START');
-    console.log('========================================');
-
-    console.log('\n📊 Exercise Sets Data:');
-    console.log(JSON.stringify(exerciseSets, null, 2));
-
-    console.log('\n🔢 Total Stats:');
-    console.log('Total Volume:', totalVolume);
-    console.log('Total Sets:', totalSets);
-
-    console.log('\n🏃 Workout Exercises:');
-    workoutExercises.forEach((ex, idx) => {
-      console.log(`Exercise ${idx}: ${ex.name}`);
-      console.log(`  Sets for this exercise:`, exerciseSets[idx]);
-    });
-
     const workoutData = {
       duration: getElapsedTime(),
       exercisesCompleted: workoutExercises.length,
@@ -878,17 +861,6 @@ export default function WorkoutScreen({ navigation, route }) {
       dayName: activeWorkout?.dayName || null,
       workoutName: activeWorkout?.workoutName || null,
     };
-
-    console.log('\n📦 Workout Data Being Passed to Finalization:');
-    console.log('Duration:', workoutData.duration);
-    console.log('Exercises Completed:', workoutData.exercisesCompleted);
-    console.log('Total Volume:', workoutData.totalVolume);
-    console.log('Total Sets:', workoutData.totalSets);
-    console.log('Volume Per Exercise:', workoutData.volumePerExercise);
-
-    console.log('\n========================================');
-    console.log('🏋️ WORKOUT COMPLETE - DEBUG INFO END');
-    console.log('========================================\n');
 
     setShowFinishConfirmation(false);
 

@@ -14,18 +14,6 @@ export default function WorkoutFinalizationScreen({ navigation, route }) {
   const { finishWorkout } = useWorkout();
   const { workoutData, exerciseSets } = route.params || {};
 
-  // DEBUG: Log received data
-  console.log('========================================');
-  console.log('📝 FINALIZATION SCREEN - RECEIVED DATA');
-  console.log('========================================');
-  console.log('\n📊 Exercise Sets Received:');
-  console.log(JSON.stringify(exerciseSets, null, 2));
-  console.log('\n📦 Workout Data Received:');
-  console.log('Total Volume:', workoutData?.totalVolume);
-  console.log('Total Sets:', workoutData?.totalSets);
-  console.log('Exercises:', workoutData?.exercises?.length);
-  console.log('========================================\n');
-
   // Generate default title based on workout type
   const getDefaultTitle = () => {
     if (workoutData.programName) {
@@ -135,25 +123,13 @@ export default function WorkoutFinalizationScreen({ navigation, route }) {
         photos: photos,
       };
 
-      console.log('========================================');
-      console.log('💾 SAVING WORKOUT - FINALIZATION');
-      console.log('========================================');
-      console.log('\n📦 Final Workout Data:');
-      console.log(JSON.stringify(finalWorkoutData, null, 2));
-      console.log('\n📊 Exercise Sets Being Saved:');
-      console.log(JSON.stringify(exerciseSets, null, 2));
-
       const userId = user?.email || 'guest';
-      console.log('\n👤 User ID:', userId);
 
       const saveResult = await WorkoutStorageService.saveWorkout(
         finalWorkoutData,
         exerciseSets,
         userId
       );
-
-      console.log('\n✅ Save Result:', saveResult);
-      console.log('========================================\n');
 
       if (!saveResult.success) {
         Alert.alert('Error', 'Failed to save workout. Please try again.');
