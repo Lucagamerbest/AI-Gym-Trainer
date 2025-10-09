@@ -65,8 +65,17 @@ const playNotificationSound = async () => {
   }
 };
 
+// Helper function to detect if exercise is cardio
+const isCardioExercise = (exercise) => {
+  if (!exercise || !exercise.id) return false;
+  const cardioKeywords = ['running', 'jogging', 'treadmill', 'walking', 'cardio', 'cycling', 'biking'];
+  const id = exercise.id.toLowerCase();
+  const name = (exercise.name || '').toLowerCase();
+  return cardioKeywords.some(keyword => id.includes(keyword) || name.includes(keyword));
+};
+
 // Exercise Card Component
-const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exerciseSets, onUpdateSet, onAddSet, onDeleteSet, onShowInfo, onSelectSetType, fromProgram, rpeEnabled }) => {
+const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exerciseSets, onUpdateSet, onAddSet, onDeleteSet, onShowInfo, onSelectSetType, fromProgram, rpeEnabled, onStartCardioTimer, onPauseCardioTimer, cardioTimers }) => {
 
   // Function to get set type color
   const getSetTypeColor = (type) => {
@@ -86,6 +95,17 @@ const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exercise
       case 'failure': return 'Failure';
       default: return '';
     }
+  };
+
+  // Check if this is a cardio exercise
+  const isCardio = isCardioExercise(exercise);
+
+  // Format duration for cardio (seconds to MM:SS)
+  const formatDuration = (seconds) => {
+    if (!seconds) return '00:00';
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   return (
@@ -131,89 +151,137 @@ const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exercise
           </View>
         </View>
 
-        {/* Sets Tracking - Always visible */}
+        {/* Sets Tracking - Conditional rendering based on exercise type */}
         <View style={styles.setsContainer}>
-          <View style={styles.setsHeader}>
-            <Text style={styles.setHeaderText}>Set</Text>
-            {rpeEnabled && <Text style={styles.rpeHeaderText}>RPE</Text>}
-            <Text style={styles.setHeaderText}>Weight</Text>
-            <Text style={styles.setHeaderText}>Reps</Text>
-            <Text style={styles.setHeaderText}>✓</Text>
-          </View>
-          
+          {isCardio ? (
+            // Cardio Exercise - Show Set, Duration, Timer Button
+            <>
+              <View style={styles.setsHeader}>
+                <Text style={styles.setHeaderText}>Set</Text>
+                <Text style={[styles.setHeaderText, { flex: 2 }]}>Duration</Text>
+                <Text style={styles.setHeaderText}>Timer</Text>
+              </View>
+            </>
+          ) : (
+            // Regular Exercise - Show Set, RPE (if enabled), Weight, Reps
+            <View style={styles.setsHeader}>
+              <Text style={styles.setHeaderText}>Set</Text>
+              {rpeEnabled && <Text style={styles.rpeHeaderText}>RPE</Text>}
+              <Text style={styles.setHeaderText}>Weight</Text>
+              <Text style={styles.setHeaderText}>Reps</Text>
+            </View>
+          )}
+
           {exerciseSets && exerciseSets.map((set, setIndex) => (
             <View key={setIndex} style={styles.setRow}>
-              <TouchableOpacity
-                style={styles.setNumberContainer}
-                onPress={() => onSelectSetType(index, setIndex)}
-              >
-                <Text style={[
-                  styles.setNumber,
-                  { color: getSetTypeColor(set.type || 'normal') }
-                ]}>
-                  {setIndex + 1}
-                </Text>
-                {set.type && set.type !== 'normal' && (
-                  <Text style={[
-                    styles.setTypeLabel,
-                    { color: getSetTypeColor(set.type) }
-                  ]}>
-                    {getSetTypeLabel(set.type)}
-                  </Text>
-                )}
-              </TouchableOpacity>
+              {isCardio ? (
+                // Cardio set row: Set number | Duration display | Timer button
+                <>
+                  <View style={styles.setNumberContainer}>
+                    <Text style={[styles.setNumber, { color: Colors.primary }]}>
+                      {setIndex + 1}
+                    </Text>
+                  </View>
 
-              {rpeEnabled && (
-                <TextInput
-                  style={[styles.setInput, styles.rpeInput]}
-                  value={set.rpe}
-                  onChangeText={(value) => onUpdateSet(index, setIndex, 'rpe', value)}
-                  placeholder="1-10"
-                  placeholderTextColor={Colors.textMuted}
-                  keyboardType="numeric"
-                  maxLength={2}
-                />
-              )}
+                  <View style={[styles.setInput, { flex: 2 }]}>
+                    <Text style={styles.cardioDurationText}>
+                      {formatDuration(set.duration || 0)}
+                    </Text>
+                  </View>
 
-              <TextInput
-                style={styles.setInput}
-                value={set.weight}
-                onChangeText={(value) => onUpdateSet(index, setIndex, 'weight', value)}
-                placeholder="lbs"
-                placeholderTextColor={Colors.textMuted}
-                keyboardType="numeric"
-              />
-              
-              <TextInput
-                style={[
-                  styles.setInput,
-                  styles.repsInput,
-                  fromProgram && set.reps && !set.completed && styles.programRepsInput
-                ]}
-                value={set.reps}
-                onChangeText={(value) => onUpdateSet(index, setIndex, 'reps', value)}
-                placeholder={fromProgram && set.reps ? set.reps : "10"}
-                placeholderTextColor={fromProgram && set.reps ? Colors.primary : Colors.textMuted}
-                keyboardType="numeric"
-                maxLength={5}
-              />
-              
-              <TouchableOpacity
-                style={styles.completeButton}
-                onPress={() => onUpdateSet(index, setIndex, 'completed', !set.completed)}
-              >
-                <View style={[styles.checkboxContainer, set.completed && styles.checkboxCompleted]}>
-                  {set.completed && <Text style={styles.checkmark}>✓</Text>}
-                </View>
-              </TouchableOpacity>
-              
-              {exerciseSets.length > 1 && (
-                <TouchableOpacity
-                  style={styles.deleteSetButton}
-                  onPress={() => onDeleteSet(index, setIndex)}
-                >
-                  <Text style={styles.deleteSetButtonText}>✕</Text>
-                </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.cardioTimerButton}
+                    onPress={() => {
+                      const timerKey = `${index}-${setIndex}`;
+                      const isRunning = cardioTimers?.[timerKey]?.isRunning;
+                      if (isRunning) {
+                        onPauseCardioTimer(index, setIndex);
+                      } else {
+                        onStartCardioTimer(index, setIndex);
+                      }
+                    }}
+                  >
+                    <Text style={styles.cardioTimerButtonText}>
+                      {cardioTimers?.[`${index}-${setIndex}`]?.isRunning ? '⏸' : '▶'}
+                    </Text>
+                  </TouchableOpacity>
+
+                  {exerciseSets.length > 1 && (
+                    <TouchableOpacity
+                      style={styles.deleteSetButton}
+                      onPress={() => onDeleteSet(index, setIndex)}
+                    >
+                      <Text style={styles.deleteSetButtonText}>✕</Text>
+                    </TouchableOpacity>
+                  )}
+                </>
+              ) : (
+                // Regular exercise set row: Set number | RPE | Weight | Reps
+                <>
+                  <TouchableOpacity
+                    style={styles.setNumberContainer}
+                    onPress={() => onSelectSetType(index, setIndex)}
+                  >
+                    <Text style={[
+                      styles.setNumber,
+                      { color: getSetTypeColor(set.type || 'normal') }
+                    ]}>
+                      {setIndex + 1}
+                    </Text>
+                    {set.type && set.type !== 'normal' && (
+                      <Text style={[
+                        styles.setTypeLabel,
+                        { color: getSetTypeColor(set.type) }
+                      ]}>
+                        {getSetTypeLabel(set.type)}
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+
+                  {rpeEnabled && (
+                    <TextInput
+                      style={[styles.setInput, styles.rpeInput]}
+                      value={set.rpe}
+                      onChangeText={(value) => onUpdateSet(index, setIndex, 'rpe', value)}
+                      placeholder="1-10"
+                      placeholderTextColor={Colors.textMuted}
+                      keyboardType="numeric"
+                      maxLength={2}
+                    />
+                  )}
+
+                  <TextInput
+                    style={styles.setInput}
+                    value={set.weight}
+                    onChangeText={(value) => onUpdateSet(index, setIndex, 'weight', value)}
+                    placeholder="lbs"
+                    placeholderTextColor={Colors.textMuted}
+                    keyboardType="numeric"
+                  />
+
+                  <TextInput
+                    style={[
+                      styles.setInput,
+                      styles.repsInput,
+                      fromProgram && set.reps && styles.programRepsInput
+                    ]}
+                    value={set.reps}
+                    onChangeText={(value) => onUpdateSet(index, setIndex, 'reps', value)}
+                    placeholder={fromProgram && set.reps ? set.reps : "10"}
+                    placeholderTextColor={fromProgram && set.reps ? Colors.primary : Colors.textMuted}
+                    keyboardType="numeric"
+                    maxLength={5}
+                  />
+
+                  {exerciseSets.length > 1 && (
+                    <TouchableOpacity
+                      style={styles.deleteSetButton}
+                      onPress={() => onDeleteSet(index, setIndex)}
+                    >
+                      <Text style={styles.deleteSetButtonText}>✕</Text>
+                    </TouchableOpacity>
+                  )}
+                </>
               )}
             </View>
           ))}
@@ -263,6 +331,10 @@ export default function WorkoutScreen({ navigation, route }) {
   const [draggedExercise, setDraggedExercise] = useState(null);
   const [totalVolume, setTotalVolume] = useState(0);
   const [totalSets, setTotalSets] = useState(0);
+
+  // Cardio timer state: { "exerciseIndex-setIndex": { startTime, duration, isRunning } }
+  const [cardioTimers, setCardioTimers] = useState({});
+  const cardioTimerIntervals = useRef({});
 
   // Load RPE setting and request notification permissions
   useEffect(() => {
@@ -449,7 +521,13 @@ export default function WorkoutScreen({ navigation, route }) {
 
     workoutExercises.forEach((ex, index) => {
       if (!newSets[index]) {
-        newSets[index] = [{ weight: '', reps: '', completed: false }];
+        // Check if this is a cardio exercise to determine what fields to initialize
+        const isCardio = isCardioExercise(ex);
+        if (isCardio) {
+          newSets[index] = [{ duration: 0, completed: true }];
+        } else {
+          newSets[index] = [{ weight: '', reps: '', completed: true }];
+        }
         hasChanges = true;
       }
     });
@@ -628,6 +706,111 @@ export default function WorkoutScreen({ navigation, route }) {
     }
   };
 
+  // Cardio timer functions
+  const startCardioTimer = (exerciseIndex, setIndex) => {
+    const timerKey = `${exerciseIndex}-${setIndex}`;
+    const now = new Date().getTime();
+
+    // Check if this set has a planned duration that hasn't been started yet
+    const currentSet = exerciseSets[exerciseIndex]?.[setIndex];
+    const hasPlannedDuration = currentSet?.plannedDuration && !cardioTimers[timerKey]?.hasStarted;
+
+    // If has planned duration and hasn't started, reset to 0 and start fresh
+    // Otherwise, use accumulated duration from previous pause/resume cycles
+    const currentDuration = hasPlannedDuration ? 0 : (cardioTimers[timerKey]?.baseDuration || 0);
+
+    // Initialize or restart timer
+    setCardioTimers(prev => ({
+      ...prev,
+      [timerKey]: {
+        startTime: now,
+        baseDuration: currentDuration, // Save the base duration when we start
+        isRunning: true,
+        hasStarted: true, // Mark that timer has been started
+      }
+    }));
+
+    // Start interval to update duration every second
+    cardioTimerIntervals.current[timerKey] = setInterval(() => {
+      const currentTime = new Date().getTime();
+
+      setCardioTimers(prev => {
+        if (!prev[timerKey] || !prev[timerKey].isRunning) {
+          return prev;
+        }
+
+        // Calculate elapsed time since this session started
+        const elapsed = Math.floor((currentTime - prev[timerKey].startTime) / 1000);
+        // Add to base duration
+        const totalDuration = prev[timerKey].baseDuration + elapsed;
+
+        // Update exerciseSets with the new duration
+        setExerciseSets(prevSets => {
+          const newSets = { ...prevSets };
+          if (newSets[exerciseIndex] && newSets[exerciseIndex][setIndex]) {
+            newSets[exerciseIndex][setIndex].duration = totalDuration;
+          }
+          return newSets;
+        });
+
+        return {
+          ...prev,
+          [timerKey]: {
+            ...prev[timerKey],
+            currentDuration: totalDuration // Store for display
+          }
+        };
+      });
+    }, 1000);
+  };
+
+  const pauseCardioTimer = (exerciseIndex, setIndex) => {
+    const timerKey = `${exerciseIndex}-${setIndex}`;
+
+    // Clear interval
+    if (cardioTimerIntervals.current[timerKey]) {
+      clearInterval(cardioTimerIntervals.current[timerKey]);
+      delete cardioTimerIntervals.current[timerKey];
+    }
+
+    // Update timer state to paused and save final duration
+    setCardioTimers(prev => {
+      if (!prev[timerKey]) return prev;
+
+      // Calculate final duration
+      const elapsed = Math.floor((new Date().getTime() - prev[timerKey].startTime) / 1000);
+      const finalDuration = prev[timerKey].baseDuration + elapsed;
+
+      // Update exerciseSets with final duration
+      setExerciseSets(prevSets => {
+        const newSets = { ...prevSets };
+        if (newSets[exerciseIndex] && newSets[exerciseIndex][setIndex]) {
+          newSets[exerciseIndex][setIndex].duration = finalDuration;
+        }
+        return newSets;
+      });
+
+      return {
+        ...prev,
+        [timerKey]: {
+          baseDuration: finalDuration, // Save for next resume
+          isRunning: false,
+          hasStarted: prev[timerKey].hasStarted || false, // Preserve hasStarted flag
+        }
+      };
+    });
+  };
+
+  // Cleanup cardio timers on unmount
+  useEffect(() => {
+    return () => {
+      // Clear all cardio timer intervals
+      Object.values(cardioTimerIntervals.current).forEach(interval => {
+        if (interval) clearInterval(interval);
+      });
+    };
+  }, []);
+
   // Pause/Resume workout timer
   const toggleWorkoutPause = () => {
     if (isWorkoutPaused) {
@@ -665,6 +848,23 @@ export default function WorkoutScreen({ navigation, route }) {
   };
 
   const confirmFinishWorkout = async () => {
+    console.log('========================================');
+    console.log('🏋️ WORKOUT COMPLETE - DEBUG INFO START');
+    console.log('========================================');
+
+    console.log('\n📊 Exercise Sets Data:');
+    console.log(JSON.stringify(exerciseSets, null, 2));
+
+    console.log('\n🔢 Total Stats:');
+    console.log('Total Volume:', totalVolume);
+    console.log('Total Sets:', totalSets);
+
+    console.log('\n🏃 Workout Exercises:');
+    workoutExercises.forEach((ex, idx) => {
+      console.log(`Exercise ${idx}: ${ex.name}`);
+      console.log(`  Sets for this exercise:`, exerciseSets[idx]);
+    });
+
     const workoutData = {
       duration: getElapsedTime(),
       exercisesCompleted: workoutExercises.length,
@@ -678,6 +878,17 @@ export default function WorkoutScreen({ navigation, route }) {
       dayName: activeWorkout?.dayName || null,
       workoutName: activeWorkout?.workoutName || null,
     };
+
+    console.log('\n📦 Workout Data Being Passed to Finalization:');
+    console.log('Duration:', workoutData.duration);
+    console.log('Exercises Completed:', workoutData.exercisesCompleted);
+    console.log('Total Volume:', workoutData.totalVolume);
+    console.log('Total Sets:', workoutData.totalSets);
+    console.log('Volume Per Exercise:', workoutData.volumePerExercise);
+
+    console.log('\n========================================');
+    console.log('🏋️ WORKOUT COMPLETE - DEBUG INFO END');
+    console.log('========================================\n');
 
     setShowFinishConfirmation(false);
 
@@ -755,8 +966,60 @@ export default function WorkoutScreen({ navigation, route }) {
     if (!newSets[exerciseIndex]) {
       newSets[exerciseIndex] = [];
     }
-    newSets[exerciseIndex].push({ weight: '', reps: '', rpe: '', completed: false });
+
+    // Check if this is a cardio exercise to determine what fields to initialize
+    const exercise = workoutExercises[exerciseIndex];
+    const isCardio = isCardioExercise(exercise);
+
+    if (isCardio) {
+      // For cardio: Stop and complete the previous set's timer
+      const previousSetIndex = newSets[exerciseIndex].length - 1;
+      if (previousSetIndex >= 0) {
+        // Stop the timer for the previous set
+        const timerKey = `${exerciseIndex}-${previousSetIndex}`;
+        if (cardioTimerIntervals.current[timerKey]) {
+          clearInterval(cardioTimerIntervals.current[timerKey]);
+          delete cardioTimerIntervals.current[timerKey];
+        }
+
+        // Calculate final duration for the previous set
+        if (cardioTimers[timerKey]?.isRunning) {
+          const elapsed = Math.floor((new Date().getTime() - cardioTimers[timerKey].startTime) / 1000);
+          const finalDuration = cardioTimers[timerKey].baseDuration + elapsed;
+
+          // Update the previous set with final duration and mark as completed
+          newSets[exerciseIndex][previousSetIndex].duration = finalDuration;
+          newSets[exerciseIndex][previousSetIndex].completed = true;
+
+          // Update timer state
+          setCardioTimers(prev => ({
+            ...prev,
+            [timerKey]: {
+              baseDuration: finalDuration,
+              isRunning: false
+            }
+          }));
+        } else {
+          // If not running, just mark as completed
+          newSets[exerciseIndex][previousSetIndex].completed = true;
+        }
+      }
+
+      // Add new set with duration instead of weight/reps
+      newSets[exerciseIndex].push({ duration: 0, completed: true });
+    } else {
+      // For regular exercises: weight, reps, rpe
+      newSets[exerciseIndex].push({ weight: '', reps: '', rpe: '', completed: true });
+    }
+
     setExerciseSets(newSets);
+
+    // Update totals if we marked a cardio set as completed
+    if (isCardio && newSets[exerciseIndex].length > 1) {
+      const totals = calculateTotals(newSets);
+      setTotalSets(totals.sets);
+    }
+
     // DO NOT update context here - keep it local
   };
 
@@ -769,27 +1032,27 @@ export default function WorkoutScreen({ navigation, route }) {
     }
   };
 
-  // Calculate total volume and completed sets count
+  // Calculate total volume and sets count
   const calculateTotals = (sets) => {
     let volume = 0;
-    let completedSets = 0;
+    let totalSets = 0;
     Object.values(sets).forEach(exerciseSets => {
       exerciseSets.forEach(set => {
-        if (set.completed) {
-          completedSets += 1;
-          if (set.weight && set.reps) {
-            // Handle rep ranges (e.g., "8-12") - use the lower value for calculation
-            const repsValue = set.reps.includes('-')
-              ? parseFloat(set.reps.split('-')[0])
-              : parseFloat(set.reps);
-            if (!isNaN(repsValue)) {
-              volume += parseFloat(set.weight) * repsValue;
-            }
+        // Count all sets, not just completed ones
+        totalSets += 1;
+        // Calculate volume for sets with weight and reps
+        if (set.weight && set.reps) {
+          // Handle rep ranges (e.g., "8-12") - use the lower value for calculation
+          const repsValue = set.reps.includes('-')
+            ? parseFloat(set.reps.split('-')[0])
+            : parseFloat(set.reps);
+          if (!isNaN(repsValue)) {
+            volume += parseFloat(set.weight) * repsValue;
           }
         }
       });
     });
-    return { volume, sets: completedSets };
+    return { volume, sets: totalSets };
   };
 
   // Calculate volume per exercise
@@ -798,7 +1061,8 @@ export default function WorkoutScreen({ navigation, route }) {
     Object.entries(exerciseSets).forEach(([exerciseIndex, sets]) => {
       let exerciseVolume = 0;
       sets.forEach(set => {
-        if (set.completed && set.weight && set.reps) {
+        // Calculate volume for all sets with weight and reps
+        if (set.weight && set.reps) {
           // Handle rep ranges (e.g., "8-12") - use the lower value for calculation
           const repsValue = set.reps.includes('-')
             ? parseFloat(set.reps.split('-')[0])
@@ -819,7 +1083,7 @@ export default function WorkoutScreen({ navigation, route }) {
   const updateSet = (exerciseIndex, setIndex, field, value) => {
     const newSets = { ...exerciseSets };
     if (!newSets[exerciseIndex]) {
-      newSets[exerciseIndex] = [{ weight: '', reps: '', completed: false }];
+      newSets[exerciseIndex] = [{ weight: '', reps: '', completed: true }];
     }
 
     // Handle automatic dash insertion for reps
@@ -869,9 +1133,8 @@ export default function WorkoutScreen({ navigation, route }) {
     newSets[exerciseIndex][setIndex][field] = value;
     setExerciseSets(newSets);
 
-    // Update totals if relevant fields changed
-    if (field === 'completed' ||
-        (newSets[exerciseIndex][setIndex].completed && (field === 'weight' || field === 'reps'))) {
+    // Update totals if weight or reps changed
+    if (field === 'weight' || field === 'reps') {
       const totals = calculateTotals(newSets);
       setTotalVolume(totals.volume);
       setTotalSets(totals.sets);
@@ -1138,6 +1401,9 @@ export default function WorkoutScreen({ navigation, route }) {
             onSelectSetType={handleSelectSetType}
             fromProgram={activeWorkout?.fromProgram || false}
             rpeEnabled={rpeEnabled}
+            onStartCardioTimer={startCardioTimer}
+            onPauseCardioTimer={pauseCardioTimer}
+            cardioTimers={cardioTimers}
           />
         ))}
       </View>
@@ -2331,5 +2597,26 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: Colors.text,
     flex: 1,
+  },
+  // Cardio-specific styles
+  cardioDurationText: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: 'bold',
+    color: Colors.text,
+    textAlign: 'center',
+  },
+  cardioTimerButton: {
+    flex: 1,
+    backgroundColor: Colors.primary,
+    borderRadius: BorderRadius.sm,
+    paddingVertical: Spacing.xs,
+    paddingHorizontal: 4,
+    marginHorizontal: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cardioTimerButtonText: {
+    fontSize: 16,
+    color: Colors.background,
   },
 });

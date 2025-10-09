@@ -20,6 +20,15 @@ import { useIsFocused } from '@react-navigation/native';
 const STORAGE_KEY = '@temp_program_state';
 const STANDALONE_WORKOUTS_KEY = '@standalone_workouts';
 
+// Helper function to detect if exercise is cardio
+const isCardioExercise = (exercise) => {
+  if (!exercise || !exercise.id) return false;
+  const cardioKeywords = ['running', 'jogging', 'treadmill', 'walking', 'cardio', 'cycling', 'biking'];
+  const id = exercise.id.toLowerCase();
+  const name = (exercise.name || '').toLowerCase();
+  return cardioKeywords.some(keyword => id.includes(keyword) || name.includes(keyword));
+};
+
 export default function WorkoutDayEditScreen({ navigation, route }) {
   const [dayData, setDayData] = useState(null);
   const [dayIndex, setDayIndex] = useState(null);
@@ -137,13 +146,16 @@ export default function WorkoutDayEditScreen({ navigation, route }) {
 
         lastProcessedExercise.current = exerciseKey;
 
+        // Check if this is a cardio exercise
+        const isCardio = isCardioExercise(exercise);
+
         // Allow adding same exercise multiple times - each gets unique ID
         const exerciseToAdd = {
           ...exercise,
           uniqueId: Date.now().toString(),
-          sets: [
-            { type: 'normal', reps: '10', rpe: '' }  // 1 set by default, single number
-          ]
+          sets: isCardio
+            ? [{ type: 'normal', duration: '30' }]  // Cardio: duration in minutes
+            : [{ type: 'normal', reps: '10', rpe: '' }]  // Regular: reps
         };
 
         const updatedDay = {
@@ -192,7 +204,16 @@ export default function WorkoutDayEditScreen({ navigation, route }) {
     if (!updatedExercises[exerciseIndex].sets) {
       updatedExercises[exerciseIndex].sets = [];
     }
-    updatedExercises[exerciseIndex].sets.push({ type: 'normal', reps: '10', rpe: '' });
+
+    // Check if this is a cardio exercise
+    const isCardio = isCardioExercise(updatedExercises[exerciseIndex]);
+
+    // Add appropriate set type
+    const newSet = isCardio
+      ? { type: 'normal', duration: '30' }  // Cardio: duration in minutes
+      : { type: 'normal', reps: '10', rpe: '' };  // Regular: reps
+
+    updatedExercises[exerciseIndex].sets.push(newSet);
 
     const updatedDay = { ...dayData, exercises: updatedExercises };
     setDayData(updatedDay);
@@ -678,7 +699,10 @@ export default function WorkoutDayEditScreen({ navigation, route }) {
                 <View style={styles.setsContainer}>
                   <Text style={styles.setsTitle}>Sets</Text>
 
-                  {exercise.sets && exercise.sets.map((set, setIndex) => (
+                  {exercise.sets && exercise.sets.map((set, setIndex) => {
+                    const isCardio = isCardioExercise(exercise);
+
+                    return (
                     <View key={setIndex} style={styles.setRow}>
                       {/* Set Number with Type - Clickable for Modal */}
                       <TouchableOpacity
@@ -699,35 +723,53 @@ export default function WorkoutDayEditScreen({ navigation, route }) {
                         </Text>
                       </TouchableOpacity>
 
-                      {/* RPE Input (if enabled) */}
-                      {rpeEnabled && (
+                      {isCardio ? (
+                        // Cardio Exercise - Show Duration input
                         <View style={styles.inputContainer}>
                           <TextInput
                             style={styles.setInput}
-                            value={set.rpe}
-                            onChangeText={(text) => updateSet(exerciseIndex, setIndex, 'rpe', text)}
-                            placeholder="1-10"
+                            value={set.duration}
+                            onChangeText={(text) => updateSet(exerciseIndex, setIndex, 'duration', text)}
+                            placeholder="30"
                             keyboardType="numeric"
-                            maxLength={2}
+                            maxLength={3}
                             placeholderTextColor={Colors.textSecondary}
                           />
-                          <Text style={styles.inputLabel}>RPE</Text>
+                          <Text style={styles.inputLabel}>min</Text>
                         </View>
-                      )}
+                      ) : (
+                        <>
+                          {/* RPE Input (if enabled) */}
+                          {rpeEnabled && (
+                            <View style={styles.inputContainer}>
+                              <TextInput
+                                style={styles.setInput}
+                                value={set.rpe}
+                                onChangeText={(text) => updateSet(exerciseIndex, setIndex, 'rpe', text)}
+                                placeholder="1-10"
+                                keyboardType="numeric"
+                                maxLength={2}
+                                placeholderTextColor={Colors.textSecondary}
+                              />
+                              <Text style={styles.inputLabel}>RPE</Text>
+                            </View>
+                          )}
 
-                      {/* Reps Input */}
-                      <View style={styles.inputContainer}>
-                        <TextInput
-                          style={styles.setInput}
-                          value={set.reps}
-                          onChangeText={(text) => updateSet(exerciseIndex, setIndex, 'reps', text)}
-                          placeholder="10"
-                          keyboardType="numeric"
-                          maxLength={5}
-                          placeholderTextColor={Colors.textSecondary}
-                        />
-                        <Text style={styles.inputLabel}>reps</Text>
-                      </View>
+                          {/* Reps Input */}
+                          <View style={styles.inputContainer}>
+                            <TextInput
+                              style={styles.setInput}
+                              value={set.reps}
+                              onChangeText={(text) => updateSet(exerciseIndex, setIndex, 'reps', text)}
+                              placeholder="10"
+                              keyboardType="numeric"
+                              maxLength={5}
+                              placeholderTextColor={Colors.textSecondary}
+                            />
+                            <Text style={styles.inputLabel}>reps</Text>
+                          </View>
+                        </>
+                      )}
 
                       {/* Remove Set Button */}
                       {exercise.sets.length > 1 && (
@@ -739,7 +781,8 @@ export default function WorkoutDayEditScreen({ navigation, route }) {
                         </TouchableOpacity>
                       )}
                     </View>
-                  ))}
+                  );
+                  })}
 
                   {/* Add Set Button */}
                   <TouchableOpacity

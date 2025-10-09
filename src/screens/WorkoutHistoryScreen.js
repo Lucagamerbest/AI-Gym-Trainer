@@ -11,6 +11,23 @@ import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { WorkoutStorageService } from '../services/workoutStorage';
 import { useAuth } from '../context/AuthContext';
 
+// Helper function to detect if exercise is cardio
+const isCardioExercise = (exercise) => {
+  if (!exercise || !exercise.id) return false;
+  const cardioKeywords = ['running', 'jogging', 'treadmill', 'walking', 'cardio', 'cycling', 'biking'];
+  const id = (exercise.id || '').toLowerCase();
+  const name = (exercise.name || '').toLowerCase();
+  return cardioKeywords.some(keyword => id.includes(keyword) || name.includes(keyword));
+};
+
+// Helper function to format duration (seconds to MM:SS)
+const formatCardioTime = (seconds) => {
+  if (!seconds) return '00:00';
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+};
+
 export default function WorkoutHistoryScreen({ navigation }) {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('calendar'); // 'calendar' or 'history'
@@ -839,16 +856,25 @@ export default function WorkoutHistoryScreen({ navigation }) {
                       {/* Sets */}
                       {exercise.sets && exercise.sets.length > 0 && (
                         <View style={styles.setsContainer}>
-                          {exercise.sets.map((set, setIndex) => (
-                            set.completed && (
+                          {exercise.sets.map((set, setIndex) => {
+                            if (!set.completed) return null;
+
+                            const isCardio = isCardioExercise(exercise);
+
+                            return (
                               <View key={setIndex} style={styles.setRow}>
                                 <Text style={styles.setText}>
-                                  Set {setIndex + 1}: {set.weight}lbs × {set.reps} reps
-                                  {set.rpe ? ` @ RPE ${set.rpe}` : ''}
+                                  {isCardio ? (
+                                    // Cardio set: Show duration
+                                    `Set ${setIndex + 1}: ${formatCardioTime(set.duration || 0)}`
+                                  ) : (
+                                    // Regular set: Show weight × reps with optional RPE
+                                    `Set ${setIndex + 1}: ${set.weight}lbs × ${set.reps} reps${set.rpe ? ` @ RPE ${set.rpe}` : ''}`
+                                  )}
                                 </Text>
                               </View>
-                            )
-                          ))}
+                            );
+                          })}
                         </View>
                       )}
                     </View>

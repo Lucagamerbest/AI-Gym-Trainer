@@ -22,22 +22,23 @@ export default function WorkoutSummaryScreen({ navigation, route }) {
   // Calculate summary stats from exercise sets
   const calculateStats = () => {
     let totalSets = 0;
-    let completedSets = 0;
     let totalVolume = 0;
 
     exercises.forEach((exercise, index) => {
-      const sets = exerciseSets?.[index] || [];
+      // Handle both numeric and string keys
+      const sets = exerciseSets?.[index] || exerciseSets?.[index.toString()] || [];
       totalSets += sets.length;
 
       sets.forEach(set => {
-        if (set.completed) {
-          completedSets += 1;
-          if (set.weight && set.reps) {
-            totalVolume += parseFloat(set.weight) * parseInt(set.reps);
-          }
+        // All sets are considered completed by default
+        if (set.weight && set.reps) {
+          totalVolume += parseFloat(set.weight) * parseInt(set.reps);
         }
       });
     });
+
+    // All sets are completed (100%)
+    const completedSets = totalSets;
 
     return { totalSets, completedSets, totalVolume };
   };
@@ -167,9 +168,11 @@ export default function WorkoutSummaryScreen({ navigation, route }) {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Exercise Summary</Text>
           {exercises.map((exercise, index) => {
-            const sets = exerciseSets?.[index] || [];
-            const completedExerciseSets = sets.filter(set => set.completed);
-            const bestSet = completedExerciseSets.reduce((best, set) => {
+            // Handle both numeric and string keys
+            const sets = exerciseSets?.[index] || exerciseSets?.[index.toString()] || [];
+            // All sets are considered completed
+            const completedExerciseSets = sets;
+            const bestSet = sets.reduce((best, set) => {
               const currentVolume = (parseFloat(set.weight) || 0) * (parseInt(set.reps) || 0);
               const bestVolume = (parseFloat(best?.weight) || 0) * (parseInt(best?.reps) || 0);
               return currentVolume > bestVolume ? set : best;
@@ -194,7 +197,6 @@ export default function WorkoutSummaryScreen({ navigation, route }) {
                       <Text style={styles.setHeaderText}>Set</Text>
                       <Text style={styles.setHeaderText}>Weight</Text>
                       <Text style={styles.setHeaderText}>Reps</Text>
-                      <Text style={styles.setHeaderText}>Status</Text>
                     </View>
                     {sets.map((set, setIndex) => (
                       <View key={setIndex} style={styles.setRow}>
@@ -204,9 +206,6 @@ export default function WorkoutSummaryScreen({ navigation, route }) {
                         </Text>
                         <Text style={styles.setValue}>
                           {set.reps || '-'}
-                        </Text>
-                        <Text style={[styles.setStatus, set.completed && styles.setStatusCompleted]}>
-                          {set.completed ? '✓' : '○'}
                         </Text>
                       </View>
                     ))}

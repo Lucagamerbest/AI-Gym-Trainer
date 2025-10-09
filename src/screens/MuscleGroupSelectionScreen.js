@@ -23,6 +23,8 @@ export default function MuscleGroupSelectionScreen({ navigation, route }) {
     { id: 'triceps', name: 'Triceps', icon: '🔥', color: '#FF7675' },
     { id: 'shoulders', name: 'Shoulders', icon: '🤲', color: '#96CEB4' },
     { id: 'abs', name: 'Abs', icon: '🎯', color: '#DDA0DD' },
+    { id: 'forearms', name: 'Forearms', icon: '✊', color: '#74B9FF' },
+    { id: 'cardio', name: 'Cardio', icon: '❤️', color: '#FD79A8' },
   ];
 
   const toggleMuscleGroup = (muscleGroupId) => {

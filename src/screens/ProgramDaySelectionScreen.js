@@ -84,28 +84,61 @@ export default function ProgramDaySelectionScreen({ navigation, route }) {
     });
   };
 
+  // Helper function to detect if exercise is cardio
+  const isCardioExercise = (exercise) => {
+    if (!exercise || !exercise.id) return false;
+    const cardioKeywords = ['running', 'jogging', 'treadmill', 'walking', 'cardio', 'cycling', 'biking'];
+    const id = exercise.id.toLowerCase();
+    const name = (exercise.name || '').toLowerCase();
+    return cardioKeywords.some(keyword => id.includes(keyword) || name.includes(keyword));
+  };
+
   // Initialize sets based on program configuration
   const initializeExerciseSets = (exercises) => {
     const sets = {};
     exercises.forEach((exercise, index) => {
+      const isCardio = isCardioExercise(exercise);
+
       if (exercise.sets && exercise.sets.length > 0) {
         // Use the sets defined in the program - preserve ALL set data
-        sets[index] = exercise.sets.map(set => ({
-          weight: '',  // User will fill this in
-          reps: set.reps || '10',  // Pre-fill with program's rep target
-          completed: false,
-          type: set.type || 'normal',
-          rest: set.rest || '90',
-          // Store the original program reps for display purposes
-          programReps: set.reps || '10',
-        }));
+        sets[index] = exercise.sets.map(set => {
+          if (isCardio) {
+            // For cardio: preserve duration (in minutes) and convert to seconds
+            const durationInMinutes = parseInt(set.duration) || 30;
+            return {
+              duration: durationInMinutes * 60,  // Convert minutes to seconds for display
+              completed: false,
+              type: set.type || 'normal',
+              plannedDuration: durationInMinutes * 60, // Store planned duration
+            };
+          } else {
+            // For regular exercises: preserve reps
+            return {
+              weight: '',  // User will fill this in
+              reps: set.reps || '10',  // Pre-fill with program's rep target
+              completed: false,
+              type: set.type || 'normal',
+              rest: set.rest || '90',
+              // Store the original program reps for display purposes
+              programReps: set.reps || '10',
+            };
+          }
+        });
       } else {
         // Default to 3 sets if none defined
-        sets[index] = [
-          { weight: '', reps: '', completed: false, type: 'normal' },
-          { weight: '', reps: '', completed: false, type: 'normal' },
-          { weight: '', reps: '', completed: false, type: 'normal' },
-        ];
+        if (isCardio) {
+          sets[index] = [
+            { duration: 0, completed: false, type: 'normal' },
+            { duration: 0, completed: false, type: 'normal' },
+            { duration: 0, completed: false, type: 'normal' },
+          ];
+        } else {
+          sets[index] = [
+            { weight: '', reps: '', completed: false, type: 'normal' },
+            { weight: '', reps: '', completed: false, type: 'normal' },
+            { weight: '', reps: '', completed: false, type: 'normal' },
+          ];
+        }
       }
     });
     return sets;

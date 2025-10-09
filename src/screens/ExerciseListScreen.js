@@ -37,11 +37,17 @@ export default function ExerciseListScreen({ navigation, route }) {
   const [showFilters, setShowFilters] = useState(false);
   const [showFullScreenImage, setShowFullScreenImage] = useState(false);
   const [selectedImageUri, setSelectedImageUri] = useState(null);
+  // Active muscle filters - initialized from selectedMuscleGroups or default to all
+  const [activeMuscleFilters, setActiveMuscleFilters] = useState(
+    selectedMuscleGroups && selectedMuscleGroups.length > 0
+      ? selectedMuscleGroups
+      : ['chest', 'back', 'legs', 'biceps', 'triceps', 'shoulders', 'abs', 'forearms', 'cardio']
+  );
 
 
   useEffect(() => {
     loadExercises();
-  }, [selectedMuscleGroups, selectedDifficulty, selectedEquipment, searchQuery, refresh]);
+  }, [activeMuscleFilters, selectedDifficulty, selectedEquipment, searchQuery, refresh]);
 
   useEffect(() => {
     loadDisplayMode();
@@ -93,13 +99,8 @@ export default function ExerciseListScreen({ navigation, route }) {
   const loadExercises = useCallback(async () => {
     let filteredExercises = [];
 
-    // Determine which muscle groups to load
-    let muscleGroupsToLoad = selectedMuscleGroups;
-
-    // If fromLibrary and no muscle groups selected, load all
-    if (fromLibrary && (!selectedMuscleGroups || selectedMuscleGroups.length === 0)) {
-      muscleGroupsToLoad = ['chest', 'back', 'legs', 'biceps', 'triceps', 'shoulders', 'abs'];
-    }
+    // Use activeMuscleFilters for loading exercises
+    const muscleGroupsToLoad = activeMuscleFilters;
 
     // Load all muscle groups in parallel for speed
     const promises = muscleGroupsToLoad.map(async (muscleGroup) => {
@@ -147,7 +148,7 @@ export default function ExerciseListScreen({ navigation, route }) {
     }
 
     setExercises(filteredExercises);
-  }, [selectedMuscleGroups, selectedDifficulty, selectedEquipment, searchQuery]);
+  }, [activeMuscleFilters, selectedDifficulty, selectedEquipment, searchQuery]);
 
 
   const startWorkoutWithExercise = (exercise) => {
@@ -231,6 +232,30 @@ export default function ExerciseListScreen({ navigation, route }) {
     { id: 'cable', name: 'Cable' },
   ];
 
+  const muscleGroupOptions = [
+    { id: 'chest', name: 'Chest', icon: '🎯' },
+    { id: 'back', name: 'Back', icon: '🔺' },
+    { id: 'legs', name: 'Legs', icon: '🦵' },
+    { id: 'biceps', name: 'Biceps', icon: '💪' },
+    { id: 'triceps', name: 'Triceps', icon: '🔥' },
+    { id: 'shoulders', name: 'Shoulders', icon: '🤲' },
+    { id: 'abs', name: 'Abs', icon: '🎯' },
+    { id: 'forearms', name: 'Forearms', icon: '✊' },
+    { id: 'cardio', name: 'Cardio', icon: '❤️' },
+  ];
+
+  const toggleMuscleFilter = (muscleId) => {
+    setActiveMuscleFilters(prev => {
+      if (prev.includes(muscleId)) {
+        // Don't allow deselecting if it's the last one
+        if (prev.length === 1) return prev;
+        return prev.filter(id => id !== muscleId);
+      } else {
+        return [...prev, muscleId];
+      }
+    });
+  };
+
   const getMuscleGroupsDisplay = () => {
     if (!selectedMuscleGroups || selectedMuscleGroups.length === 0) {
       return 'All muscle groups';
@@ -254,25 +279,6 @@ export default function ExerciseListScreen({ navigation, route }) {
     >
       {/* Static Search Bar and Filters */}
       <View style={styles.staticHeaderContainer}>
-        {/* Muscle Group Selection Button - Only show in library mode */}
-        {fromLibrary && (
-          <TouchableOpacity
-            style={styles.muscleGroupButton}
-            onPress={() => navigation.navigate('MuscleGroupSelection', {
-              fromLibrary: true,
-              refresh: Date.now()
-            })}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.muscleGroupIcon}>💪</Text>
-            <View style={styles.muscleGroupTextContainer}>
-              <Text style={styles.muscleGroupLabel}>Target Muscles:</Text>
-              <Text style={styles.muscleGroupValue}>{getMuscleGroupsDisplay()}</Text>
-            </View>
-            <Text style={styles.muscleGroupArrow}>→</Text>
-          </TouchableOpacity>
-        )}
-
         {/* Search Bar with Filter Button */}
         <View style={styles.searchBarRow}>
           <View style={styles.searchContainer}>
@@ -355,6 +361,33 @@ export default function ExerciseListScreen({ navigation, route }) {
                         selectedEquipment === item.id && styles.selectedFilterButtonText
                       ]}>
                         {item.name}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </ScrollView>
+            </View>
+
+            {/* Muscles Filter */}
+            <View style={styles.filterSection}>
+              <Text style={styles.filterLabel}>Muscles:</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScrollView}>
+                <View style={styles.filterButtonsRow}>
+                  {muscleGroupOptions.map(item => (
+                    <TouchableOpacity
+                      key={item.id}
+                      style={[
+                        styles.filterButton,
+                        activeMuscleFilters.includes(item.id) && styles.selectedFilterButton
+                      ]}
+                      onPress={() => toggleMuscleFilter(item.id)}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={[
+                        styles.filterButtonText,
+                        activeMuscleFilters.includes(item.id) && styles.selectedFilterButtonText
+                      ]}>
+                        {item.icon} {item.name}
                       </Text>
                     </TouchableOpacity>
                   ))}

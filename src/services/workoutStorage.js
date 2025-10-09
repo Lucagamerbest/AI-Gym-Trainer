@@ -11,6 +11,14 @@ export class WorkoutStorageService {
   // Save a completed workout with detailed exercise sets
   static async saveWorkout(workoutData, exerciseSets, userId = 'guest') {
     try {
+      console.log('========================================');
+      console.log('💾 WORKOUT STORAGE SERVICE - saveWorkout');
+      console.log('========================================');
+      console.log('\n📥 Input Data:');
+      console.log('workoutData.exercises:', workoutData.exercises);
+      console.log('exerciseSets:', JSON.stringify(exerciseSets, null, 2));
+      console.log('userId:', userId);
+
       const workout = {
         id: Date.now().toString(),
         userId,
@@ -22,13 +30,30 @@ export class WorkoutStorageService {
         workoutType: workoutData.workoutType || 'quick', // 'program', 'standalone', 'quick'
         notes: workoutData.notes || '',
         photos: workoutData.photos || [], // Array of base64 strings
-        exercises: workoutData.exercises.map((exercise, index) => ({
-          ...exercise,
-          sets: exerciseSets[index] || [],
-          completedSets: exerciseSets[index]?.filter(set => set.completed).length || 0,
-          totalSets: exerciseSets[index]?.length || 0
-        }))
+        exercises: workoutData.exercises.map((exercise, index) => {
+          const setsForExercise = exerciseSets[index] || [];
+          console.log(`\n🏋️ Exercise ${index}: ${exercise.name}`);
+          console.log(`  Raw sets from exerciseSets[${index}]:`, setsForExercise);
+          console.log(`  Number of sets: ${setsForExercise.length}`);
+          console.log(`  Sets data:`, JSON.stringify(setsForExercise, null, 2));
+
+          return {
+            ...exercise,
+            sets: setsForExercise,
+            completedSets: setsForExercise.length, // All sets are considered completed
+            totalSets: setsForExercise.length
+          };
+        })
       };
+
+      console.log('\n📦 Workout object created:');
+      console.log('Total exercises:', workout.exercises.length);
+      workout.exercises.forEach((ex, idx) => {
+        console.log(`  Exercise ${idx}: ${ex.name}`);
+        console.log(`    completedSets: ${ex.completedSets}`);
+        console.log(`    totalSets: ${ex.totalSets}`);
+        console.log(`    sets:`, ex.sets);
+      });
 
       // Save to workout history
       const history = await this.getWorkoutHistory(userId);
@@ -76,10 +101,10 @@ export class WorkoutStorageService {
         };
       }
 
-      // Add new records from completed sets
-      const completedSets = exerciseData.sets.filter(set => set.completed && set.weight && set.reps);
+      // Add new records from all sets with weight and reps data
+      const validSets = exerciseData.sets.filter(set => set.weight && set.reps);
 
-      completedSets.forEach(set => {
+      validSets.forEach(set => {
         progress[exerciseKey].records.push({
           date: new Date().toISOString(),
           weight: parseFloat(set.weight) || 0,
@@ -145,10 +170,10 @@ export class WorkoutStorageService {
         stats.lastStreakDate = today;
       }
 
-      // Calculate total volume
+      // Calculate total volume from all sets with weight and reps
       const workoutVolume = workout.exercises.reduce((total, exercise) => {
         return total + (exercise.sets || []).reduce((exerciseTotal, set) => {
-          if (set.completed && set.weight && set.reps) {
+          if (set.weight && set.reps) {
             return exerciseTotal + (parseFloat(set.weight) * parseInt(set.reps));
           }
           return exerciseTotal;

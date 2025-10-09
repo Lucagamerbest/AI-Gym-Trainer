@@ -17980,6 +17980,33 @@ export const getExercisesByMuscleGroup = async (muscleGroup) => {
     return [...customBiceps, ...customTriceps, ...result];
   }
 
+  // For forearms, filter from 'other' category
+  if (muscleGroup === 'forearms') {
+    const forearmExercises = (exerciseDatabase.other || []).filter(ex =>
+      ex.id.includes('wrist') ||
+      ex.id.includes('forearm') ||
+      ex.id.includes('farmer') ||
+      ex.name.toLowerCase().includes('wrist') ||
+      ex.name.toLowerCase().includes('forearm')
+    );
+    return [...customExercises, ...forearmExercises];
+  }
+
+  // For cardio, filter from 'legs' category (treadmill, running, jogging, etc.)
+  if (muscleGroup === 'cardio') {
+    const cardioExercises = (exerciseDatabase.legs || []).filter(ex =>
+      ex.id.includes('running') ||
+      ex.id.includes('jogging') ||
+      ex.id.includes('treadmill') ||
+      ex.id.includes('walking') ||
+      ex.name.toLowerCase().includes('running') ||
+      ex.name.toLowerCase().includes('jogging') ||
+      ex.name.toLowerCase().includes('treadmill') ||
+      ex.name.toLowerCase().includes('cardio')
+    );
+    return [...customExercises, ...cardioExercises];
+  }
+
   const standardExercises = muscleGroupMap[muscleGroup] || [];
 
   // Combine custom exercises at the top, followed by standard exercises
