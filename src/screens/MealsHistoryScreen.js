@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, ScrollView, Modal } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, ScrollView, Modal, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -11,6 +11,7 @@ import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 
 const MEAL_PLANS_KEY = '@meal_plans';
 const DAILY_NUTRITION_KEY = '@daily_nutrition';
+const FOOD_VIEW_MODE_KEY = '@food_view_mode';
 
 export default function MealsHistoryScreen({ navigation, route }) {
   const [activeTab, setActiveTab] = useState('meals'); // Start on Today tab by default
@@ -28,6 +29,11 @@ export default function MealsHistoryScreen({ navigation, route }) {
     snacks: []
   });
   const [deleteModal, setDeleteModal] = useState({ visible: false, title: '', message: '', onConfirm: null });
+  const [calendarViewMode, setCalendarViewMode] = useState('calendar'); // 'calendar' or 'list'
+  const [expandedDates, setExpandedDates] = useState([]); // Track which dates are expanded in list view
+  const [dateRangeFilter, setDateRangeFilter] = useState('all'); // 'all', 'past', 'future'
+  const [bulkDeleteMode, setBulkDeleteMode] = useState(false); // Bulk delete selection mode
+  const [selectedDatesForDelete, setSelectedDatesForDelete] = useState([]); // Selected dates for bulk delete
   
   // Load meal data on focus
   useFocusEffect(
@@ -167,6 +173,89 @@ export default function MealsHistoryScreen({ navigation, route }) {
     }
   };
 
+  // Get all dates sorted based on filter
+  const getSortedDates = () => {
+    const today = new Date().toISOString().split('T')[0];
+    const todayDate = new Date(today);
+    const allDates = Object.keys(mealData);
+
+    // Add today if not in mealData
+    if (!allDates.includes(today)) {
+      allDates.push(today);
+    }
+
+    let filteredDates = allDates;
+
+    if (dateRangeFilter === 'past') {
+      // Show past dates (excluding today)
+      filteredDates = allDates.filter(dateKey => new Date(dateKey) < todayDate);
+      return filteredDates.sort((a, b) => new Date(b) - new Date(a)).slice(0, 30);
+    } else if (dateRangeFilter === 'future') {
+      // Show future dates (excluding today)
+      filteredDates = allDates.filter(dateKey => new Date(dateKey) > todayDate);
+      return filteredDates.sort((a, b) => new Date(a) - new Date(b)).slice(0, 30);
+    } else {
+      // Show all dates, starting with today
+      const pastDates = allDates.filter(dateKey => new Date(dateKey) < todayDate)
+        .sort((a, b) => new Date(b) - new Date(a))
+        .slice(0, 15);
+      const futureDates = allDates.filter(dateKey => new Date(dateKey) > todayDate)
+        .sort((a, b) => new Date(a) - new Date(b))
+        .slice(0, 15);
+
+      return [...[today], ...futureDates, ...pastDates];
+    }
+  };
+
+  // Toggle date expansion in list view
+  const toggleDateExpansion = (dateKey) => {
+    setExpandedDates(prev =>
+      prev.includes(dateKey)
+        ? prev.filter(d => d !== dateKey)
+        : [...prev, dateKey]
+    );
+  };
+
+  // Toggle date selection for bulk delete
+  const toggleBulkDeleteSelection = (dateKey) => {
+    setSelectedDatesForDelete(prev =>
+      prev.includes(dateKey)
+        ? prev.filter(d => d !== dateKey)
+        : [...prev, dateKey]
+    );
+  };
+
+  // Bulk delete planned meals from selected dates
+  const bulkDeletePlannedMeals = async () => {
+    try {
+      const savedPlans = await AsyncStorage.getItem(MEAL_PLANS_KEY);
+      const mealPlans = savedPlans ? JSON.parse(savedPlans) : {};
+
+      // Remove planned meals from all selected dates
+      selectedDatesForDelete.forEach(dateKey => {
+        if (mealPlans[dateKey]?.planned) {
+          delete mealPlans[dateKey].planned;
+        }
+      });
+
+      await AsyncStorage.setItem(MEAL_PLANS_KEY, JSON.stringify(mealPlans));
+      await loadMealData();
+
+      Alert.alert(
+        '✓ Success',
+        `Cleared planned meals from ${selectedDatesForDelete.length} day${selectedDatesForDelete.length > 1 ? 's' : ''}`,
+        [{ text: 'OK' }]
+      );
+
+      // Exit bulk delete mode
+      setBulkDeleteMode(false);
+      setSelectedDatesForDelete([]);
+    } catch (error) {
+      console.error('Error bulk deleting planned meals:', error);
+      Alert.alert('Error', 'Failed to clear planned meals');
+    }
+  };
+
   const handleDateSelect = async (date) => {
     setSelectedDate(date);
 
@@ -244,7 +333,11 @@ export default function MealsHistoryScreen({ navigation, route }) {
       setShowCopyModal(false);
       setCopySourceDate(null);
 
-      alert(`Meals copied successfully to ${targetDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`);
+      Alert.alert(
+        '✓ Success',
+        `Meals copied successfully to ${targetDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`,
+        [{ text: 'OK' }]
+      );
     } catch (error) {
       console.error('Error copying meals:', error);
       setShowCopyModal(false);
@@ -296,7 +389,11 @@ export default function MealsHistoryScreen({ navigation, route }) {
       setCopySourceDate(null);
       setSelectedFutureDates([]);
 
-      alert(`Meals copied successfully to ${targetDates.length} day${targetDates.length > 1 ? 's' : ''}`);
+      Alert.alert(
+        '✓ Success',
+        `Meals copied successfully to ${targetDates.length} day${targetDates.length > 1 ? 's' : ''}`,
+        [{ text: 'OK' }]
+      );
     } catch (error) {
       console.error('Error copying meals:', error);
       setShowCopyModal(false);
@@ -496,7 +593,7 @@ export default function MealsHistoryScreen({ navigation, route }) {
           onPress={() => setActiveTab('calendar')}
         >
           <Text style={[styles.tabText, activeTab === 'calendar' && styles.activeTabText]}>
-            Calendar
+            History
           </Text>
         </TouchableOpacity>
       </View>
@@ -585,35 +682,325 @@ export default function MealsHistoryScreen({ navigation, route }) {
           </View>
         </View>
       ) : (
-        <View style={styles.calendarTab}>
-          <CalendarView
-            selectedDate={selectedDate}
-            onDateSelect={handleDateSelect}
-            mealData={mealData}
-          />
+        <View style={styles.historyTabContainer}>
+          {/* View Mode Toggle: Calendar / List */}
+          <View style={styles.viewModeToggle}>
+            <TouchableOpacity
+              style={[styles.viewModeButton, calendarViewMode === 'calendar' && styles.viewModeButtonActive]}
+              onPress={() => setCalendarViewMode('calendar')}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.viewModeText, calendarViewMode === 'calendar' && styles.viewModeTextActive]}>
+                📅 Calendar
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.viewModeButton, calendarViewMode === 'list' && styles.viewModeButtonActive]}
+              onPress={() => setCalendarViewMode('list')}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.viewModeText, calendarViewMode === 'list' && styles.viewModeTextActive]}>
+                📊 List
+              </Text>
+            </TouchableOpacity>
+          </View>
 
-          <View style={styles.calendarInfo}>
-            <Text style={styles.infoTitle}>📅 How to Use</Text>
-            <View style={styles.infoList}>
-              <Text style={styles.infoText}>• Tap any date to view details</Text>
-              <Text style={styles.infoText}>• Green dots = Logged meals</Text>
-              <Text style={styles.infoText}>• Orange dots = Planned meals</Text>
-              <Text style={styles.infoText}>• Copy past meals to plan future days</Text>
-              <Text style={styles.infoText}>• Planned meals auto-load on their date</Text>
+          {/* Date Range Filter - Only show in List View */}
+          {calendarViewMode === 'list' && (
+            <View style={styles.dateRangeFilter}>
+              <TouchableOpacity
+                style={[styles.dateRangeButton, dateRangeFilter === 'past' && styles.dateRangeButtonActive]}
+                onPress={() => setDateRangeFilter('past')}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.dateRangeText, dateRangeFilter === 'past' && styles.dateRangeTextActive]}>
+                  ← Past
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.dateRangeButton, dateRangeFilter === 'all' && styles.dateRangeButtonActive]}
+                onPress={() => setDateRangeFilter('all')}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.dateRangeText, dateRangeFilter === 'all' && styles.dateRangeTextActive]}>
+                  Today
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.dateRangeButton, dateRangeFilter === 'future' && styles.dateRangeButtonActive]}
+                onPress={() => setDateRangeFilter('future')}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.dateRangeText, dateRangeFilter === 'future' && styles.dateRangeTextActive]}>
+                  Future →
+                </Text>
+              </TouchableOpacity>
             </View>
-          </View>
+          )}
 
-          {/* TEMPORARY TEST BUTTON */}
-          <View style={styles.testButtonContainer}>
-            <StyledButton
-              title="🧪 Add Test Historical Data"
-              size="md"
-              variant="secondary"
-              fullWidth
-              onPress={addTestHistoricalData}
-              style={styles.testButton}
-            />
-          </View>
+          {calendarViewMode === 'calendar' ? (
+            <View style={styles.calendarTab}>
+              <CalendarView
+                selectedDate={selectedDate}
+                onDateSelect={bulkDeleteMode ? (date) => {
+                  const dateKey = date.toISOString().split('T')[0];
+                  // Only allow selection of dates with planned meals
+                  if (mealData[dateKey]?.planned && Object.values(mealData[dateKey].planned).some(items => items?.length > 0)) {
+                    toggleBulkDeleteSelection(dateKey);
+                  }
+                } : handleDateSelect}
+                mealData={mealData}
+                multiSelectMode={bulkDeleteMode}
+                selectedDates={bulkDeleteMode ? selectedDatesForDelete.map(dateKey => new Date(dateKey)) : []}
+              />
+
+              {/* Bulk Delete Planned Meals Button - MOVED ABOVE HOW TO USE */}
+              <View style={styles.bulkDeleteContainer}>
+                {!bulkDeleteMode ? (
+                  <TouchableOpacity
+                    style={styles.clearPlannedButton}
+                    onPress={() => setBulkDeleteMode(true)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.clearPlannedButtonText}>🗑️ Clear Planned Meals</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <View>
+                    <Text style={styles.bulkDeleteInstructions}>
+                      Tap dates with planned meals to select them
+                    </Text>
+                    <View style={styles.bulkDeleteActions}>
+                      <TouchableOpacity
+                        style={styles.cancelBulkButton}
+                        onPress={() => {
+                          setBulkDeleteMode(false);
+                          setSelectedDatesForDelete([]);
+                        }}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={styles.cancelBulkButtonText}>Cancel</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[
+                          styles.clearSelectedButton,
+                          selectedDatesForDelete.length === 0 && styles.clearSelectedButtonDisabled
+                        ]}
+                        onPress={bulkDeletePlannedMeals}
+                        disabled={selectedDatesForDelete.length === 0}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={styles.clearSelectedButtonText}>
+                          Clear Selected ({selectedDatesForDelete.length})
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
+              </View>
+
+              <View style={styles.calendarInfo}>
+                <Text style={styles.infoTitle}>📅 How to Use</Text>
+                <View style={styles.infoList}>
+                  <Text style={styles.infoText}>• Tap any date to view details</Text>
+                  <Text style={styles.infoText}>• Green dots = Logged meals</Text>
+                  <Text style={styles.infoText}>• Orange dots = Planned meals</Text>
+                  <Text style={styles.infoText}>• Copy past meals to plan future days</Text>
+                  <Text style={styles.infoText}>• Planned meals auto-load on their date</Text>
+                </View>
+              </View>
+
+              {/* TEMPORARY TEST BUTTON */}
+              <View style={styles.testButtonContainer}>
+                <StyledButton
+                  title="🧪 Add Test Historical Data"
+                  size="md"
+                  variant="secondary"
+                  fullWidth
+                  onPress={addTestHistoricalData}
+                  style={styles.testButton}
+                />
+              </View>
+            </View>
+          ) : (
+            <ScrollView style={styles.listView} showsVerticalScrollIndicator={false}>
+              {getSortedDates().map((dateKey) => {
+                const dateObj = new Date(dateKey);
+                const isExpanded = expandedDates.includes(dateKey);
+                const dayData = mealData[dateKey] || {};
+                const loggedMeals = dayData.logged || {};
+                const plannedMeals = dayData.planned || {};
+
+                // Calculate totals
+                const loggedTotal = Object.values(loggedMeals).reduce((sum, items) =>
+                  sum + (items || []).reduce((s, item) => s + (item.calories || 0), 0), 0
+                );
+                const plannedTotal = Object.values(plannedMeals).reduce((sum, items) =>
+                  sum + (items || []).reduce((s, item) => s + (item.calories || 0), 0), 0
+                );
+                const totalCals = loggedTotal + plannedTotal;
+
+                // Count meals by type
+                const mealCounts = { breakfast: 0, lunch: 0, dinner: 0, snacks: 0 };
+                ['breakfast', 'lunch', 'dinner', 'snacks'].forEach(type => {
+                  mealCounts[type] = ((loggedMeals[type] || []).length + (plannedMeals[type] || []).length);
+                });
+
+                const hasAnyMeals = Object.values(mealCounts).some(count => count > 0);
+                const isToday = dateKey === new Date().toISOString().split('T')[0];
+                const hasPlannedMeals = Object.values(plannedMeals).some(items => items?.length > 0);
+                const isSelected = selectedDatesForDelete.includes(dateKey);
+
+                return (
+                  <TouchableOpacity
+                    key={dateKey}
+                    style={[
+                      styles.listDateCard,
+                      isExpanded && styles.listDateCardExpanded,
+                      bulkDeleteMode && isSelected && styles.listDateCardSelected
+                    ]}
+                    onPress={() => {
+                      if (bulkDeleteMode) {
+                        // In bulk delete mode, only allow selection of dates with planned meals
+                        if (hasPlannedMeals) {
+                          toggleBulkDeleteSelection(dateKey);
+                        }
+                      } else {
+                        if (hasAnyMeals) {
+                          toggleDateExpansion(dateKey);
+                        } else {
+                          // Open day planner for empty dates
+                          handleDateSelect(dateObj);
+                        }
+                      }
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.listDateHeader}>
+                      <View style={styles.listDateInfo}>
+                        <Text style={[styles.listDateText, isToday && styles.listDateToday]}>
+                          {isToday ? 'Today' : dateObj.toLocaleDateString('en-US', {
+                            weekday: 'short',
+                            month: 'short',
+                            day: 'numeric',
+                            year: dateObj.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
+                          })}
+                        </Text>
+                        {hasAnyMeals && (
+                          <View style={styles.listMealIcons}>
+                            {mealCounts.breakfast > 0 && <Text style={styles.listMealIcon}>🌅{mealCounts.breakfast}</Text>}
+                            {mealCounts.lunch > 0 && <Text style={styles.listMealIcon}>☀️{mealCounts.lunch}</Text>}
+                            {mealCounts.dinner > 0 && <Text style={styles.listMealIcon}>🌙{mealCounts.dinner}</Text>}
+                            {mealCounts.snacks > 0 && <Text style={styles.listMealIcon}>🍿{mealCounts.snacks}</Text>}
+                          </View>
+                        )}
+                      </View>
+                      <View style={styles.listDateRight}>
+                        {hasAnyMeals ? (
+                          <>
+                            <Text style={styles.listDateCalories}>{totalCals} cal</Text>
+                            <Text style={styles.listExpandIcon}>{isExpanded ? '▼' : '▶'}</Text>
+                          </>
+                        ) : (
+                          <Text style={styles.listEmptyText}>Tap to plan</Text>
+                        )}
+                      </View>
+                    </View>
+
+                    {isExpanded && hasAnyMeals && (
+                      <View style={styles.listDateExpanded}>
+                        <View style={styles.listExpandedActions}>
+                          <TouchableOpacity
+                            style={styles.listActionButton}
+                            onPress={(e) => {
+                              e.stopPropagation();
+                              handleDateSelect(dateObj);
+                            }}
+                          >
+                            <Text style={styles.listActionButtonText}>View Details</Text>
+                          </TouchableOpacity>
+                        </View>
+                        {['breakfast', 'lunch', 'dinner', 'snacks'].map(mealType => {
+                          const logged = loggedMeals[mealType] || [];
+                          const planned = plannedMeals[mealType] || [];
+                          if (logged.length === 0 && planned.length === 0) return null;
+
+                          return (
+                            <View key={mealType} style={styles.listMealTypeSection}>
+                              <Text style={styles.listMealTypeName}>
+                                {mealType === 'breakfast' && '🌅'}
+                                {mealType === 'lunch' && '☀️'}
+                                {mealType === 'dinner' && '🌙'}
+                                {mealType === 'snacks' && '🍿'}
+                                {' '}{mealType.charAt(0).toUpperCase() + mealType.slice(1)}
+                              </Text>
+                              {logged.map((food, idx) => (
+                                <View key={`logged-${idx}`} style={styles.listFoodItem}>
+                                  <Text style={styles.listFoodStatus}>✓</Text>
+                                  <Text style={styles.listFoodName}>{food.name}</Text>
+                                  <Text style={styles.listFoodCals}>{food.calories} cal</Text>
+                                </View>
+                              ))}
+                              {planned.map((food, idx) => (
+                                <View key={`planned-${idx}`} style={styles.listFoodItem}>
+                                  <Text style={styles.listFoodStatus}>📅</Text>
+                                  <Text style={[styles.listFoodName, styles.listFoodPlanned]}>{food.name}</Text>
+                                  <Text style={styles.listFoodCals}>{food.calories} cal</Text>
+                                </View>
+                              ))}
+                            </View>
+                          );
+                        })}
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+
+              {/* Bulk Delete Planned Meals - List View */}
+              <View style={styles.bulkDeleteContainer}>
+                {!bulkDeleteMode ? (
+                  <TouchableOpacity
+                    style={styles.clearPlannedButton}
+                    onPress={() => setBulkDeleteMode(true)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.clearPlannedButtonText}>🗑️ Clear Planned Meals</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <View>
+                    <Text style={styles.bulkDeleteInstructions}>
+                      Tap dates with planned meals to select them
+                    </Text>
+                    <View style={styles.bulkDeleteActions}>
+                      <TouchableOpacity
+                        style={styles.cancelBulkButton}
+                        onPress={() => {
+                          setBulkDeleteMode(false);
+                          setSelectedDatesForDelete([]);
+                        }}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={styles.cancelBulkButtonText}>Cancel</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[
+                          styles.clearSelectedButton,
+                          selectedDatesForDelete.length === 0 && styles.clearSelectedButtonDisabled
+                        ]}
+                        onPress={bulkDeletePlannedMeals}
+                        disabled={selectedDatesForDelete.length === 0}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={styles.clearSelectedButtonText}>
+                          Clear Selected ({selectedDatesForDelete.length})
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
+              </View>
+            </ScrollView>
+          )}
         </View>
       )}
 
@@ -1850,5 +2237,249 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.md,
     color: Colors.background,
     fontWeight: '600',
+  },
+  // History tab container
+  historyTabContainer: {
+    flex: 1,
+  },
+  // View mode toggle
+  viewModeToggle: {
+    flexDirection: 'row',
+    marginHorizontal: Spacing.lg,
+    marginBottom: Spacing.md,
+    marginTop: Spacing.sm,
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.md,
+    padding: 4,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  viewModeButton: {
+    flex: 1,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+    alignItems: 'center',
+  },
+  viewModeButtonActive: {
+    backgroundColor: Colors.primary,
+  },
+  viewModeText: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+  },
+  viewModeTextActive: {
+    color: Colors.background,
+  },
+  // Date range filter
+  dateRangeFilter: {
+    flexDirection: 'row',
+    marginHorizontal: Spacing.lg,
+    marginBottom: Spacing.md,
+    marginTop: Spacing.sm,
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.md,
+    padding: 4,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  dateRangeButton: {
+    flex: 1,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+    alignItems: 'center',
+  },
+  dateRangeButtonActive: {
+    backgroundColor: Colors.primary,
+  },
+  dateRangeText: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+  },
+  dateRangeTextActive: {
+    color: Colors.background,
+  },
+  // List view styles
+  listView: {
+    flex: 1,
+  },
+  listDateCard: {
+    backgroundColor: Colors.surface,
+    marginHorizontal: Spacing.lg,
+    marginBottom: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    overflow: 'hidden',
+  },
+  listDateCardExpanded: {
+    borderColor: Colors.primary,
+  },
+  listDateCardSelected: {
+    borderColor: Colors.error,
+    backgroundColor: Colors.error + '10',
+  },
+  listDateHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: Spacing.md,
+  },
+  listDateInfo: {
+    flex: 1,
+  },
+  listDateText: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 4,
+  },
+  listDateToday: {
+    color: Colors.primary,
+    fontSize: Typography.fontSize.lg,
+  },
+  listMealIcons: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    marginTop: 4,
+  },
+  listMealIcon: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textSecondary,
+  },
+  listDateRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  listDateCalories: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: 'bold',
+    color: Colors.primary,
+  },
+  listExpandIcon: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+  },
+  listEmptyText: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textMuted,
+    fontStyle: 'italic',
+  },
+  listDateExpanded: {
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    padding: Spacing.md,
+    backgroundColor: Colors.background,
+  },
+  listExpandedActions: {
+    marginBottom: Spacing.md,
+  },
+  listActionButton: {
+    backgroundColor: Colors.primary,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+  },
+  listActionButtonText: {
+    color: Colors.background,
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
+  },
+  listMealTypeSection: {
+    marginBottom: Spacing.md,
+  },
+  listMealTypeName: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: Spacing.xs,
+  },
+  listFoodItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: Spacing.xs,
+    paddingLeft: Spacing.md,
+  },
+  listFoodStatus: {
+    fontSize: 14,
+    marginRight: Spacing.sm,
+  },
+  listFoodName: {
+    flex: 1,
+    fontSize: Typography.fontSize.sm,
+    color: Colors.text,
+  },
+  listFoodPlanned: {
+    color: Colors.textSecondary,
+  },
+  listFoodCals: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textSecondary,
+    marginLeft: Spacing.sm,
+  },
+  // Bulk delete styles
+  bulkDeleteContainer: {
+    marginHorizontal: Spacing.lg,
+    marginTop: Spacing.md,
+    marginBottom: Spacing.md,
+  },
+  clearPlannedButton: {
+    backgroundColor: Colors.error + '20',
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.error + '60',
+  },
+  clearPlannedButtonText: {
+    color: Colors.error,
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+  },
+  bulkDeleteInstructions: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.text,
+    textAlign: 'center',
+    marginBottom: Spacing.md,
+    lineHeight: 22,
+    fontWeight: '500',
+  },
+  bulkDeleteActions: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+  },
+  cancelBulkButton: {
+    flex: 1,
+    backgroundColor: Colors.surface,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: Colors.border,
+  },
+  cancelBulkButtonText: {
+    color: Colors.text,
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+  },
+  clearSelectedButton: {
+    flex: 1,
+    backgroundColor: Colors.error,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: Colors.error,
+  },
+  clearSelectedButtonDisabled: {
+    opacity: 0.4,
+  },
+  clearSelectedButtonText: {
+    color: Colors.background,
+    fontSize: Typography.fontSize.md,
+    fontWeight: 'bold',
   },
 });

@@ -33,6 +33,25 @@ export default function SettingsScreen({ navigation }) {
         </StyledCard>
       </TouchableOpacity>
 
+      {/* Food Settings */}
+      <TouchableOpacity
+        onPress={() => navigation.navigate('FoodSettings')}
+        activeOpacity={0.7}
+      >
+        <StyledCard variant="elevated" style={styles.settingCard}>
+          <View style={styles.settingRow}>
+            <View style={styles.settingIcon}>
+              <Text style={styles.settingEmoji}>🍽️</Text>
+            </View>
+            <View style={styles.settingContent}>
+              <Text style={styles.settingTitle}>Food Settings</Text>
+              <Text style={styles.settingDescription}>Meal history view preferences</Text>
+            </View>
+            <Text style={styles.chevron}>›</Text>
+          </View>
+        </StyledCard>
+      </TouchableOpacity>
+
       {/* Other Settings Sections */}
       <StyledCard variant="elevated" style={styles.sectionCard}>
         <Text style={styles.sectionTitle}>Account</Text>

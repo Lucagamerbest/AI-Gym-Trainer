@@ -46,6 +46,7 @@ import CalorieBreakdownScreen from './src/screens/CalorieBreakdownScreen';
 import EditRecipeScreen from './src/screens/EditRecipeScreen';
 import EditFoodItemScreen from './src/screens/EditFoodItemScreen';
 import ExerciseSettingsScreen from './src/screens/ExerciseSettingsScreen';
+import FoodSettingsScreen from './src/screens/FoodSettingsScreen';
 import MealPlanTemplatesScreen from './src/screens/MealPlanTemplatesScreen';
 import CreateMealPlanScreen from './src/screens/CreateMealPlanScreen';
 import WorkoutHistoryScreen from './src/screens/WorkoutHistoryScreen';
@@ -183,6 +184,7 @@ function AppNavigator() {
             />
             <Stack.Screen name="Settings" component={SettingsScreen} />
             <Stack.Screen name="ExerciseSettings" component={ExerciseSettingsScreen} />
+            <Stack.Screen name="FoodSettings" component={FoodSettingsScreen} />
             <Stack.Screen name="Progress" component={ProgressScreen} />
             <Stack.Screen name="Debug" component={DebugScreen} />
           </>
