@@ -1,12 +1,14 @@
 import React from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 
-const screenWidth = Dimensions.get('window').width;
-const chartWidth = screenWidth - 32;
-const chartHeight = 200;
+const chartHeight = 300;
 
-export default function SimpleChart({ data, title }) {
+export default function SimpleChart({ data, title, chartType = 'volume', debug = false }) {
+  // Get actual screen dimensions dynamically
+  const { width: screenWidth } = Dimensions.get('window');
+
   if (!data || data.length === 0) {
     return (
       <View style={styles.emptyChart}>
@@ -16,80 +18,299 @@ export default function SimpleChart({ data, title }) {
   }
 
   // Find min and max values for scaling
-  const weights = data.map(d => d.weight);
-  const volumes = data.map(d => d.volume);
+  const values = data.map(d => d.weight);
+  const minValue = Math.min(...values);
+  const maxValue = Math.max(...values);
 
-  const minWeight = Math.min(...weights);
-  const maxWeight = Math.max(...weights);
-  const minVolume = Math.min(...volumes);
-  const maxVolume = Math.max(...volumes);
+  // Debug logging - comprehensive
+  if (debug) {
+    console.log('\n========================================');
+    console.log('📊 CHART DEBUG - START');
+    console.log('========================================');
+    console.log('📌 DATA INFO:');
+    console.log('  - Data points:', data.length);
+    console.log('  - Values:', values);
+    console.log('  - Min/Max:', minValue, '/', maxValue);
+    console.log('  - Dates:', data.map(d => d.date));
+  }
 
-  // Scale volumes to fit weight range for better visualization
-  const scaledVolumes = volumes.map(v => {
-    if (maxVolume === minVolume) return minWeight;
-    return minWeight + ((v - minVolume) / (maxVolume - minVolume)) * (maxWeight - minWeight);
-  });
+  // Smart scaling algorithm
+  const range = maxValue - minValue;
+  let chartMin, chartMax;
 
-  // Calculate positions
-  const plotWidth = chartWidth - 60; // Leave space for labels
-  const plotHeight = chartHeight - 60; // Leave space for labels
+  if (range === 0) {
+    // All values are the same
+    chartMin = Math.max(0, minValue - 10);
+    chartMax = maxValue + 10;
+  } else {
+    // Use logarithmic-inspired scaling for large ranges
+    if (minValue === 0 || minValue < range * 0.3) {
+      chartMin = 0;
+    } else {
+      // Start from a value that's ~20% below minimum
+      chartMin = Math.floor(minValue * 0.8 / 10) * 10;
+    }
+
+    // Add 15% padding to top
+    chartMax = maxValue * 1.15;
+  }
+
+  // Round to nice numbers based on the scale
+  const roundToNice = (value) => {
+    if (value >= 1000) return Math.ceil(value / 100) * 100;
+    if (value >= 100) return Math.ceil(value / 10) * 10;
+    if (value >= 10) return Math.ceil(value / 5) * 5;
+    return Math.ceil(value);
+  };
+
+  chartMax = roundToNice(chartMax);
+  chartMin = Math.floor(chartMin / 10) * 10;
+
+  if (debug) {
+    console.log('\n📐 SCALING:');
+    console.log('  - Range:', range);
+    console.log('  - Chart Min:', chartMin);
+    console.log('  - Chart Max:', chartMax);
+    console.log('  - Chart Range:', chartMax - chartMin);
+  }
+
+  // CLEAN DIMENSION CALCULATIONS
+  const screenLayoutPadding = Spacing.lg; // 24px from ScreenLayout
+  const yAxisWidth = screenWidth * 0.10; // 10% of screen for Y-axis
+  const dotRadius = 7; // Half of dot size (14px / 2)
+  const rightMargin = 35; // Safety margin to keep last dot inside visible area (increased to account for card padding)
+
+  // Calculate plot area (the container with padding)
+  const totalHorizontalPadding = screenLayoutPadding * 2;
+  const chartContainerWidth = screenWidth - totalHorizontalPadding;
+  const plotWidth = chartContainerWidth - yAxisWidth;
+
+  // INNER chart dimensions - the actual visible grid where dots should stay
+  // This is INSIDE the plotArea's padding
+  const innerChartWidth = plotWidth - rightMargin;
+  const innerChartHeight = 244; // chartHeight (300) - topPadding (28) - bottomPadding (28)
+
+  // Calculate positioning ranges for dots
+  const maxDotX = innerChartWidth - dotRadius;
+  const maxDotY = innerChartHeight - dotRadius;
+  const availableRangeX = maxDotX - dotRadius; // X range from first to last dot center
+  const availableRangeY = innerChartHeight - (dotRadius * 2); // Y range for vertical positioning
+
+  if (debug) {
+    console.log('\n📏 DIMENSIONS:');
+    console.log('  - Screen width:', screenWidth);
+    console.log('  - Y-axis width:', yAxisWidth.toFixed(1));
+    console.log('  - Plot width:', plotWidth.toFixed(1));
+    console.log('  - INNER chart width:', innerChartWidth.toFixed(1));
+    console.log('  - INNER chart height:', innerChartHeight);
+    console.log('  - Right margin:', rightMargin);
+    console.log('  - Dot radius:', dotRadius);
+    console.log('  - X range: First dot at 7 → Last dot at', maxDotX.toFixed(1));
+    console.log('  - Y range: First dot at 7 → Last dot at', maxDotY.toFixed(1));
+    console.log('  - Available X range:', availableRangeX.toFixed(1));
+    console.log('  - Available Y range:', availableRangeY.toFixed(1));
+  }
 
   const getXPosition = (index) => {
-    return 50 + (index / (data.length - 1)) * plotWidth;
+    if (data.length === 1) return innerChartWidth / 2;
+    // Distribute across available X range
+    return dotRadius + (index / (data.length - 1)) * availableRangeX;
   };
 
-  const getYPosition = (value, min, max) => {
-    if (max === min) return plotHeight / 2 + 30;
-    return 30 + plotHeight - ((value - min) / (max - min)) * plotHeight;
+  const getYPosition = (value) => {
+    if (chartMax === chartMin) return innerChartHeight / 2;
+    const normalized = (value - chartMin) / (chartMax - chartMin);
+    // Position within available Y range
+    return dotRadius + availableRangeY - (normalized * availableRangeY);
   };
+
+  // Get color scheme based on chart type
+  const getChartColors = () => {
+    switch (chartType) {
+      case 'volume':
+        return { primary: '#6366F1', secondary: '#818CF8', gradient: ['#6366F1', '#818CF8'], light: 'rgba(99, 102, 241, 0.1)' };
+      case 'max':
+        return { primary: '#F59E0B', secondary: '#FBBF24', gradient: ['#F59E0B', '#FBBF24'], light: 'rgba(245, 158, 11, 0.1)' };
+      case '1rm':
+        return { primary: '#EF4444', secondary: '#F87171', gradient: ['#EF4444', '#F87171'], light: 'rgba(239, 68, 68, 0.1)' };
+      case 'reps':
+        return { primary: '#10B981', secondary: '#34D399', gradient: ['#10B981', '#34D399'], light: 'rgba(16, 185, 129, 0.1)' };
+      default:
+        return { primary: Colors.primary, secondary: Colors.primary, gradient: [Colors.primary, Colors.primary], light: 'rgba(99, 102, 241, 0.1)' };
+    }
+  };
+
+  const chartColors = getChartColors();
+
+  // Format value for display
+  const formatValue = (value) => {
+    if (value >= 10000) {
+      return `${Math.round(value / 1000)}k`;
+    } else if (value >= 1000) {
+      const k = value / 1000;
+      return k % 1 === 0 ? `${k}k` : `${k.toFixed(1)}k`;
+    }
+    return Math.round(value).toString();
+  };
+
+  // Format date for x-axis
+  const formatDate = (dateString) => {
+    if (!dateString || dateString === 'Invalid Date') return '';
+    if (typeof dateString === 'string' && dateString.match(/^\d{1,2}\/\d{1,2}$/)) {
+      return dateString;
+    }
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString;
+    const month = date.toLocaleDateString('en-US', { month: 'short' });
+    const day = date.getDate();
+    return `${month} ${day}`;
+  };
+
+  // Calculate Y-axis labels
+  const getYAxisLabels = () => {
+    const step = (chartMax - chartMin) / 3;
+    return [
+      chartMax,
+      chartMin + step * 2,
+      chartMin + step,
+      chartMin
+    ];
+  };
+
+  const yAxisLabels = getYAxisLabels();
+
+  // Smart label selection - show max 6 labels
+  const getVisibleDataPoints = () => {
+    if (data.length <= 6) return data.map((_, i) => i);
+
+    const step = Math.ceil(data.length / 5);
+    const indices = [0];
+    for (let i = step; i < data.length - 1; i += step) {
+      indices.push(i);
+    }
+    indices.push(data.length - 1);
+    return indices;
+  };
+
+  const visibleIndices = getVisibleDataPoints();
+
+  if (debug) {
+    console.log('\n👁️ VISIBLE POINTS:');
+    console.log('  - Indices with labels:', visibleIndices);
+    console.log('  - Total points:', data.length);
+    console.log('\n========================================');
+    console.log('📊 CHART DEBUG - END');
+    console.log('========================================\n');
+  }
+
+  // Create area fill path
+  const areaPoints = data.map((point, index) => ({
+    x: getXPosition(index),
+    y: getYPosition(values[index])
+  }));
 
   return (
     <View style={styles.chartContainer}>
-      <Text style={styles.chartTitle}>{title}</Text>
+      {title && (
+        <View style={styles.chartHeader}>
+          <Text style={styles.chartTitle}>{title}</Text>
+          <View style={styles.chartStats}>
+            <View style={styles.statBadge}>
+              <Text style={styles.statLabel}>Avg</Text>
+              <Text style={[styles.statValue, { color: chartColors.primary }]}>
+                {formatValue(values.reduce((a, b) => a + b, 0) / values.length)}
+              </Text>
+            </View>
+            <View style={styles.statBadge}>
+              <Text style={styles.statLabel}>Best</Text>
+              <Text style={[styles.statValue, { color: chartColors.primary }]}>
+                {formatValue(maxValue)}
+              </Text>
+            </View>
+          </View>
+        </View>
+      )}
 
       <View style={styles.chart}>
         {/* Y-axis labels */}
-        <View style={styles.yAxis}>
-          <Text style={styles.axisLabel}>{Math.round(maxWeight)}</Text>
-          <Text style={styles.axisLabel}>{Math.round((maxWeight + minWeight) / 2)}</Text>
-          <Text style={styles.axisLabel}>{Math.round(minWeight)}</Text>
+        <View style={[styles.yAxis, { width: yAxisWidth, paddingTop: 28, paddingBottom: 28, paddingRight: 4 }]}>
+          {yAxisLabels.map((label, index) => (
+            <Text key={index} style={styles.axisLabel}>
+              {formatValue(label)}
+            </Text>
+          ))}
         </View>
 
         {/* Chart area */}
-        <View style={styles.plotArea}>
+        <View style={[styles.plotArea, { paddingTop: 28, paddingBottom: 28, paddingLeft: 4 }]}>
           {/* Grid lines */}
-          {[0, 0.25, 0.5, 0.75, 1].map((ratio, index) => (
+          {[0, 0.33, 0.67, 1].map((ratio, index) => (
             <View
               key={index}
               style={[
                 styles.gridLine,
-                { top: 30 + ratio * plotHeight }
+                { top: ratio * innerChartHeight }
               ]}
             />
           ))}
 
-          {/* Weight line */}
+          {/* Area fill under the line */}
+          {areaPoints.length > 1 && (
+            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
+              {areaPoints.map((point, index) => {
+                if (index === 0) return null;
+                const prevPoint = areaPoints[index - 1];
+
+                return (
+                  <View
+                    key={`fill-${index}`}
+                    style={{
+                      position: 'absolute',
+                      left: prevPoint.x,
+                      top: 0,
+                      width: point.x - prevPoint.x,
+                      height: innerChartHeight,
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <LinearGradient
+                      colors={[chartColors.light, 'transparent']}
+                      style={{
+                        position: 'absolute',
+                        left: 0,
+                        top: prevPoint.y,
+                        width: point.x - prevPoint.x,
+                        height: innerChartHeight - prevPoint.y,
+                      }}
+                    />
+                  </View>
+                );
+              })}
+            </View>
+          )}
+
+          {/* Trend line */}
           {data.map((point, index) => {
             if (index === 0) return null;
 
             const x1 = getXPosition(index - 1);
-            const y1 = getYPosition(weights[index - 1], minWeight, maxWeight);
+            const y1 = getYPosition(values[index - 1]);
             const x2 = getXPosition(index);
-            const y2 = getYPosition(weights[index], minWeight, maxWeight);
+            const y2 = getYPosition(values[index]);
 
             const length = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
             const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
 
             return (
               <View
-                key={`weight-line-${index}`}
+                key={`line-${index}`}
                 style={[
                   styles.line,
-                  styles.weightLine,
                   {
                     left: x1,
                     top: y1,
                     width: length,
+                    backgroundColor: chartColors.primary,
                     transform: [{ rotate: `${angle}deg` }],
                   }
                 ]}
@@ -97,90 +318,76 @@ export default function SimpleChart({ data, title }) {
             );
           })}
 
-          {/* Volume line (scaled) */}
+          {/* Data points with labels */}
           {data.map((point, index) => {
-            if (index === 0) return null;
+            const xPos = getXPosition(index);
+            const yPos = getYPosition(values[index]);
+            const isVisible = visibleIndices.includes(index);
 
-            const x1 = getXPosition(index - 1);
-            const y1 = getYPosition(scaledVolumes[index - 1], minWeight, maxWeight);
-            const x2 = getXPosition(index);
-            const y2 = getYPosition(scaledVolumes[index], minWeight, maxWeight);
-
-            const length = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
-            const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+            if (debug) {
+              const normalized = (values[index] - chartMin) / (chartMax - chartMin);
+              console.log(`\n🔵 Point ${index}:`);
+              console.log(`  - Value: ${values[index]} (${data[index].date})`);
+              console.log(`  - Position: X=${xPos.toFixed(1)}, Y=${yPos.toFixed(1)}`);
+              console.log(`  - Dot bounds: X(${(xPos - dotRadius).toFixed(1)} to ${(xPos + dotRadius).toFixed(1)}), Y(${(yPos - dotRadius).toFixed(1)} to ${(yPos + dotRadius).toFixed(1)})`);
+              console.log(`  - Within bounds: X < ${innerChartWidth}, Y < ${innerChartHeight}`);
+            }
 
             return (
-              <View
-                key={`volume-line-${index}`}
-                style={[
-                  styles.line,
-                  styles.volumeLine,
-                  {
-                    left: x1,
-                    top: y1,
-                    width: length,
-                    transform: [{ rotate: `${angle}deg` }],
-                  }
-                ]}
-              />
+              <React.Fragment key={index}>
+                {/* Value label above point */}
+                {isVisible && (
+                  <View style={{
+                    position: 'absolute',
+                    left: Math.max(0, Math.min(xPos - 25, innerChartWidth - 50)),
+                    top: Math.max(0, yPos - 28),
+                    backgroundColor: chartColors.primary,
+                    paddingHorizontal: 8,
+                    paddingVertical: 4,
+                    borderRadius: 6,
+                  }}>
+                    <Text style={styles.dataPointLabelText}>
+                      {formatValue(values[index])}
+                    </Text>
+                  </View>
+                )}
+
+                {/* Data point */}
+                <View
+                  style={[
+                    styles.dataPoint,
+                    {
+                      left: xPos - 7,
+                      top: yPos - 7,
+                      backgroundColor: Colors.surface,
+                      borderColor: chartColors.primary,
+                      borderWidth: 3,
+                    }
+                  ]}
+                />
+              </React.Fragment>
             );
           })}
-
-          {/* Data points */}
-          {data.map((point, index) => (
-            <React.Fragment key={index}>
-              {/* Weight point */}
-              <View
-                style={[
-                  styles.dataPoint,
-                  styles.weightPoint,
-                  {
-                    left: getXPosition(index) - 4,
-                    top: getYPosition(weights[index], minWeight, maxWeight) - 4,
-                  }
-                ]}
-              />
-              {/* Volume point */}
-              <View
-                style={[
-                  styles.dataPoint,
-                  styles.volumePoint,
-                  {
-                    left: getXPosition(index) - 4,
-                    top: getYPosition(scaledVolumes[index], minWeight, maxWeight) - 4,
-                  }
-                ]}
-              />
-            </React.Fragment>
-          ))}
         </View>
       </View>
 
       {/* X-axis labels */}
-      <View style={styles.xAxis}>
-        {data.map((point, index) => (
-          <Text
-            key={index}
-            style={[
-              styles.xAxisLabel,
-              { left: getXPosition(index) - 15 }
-            ]}
-          >
-            {point.date}
-          </Text>
-        ))}
-      </View>
+      <View style={[styles.xAxis, { marginLeft: yAxisWidth + 4 }]}>
+        {data.map((point, index) => {
+          if (!visibleIndices.includes(index)) return null;
 
-      {/* Legend */}
-      <View style={styles.legend}>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendColor, styles.weightColor]} />
-          <Text style={styles.legendText}>Weight (lbs)</Text>
-        </View>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendColor, styles.volumeColor]} />
-          <Text style={styles.legendText}>Volume (scaled)</Text>
-        </View>
+          return (
+            <Text
+              key={index}
+              style={[
+                styles.xAxisLabel,
+                { left: getXPosition(index) - 20 }
+              ]}
+            >
+              {formatDate(point.date)}
+            </Text>
+          );
+        })}
       </View>
     </View>
   );
@@ -192,15 +399,40 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
     borderColor: Colors.border,
-    padding: Spacing.lg,
+    padding: 0,
     marginBottom: Spacing.lg,
+  },
+  chartHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
   },
   chartTitle: {
     fontSize: Typography.fontSize.lg,
     fontWeight: 'bold',
     color: Colors.text,
-    marginBottom: Spacing.md,
-    textAlign: 'center',
+    flex: 1,
+  },
+  chartStats: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  statBadge: {
+    alignItems: 'center',
+    backgroundColor: Colors.background,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.sm,
+  },
+  statLabel: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textMuted,
+    marginBottom: 2,
+  },
+  statValue: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: 'bold',
   },
   emptyChart: {
     height: chartHeight,
@@ -216,14 +448,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   yAxis: {
-    width: 40,
     justifyContent: 'space-between',
-    paddingVertical: 30,
+    paddingRight: 2,
   },
   axisLabel: {
     fontSize: Typography.fontSize.xs,
     color: Colors.textMuted,
     textAlign: 'right',
+    fontWeight: '600',
   },
   plotArea: {
     flex: 1,
@@ -238,63 +470,32 @@ const styles = StyleSheet.create({
   },
   line: {
     position: 'absolute',
-    height: 2,
+    height: 4,
     transformOrigin: 'left center',
-  },
-  weightLine: {
-    backgroundColor: Colors.primary,
-  },
-  volumeLine: {
-    backgroundColor: '#2196F3',
+    borderRadius: 2,
   },
   dataPoint: {
     position: 'absolute',
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
   },
-  weightPoint: {
-    backgroundColor: Colors.primary,
-  },
-  volumePoint: {
-    backgroundColor: '#2196F3',
+  dataPointLabelText: {
+    fontSize: Typography.fontSize.xs,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
   },
   xAxis: {
-    height: 30,
+    height: 25,
     position: 'relative',
-    marginTop: Spacing.sm,
+    marginTop: 4,
   },
   xAxisLabel: {
     position: 'absolute',
     fontSize: Typography.fontSize.xs,
     color: Colors.textMuted,
-    width: 30,
+    width: 40,
     textAlign: 'center',
-  },
-  legend: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: Spacing.lg,
-    marginTop: Spacing.sm,
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.xs,
-  },
-  legendColor: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-  },
-  weightColor: {
-    backgroundColor: Colors.primary,
-  },
-  volumeColor: {
-    backgroundColor: '#2196F3',
-  },
-  legendText: {
-    fontSize: Typography.fontSize.sm,
-    color: Colors.textSecondary,
+    fontWeight: '500',
   },
 });
