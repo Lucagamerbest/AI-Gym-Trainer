@@ -178,22 +178,13 @@ export default function ProfileScreen({ navigation }) {
         />
       )}
 
-      <View style={styles.statsContainer}>
-        <StyledCard style={styles.statCard}>
-          <Text style={styles.statValue}>{userStats?.totalWorkouts || 0}</Text>
-          <Text style={styles.statLabel}>Workouts</Text>
-        </StyledCard>
-
-        <StyledCard style={styles.statCard}>
-          <Text style={styles.statValue}>{userStats?.currentStreak || 0}</Text>
-          <Text style={styles.statLabel}>Streak</Text>
-        </StyledCard>
-
-        <StyledCard style={styles.statCard}>
-          <Text style={styles.statValue}>{Math.round(userStats?.totalVolume || 0)}</Text>
-          <Text style={styles.statLabel}>Volume</Text>
-        </StyledCard>
-      </View>
+      <StyledCard
+        icon="📊"
+        title="Progress & Goals"
+        subtitle="Track your achievements and set new goals"
+        onPress={() => navigation.navigate('Progress')}
+        style={styles.progressCard}
+      />
 
       <View style={styles.menuSection}>
         <StyledCard
@@ -203,15 +194,7 @@ export default function ProfileScreen({ navigation }) {
           onPress={() => navigation.navigate('Settings')}
           style={styles.menuItem}
         />
-        
-        <StyledCard
-          icon="📊"
-          title="Progress & Goals"
-          subtitle="Track your achievements"
-          onPress={() => navigation.navigate('Progress')}
-          style={styles.menuItem}
-        />
-        
+
         <StyledCard
           icon="📚"
           title="Help & Support"
@@ -359,25 +342,8 @@ const styles = StyleSheet.create({
   aiButton: {
     marginBottom: Spacing.xl,
   },
-  statsContainer: {
-    flexDirection: 'row',
+  progressCard: {
     marginBottom: Spacing.xl,
-  },
-  statCard: {
-    flex: 1,
-    marginHorizontal: Spacing.xs,
-    alignItems: 'center',
-    paddingVertical: Spacing.lg,
-  },
-  statValue: {
-    color: Colors.primary,
-    fontSize: Typography.fontSize.xxl,
-    fontWeight: 'bold',
-    marginBottom: Spacing.xs,
-  },
-  statLabel: {
-    color: Colors.textMuted,
-    fontSize: Typography.fontSize.sm,
   },
   menuSection: {
     marginTop: Spacing.md,

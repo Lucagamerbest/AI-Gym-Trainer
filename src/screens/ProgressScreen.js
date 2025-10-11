@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Modal, TextInput, Alert, Animated, Image } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import ScreenLayout from '../components/ScreenLayout';
 import SimpleChart from '../components/SimpleChart';
@@ -69,6 +71,13 @@ export default function ProgressScreen({ navigation }) {
     loadProgressData();
   }, [user]);
 
+  // Reload data when screen comes into focus (e.g., after deleting a workout)
+  useFocusEffect(
+    React.useCallback(() => {
+      loadProgressData();
+    }, [user])
+  );
+
   // Reset the modal opening ref when modal closes
   useEffect(() => {
     if (!showWorkoutDetailModal) {
@@ -126,6 +135,11 @@ export default function ProgressScreen({ navigation }) {
       setLoading(true);
       const userId = user?.email || 'guest';
 
+      console.log('[ProgressScreen] Loading progress data...');
+
+      // Run migration to add workoutIds to existing exercise progress records
+      await WorkoutStorageService.migrateExerciseProgressWithWorkoutIds(userId);
+
       // Load user stats
       const stats = await WorkoutStorageService.getUserStats(userId);
       setUserStats(stats);
@@ -137,6 +151,20 @@ export default function ProgressScreen({ navigation }) {
       // Load workout history for heatmap
       const history = await WorkoutStorageService.getWorkoutHistory(userId);
       setWorkoutHistory(history);
+
+      // Debug: Cross-reference exercise progress workoutIds with actual workout history
+      console.log('[ProgressScreen] Workout history IDs:', history.map(w => w.id));
+      console.log('[ProgressScreen] Total workouts in history:', history.length);
+
+      // Check for orphaned progress records
+      const allWorkoutIds = new Set(history.map(w => w.id));
+      Object.entries(progress).forEach(([exerciseKey, exercise]) => {
+        const orphanedRecords = exercise.records.filter(r => r.workoutId && !allWorkoutIds.has(r.workoutId));
+        if (orphanedRecords.length > 0) {
+          console.warn(`[${exercise.name}] HAS ${orphanedRecords.length} ORPHANED RECORDS!`);
+          console.log('  Orphaned workout IDs:', orphanedRecords.map(r => r.workoutId));
+        }
+      });
 
       // Load goals
       const userGoals = await WorkoutStorageService.getGoals(userId);
@@ -205,34 +233,61 @@ export default function ProgressScreen({ navigation }) {
       // Filter records by time range
       const filteredRecords = filterRecordsByTimeRange(exerciseData.records, range);
 
-      const chartData = filteredRecords.map(record => {
-        const date = new Date(record.date);
+      // Group records by workoutId to show one data point per workout
+      const workoutGroups = {};
+      filteredRecords.forEach(record => {
+        const workoutId = record.workoutId || 'unknown';
+        if (!workoutGroups[workoutId]) {
+          workoutGroups[workoutId] = [];
+        }
+        workoutGroups[workoutId].push(record);
+      });
+
+      console.log(`[selectExercise] ${exerciseData.name} - Total records: ${filteredRecords.length}, Unique workouts: ${Object.keys(workoutGroups).length}`);
+
+      // Create one chart data point per workout
+      const chartData = Object.entries(workoutGroups).map(([workoutId, records]) => {
+        // Use the date from the first record in the workout
+        const date = new Date(records[0].date);
         let value;
 
         switch (type) {
           case 'volume':
-            value = record.volume;
+            // Sum all set volumes for this workout
+            value = records.reduce((sum, r) => sum + r.volume, 0);
             break;
           case 'max':
-            value = record.weight;
+            // Take the max weight across all sets in this workout
+            value = Math.max(...records.map(r => r.weight));
             break;
           case '1rm':
-            // Brzycki formula: Weight * (36 / (37 - Reps))
-            value = Math.round(record.weight * (36 / (37 - record.reps)));
+            // Calculate 1RM for each set, then take the max
+            const oneRMs = records.map(r => Math.round(r.weight * (36 / (37 - r.reps))));
+            value = Math.max(...oneRMs);
             break;
           case 'reps':
-            value = record.reps;
+            // Take the max reps across all sets in this workout
+            value = Math.max(...records.map(r => r.reps));
             break;
           default:
-            value = record.volume;
+            value = records.reduce((sum, r) => sum + r.volume, 0);
         }
 
         return {
           date: `${date.getMonth() + 1}/${date.getDate()}`,
-          weight: value // Using 'weight' property for SimpleChart compatibility
+          weight: value,
+          workoutId: workoutId !== 'unknown' ? workoutId : null
         };
+      }).sort((a, b) => {
+        // Sort by date
+        const [aMonth, aDay] = a.date.split('/').map(Number);
+        const [bMonth, bDay] = b.date.split('/').map(Number);
+        const aDate = new Date(2025, aMonth - 1, aDay);
+        const bDate = new Date(2025, bMonth - 1, bDay);
+        return aDate - bDate;
       });
 
+      console.log(`[selectExercise] Chart will show ${chartData.length} data points`);
       setChartData(chartData);
     } else {
       setChartData(null);
@@ -587,6 +642,43 @@ export default function ProgressScreen({ navigation }) {
     return `${Math.floor(diffInDays / 30)}mo ago`;
   };
 
+  const handleClearAllData = () => {
+    Alert.alert(
+      '⚠️ Clear All Data',
+      'This will permanently delete ALL workout history, exercise progress, stats, goals, and achievements. This action cannot be undone!\n\nAre you absolutely sure?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Clear Everything',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const userId = user?.email || 'guest';
+              console.log('[CLEAR DATA] Starting data reset...');
+
+              // Clear all data
+              await WorkoutStorageService.clearAllData(userId);
+
+              // Also clear goals and achievements
+              await AsyncStorage.removeItem(`goals_${userId}`);
+              await AsyncStorage.removeItem(`achievements_${userId}`);
+
+              console.log('[CLEAR DATA] All data cleared successfully');
+
+              // Reload to show empty state
+              await loadProgressData();
+
+              Alert.alert('Success', 'All data has been cleared. Starting fresh!');
+            } catch (error) {
+              console.error('[CLEAR DATA] Error:', error);
+              Alert.alert('Error', 'Failed to clear data');
+            }
+          }
+        }
+      ]
+    );
+  };
+
   if (loading) {
     return (
       <ScreenLayout title="Progress & Goals" subtitle="Loading..." navigation={navigation}>
@@ -736,11 +828,8 @@ export default function ProgressScreen({ navigation }) {
 
     // Validate workout has required data
     if (!workout || !workout.exercises) {
-      console.warn('Invalid workout data:', workout);
       return;
     }
-
-    console.log('Opening workout detail for:', workout.workoutTitle || workout.id);
 
     isOpeningModalRef.current = true;
 
@@ -759,6 +848,20 @@ export default function ProgressScreen({ navigation }) {
     setTimeout(() => {
       isOpeningModalRef.current = false;
     }, 600);
+  };
+
+  // Helper function to handle chart point clicks
+  const handleChartPointClick = (workoutId) => {
+    if (!workoutId) {
+      return;
+    }
+
+    // Find the workout by ID in workoutHistory
+    const workout = workoutHistory.find(w => w.id === workoutId);
+
+    if (workout) {
+      handleWorkoutClick(workout);
+    }
   };
 
   const renderOverviewTab = () => {
@@ -1173,7 +1276,20 @@ export default function ProgressScreen({ navigation }) {
                   {filteredExercises.map((exerciseKey) => {
                     const exercise = exerciseProgress[exerciseKey];
                     const isSelected = selectedExercise === exerciseKey;
-                    const sessionsCount = filterRecordsByTimeRange(exercise.records, timeRange).length;
+
+                    // Count unique workouts by workoutId instead of total records
+                    const filteredRecords = filterRecordsByTimeRange(exercise.records, timeRange);
+                    const uniqueWorkoutIds = new Set(
+                      filteredRecords
+                        .filter(record => record.workoutId) // Only count records with workoutId
+                        .map(record => record.workoutId)
+                    );
+                    const sessionsCount = uniqueWorkoutIds.size;
+
+                    // Debug logging
+                    console.log(`[${exercise.name}] Total records: ${exercise.records.length}, Filtered: ${filteredRecords.length}, Unique workouts: ${sessionsCount}`);
+                    console.log(`  - WorkoutIds:`, Array.from(uniqueWorkoutIds));
+                    console.log(`  - Records without workoutId:`, filteredRecords.filter(r => !r.workoutId).length);
 
                     return (
                       <TouchableOpacity
@@ -1302,7 +1418,7 @@ export default function ProgressScreen({ navigation }) {
                   data={chartData}
                   title=""
                   chartType={chartType}
-                  debug={true}
+                  onPointPress={handleChartPointClick}
                 />
               </View>
             ) : selectedExercise ? (
@@ -1320,6 +1436,15 @@ export default function ProgressScreen({ navigation }) {
                 </Text>
               </View>
             )}
+
+            {/* Debug: Clear All Data Button */}
+            <TouchableOpacity
+              style={styles.clearDataButton}
+              onPress={handleClearAllData}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.clearDataButtonText}>🗑️ Clear All Data (Reset)</Text>
+            </TouchableOpacity>
           </>
         )}
       </ScrollView>
@@ -4547,6 +4672,21 @@ const styles = StyleSheet.create({
   workoutHistorySetText: {
     fontSize: Typography.fontSize.sm,
     color: Colors.text,
+  },
+  clearDataButton: {
+    backgroundColor: '#DC2626',
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    marginTop: Spacing.xl,
+    marginBottom: Spacing.xl,
+    borderWidth: 2,
+    borderColor: '#991B1B',
+  },
+  clearDataButtonText: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
   },
 });
 

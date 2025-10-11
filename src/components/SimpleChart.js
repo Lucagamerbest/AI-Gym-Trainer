@@ -1,11 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 
 const chartHeight = 300;
 
-export default function SimpleChart({ data, title, chartType = 'volume', debug = false }) {
+export default function SimpleChart({ data, title, chartType = 'volume', debug = false, onPointPress }) {
   // Get actual screen dimensions dynamically
   const { width: screenWidth } = Dimensions.get('window');
 
@@ -22,17 +22,6 @@ export default function SimpleChart({ data, title, chartType = 'volume', debug =
   const minValue = Math.min(...values);
   const maxValue = Math.max(...values);
 
-  // Debug logging - comprehensive
-  if (debug) {
-    console.log('\n========================================');
-    console.log('📊 CHART DEBUG - START');
-    console.log('========================================');
-    console.log('📌 DATA INFO:');
-    console.log('  - Data points:', data.length);
-    console.log('  - Values:', values);
-    console.log('  - Min/Max:', minValue, '/', maxValue);
-    console.log('  - Dates:', data.map(d => d.date));
-  }
 
   // Smart scaling algorithm
   const range = maxValue - minValue;
@@ -66,14 +55,6 @@ export default function SimpleChart({ data, title, chartType = 'volume', debug =
   chartMax = roundToNice(chartMax);
   chartMin = Math.floor(chartMin / 10) * 10;
 
-  if (debug) {
-    console.log('\n📐 SCALING:');
-    console.log('  - Range:', range);
-    console.log('  - Chart Min:', chartMin);
-    console.log('  - Chart Max:', chartMax);
-    console.log('  - Chart Range:', chartMax - chartMin);
-  }
-
   // CLEAN DIMENSION CALCULATIONS
   const screenLayoutPadding = Spacing.lg; // 24px from ScreenLayout
   const yAxisWidth = screenWidth * 0.10; // 10% of screen for Y-axis
@@ -95,21 +76,6 @@ export default function SimpleChart({ data, title, chartType = 'volume', debug =
   const maxDotY = innerChartHeight - dotRadius;
   const availableRangeX = maxDotX - dotRadius; // X range from first to last dot center
   const availableRangeY = innerChartHeight - (dotRadius * 2); // Y range for vertical positioning
-
-  if (debug) {
-    console.log('\n📏 DIMENSIONS:');
-    console.log('  - Screen width:', screenWidth);
-    console.log('  - Y-axis width:', yAxisWidth.toFixed(1));
-    console.log('  - Plot width:', plotWidth.toFixed(1));
-    console.log('  - INNER chart width:', innerChartWidth.toFixed(1));
-    console.log('  - INNER chart height:', innerChartHeight);
-    console.log('  - Right margin:', rightMargin);
-    console.log('  - Dot radius:', dotRadius);
-    console.log('  - X range: First dot at 7 → Last dot at', maxDotX.toFixed(1));
-    console.log('  - Y range: First dot at 7 → Last dot at', maxDotY.toFixed(1));
-    console.log('  - Available X range:', availableRangeX.toFixed(1));
-    console.log('  - Available Y range:', availableRangeY.toFixed(1));
-  }
 
   const getXPosition = (index) => {
     if (data.length === 1) return innerChartWidth / 2;
@@ -194,15 +160,6 @@ export default function SimpleChart({ data, title, chartType = 'volume', debug =
 
   const visibleIndices = getVisibleDataPoints();
 
-  if (debug) {
-    console.log('\n👁️ VISIBLE POINTS:');
-    console.log('  - Indices with labels:', visibleIndices);
-    console.log('  - Total points:', data.length);
-    console.log('\n========================================');
-    console.log('📊 CHART DEBUG - END');
-    console.log('========================================\n');
-  }
-
   // Create area fill path
   const areaPoints = data.map((point, index) => ({
     x: getXPosition(index),
@@ -233,12 +190,27 @@ export default function SimpleChart({ data, title, chartType = 'volume', debug =
 
       <View style={styles.chart}>
         {/* Y-axis labels */}
-        <View style={[styles.yAxis, { width: yAxisWidth, paddingTop: 28, paddingBottom: 28, paddingRight: 4 }]}>
-          {yAxisLabels.map((label, index) => (
-            <Text key={index} style={styles.axisLabel}>
-              {formatValue(label)}
-            </Text>
-          ))}
+        <View style={[styles.yAxis, { width: yAxisWidth, paddingTop: 28, paddingBottom: 28, paddingRight: 4, height: chartHeight }]}>
+          {yAxisLabels.map((label, index) => {
+            // Position each label at the exact Y position where that value appears on the chart
+            const labelYPosition = getYPosition(label);
+
+            return (
+              <Text
+                key={index}
+                style={[
+                  styles.axisLabel,
+                  {
+                    position: 'absolute',
+                    top: labelYPosition - 8, // Offset by half the text height to center it
+                    right: 4,
+                  }
+                ]}
+              >
+                {formatValue(label)}
+              </Text>
+            );
+          })}
         </View>
 
         {/* Chart area */}
@@ -256,7 +228,7 @@ export default function SimpleChart({ data, title, chartType = 'volume', debug =
 
           {/* Area fill under the line */}
           {areaPoints.length > 1 && (
-            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
+            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} pointerEvents="none">
               {areaPoints.map((point, index) => {
                 if (index === 0) return null;
                 const prevPoint = areaPoints[index - 1];
@@ -314,6 +286,7 @@ export default function SimpleChart({ data, title, chartType = 'volume', debug =
                     transform: [{ rotate: `${angle}deg` }],
                   }
                 ]}
+                pointerEvents="none"
               />
             );
           })}
@@ -323,15 +296,6 @@ export default function SimpleChart({ data, title, chartType = 'volume', debug =
             const xPos = getXPosition(index);
             const yPos = getYPosition(values[index]);
             const isVisible = visibleIndices.includes(index);
-
-            if (debug) {
-              const normalized = (values[index] - chartMin) / (chartMax - chartMin);
-              console.log(`\n🔵 Point ${index}:`);
-              console.log(`  - Value: ${values[index]} (${data[index].date})`);
-              console.log(`  - Position: X=${xPos.toFixed(1)}, Y=${yPos.toFixed(1)}`);
-              console.log(`  - Dot bounds: X(${(xPos - dotRadius).toFixed(1)} to ${(xPos + dotRadius).toFixed(1)}), Y(${(yPos - dotRadius).toFixed(1)} to ${(yPos + dotRadius).toFixed(1)})`);
-              console.log(`  - Within bounds: X < ${innerChartWidth}, Y < ${innerChartHeight}`);
-            }
 
             return (
               <React.Fragment key={index}>
@@ -345,6 +309,7 @@ export default function SimpleChart({ data, title, chartType = 'volume', debug =
                     paddingHorizontal: 8,
                     paddingVertical: 4,
                     borderRadius: 6,
+                    pointerEvents: 'none', // Allow taps to pass through to dot
                   }}>
                     <Text style={styles.dataPointLabelText}>
                       {formatValue(values[index])}
@@ -352,19 +317,37 @@ export default function SimpleChart({ data, title, chartType = 'volume', debug =
                   </View>
                 )}
 
-                {/* Data point */}
-                <View
-                  style={[
-                    styles.dataPoint,
-                    {
-                      left: xPos - 7,
-                      top: yPos - 7,
-                      backgroundColor: Colors.surface,
-                      borderColor: chartColors.primary,
-                      borderWidth: 3,
+                {/* Data point - Now clickable with larger hit area */}
+                <TouchableOpacity
+                  style={{
+                    position: 'absolute',
+                    left: xPos - 20, // Larger touch target
+                    top: yPos - 20,
+                    width: 40, // Larger touch target
+                    height: 40,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    zIndex: 10, // Ensure it's above other elements
+                  }}
+                  onPress={() => {
+                    if (onPointPress && point.workoutId) {
+                      onPointPress(point.workoutId);
                     }
-                  ]}
-                />
+                  }}
+                  activeOpacity={onPointPress ? 0.6 : 1}
+                  disabled={!onPointPress || !point.workoutId}
+                >
+                  <View
+                    style={[
+                      styles.dataPoint,
+                      {
+                        backgroundColor: Colors.surface,
+                        borderColor: chartColors.primary,
+                        borderWidth: 3,
+                      }
+                    ]}
+                  />
+                </TouchableOpacity>
               </React.Fragment>
             );
           })}
@@ -448,7 +431,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   yAxis: {
-    justifyContent: 'space-between',
+    position: 'relative',
     paddingRight: 2,
   },
   axisLabel: {

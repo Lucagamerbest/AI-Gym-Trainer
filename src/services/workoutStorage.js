@@ -45,7 +45,7 @@ export class WorkoutStorageService {
       for (let i = 0; i < workout.exercises.length; i++) {
         const exercise = workout.exercises[i];
         if (exercise.sets && exercise.sets.length > 0) {
-          await this.updateExerciseProgress(exercise, userId);
+          await this.updateExerciseProgress(exercise, userId, workout.id);
         }
       }
 
@@ -69,7 +69,7 @@ export class WorkoutStorageService {
   }
 
   // Update progress for a specific exercise
-  static async updateExerciseProgress(exerciseData, userId = 'guest') {
+  static async updateExerciseProgress(exerciseData, userId = 'guest', workoutId = null) {
     try {
       const progress = await this.getExerciseProgress(userId);
       const exerciseKey = exerciseData.name.toLowerCase().replace(/\s+/g, '_');
@@ -90,7 +90,8 @@ export class WorkoutStorageService {
           date: new Date().toISOString(),
           weight: parseFloat(set.weight) || 0,
           reps: parseInt(set.reps) || 0,
-          volume: (parseFloat(set.weight) || 0) * (parseInt(set.reps) || 0)
+          volume: (parseFloat(set.weight) || 0) * (parseInt(set.reps) || 0),
+          workoutId: workoutId // Include workout ID for linking
         });
       });
 
@@ -741,6 +742,165 @@ export class WorkoutStorageService {
       }
     } catch (error) {
       return 0;
+    }
+  }
+
+  // Delete workout and clean up related exercise progress records
+  static async deleteWorkout(workoutId, userId = 'guest') {
+    try {
+      // Remove from workout history
+      const history = await this.getWorkoutHistory(userId);
+
+      // Find the workout being deleted to get its date and exercises
+      const workoutToDelete = history.find(w => w.id === workoutId);
+      const updatedHistory = history.filter(w => w.id !== workoutId);
+      await AsyncStorage.setItem(`${STORAGE_KEYS.WORKOUT_HISTORY}_${userId}`, JSON.stringify(updatedHistory));
+
+      // Clean up exercise progress records that reference this workout
+      const progress = await this.getExerciseProgress(userId);
+      let recordsRemoved = 0;
+
+      Object.keys(progress).forEach(exerciseKey => {
+        const originalLength = progress[exerciseKey].records.length;
+
+        // Filter out records that match this workout by workoutId OR by date (for orphaned records)
+        progress[exerciseKey].records = progress[exerciseKey].records.filter(record => {
+          // Remove if workoutId matches
+          if (record.workoutId === workoutId) {
+            return false;
+          }
+
+          // If this is an orphaned record (no workoutId) and we found the workout being deleted
+          // Check if the record's date matches the workout date and exercise name
+          if (!record.workoutId && workoutToDelete) {
+            const recordDate = new Date(record.date).toDateString();
+            const workoutDate = new Date(workoutToDelete.date).toDateString();
+
+            // Check if dates match
+            if (recordDate === workoutDate) {
+              // Check if this exercise was in the deleted workout
+              const exerciseWasInWorkout = workoutToDelete.exercises.some(ex =>
+                ex.name.toLowerCase().replace(/\s+/g, '_') === exerciseKey
+              );
+
+              // Remove orphaned record if it matches the deleted workout's date and exercise
+              if (exerciseWasInWorkout) {
+                return false;
+              }
+            }
+          }
+
+          // Keep the record
+          return true;
+        });
+
+        recordsRemoved += originalLength - progress[exerciseKey].records.length;
+      });
+
+      // Save updated progress
+      await AsyncStorage.setItem(`${STORAGE_KEYS.EXERCISE_PROGRESS}_${userId}`, JSON.stringify(progress));
+
+      return { success: true, recordsRemoved };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  // MIGRATION: Add workoutId to existing exercise progress records
+  static async migrateExerciseProgressWithWorkoutIds(userId = 'guest') {
+    try {
+      const progress = await this.getExerciseProgress(userId);
+      const history = await this.getWorkoutHistory(userId);
+
+      if (!history || history.length === 0) {
+        return { success: true, message: 'No data to migrate' };
+      }
+
+      let updatedRecords = 0;
+
+      // For each exercise in progress
+      Object.keys(progress).forEach(exerciseKey => {
+        const exerciseData = progress[exerciseKey];
+
+        // For each record in this exercise
+        exerciseData.records.forEach(record => {
+          // Skip if already has workoutId
+          if (record.workoutId) return;
+
+          // Try to find matching workout by date and exercise
+          const matchingWorkout = history.find(workout => {
+            // Check if date matches (within same day)
+            const workoutDate = new Date(workout.date).toDateString();
+            const recordDate = new Date(record.date).toDateString();
+            if (workoutDate !== recordDate) return false;
+
+            // Check if this workout contains this exercise
+            return workout.exercises.some(ex =>
+              ex.name.toLowerCase().replace(/\s+/g, '_') === exerciseKey
+            );
+          });
+
+          if (matchingWorkout) {
+            record.workoutId = matchingWorkout.id;
+            updatedRecords++;
+          }
+        });
+      });
+
+      // Save updated progress
+      await AsyncStorage.setItem(`${STORAGE_KEYS.EXERCISE_PROGRESS}_${userId}`, JSON.stringify(progress));
+
+      return { success: true, updatedRecords };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Clean up orphaned exercise progress records (records that don't match any existing workout)
+  static async cleanupOrphanedProgressRecords(userId = 'guest') {
+    try {
+      const progress = await this.getExerciseProgress(userId);
+      const history = await this.getWorkoutHistory(userId);
+
+      let recordsRemoved = 0;
+      const workoutIds = new Set(history.map(w => w.id));
+
+      // For each exercise in progress
+      Object.keys(progress).forEach(exerciseKey => {
+        const exerciseData = progress[exerciseKey];
+        const originalLength = exerciseData.records.length;
+
+        // Filter out orphaned records
+        exerciseData.records = exerciseData.records.filter(record => {
+          // If record has workoutId, check if workout still exists
+          if (record.workoutId) {
+            return workoutIds.has(record.workoutId);
+          }
+
+          // If record doesn't have workoutId, try to find a matching workout
+          const matchingWorkout = history.find(workout => {
+            const workoutDate = new Date(workout.date).toDateString();
+            const recordDate = new Date(record.date).toDateString();
+            if (workoutDate !== recordDate) return false;
+
+            return workout.exercises.some(ex =>
+              ex.name.toLowerCase().replace(/\s+/g, '_') === exerciseKey
+            );
+          });
+
+          // Keep the record only if we found a matching workout
+          return matchingWorkout !== undefined;
+        });
+
+        recordsRemoved += originalLength - exerciseData.records.length;
+      });
+
+      // Save updated progress
+      await AsyncStorage.setItem(`${STORAGE_KEYS.EXERCISE_PROGRESS}_${userId}`, JSON.stringify(progress));
+
+      return { success: true, recordsRemoved };
+    } catch (error) {
+      return { success: false, error: error.message };
     }
   }
 }

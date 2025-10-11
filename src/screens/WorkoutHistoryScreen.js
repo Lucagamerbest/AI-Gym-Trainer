@@ -75,11 +75,6 @@ export default function WorkoutHistoryScreen({ navigation }) {
     return unsubscribe;
   }, [navigation]);
 
-  // Debug modal state
-  useEffect(() => {
-    console.log('🟢 showWorkoutModal changed:', showWorkoutModal);
-    console.log('🟢 selectedWorkout:', selectedWorkout?.id, selectedWorkout?.workoutTitle);
-  }, [showWorkoutModal, selectedWorkout]);
 
   const loadWorkoutHistory = async () => {
     try {
@@ -459,11 +454,16 @@ export default function WorkoutHistoryScreen({ navigation }) {
           onPress: async () => {
             try {
               const userId = user?.email || 'guest';
-              const updatedHistory = workoutHistory.filter(w => w.id !== workoutId);
-              await AsyncStorage.setItem(`workout_history_${userId}`, JSON.stringify(updatedHistory));
-              setWorkoutHistory(updatedHistory);
-              setShowWorkoutModal(false);
-              Alert.alert('Success', 'Workout deleted successfully');
+              const result = await WorkoutStorageService.deleteWorkout(workoutId, userId);
+
+              if (result.success) {
+                // Reload workout history to reflect the deletion
+                await loadWorkoutHistory();
+                setShowWorkoutModal(false);
+                Alert.alert('Success', `Workout and ${result.recordsRemoved} related progress record${result.recordsRemoved !== 1 ? 's' : ''} deleted successfully`);
+              } else {
+                Alert.alert('Error', 'Failed to delete workout');
+              }
             } catch (error) {
               console.error('Error deleting workout:', error);
               Alert.alert('Error', 'Failed to delete workout');
@@ -515,10 +515,8 @@ export default function WorkoutHistoryScreen({ navigation }) {
         key={workout.id}
         style={styles.workoutCard}
         onPress={() => {
-          console.log('🔵 Workout card pressed:', workout.id, workout.workoutTitle);
           setSelectedWorkout(workout);
           setShowWorkoutModal(true);
-          console.log('🔵 Modal should open now');
         }}
         activeOpacity={0.7}
       >
@@ -664,6 +662,42 @@ export default function WorkoutHistoryScreen({ navigation }) {
           />
         </StyledCard>
 
+        {/* Cleanup Orphaned Records Button */}
+        <StyledCard variant="elevated" style={styles.testCard}>
+          <StyledButton
+            title="🧹 Clean Up Chart Data"
+            variant="secondary"
+            onPress={async () => {
+              Alert.alert(
+                'Clean Up Chart Data',
+                'This will remove orphaned exercise progress records that don\'t match any existing workouts. This will fix chart data inconsistencies.',
+                [
+                  { text: 'Cancel', style: 'cancel' },
+                  {
+                    text: 'Clean Up',
+                    style: 'destructive',
+                    onPress: async () => {
+                      try {
+                        const userId = user?.email || 'guest';
+                        const result = await WorkoutStorageService.cleanupOrphanedProgressRecords(userId);
+
+                        if (result.success) {
+                          Alert.alert('Success', `Cleaned up ${result.recordsRemoved} orphaned record${result.recordsRemoved !== 1 ? 's' : ''}!`);
+                        } else {
+                          Alert.alert('Error', 'Failed to clean up records');
+                        }
+                      } catch (error) {
+                        console.error('Error cleaning up orphaned records:', error);
+                        Alert.alert('Error', 'Failed to clean up records');
+                      }
+                    }
+                  }
+                ]
+              );
+            }}
+          />
+        </StyledCard>
+
         {/* Workout Stats Summary */}
         {workoutHistory.length > 0 && (
           <StyledCard variant="elevated" style={styles.statsCard}>
@@ -757,7 +791,6 @@ export default function WorkoutHistoryScreen({ navigation }) {
         transparent={true}
         animationType="slide"
         onRequestClose={() => {
-          console.log('🔴 Modal onRequestClose called');
           setShowWorkoutModal(false);
         }}
       >
@@ -767,7 +800,6 @@ export default function WorkoutHistoryScreen({ navigation }) {
             <TouchableOpacity
               style={styles.modalCloseButton}
               onPress={() => {
-                console.log('🔴 X button pressed - closing modal');
                 setShowWorkoutModal(false);
               }}
             >
