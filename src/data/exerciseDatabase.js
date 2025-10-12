@@ -656,897 +656,830 @@ export const exerciseDatabase = {
     {
       "id": "back-1",
       "name": "Lat Pulldown",
-      "equipment": "Cable Machine",
-      "difficulty": "Intermediate",
-      "instructions": "Wide grip, pull bar to chest, avoid leaning",
       "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Lats"
-      ],
-      "secondaryMuscles": [
-        "Biceps Long Head", "Biceps Short Head",
-        "Rhomboids"
+      "primaryMuscles": ["Lats", "Upper Back"],
+      "secondaryMuscles": ["Biceps", "Rear Deltoids"],
+      "equipment": "Machine, Cable",
+      "difficulty": "Beginner",
+      "instructions": "A fundamental back exercise that mimics the pull-up motion while allowing controlled resistance. Targets the latissimus dorsi muscles for building back width. Pull the bar down to your upper chest while keeping your torso upright.",
+      "variants": [
+        {
+          "equipment": "Machine Wide Grip",
+          "difficulty": "Beginner",
+          "pros": [
+            "Maximum lat width development",
+            "Fixed path ensures proper form for beginners",
+            "Easy to adjust weight between sets",
+            "Safe to train to failure without spotter",
+            "Consistent resistance throughout movement"
+          ],
+          "cons": [
+            "May cause shoulder discomfort if grip too wide",
+            "Limited range of motion compared to pull-ups",
+            "Fixed machine path may not suit all body types"
+          ],
+          "setupTips": [
+            "Adjust knee pad to secure legs without excessive pressure",
+            "Grip bar 6-8 inches wider than shoulder width",
+            "Sit with chest up and slight backward lean (10-15 degrees)",
+            "Pull bar to upper chest while driving elbows down and back",
+            "Control the return, maintaining tension in lats"
+          ]
+        },
+        {
+          "equipment": "Machine Narrow Grip",
+          "difficulty": "Beginner",
+          "pros": [
+            "Greater range of motion than wide grip",
+            "Emphasizes lower lat development",
+            "More bicep engagement for additional arm work",
+            "Easier on shoulders for those with mobility issues",
+            "Allows heavier loading due to mechanical advantage"
+          ],
+          "cons": [
+            "Less lat width emphasis compared to wide grip",
+            "Can shift focus to biceps if not done properly",
+            "May feel cramped at bottom of movement"
+          ],
+          "setupTips": [
+            "Use shoulder-width or slightly narrower grip",
+            "Keep elbows close to torso throughout movement",
+            "Pull bar to upper chest, focusing on lat contraction",
+            "Squeeze shoulder blades together at bottom",
+            "Extend arms fully at top while maintaining lat tension"
+          ]
+        },
+        {
+          "equipment": "Cable Wide Grip",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Smooth, consistent resistance throughout motion",
+            "Can adjust cable height for angle variation",
+            "Natural feel with free-moving cable",
+            "Good for drop sets and high-rep training",
+            "Allows slight torso movement for increased stretch"
+          ],
+          "cons": [
+            "Requires more stabilization than machine version",
+            "Can use momentum if form breaks down",
+            "Cable may feel less stable for beginners"
+          ],
+          "setupTips": [
+            "Attach wide bar to high pulley",
+            "Sit on bench or kneel with secure base",
+            "Wide grip with palms facing forward",
+            "Pull down to upper chest with controlled motion",
+            "Focus on lat engagement, not arm pulling"
+          ]
+        },
+        {
+          "equipment": "Cable Neutral Grip",
+          "difficulty": "Beginner",
+          "pros": [
+            "Most shoulder-friendly grip position",
+            "Excellent for those with shoulder issues",
+            "Strong bicep involvement for arm development",
+            "Natural hand position reduces wrist strain",
+            "Allows focus on lat contraction"
+          ],
+          "cons": [
+            "Requires specific neutral grip attachment",
+            "Less lat width emphasis than pronated grips",
+            "May feel too bicep-dominant if cues are wrong"
+          ],
+          "setupTips": [
+            "Attach V-bar or parallel grip handles to high pulley",
+            "Sit with chest up and core engaged",
+            "Pull handles to upper chest with elbows driving down",
+            "Think 'elbows to hips' not 'hands to chest'",
+            "Squeeze lats hard at bottom position"
+          ]
+        }
       ]
     },
     {
       "id": "back-2",
-      "name": "Low Cable Row",
-      "equipment": "Cable Machine",
-      "difficulty": "Intermediate",
-      "instructions": "Sit facing low pulley, pull bar to midsection",
+      "name": "Cable Row",
       "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Middle Back"
-      ],
-      "secondaryMuscles": [
-        "Lats",
-        "Biceps Long Head", "Biceps Short Head"
+      "primaryMuscles": ["Middle Back", "Lats"],
+      "secondaryMuscles": ["Biceps", "Rear Deltoids", "Rhomboids"],
+      "equipment": "Cable",
+      "difficulty": "Beginner",
+      "instructions": "A versatile horizontal pulling exercise that builds back thickness. By adjusting cable height, you can target different areas of the back. Pull the handle to your torso while keeping your back straight and core engaged.",
+      "variants": [
+        {
+          "equipment": "Low Angle (lats focus)",
+          "difficulty": "Beginner",
+          "pros": [
+            "Emphasizes lat width and lower lat development",
+            "Natural pulling angle mimics rowing motion",
+            "Strong mind-muscle connection with lats",
+            "Easier to maintain neutral spine",
+            "Allows heavy loading for mass building"
+          ],
+          "cons": [
+            "Less upper back involvement than higher angles",
+            "Can strain lower back if form breaks down",
+            "Requires good hip hinge and core stability"
+          ],
+          "setupTips": [
+            "Set cable to lowest position",
+            "Sit with feet on platform, slight knee bend",
+            "Hinge at hips to reach forward, flat back",
+            "Pull handle to lower abdomen, elbows close to body",
+            "Drive elbows back, squeeze lats at end position"
+          ]
+        },
+        {
+          "equipment": "Mid Angle (rhomboids/traps focus)",
+          "difficulty": "Beginner",
+          "pros": [
+            "Targets middle back, rhomboids, and mid-traps",
+            "Excellent for posture improvement",
+            "Balanced development of entire back",
+            "Reduces lower back strain compared to low angle",
+            "Great for building back thickness"
+          ],
+          "cons": [
+            "Less direct lat involvement than low angle",
+            "Can shift to rear delts if pulled too high",
+            "Requires proper scapular retraction technique"
+          ],
+          "setupTips": [
+            "Set cable to mid-torso height when seated",
+            "Maintain upright torso with chest up",
+            "Pull handle to sternum/lower chest area",
+            "Focus on squeezing shoulder blades together",
+            "Keep elbows at approximately 45-degree angle"
+          ]
+        }
       ]
     },
     {
       "id": "back-3",
-      "name": "Mid Row",
-      "equipment": "Machine",
-      "difficulty": "Intermediate",
-      "instructions": "Pull handles back, squeeze shoulder blades",
+      "name": "One Arm Row",
       "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Middle Back"
-      ],
-      "secondaryMuscles": [
-        "Rhomboids",
-        "Biceps Long Head", "Biceps Short Head"
+      "primaryMuscles": ["Lats", "Middle Back"],
+      "secondaryMuscles": ["Biceps", "Rear Deltoids", "Core"],
+      "equipment": "Dumbbell, Cable",
+      "difficulty": "Beginner",
+      "instructions": "A unilateral rowing exercise that allows you to focus on each side independently, correcting imbalances and achieving a greater range of motion. The single-arm approach also engages the core for stabilization.",
+      "variants": [
+        {
+          "equipment": "Dumbbell",
+          "difficulty": "Beginner",
+          "pros": [
+            "Corrects left-right strength imbalances",
+            "Allows maximum range of motion and stretch",
+            "Can support body weight for heavy loading",
+            "Unilateral work increases core engagement",
+            "Provides excellent mind-muscle connection"
+          ],
+          "cons": [
+            "Takes twice as long as bilateral exercises",
+            "Requires bench or stable surface for support",
+            "Can be awkward to get into position with heavy weights"
+          ],
+          "setupTips": [
+            "Place knee and hand on bench for support",
+            "Other foot planted firmly on floor",
+            "Torso parallel to ground, neutral spine",
+            "Pull dumbbell to hip, driving elbow up and back",
+            "Lower with control, feeling stretch in lat"
+          ]
+        },
+        {
+          "equipment": "Cable",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Constant tension throughout entire movement",
+            "Can adjust angle by changing body position",
+            "Smooth resistance curve for joint health",
+            "Easy to perform drop sets",
+            "Good for high-rep pump work"
+          ],
+          "cons": [
+            "Requires more stabilization than dumbbell version",
+            "Limited by available cable machine",
+            "Can use momentum more easily than dumbbell"
+          ],
+          "setupTips": [
+            "Stand in staggered stance for stability",
+            "Set cable to mid-torso height",
+            "Hold support with non-working hand",
+            "Pull handle to hip with elbow driving back",
+            "Rotate slightly at torso for increased range"
+          ]
+        }
       ]
     },
     {
       "id": "back-4",
-      "name": "One Arm Row",
-      "equipment": "Cable Machine",
-      "difficulty": "Intermediate",
-      "instructions": "Pull handle to midsection, one arm at a time",
+      "name": "Pullover",
       "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Lats"
-      ],
-      "secondaryMuscles": [
-        "Biceps Long Head", "Biceps Short Head",
-        "Rhomboids"
+      "primaryMuscles": ["Lats", "Chest"],
+      "secondaryMuscles": ["Triceps", "Serratus Anterior", "Core"],
+      "equipment": "Cable, Dumbbell, Machine",
+      "difficulty": "Intermediate",
+      "instructions": "A unique exercise that bridges back and chest work. The pullover primarily targets the lats through shoulder extension while also engaging the chest and serratus anterior. Can be performed with various equipment for different resistance curves.",
+      "variants": [
+        {
+          "equipment": "Cable",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Constant tension throughout entire range of motion",
+            "Can easily adjust resistance for different rep ranges",
+            "Excellent lat stretch at top position",
+            "Less shoulder strain than dumbbell version",
+            "Great for finishing movement after heavy pulling"
+          ],
+          "cons": [
+            "Requires cable machine access",
+            "Can be awkward to get into proper starting position",
+            "Temptation to use too much weight and lose form"
+          ],
+          "setupTips": [
+            "Attach rope or straight bar to high pulley",
+            "Stand facing away from machine, slight forward lean",
+            "Start with arms extended overhead, slight elbow bend",
+            "Pull down in arc motion to thighs, squeezing lats",
+            "Control return to overhead stretch position"
+          ]
+        },
+        {
+          "equipment": "Dumbbell",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Classic movement with proven effectiveness",
+            "Deep stretch at bottom of movement",
+            "Can be performed on flat or decline bench",
+            "Minimal equipment needed",
+            "Good for chest expansion and rib cage development"
+          ],
+          "cons": [
+            "Shoulder strain possible if too much weight used",
+            "Difficult to maintain proper elbow position",
+            "Resistance curve less optimal than cable",
+            "Risk of dropping weight overhead"
+          ],
+          "setupTips": [
+            "Lie perpendicular on bench, only upper back supported",
+            "Hold single dumbbell with both hands under top plate",
+            "Start with dumbbell over chest, slight elbow bend",
+            "Lower in arc behind head until stretch felt in lats",
+            "Pull back over chest, maintaining elbow angle"
+          ]
+        },
+        {
+          "equipment": "Machine",
+          "difficulty": "Beginner",
+          "pros": [
+            "Fixed path ensures proper form",
+            "Very safe and beginner-friendly",
+            "Easy to adjust weight quickly",
+            "Excellent isolation of lats",
+            "Can train to failure safely"
+          ],
+          "cons": [
+            "Not available in all gyms",
+            "Fixed path may not suit all body types",
+            "Less functional than free weight versions",
+            "Reduced stabilizer muscle involvement"
+          ],
+          "setupTips": [
+            "Adjust seat so shoulders align with pivot point",
+            "Secure pad across thighs if available",
+            "Grip handles with arms extended overhead",
+            "Pull down in smooth arc to lap",
+            "Squeeze lats at bottom, control return"
+          ]
+        }
       ]
     },
     {
       "id": "back-5",
-      "name": "Front Lat Pullover",
-      "equipment": "Cable Machine",
-      "difficulty": "Intermediate",
-      "instructions": "Pull bar downward with straight arms",
+      "name": "Band Assisted Pull-up",
       "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Lats"
-      ],
-      "secondaryMuscles": [
-        "Serratus"
+      "primaryMuscles": ["Lats", "Upper Back"],
+      "secondaryMuscles": ["Biceps", "Rear Deltoids", "Core"],
+      "equipment": "Resistance Band, Pull-up Bar",
+      "difficulty": "Beginner",
+      "instructions": "A progression tool for building towards unassisted pull-ups. The resistance band provides assistance at the bottom of the movement where you're weakest, allowing you to perform full range pull-ups and build the necessary strength.",
+      "variants": [
+        {
+          "equipment": "Heavy Band",
+          "difficulty": "Beginner",
+          "pros": [
+            "Perfect for complete beginners to pull-ups",
+            "Provides 40-80 lbs of assistance",
+            "Allows full range of motion practice",
+            "Builds strength in proper pull-up pattern",
+            "More effective than assisted pull-up machines"
+          ],
+          "cons": [
+            "Provides most help at bottom where you need it least",
+            "Can become a crutch if not progressed properly",
+            "Band may snap if worn or misused",
+            "Awkward to get into and out of band"
+          ],
+          "setupTips": [
+            "Loop heavy band (1.75-2.5 inch) over pull-up bar",
+            "Pull one end through the other to secure",
+            "Place knee or foot in band loop",
+            "Grip bar slightly wider than shoulders",
+            "Pull chin over bar, lower with control to full hang"
+          ]
+        },
+        {
+          "equipment": "Medium Band",
+          "difficulty": "Beginner",
+          "pros": [
+            "Good for intermediate progression (25-40 lbs assistance)",
+            "Still provides enough help to complete quality reps",
+            "Easier to get in and out of than heavy band",
+            "Helps groove proper pulling mechanics",
+            "Can mix with unassisted reps for extra volume"
+          ],
+          "cons": [
+            "May still provide too much assistance for some",
+            "Need to purchase multiple bands for progression",
+            "Band tension varies throughout movement"
+          ],
+          "setupTips": [
+            "Use medium band (1.25-1.75 inch width)",
+            "Secure band and place knee in loop",
+            "Focus on pulling with back, not just arms",
+            "Pull chest to bar, not just chin over",
+            "Practice negative reps after assisted sets"
+          ]
+        },
+        {
+          "equipment": "Light Band",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Minimal assistance (15-25 lbs) for near-unassisted practice",
+            "Final step before full bodyweight pull-ups",
+            "Allows higher volume training",
+            "Confidence builder for transition to unassisted",
+            "Good for adding reps when fatigued"
+          ],
+          "cons": [
+            "May not provide enough help if you're not ready",
+            "Easy to rely on band instead of progressing",
+            "Thinner bands can be uncomfortable on feet"
+          ],
+          "setupTips": [
+            "Use light band (0.5-1.25 inch width)",
+            "Consider placing band under one foot instead of knee",
+            "Focus on explosive pull and controlled descent",
+            "Try unassisted reps first, then use band",
+            "Track reps to monitor progression"
+          ]
+        }
       ]
     },
     {
       "id": "back-6",
-      "name": "Converging Lat Pulldown",
-      "equipment": "Cable Machine",
-      "difficulty": "Intermediate",
-      "instructions": "Pull handles downward while converging",
+      "name": "Cable Incline Pushdown",
       "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Lats"
-      ],
-      "secondaryMuscles": [
-        "Biceps Long Head", "Biceps Short Head",
-        "Rhomboids"
+      "primaryMuscles": ["Lats", "Lower Lats"],
+      "secondaryMuscles": ["Triceps", "Core"],
+      "equipment": "Cable",
+      "difficulty": "Intermediate",
+      "instructions": "A specialized lat isolation exercise performed from an incline position. This angle provides an intense stretch and contraction of the lats, particularly the lower portion. Excellent finishing movement for back workouts.",
+      "variants": [
+        {
+          "equipment": "Straight Bar",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Excellent lower lat isolation",
+            "Intense stretch at top position",
+            "Constant tension throughout movement",
+            "Great for developing lat width",
+            "Can handle moderate to heavy weight"
+          ],
+          "cons": [
+            "Requires specific setup with incline bench",
+            "Can strain wrists if grip too tight",
+            "Less common exercise, may need instruction",
+            "Setup can be awkward at some gyms"
+          ],
+          "setupTips": [
+            "Set incline bench at 30-45 degrees facing high cable",
+            "Attach straight bar to high pulley",
+            "Lie face-up on bench, reach overhead for bar",
+            "Pull bar down to thighs in arc motion",
+            "Squeeze lats hard, control return to stretch"
+          ]
+        },
+        {
+          "equipment": "Rope Attachment",
+          "difficulty": "Intermediate",
+          "pros": [
+            "More natural pulling angle for shoulders",
+            "Can pull rope ends apart for peak contraction",
+            "Wrist-friendly neutral grip position",
+            "Excellent mind-muscle connection",
+            "Great for high-rep pump work"
+          ],
+          "cons": [
+            "May be harder to load as heavy as straight bar",
+            "Rope can slip through hands when sweaty",
+            "Requires good technique to maximize effectiveness"
+          ],
+          "setupTips": [
+            "Attach rope to high pulley above incline bench",
+            "Lie back on bench at 30-45 degree angle",
+            "Grip rope ends with neutral grip overhead",
+            "Pull rope down while pulling ends apart at bottom",
+            "Focus on lat squeeze, not arm involvement"
+          ]
+        }
       ]
     },
     {
       "id": "back-7",
-      "name": "Cable Crossover Row",
-      "equipment": "Cable Machine",
-      "difficulty": "Intermediate",
-      "instructions": "Cross arms and row handles to sides",
+      "name": "Chin Up",
       "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Middle Back"
-      ],
-      "secondaryMuscles": [
-        "Rear Deltoids",
-        "Biceps Long Head", "Biceps Short Head"
+      "primaryMuscles": ["Lats", "Biceps"],
+      "secondaryMuscles": ["Middle Back", "Rear Deltoids", "Core"],
+      "equipment": "Pull-up Bar",
+      "difficulty": "Intermediate",
+      "instructions": "A compound pulling exercise using an underhand (supinated) grip. The chin-up places more emphasis on the biceps compared to pull-ups, while still effectively targeting the lats. Pull your body until your chin clears the bar.",
+      "variants": [
+        {
+          "equipment": "Shoulder Width",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Maximum bicep engagement for arm development",
+            "Strong lat activation throughout movement",
+            "More accessible than pull-ups for most people",
+            "Natural hand position reduces forearm fatigue",
+            "Excellent for building pulling strength"
+          ],
+          "cons": [
+            "Can cause elbow discomfort for some individuals",
+            "Less lat width emphasis than wide-grip pull-ups",
+            "May be too bicep-dominant if form is poor"
+          ],
+          "setupTips": [
+            "Grip bar with palms facing you, shoulder-width apart",
+            "Start from dead hang with arms fully extended",
+            "Pull chest toward bar, leading with sternum",
+            "Drive elbows down and back, squeeze lats at top",
+            "Lower with control to full arm extension"
+          ]
+        },
+        {
+          "equipment": "Narrow Grip",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Maximum bicep activation possible",
+            "Greater range of motion than shoulder-width",
+            "Emphasizes lower lat development",
+            "Mechanical advantage allows more reps",
+            "Excellent for arm and back combo work"
+          ],
+          "cons": [
+            "Can feel cramped at top of movement",
+            "Higher stress on elbow joints",
+            "May cause wrist discomfort if too narrow",
+            "Less overall back development than wider grips"
+          ],
+          "setupTips": [
+            "Grip bar with hands 6-8 inches apart",
+            "Maintain neutral wrist position throughout",
+            "Pull up while keeping elbows close to torso",
+            "Aim to touch bar with upper chest",
+            "Focus on bicep and lat contraction at top"
+          ]
+        }
       ]
     },
     {
       "id": "back-8",
-      "name": "Rear Deltoid Row",
-      "equipment": "Cable Machine",
-      "difficulty": "Intermediate",
-      "instructions": "Pull arms backward to shoulder height",
+      "name": "Muscle Up",
       "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Rear Deltoids"
-      ],
-      "secondaryMuscles": [
-        "Rhomboids",
-        "Traps"
+      "primaryMuscles": ["Lats", "Chest", "Triceps"],
+      "secondaryMuscles": ["Core", "Shoulders", "Forearms"],
+      "equipment": "Pull-up Bar, Gymnastic Rings",
+      "difficulty": "Advanced",
+      "instructions": "An advanced calisthenics movement combining a pull-up with a dip. Requires significant upper body strength, explosive power, and technique. The transition phase from pull to push is the most challenging aspect.",
+      "variants": [
+        {
+          "equipment": "Bar",
+          "difficulty": "Advanced",
+          "pros": [
+            "Impressive display of upper body strength and control",
+            "Develops explosive pulling power",
+            "Combines multiple movement patterns in one exercise",
+            "Excellent for athletic performance development",
+            "Builds massive functional upper body strength"
+          ],
+          "cons": [
+            "Very high skill requirement",
+            "Risk of injury without proper progression",
+            "Can strain shoulders if technique is poor",
+            "May take months to years to achieve first rep",
+            "Hard on hands and grip without proper conditioning"
+          ],
+          "setupTips": [
+            "Master pull-ups, dips, and high pull-ups first",
+            "Use false grip or regular grip with momentum",
+            "Generate explosive pull from dead hang",
+            "Lean back then snap forward at transition",
+            "Press out forcefully at top to lockout position"
+          ]
+        },
+        {
+          "equipment": "Ring",
+          "difficulty": "Advanced",
+          "pros": [
+            "More natural movement pattern than bar version",
+            "Allows hands to rotate during transition",
+            "Easier on wrists and shoulders",
+            "True test of strength without momentum tricks",
+            "Superior functional strength development"
+          ],
+          "cons": [
+            "Even harder than bar muscle-up",
+            "Requires ring stability skills first",
+            "Need access to gymnastic rings",
+            "Much longer learning curve",
+            "High risk of failure and falling"
+          ],
+          "setupTips": [
+            "Master ring dips and ring pull-ups first",
+            "Use false grip for better transition",
+            "Pull rings to chest while keeping them close",
+            "Transition by driving rings down and forward",
+            "Press out to support position at top"
+          ]
+        }
       ]
     },
     {
       "id": "back-9",
-      "name": "Standing Row",
-      "equipment": "Cable Machine",
-      "difficulty": "Intermediate",
-      "instructions": "Pull handles to midsection from standing position",
-      "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Middle Back"
-      ],
-      "secondaryMuscles": [
-        "Lats",
-        "Biceps Long Head", "Biceps Short Head"
-      ]
-    },
-    {
-      "id": "back-band-assisted-pullup",
-      "name": "Band Assisted Pull-Up",
-      "equipment": "Other",
-      "difficulty": "Beginner",
-      "instructions": "Choke the band around the center of the pullup bar. You can use different bands to provide varying levels of assistance. Pull the end of the band down, and place one bent knee into the loop, ensuring it won't slip out. Take a medium to wide grip on the bar. This will be your starting position. Pull yourself upward by contracting the lats as you flex the elbow. The elbow should be driven to your side. Pull to the front, attempting to get your chin over the bar. Avoid swinging or jerking movements. After a brief pause, return to the starting position.",
-      "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Lats"
-      ],
-      "secondaryMuscles": [
-        "Abdominals",
-        "Forearms",
-        "Middle Back"
-      ],
-      "originalId": "Band_Assisted_Pull-Up",
-      "images": [
-        "Band_Assisted_Pull-Up/0.jpg",
-        "Band_Assisted_Pull-Up/1.jpg"
-      ]
-    },
-    {
-      "id": "back-bentarm-barbell-pullover",
-      "name": "Bent-Arm Barbell Pullover",
-      "equipment": "Barbell",
-      "difficulty": "Intermediate",
-      "instructions": "Lie on a flat bench with a barbell using a shoulder grip width. Hold the bar straight over your chest with a bend in your arms. This will be your starting position. While keeping your arms in the bent arm position, lower the weight slowly in an arc behind your head while breathing in until you feel a stretch on the chest. At that point, bring the barbell back to the starting position using the arc through which the weight was lowered and exhale as you perform this movement. Hold the weight on the initial position for a second and repeat the motion for the prescribed number of repetitions.",
-      "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Lats"
-      ],
-      "secondaryMuscles": [
-        "Chest",
-        "Lats",
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Bent-Arm_Barbell_Pullover",
-      "images": [
-        "Bent-Arm_Barbell_Pullover/0.jpg",
-        "Bent-Arm_Barbell_Pullover/1.jpg"
-      ]
-    },
-    {
-      "id": "back-cable-incline-pushdown",
-      "name": "Cable Incline Pushdown",
-      "equipment": "Cable Machine",
-      "difficulty": "Beginner",
-      "instructions": "Lie on incline an bench facing away from a high pulley machine that has a straight bar attachment on it. Grasp the straight bar attachment overhead with a pronated (overhand; palms down) shoulder width grip and extend your arms in front of you. The bar should be around 2 inches away from your upper thighs. This will be your starting position. Keeping the upper arms stationary, lift your arms back in a semi circle until the bar is straight over your head. Breathe in during this portion of the movement. Slowly go back to the starting position using your lats and hold the contraction once you reach the starting position. Breathe out during the execution of this movement. Repeat for the recommended amount of repetitions.",
-      "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Lats"
-      ],
-      "secondaryMuscles": [],
-      "originalId": "Cable_Incline_Pushdown",
-      "images": [
-        "Cable_Incline_Pushdown/0.jpg",
-        "Cable_Incline_Pushdown/1.jpg"
-      ]
-    },
-    {
-      "id": "back-catch-and-overhead-throw",
-      "name": "Catch and Overhead Throw",
-      "equipment": "Other",
-      "difficulty": "Beginner",
-      "instructions": "Begin standing while facing a wall or a partner. Using both hands, position the ball behind your head, stretching as much as possible, and forcefully throw the ball forward. Ensure that you follow your throw through, being prepared to receive your rebound from your throw. If you are throwing against the wall, make sure that you stand close enough to the wall to receive the rebound, and aim a little higher than you would with a partner.",
-      "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Lats"
-      ],
-      "secondaryMuscles": [
-        "Abdominals",
-        "Chest",
-        "Front Deltoids", "Side Deltoids"
-      ],
-      "originalId": "Catch_and_Overhead_Throw",
-      "images": [
-        "Catch_and_Overhead_Throw/0.jpg",
-        "Catch_and_Overhead_Throw/1.jpg"
-      ]
-    },
-    {
-      "id": "back-chair-lower-back-stretch",
-      "name": "Chair Lower Back Stretch",
-      "equipment": "Other",
-      "difficulty": "Beginner",
-      "instructions": "Sit upright on a chair. Bend to one side with your arm over your head. You can hold onto the chair with your free hand. Hold for 10 seconds, and repeat for your other side.",
-      "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Lats"
-      ],
-      "secondaryMuscles": [
-        "Lower Back"
-      ],
-      "originalId": "Chair_Lower_Back_Stretch",
-      "images": [
-        "Chair_Lower_Back_Stretch/0.jpg",
-        "Chair_Lower_Back_Stretch/1.jpg"
-      ]
-    },
-    {
-      "id": "back-chinup",
-      "name": "Chin-Up",
-      "equipment": "Bodyweight",
-      "difficulty": "Beginner",
-      "instructions": "Grab the pull-up bar with the palms facing your torso and a grip closer than the shoulder width. As you have both arms extended in front of you holding the bar at the chosen grip width, keep your torso as straight as possible while creating a curvature on your lower back and sticking your chest out. This is your starting position. Tip: Keeping the torso as straight as possible maximizes biceps stimulation while minimizing back involvement. As you breathe out, pull your torso up until your head is around the level of the pull-up bar. Concentrate on using the biceps muscles in order to perform the movement. Keep the elbows close to your body. Tip: The upper torso should remain stationary as it moves through space and only the arms should move. The forearms should do no other work other than hold the bar. After a second of squeezing the biceps in the contracted position, slowly lower your torso back to the starting position; when your arms are fully extended. Breathe in as you perform this portion of the movement. Repeat this motion for the prescribed amount of repetitions.",
-      "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Lats"
-      ],
-      "secondaryMuscles": [
-        "Biceps Long Head", "Biceps Short Head",
-        "Forearms",
-        "Middle Back"
-      ],
-      "originalId": "Chin-Up",
-      "images": [
-        "Chin-Up/0.jpg",
-        "Chin-Up/1.jpg"
-      ]
-    },
-    {
-      "id": "back-closegrip-front-lat-pulldown",
-      "name": "Close-Grip Front Lat Pulldown",
-      "equipment": "Cable Machine",
-      "difficulty": "Beginner",
-      "instructions": "Sit down on a pull-down machine with a wide bar attached to the top pulley. Make sure that you adjust the knee pad of the machine to fit your height. These pads will prevent your body from being raised by the resistance attached to the bar. Grab the bar with the palms facing forward using the prescribed grip. Note on grips: For a wide grip, your hands need to be spaced out at a distance wider than your shoulder width. For a medium grip, your hands need to be spaced out at a distance equal to your shoulder width and for a close grip at a distance smaller than your shoulder width. As you have both arms extended in front of you - while holding the bar at the chosen grip width - bring your torso back around 30 degrees or so while creating a curvature on your lower back and sticking your chest out. This is your starting position. As you breathe out, bring the bar down until it touches your upper chest by drawing the shoulders and the upper arms down and back. Tip: Concentrate on squeezing the back muscles once you reach the full contracted position. The upper torso should remain stationary (only the arms should move). The forearms should do no other work except for holding the bar; therefore do not try to pull the bar down using the forearms. After a second in the contracted position, while squeezing your shoulder blades together, slowly raise the bar back to the starting position when your arms are fully extended and the lats are fully stretched. Inhale during this portion of the movement. 6. Repeat this motion for the prescribed amount of repetitions.",
-      "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Lats"
-      ],
-      "secondaryMuscles": [
-        "Biceps Long Head", "Biceps Short Head",
-        "Middle Back",
-        "Front Deltoids", "Side Deltoids"
-      ],
-      "originalId": "Close-Grip_Front_Lat_Pulldown",
-      "images": [
-        "Close-Grip_Front_Lat_Pulldown/0.jpg",
-        "Close-Grip_Front_Lat_Pulldown/1.jpg"
-      ]
-    },
-    {
-      "id": "back-dynamic-back-stretch",
-      "name": "Dynamic Back Stretch",
-      "equipment": "Other",
-      "difficulty": "Beginner",
-      "instructions": "Stand with your feet shoulder width apart. This will be your starting position. Keeping your arms straight, swing them straight up in front of you 5-10 times, increasing the range of motion each time until your arms are above your head.",
-      "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Lats"
-      ],
-      "secondaryMuscles": [],
-      "originalId": "Dynamic_Back_Stretch",
-      "images": [
-        "Dynamic_Back_Stretch/0.jpg",
-        "Dynamic_Back_Stretch/1.jpg"
-      ]
-    },
-    {
-      "id": "back-elevated-cable-rows",
-      "name": "Elevated Cable Rows",
-      "equipment": "Cable Machine",
-      "difficulty": "Intermediate",
-      "instructions": "Get a platform of some sort (it can be an aerobics or calf raise platform) that is around 4-6 inches in height. Place it on the seat of the cable row machine. Sit down on the machine and place your feet on the front platform or crossbar provided making sure that your knees are slightly bent and not locked. Lean over as you keep the natural alignment of your back and grab the V-bar handles. With your arms extended pull back until your torso is at a 90-degree angle from your legs. Your back should be slightly arched and your chest should be sticking out. You should be feeling a nice stretch on your lats as you hold the bar in front of you. This is the starting position of the exercise. Keeping the torso stationary, pull the handles back towards your torso while keeping the arms close to it until you touch the abdominals. Breathe out as you perform that movement. At that point you should be squeezing your back muscles hard. Hold that contraction for a second and slowly go back to the original position while breathing in. Repeat for the recommended amount of repetitions.",
-      "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Lats"
-      ],
-      "secondaryMuscles": [
-        "Middle Back",
-        "Traps"
-      ],
-      "originalId": "Elevated_Cable_Rows",
-      "images": [
-        "Elevated_Cable_Rows/0.jpg",
-        "Elevated_Cable_Rows/1.jpg"
-      ]
-    },
-    {
-      "id": "back-full-rangeofmotion-lat-pulldow",
-      "name": "Full Range-Of-Motion Lat Pulldown",
-      "equipment": "Cable Machine",
-      "difficulty": "Intermediate",
-      "instructions": "Either standing or seated on a high bench, grasp two stirrup cables that are attached to the high pulleys. Grab with the opposing hand so your arms are crisscrossed about you and your palms are facing forward. Keeping your chest up and maintaining a slight arch in your lower back, pull the handles down as if you were doing a regular pulldown. The range of motion will be more of an arc. During the movement, rotate your hands so that in the bottom position your palms face each other rather than forward. Return slowly to the starting position and repeat.",
-      "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Lats"
-      ],
-      "secondaryMuscles": [
-        "Biceps Long Head", "Biceps Short Head",
-        "Middle Back",
-        "Front Deltoids", "Side Deltoids"
-      ],
-      "originalId": "Full_Range-Of-Motion_Lat_Pulldown",
-      "images": [
-        "Full_Range-Of-Motion_Lat_Pulldown/0.jpg",
-        "Full_Range-Of-Motion_Lat_Pulldown/1.jpg"
-      ]
-    },
-    {
-      "id": "back-gironda-sternum-chins",
-      "name": "Gironda Sternum Chins",
-      "equipment": "Other",
-      "difficulty": "Intermediate",
-      "instructions": "Grasp the pull-up bar with a shoulder width underhand grip. Now hang with your arms fully extended and stick your chest out and lean back. Tip: You will be leaning back throughout the entire movement. This will be your starting position. Start pulling yourself towards the bar with your spine arched throughout the movement and your head leaning back as far away from the bar as possible. Exhale as you perform this portion of the movement. Tip: At the upper end of the movement, your hips and legs will be at about a 45-degree angle to the floor. Keep pulling until your collarbone passes the bar and your lower chest or sternum area touches it. Hold that contraction for a second. Tip: By the time you've completed this portion of the movement; your head will be parallel to the floor. Slowly start going back to the starting position as you inhale. Repeat for the recommended amount of repetitions.",
-      "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Lats"
-      ],
-      "secondaryMuscles": [
-        "Biceps Long Head", "Biceps Short Head",
-        "Middle Back"
-      ],
-      "originalId": "Gironda_Sternum_Chins",
-      "images": [
-        "Gironda_Sternum_Chins/0.jpg",
-        "Gironda_Sternum_Chins/1.jpg"
-      ]
-    },
-    {
-      "id": "back-kipping-muscle-up",
-      "name": "Kipping Muscle Up",
-      "equipment": "Other",
-      "difficulty": "Intermediate",
-      "instructions": "Grip the rings using a false grip, with the base of your palms on top of the rings. Begin with a movement swinging your legs backward slightly. Counter that movement by swinging your legs forward and up, jerking your chin and chest back, pulling yourself up with both arms as you do so. As you reach the top position of the pull-up, pull the rings to your armpits as you roll your shoulders forward, allowing your elbows to move straight back behind you. This puts you into the proper position to continue into the dip portion of the movement. Maintaining control and stability, extend through the elbow to complete the motion. Use care when lowering yourself to the ground.",
-      "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Lats"
-      ],
-      "secondaryMuscles": [
-        "Abdominals",
-        "Biceps Long Head", "Biceps Short Head",
-        "Forearms",
-        "Middle Back",
-        "Front Deltoids", "Side Deltoids",
-        "Traps",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Kipping_Muscle_Up",
-      "images": [
-        "Kipping_Muscle_Up/0.jpg",
-        "Kipping_Muscle_Up/1.jpg"
-      ]
-    },
-    {
-      "id": "back-kneeling-high-pulley-row",
-      "name": "Kneeling High Pulley Row",
-      "equipment": "Cable Machine",
-      "difficulty": "Beginner",
-      "instructions": "Select the appropriate weight using a pulley that is above your head. Attach a rope to the cable and kneel a couple of feet away, holding the rope out in front of you with both arms extended. This will be your starting position. Initiate the movement by flexing the elbows and fully retracting your shoulders, pulling the rope toward your upper chest with your elbows out. After pausing briefly, slowly return to the starting position.",
-      "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Lats"
-      ],
-      "secondaryMuscles": [
-        "Biceps Long Head", "Biceps Short Head",
-        "Middle Back"
-      ],
-      "originalId": "Kneeling_High_Pulley_Row",
-      "images": [
-        "Kneeling_High_Pulley_Row/0.jpg",
-        "Kneeling_High_Pulley_Row/1.jpg"
-      ]
-    },
-    {
-      "id": "back-kneeling-singlearm-high-pulley",
-      "name": "Kneeling Single-Arm High Pulley Row",
-      "equipment": "Cable Machine",
-      "difficulty": "Beginner",
-      "instructions": "Attach a single handle to a high pulley and make your weight selection. Kneel in front of the cable tower, taking the cable with one hand with your arm extended. This will be your starting position. Starting with your palm facing forward, pull the weight down to your torso by flexing the elbow and retract the shoulder blade. As you do so, rotate the wrist so that at the completion of the movement, your palm is now facing you. After a brief pause, return to the starting position.",
-      "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Lats"
-      ],
-      "secondaryMuscles": [
-        "Biceps Long Head", "Biceps Short Head",
-        "Middle Back"
-      ],
-      "originalId": "Kneeling_Single-Arm_High_Pulley_Row",
-      "images": [
-        "Kneeling_Single-Arm_High_Pulley_Row/0.jpg",
-        "Kneeling_Single-Arm_High_Pulley_Row/1.jpg"
-      ]
-    },
-    {
-      "id": "back-latissimus-dorsismr",
-      "name": "Latissimus Dorsi-SMR",
-      "equipment": "Other",
-      "difficulty": "Beginner",
-      "instructions": "While lying on the floor, place a foam roll under your back and to one side, just behind your arm pit. This will be your starting position. Keep the arm of the side being stretched behind and to the side of you as you shift your weight onto your lats, keeping your upper body off of the ground. Hold for 10-30 seconds, and switch sides.",
-      "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Lats"
-      ],
-      "secondaryMuscles": [],
-      "originalId": "Latissimus_Dorsi-SMR",
-      "images": [
-        "Latissimus_Dorsi-SMR/0.jpg",
-        "Latissimus_Dorsi-SMR/1.jpg"
-      ]
-    },
-    {
-      "id": "back-leverage-iso-row",
-      "name": "Leverage Iso Row",
-      "equipment": "Machine",
-      "difficulty": "Beginner",
-      "instructions": "Load an appropriate weight onto the pins and adjust the seat height so that the handles are at chest level. Grasp the handles with either a neutral or pronated grip. This will be your starting position. Pull the handles towards your torso, retracting your shoulder blades as you flex the elbow. Pause at the bottom of the motion, and then slowly return the handles to the starting position. For multiple repetitions, avoid completely returning the weight to the stops to keep tension on the muscles being worked.",
-      "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Lats"
-      ],
-      "secondaryMuscles": [
-        "Biceps Long Head", "Biceps Short Head",
-        "Middle Back"
-      ],
-      "originalId": "Leverage_Iso_Row",
-      "images": [
-        "Leverage_Iso_Row/0.jpg",
-        "Leverage_Iso_Row/1.jpg"
-      ]
-    },
-    {
-      "id": "back-london-bridges",
-      "name": "London Bridges",
-      "equipment": "Other",
-      "difficulty": "Intermediate",
-      "instructions": "Attach a climbing rope to a high beam or cross member. Below it, ensure that the smith machine bar is locked in place with the safeties and cannot move. Alternatively, a secure box could also be utilized. Stand on the bar, using the rope to balance yourself. This will be your starting position. Keeping your body straight, lean back and lower your body by slowly going hand over hand with the rope. Continue until you are perpendicular to the ground. Keeping your body straight, reverse the motion, going hand over hand back to the starting position.",
-      "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Lats"
-      ],
-      "secondaryMuscles": [
-        "Biceps Long Head", "Biceps Short Head",
-        "Forearms",
-        "Middle Back"
-      ],
-      "originalId": "London_Bridges",
-      "images": [
-        "London_Bridges/0.jpg",
-        "London_Bridges/1.jpg"
-      ]
-    },
-    {
-      "id": "back-muscle-up",
-      "name": "Muscle Up",
-      "equipment": "Other",
-      "difficulty": "Intermediate",
-      "instructions": "Grip the rings using a false grip, with the base of your palms on top of the rings. Initiate a pull up by pulling the elbows down to your side, flexing the elbows. As you reach the top position of the pull-up, pull the rings to your armpits as you roll your shoulders forward, allowing your elbows to move straight back behind you. This puts you into the proper position to continue into the dip portion of the movement. Maintaining control and stability, extend through the elbow to complete the motion. Use care when lowering yourself to the ground.",
-      "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Lats"
-      ],
-      "secondaryMuscles": [
-        "Abdominals",
-        "Biceps Long Head", "Biceps Short Head",
-        "Forearms",
-        "Middle Back",
-        "Front Deltoids", "Side Deltoids",
-        "Traps",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Muscle_Up",
-      "images": [
-        "Muscle_Up/0.jpg",
-        "Muscle_Up/1.jpg"
-      ]
-    },
-    {
-      "id": "back-one-arm-against-wall",
-      "name": "One Arm Against Wall",
-      "equipment": "Other",
-      "difficulty": "Beginner",
-      "instructions": "From a standing position, place a bent arm against a wall or doorway. Slowly lean toward your arm until you feel a stretch in your lats.",
-      "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Lats"
-      ],
-      "secondaryMuscles": [],
-      "originalId": "One_Arm_Against_Wall",
-      "images": [
-        "One_Arm_Against_Wall/0.jpg",
-        "One_Arm_Against_Wall/1.jpg"
-      ]
-    },
-    {
-      "id": "back-one-arm-lat-pulldown",
       "name": "One Arm Lat Pulldown",
-      "equipment": "Cable Machine",
-      "difficulty": "Beginner",
-      "instructions": "Select an appropriate weight and adjust the knee pad to help keep you down. Grasp the handle with a pronated grip. This will be your starting position. Pull the handle down, squeezing your elbow to your side as you flex the elbow. Pause at the bottom of the motion, and then slowly return the handle to the starting position. For multiple repetitions, avoid completely returning the weight to keep tension on the muscles being worked.",
       "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Lats"
-      ],
-      "secondaryMuscles": [
-        "Biceps Long Head", "Biceps Short Head",
-        "Middle Back"
-      ],
-      "originalId": "One_Arm_Lat_Pulldown",
-      "images": [
-        "One_Arm_Lat_Pulldown/0.jpg",
-        "One_Arm_Lat_Pulldown/1.jpg"
-      ]
-    },
-    {
-      "id": "back-one-handed-hang",
-      "name": "One Handed Hang",
-      "equipment": "Other",
-      "difficulty": "Beginner",
-      "instructions": "Grab onto a chinup bar with one hand, using a pronated grip. Keep your feet on the floor or a step. Allow the majority of your weight to hang from that hand, while keeping your feet on the ground. Hold for 10-20 seconds and switch sides.",
-      "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Lats"
-      ],
-      "secondaryMuscles": [
-        "Biceps Long Head", "Biceps Short Head"
-      ],
-      "originalId": "One_Handed_Hang",
-      "images": [
-        "One_Handed_Hang/0.jpg",
-        "One_Handed_Hang/1.jpg"
-      ]
-    },
-    {
-      "id": "back-overhead-lat",
-      "name": "Overhead Lat",
-      "equipment": "Other",
-      "difficulty": "Advanced",
-      "instructions": "Sit upright on the floor with your partner behind you. Raise one arm straight up, and flex the elbow, attempting to touch your hand to your back. Your parner should hold your tricep and wrist. This will be your starting position. Attempt to pull your upper arm to your side as your partner prevents you from doing actually doing so. After 10-20 seconds, relax the arm and allow your partner to further stretch the lat by applying gentle pressure to the tricep. Hold for 10-20 seconds, and then switch sides.",
-      "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Lats"
-      ],
-      "secondaryMuscles": [
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Overhead_Lat",
-      "images": [
-        "Overhead_Lat/0.jpg",
-        "Overhead_Lat/1.jpg"
-      ]
-    },
-    {
-      "id": "back-overhead-slam",
-      "name": "Overhead Slam",
-      "equipment": "Other",
-      "difficulty": "Beginner",
-      "instructions": "Hold a medine ball with both hands and stand with your feet at shoulder width. This will be your starting position. Initiate the countermovement by raising the ball above your head and fully extending your body. Reverse the motion, slamming the ball into the ground directly in front of you as hard as you can. Receive the ball with both hands on the bounce and repeat the movement.",
-      "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Lats"
-      ],
-      "secondaryMuscles": [],
-      "originalId": "Overhead_Slam",
-      "images": [
-        "Overhead_Slam/0.jpg",
-        "Overhead_Slam/1.jpg"
-      ]
-    },
-    {
-      "id": "back-pullups",
-      "name": "Pullups",
-      "equipment": "Bodyweight",
-      "difficulty": "Beginner",
-      "instructions": "Grab the pull-up bar with the palms facing forward using the prescribed grip. Note on grips: For a wide grip, your hands need to be spaced out at a distance wider than your shoulder width. For a medium grip, your hands need to be spaced out at a distance equal to your shoulder width and for a close grip at a distance smaller than your shoulder width. As you have both arms extended in front of you holding the bar at the chosen grip width, bring your torso back around 30 degrees or so while creating a curvature on your lower back and sticking your chest out. This is your starting position. Pull your torso up until the bar touches your upper chest by drawing the shoulders and the upper arms down and back. Exhale as you perform this portion of the movement. Tip: Concentrate on squeezing the back muscles once you reach the full contracted position. The upper torso should remain stationary as it moves through space and only the arms should move. The forearms should do no other work other than hold the bar. After a second on the contracted position, start to inhale and slowly lower your torso back to the starting position when your arms are fully extended and the lats are fully stretched. Repeat this motion for the prescribed amount of repetitions.",
-      "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Lats"
-      ],
-      "secondaryMuscles": [
-        "Biceps Long Head", "Biceps Short Head",
-        "Middle Back"
-      ],
-      "originalId": "Pullups",
-      "images": [
-        "Pullups/0.jpg",
-        "Pullups/1.jpg"
-      ]
-    },
-    {
-      "id": "back-rocky-pullupspulldowns",
-      "name": "Rocky Pull-Ups/Pulldowns",
-      "equipment": "Other",
+      "primaryMuscles": ["Lats", "Middle Back"],
+      "secondaryMuscles": ["Biceps", "Core", "Obliques"],
+      "equipment": "Cable",
       "difficulty": "Intermediate",
-      "instructions": "Grab the pull-up bar with the palms facing forward using a wide grip. As you have both arms extended in front of you holding the bar at the chosen grip width, bring your torso back around 30 degrees or so while creating a curvature on your lower back and sticking your chest out. This is your starting position. Pull your torso up until the bar touches your upper chest by drawing the shoulders and the upper arms down and back. Exhale as you perform this portion of the movement. Tip: Concentrate on squeezing the back muscles once you reach the full contracted position. The upper torso should remain stationary as it moves through space and only the arms should move. The forearms should do no other work other than hold the bar. After a second on the contracted position, start to inhale and slowly lower your torso back to the starting position when your arms are fully extended and the lats are fully stretched. Now repeat the same movements as described above except this time your torso will remain straight as you go up and the bar will touch the back of the neck instead of the upper chest. Tip: Use the head to lean forward slightly as it will help you properly execute this portion of the exercise. Once you have lowered yourself back down to the starting position, repeat the exercise for the prescribed amount of repetitions in your program.",
-      "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Lats"
-      ],
-      "secondaryMuscles": [
-        "Biceps Long Head", "Biceps Short Head",
-        "Middle Back",
-        "Front Deltoids", "Side Deltoids"
-      ],
-      "originalId": "Rocky_Pull-Ups_Pulldowns",
-      "images": [
-        "Rocky_Pull-Ups_Pulldowns/0.jpg",
-        "Rocky_Pull-Ups_Pulldowns/1.jpg"
+      "instructions": "A unilateral variation of the lat pulldown that isolates each side independently. This exercise helps correct imbalances and provides intense lat activation. The single-arm approach also challenges core stability.",
+      "variants": [
+        {
+          "equipment": "Single Handle",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Corrects left-right strength imbalances",
+            "Allows greater range of motion than bilateral",
+            "Intense focus on single lat at a time",
+            "Increased core engagement for stability",
+            "Can adjust body position for different angles"
+          ],
+          "cons": [
+            "Takes twice as long as regular pulldowns",
+            "Requires practice to avoid twisting torso",
+            "More difficult to load as heavy as bilateral",
+            "Can strain lower back if core not engaged"
+          ],
+          "setupTips": [
+            "Attach single handle to high pulley",
+            "Sit or kneel with working side toward machine",
+            "Brace non-working hand on thigh or machine",
+            "Pull handle down to shoulder, driving elbow back",
+            "Resist torso rotation, keep core tight"
+          ]
+        },
+        {
+          "equipment": "Neutral Grip",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Most shoulder-friendly grip option",
+            "Natural hand position reduces joint stress",
+            "Strong bicep involvement for arm work",
+            "Excellent for those with shoulder issues",
+            "Can focus on lat contraction without discomfort"
+          ],
+          "cons": [
+            "Requires D-handle attachment",
+            "May feel more bicep-focused than back",
+            "Less lat width emphasis than pronated grip"
+          ],
+          "setupTips": [
+            "Use D-handle or neutral grip attachment",
+            "Position body so arm can pull in natural path",
+            "Pull handle down thinking 'elbow to hip'",
+            "Squeeze lat at bottom for 1-2 seconds",
+            "Control ascent maintaining constant tension"
+          ]
+        }
       ]
     },
     {
-      "id": "back-rope-climb",
-      "name": "Rope Climb",
-      "equipment": "Other",
+      "id": "back-10",
+      "name": "Pull Ups",
+      "muscleGroup": "Back",
+      "primaryMuscles": ["Lats", "Upper Back"],
+      "secondaryMuscles": ["Biceps", "Rear Deltoids", "Core"],
+      "equipment": "Pull-up Bar",
       "difficulty": "Intermediate",
-      "instructions": "Grab the rope with both hands above your head. Pull down on the rope as you take a small jump. Wrap the rope around one leg, using your feet to pinch the rope. Reach up as high as possible with your arms, gripping the rope tightly. Release the rope from your feet as you pull yourself up with your arms, bringing your knees towards your chest. Resecure your feet on the rope, and then stand up to take another high hold on the rope. Continue until you reach the top of the rope. To lower yourself, loosen the grip of your feet on the rope as you slide down using a hand over hand motion.",
-      "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Lats"
-      ],
-      "secondaryMuscles": [
-        "Biceps Long Head", "Biceps Short Head",
-        "Forearms",
-        "Middle Back",
-        "Front Deltoids", "Side Deltoids"
-      ],
-      "originalId": "Rope_Climb",
-      "images": [
-        "Rope_Climb/0.jpg",
-        "Rope_Climb/1.jpg"
+      "instructions": "The king of bodyweight back exercises using an overhand (pronated) grip. Pull-ups primarily target the lats and build impressive back width. Pull your body until your chin clears the bar, then lower with control.",
+      "variants": [
+        {
+          "equipment": "Wide Grip",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Maximum lat width development",
+            "Classic bodybuilding back exercise",
+            "Reduces bicep involvement, isolates back better",
+            "Develops V-taper appearance",
+            "Excellent for upper back thickness"
+          ],
+          "cons": [
+            "Harder than shoulder-width grip",
+            "Can cause shoulder discomfort if too wide",
+            "Reduced range of motion compared to narrow grip",
+            "More difficult to reach high rep counts"
+          ],
+          "setupTips": [
+            "Grip bar 6-8 inches wider than shoulders",
+            "Start from dead hang with arms fully extended",
+            "Pull chest toward bar, driving elbows down and out",
+            "Think about pulling elbows to hips",
+            "Lower slowly to full extension between reps"
+          ]
+        },
+        {
+          "equipment": "Shoulder Width",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Most balanced grip for overall back development",
+            "Natural pulling position for most people",
+            "Allows greater range of motion than wide grip",
+            "Good balance of lat and bicep involvement",
+            "Easier to progress and add reps"
+          ],
+          "cons": [
+            "Less specific to pure lat width than wide grip",
+            "More bicep involvement may fatigue arms first",
+            "May not provide enough training stimulus if too easy"
+          ],
+          "setupTips": [
+            "Grip bar at shoulder width, palms facing away",
+            "Engage lats from dead hang before pulling",
+            "Pull chest to bar, not just chin over",
+            "Keep core tight to prevent swinging",
+            "Squeeze lats hard at top of movement"
+          ]
+        }
       ]
     },
     {
-      "id": "back-rope-straightarm-pulldown",
-      "name": "Rope Straight-Arm Pulldown",
-      "equipment": "Cable Machine",
+      "id": "back-11",
+      "name": "V Bar Pulldown",
+      "muscleGroup": "Back",
+      "primaryMuscles": ["Lats", "Lower Lats"],
+      "secondaryMuscles": ["Biceps", "Rhomboids"],
+      "equipment": "Cable",
       "difficulty": "Beginner",
-      "instructions": "Attach a rope to a high pulley and make your weight selection. Stand a couple feet back from the pulley with your feet staggered and take the rope with both hands. Lean forward from the hip, keeping your back straight, with your arms extended up in front of you. This will be your starting position. Keeping your arms straight, extend the shoulder to pull the rope down to your thighs. Pause at the bottom of the motion, squeezing your lats. Return to the starting position without allowing the weight to fully rest on the stack.",
-      "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Lats"
-      ],
-      "secondaryMuscles": [],
-      "originalId": "Rope_Straight-Arm_Pulldown",
-      "images": [
-        "Rope_Straight-Arm_Pulldown/0.jpg",
-        "Rope_Straight-Arm_Pulldown/1.jpg"
+      "instructions": "A lat pulldown variation using a V-bar attachment with neutral grip. This grip angle targets the lower portion of the lats while being very shoulder-friendly. Pull the bar down to your upper chest while maintaining an upright posture.",
+      "variants": [
+        {
+          "equipment": "Close Grip",
+          "difficulty": "Beginner",
+          "pros": [
+            "Excellent lower lat development",
+            "Very shoulder-friendly neutral grip",
+            "Strong bicep engagement for arm work",
+            "Greater range of motion than wide grip",
+            "Natural hand position reduces strain"
+          ],
+          "cons": [
+            "Less lat width emphasis than wide variations",
+            "Can become too bicep-dominant if form breaks",
+            "May feel cramped at bottom for some people",
+            "Requires specific V-bar attachment"
+          ],
+          "setupTips": [
+            "Attach close-grip V-bar to high pulley",
+            "Sit with chest up and slight backward lean",
+            "Pull bar to upper chest, driving elbows down",
+            "Focus on lat contraction, not just arm pulling",
+            "Squeeze hard at bottom, control the release"
+          ]
+        },
+        {
+          "equipment": "Wide Grip",
+          "difficulty": "Beginner",
+          "pros": [
+            "Targets both lat width and thickness",
+            "Neutral grip is easier on shoulders than pronated",
+            "Good compromise between close and pronated wide grip",
+            "Allows heavy weight with joint-friendly position",
+            "Balanced bicep and lat involvement"
+          ],
+          "cons": [
+            "Not as wide as traditional wide-grip pulldown",
+            "May not fit all machines or cable stations",
+            "Less common attachment in some gyms"
+          ],
+          "setupTips": [
+            "Use wide neutral-grip V-bar attachment",
+            "Set up similar to standard lat pulldown",
+            "Pull bar to upper chest with elbows wide",
+            "Think about driving elbows down and back",
+            "Maintain upright posture throughout movement"
+          ]
+        }
       ]
     },
     {
-      "id": "back-shotgun-row",
-      "name": "Shotgun Row",
-      "equipment": "Cable Machine",
-      "difficulty": "Beginner",
-      "instructions": "Attach a single handle to a low cable. After selecting the correct weight, stand a couple feet back with a wide-split stance. Your arm should be extended and your shoulder forward. This will be your starting position. Perform the movement by retracting the shoulder and flexing the elbow. As you pull, supinate the wrist, turning the palm upward as you go. After a brief pause, return to the starting position.",
-      "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Lats"
-      ],
-      "secondaryMuscles": [
-        "Biceps Long Head", "Biceps Short Head",
-        "Middle Back"
-      ],
-      "originalId": "Shotgun_Row",
-      "images": [
-        "Shotgun_Row/0.jpg",
-        "Shotgun_Row/1.jpg"
-      ]
-    },
-    {
-      "id": "back-sidelying-floor-stretch",
-      "name": "Side-Lying Floor Stretch",
-      "equipment": "Other",
-      "difficulty": "Beginner",
-      "instructions": "First lie on your left side, bending your left knee in front of you to stabilize your torso (use your abdominal muscles as well to hold you upright). Straighten your right leg and rest the right foot on the floor behind your left. Straighten your right arm over your head and gently pull on your right wrist to stretch the entire right side of the body. Switch sides.",
-      "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Lats"
-      ],
-      "secondaryMuscles": [],
-      "originalId": "Side-Lying_Floor_Stretch",
-      "images": [
-        "Side-Lying_Floor_Stretch/0.jpg",
-        "Side-Lying_Floor_Stretch/1.jpg"
-      ]
-    },
-    {
-      "id": "back-side-to-side-chins",
-      "name": "Side To Side Chins",
-      "equipment": "Other",
-      "difficulty": "Intermediate",
-      "instructions": "Grab the pull-up bar with the palms facing forward using a wide grip. As you have both arms extended in front of you holding the bar at a wide grip, bring your torso back around 30 degrees or so while creating a curvature on your lower back and sticking your chest out. This is your starting position. Pull your torso up while leaning to the left hand side until the bar almost touches your upper chest by drawing the shoulders and the upper arms down and back. Exhale as you perform this portion of the movement. Tip: Concentrate on squeezing the back muscles once you reach the full contracted position. The upper torso should remain stationary as it moves through space (no swinging) and only the arms should move. The forearms should do no other work other than hold the bar. After a second of contraction, inhale as you go back to the starting position. Now, pull your torso up while leaning to the right hand side until the bar almost touches your upper chest by drawing the shoulders and the upper arms down and back. Exhale as you perform this portion of the movement. Tip: Concentrate on squeezing the back muscles once you reach the full contracted position. The upper torso should remain stationary as it moves through space and only the arms should move. The forearms should do no other work other than hold the bar. After a second of contraction, inhale as you go back to the starting position. Repeat steps 3-6 until you have performed the prescribed amount of repetitions for each side.",
-      "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Lats"
-      ],
-      "secondaryMuscles": [
-        "Biceps Long Head", "Biceps Short Head",
-        "Forearms",
-        "Middle Back",
-        "Front Deltoids", "Side Deltoids"
-      ],
-      "originalId": "Side_To_Side_Chins",
-      "images": [
-        "Side_To_Side_Chins/0.jpg",
-        "Side_To_Side_Chins/1.jpg"
-      ]
-    },
-    {
-      "id": "back-straightarm-pulldown",
-      "name": "Straight-Arm Pulldown",
-      "equipment": "Cable Machine",
-      "difficulty": "Beginner",
-      "instructions": "You will start by grabbing the wide bar from the top pulley of a pulldown machine and using a wider than shoulder-width pronated (palms down) grip. Step backwards two feet or so. Bend your torso forward at the waist by around 30-degrees with your arms fully extended in front of you and a slight bend at the elbows. If your arms are not fully extended then you need to step a bit more backwards until they are. Once your arms are fully extended and your torso is slightly bent at the waist, tighten the lats and then you are ready to begin. While keeping the arms straight, pull the bar down by contracting the lats until your hands are next to the side of the thighs. Breathe out as you perform this step. While keeping the arms straight, go back to the starting position while breathing in. Repeat for the recommended amount of repetitions.",
-      "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Lats"
-      ],
-      "secondaryMuscles": [],
-      "originalId": "Straight-Arm_Pulldown",
-      "images": [
-        "Straight-Arm_Pulldown/0.jpg",
-        "Straight-Arm_Pulldown/1.jpg"
-      ]
-    },
-    {
-      "id": "back-underhand-cable-pulldowns",
-      "name": "Underhand Cable Pulldowns",
-      "equipment": "Cable Machine",
-      "difficulty": "Beginner",
-      "instructions": "Sit down on a pull-down machine with a wide bar attached to the top pulley. Adjust the knee pad of the machine to fit your height. These pads will prevent your body from being raised by the resistance attached to the bar. Grab the pull-down bar with the palms facing your torso (a supinated grip). Make sure that the hands are placed closer than the shoulder width. As you have both arms extended in front of you holding the bar at the chosen grip width, bring your torso back around 30 degrees or so while creating a curvature on your lower back and sticking your chest out. This is your starting position. As you breathe out, pull the bar down until it touches your upper chest by drawing the shoulders and the upper arms down and back. Tip: Concentrate on squeezing the back muscles once you reach the fully contracted position and keep the elbows close to your body. The upper torso should remain stationary as your bring the bar to you and only the arms should move. The forearms should do no other work other than hold the bar. After a second on the contracted position, while breathing in, slowly bring the bar back to the starting position when your arms are fully extended and the lats are fully stretched. Repeat this motion for the prescribed amount of repetitions.",
-      "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Lats"
-      ],
-      "secondaryMuscles": [
-        "Biceps Long Head", "Biceps Short Head",
-        "Middle Back",
-        "Front Deltoids", "Side Deltoids"
-      ],
-      "originalId": "Underhand_Cable_Pulldowns",
-      "images": [
-        "Underhand_Cable_Pulldowns/0.jpg",
-        "Underhand_Cable_Pulldowns/1.jpg"
-      ]
-    },
-    {
-      "id": "back-vbar-pulldown",
-      "name": "V-Bar Pulldown",
-      "equipment": "Cable Machine",
-      "difficulty": "Intermediate",
-      "instructions": "Sit down on a pull-down machine with a V-Bar attached to the top pulley. Adjust the knee pad of the machine to fit your height. These pads will prevent your body from being raised by the resistance attached to the bar. Grab the V-bar with the palms facing each other (a neutral grip). Stick your chest out and lean yourself back slightly (around 30-degrees) in order to better engage the lats. This will be your starting position. Using your lats, pull the bar down as you squeeze your shoulder blades. Continue until your chest nearly touches the V-bar. Exhale as you execute this motion. Tip: Keep the torso stationary throughout the movement. After a second hold on the contracted position, slowly bring the bar back to the starting position as you breathe in. Repeat for the prescribed number of repetitions.",
-      "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Lats"
-      ],
-      "secondaryMuscles": [
-        "Biceps Long Head", "Biceps Short Head",
-        "Middle Back",
-        "Front Deltoids", "Side Deltoids"
-      ],
-      "originalId": "V-Bar_Pulldown",
-      "images": [
-        "V-Bar_Pulldown/0.jpg",
-        "V-Bar_Pulldown/1.jpg"
-      ]
-    },
-    {
-      "id": "back-vbar-pullup",
-      "name": "V-Bar Pullup",
-      "equipment": "Bodyweight",
-      "difficulty": "Beginner",
-      "instructions": "Start by placing the middle of the V-bar in the middle of the pull-up bar (assuming that the pull-up station you are using does not have neutral grip handles). The V-Bar handles will be facing down so that you can hang from the pull-up bar through the use of the handles. Once you securely place the V-bar, take a hold of the bar from each side and hang from it. Stick your chest out and lean yourself back slightly in order to better engage the lats. This will be your starting position. Using your lats, pull your torso up while leaning your head back slightly so that you do not hit yourself with the chin-up bar. Continue until your chest nearly touches the V-bar. Exhale as you execute this motion. After a second hold on the contracted position, slowly lower your body back to the starting position as you breathe in. Repeat for the prescribed number of repetitions.",
-      "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Lats"
-      ],
-      "secondaryMuscles": [
-        "Biceps Long Head", "Biceps Short Head",
-        "Middle Back",
-        "Front Deltoids", "Side Deltoids"
-      ],
-      "originalId": "V-Bar_Pullup",
-      "images": [
-        "V-Bar_Pullup/0.jpg",
-        "V-Bar_Pullup/1.jpg"
-      ]
-    },
-    {
-      "id": "back-weighted-pull-ups",
+      "id": "back-12",
       "name": "Weighted Pull Ups",
-      "equipment": "Other",
-      "difficulty": "Intermediate",
-      "instructions": "Attach a weight to a dip belt and secure it around your waist. Grab the pull-up bar with the palms of your hands facing forward. For a medium grip, your hands should be spaced at shoulder width. Both arms should be extended in front of you holding the bar at the chosen grip. You'll want to bring your torso back about 30 degrees while creating a curvature in your lower back and sticking your chest out. This will be your starting position. Now, exhale and pull your torso up until your head is above your hands. Concentrate on squeezing yourshoulder blades back and down as you reach the top contracted position. After a brief moment at the top contracted position, inhale and slowly lower your torso back to the starting position with your arms extended and your lats fully stretched.",
       "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Lats"
-      ],
-      "secondaryMuscles": [
-        "Biceps Long Head", "Biceps Short Head",
-        "Middle Back"
-      ],
-      "originalId": "Weighted_Pull_Ups",
-      "images": [
-        "Weighted_Pull_Ups/0.jpg",
-        "Weighted_Pull_Ups/1.jpg"
-      ]
-    },
-    {
-      "id": "back-widegrip-lat-pulldown",
-      "name": "Wide-Grip Lat Pulldown",
-      "equipment": "Cable Machine",
-      "difficulty": "Beginner",
-      "instructions": "Sit down on a pull-down machine with a wide bar attached to the top pulley. Make sure that you adjust the knee pad of the machine to fit your height. These pads will prevent your body from being raised by the resistance attached to the bar. Grab the bar with the palms facing forward using the prescribed grip. Note on grips: For a wide grip, your hands need to be spaced out at a distance wider than shoulder width. For a medium grip, your hands need to be spaced out at a distance equal to your shoulder width and for a close grip at a distance smaller than your shoulder width. As you have both arms extended in front of you holding the bar at the chosen grip width, bring your torso back around 30 degrees or so while creating a curvature on your lower back and sticking your chest out. This is your starting position. As you breathe out, bring the bar down until it touches your upper chest by drawing the shoulders and the upper arms down and back. Tip: Concentrate on squeezing the back muscles once you reach the full contracted position. The upper torso should remain stationary and only the arms should move. The forearms should do no other work except for holding the bar; therefore do not try to pull down the bar using the forearms. After a second at the contracted position squeezing your shoulder blades together, slowly raise the bar back to the starting position when your arms are fully extended and the lats are fully stretched. Inhale during this portion of the movement. Repeat this motion for the prescribed amount of repetitions.",
-      "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Lats"
-      ],
-      "secondaryMuscles": [
-        "Biceps Long Head", "Biceps Short Head",
-        "Middle Back",
-        "Front Deltoids", "Side Deltoids"
-      ],
-      "originalId": "Wide-Grip_Lat_Pulldown",
-      "images": [
-        "Wide-Grip_Lat_Pulldown/0.jpg",
-        "Wide-Grip_Lat_Pulldown/1.jpg"
-      ]
-    },
-    {
-      "id": "back-widegrip-pulldown-behind-the-n",
-      "name": "Wide-Grip Pulldown Behind The Neck",
-      "equipment": "Cable Machine",
-      "difficulty": "Intermediate",
-      "instructions": "Sit down on a pull-down machine with a wide bar attached to the top pulley. Make sure that you adjust the knee pad of the machine to fit your height. These pads will prevent your body from being raised by the resistance attached to the bar. Grab the bar with the palms facing forward using the prescribed grip. Note on grips: For a wide grip, your hands need to be spaced out at a distance wider than your shoulder width. For a medium grip, your hands need to be spaced out at a distance equal to your shoulder width and for a close grip at a distance smaller than your shoulder width. As you have both arms extended in front of you holding the bar at the chosen grip width, bring your torso and head forward. Think of an imaginary line from the center of the bar down to the back of your neck. This is your starting position. As you breathe out, bring the bar down until it touches the back of your neck by drawing the shoulders and the upper arms down and back. Tip: Concentrate on squeezing the back muscles once you reach the full contracted position. The upper torso should remain stationary and only the arms should move. The forearms should do no other work except for holding the bar; therefore do not try to pull down the bar using the forearms. After a second on the contracted position squeezing your shoulder blades together, slowly raise the bar back to the starting position when your arms are fully extended and the lats are fully stretched. Inhale during this portion of the movement. Repeat this motion for the prescribed amount of repetitions.",
-      "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Lats"
-      ],
-      "secondaryMuscles": [
-        "Biceps Long Head", "Biceps Short Head",
-        "Middle Back",
-        "Front Deltoids", "Side Deltoids"
-      ],
-      "originalId": "Wide-Grip_Pulldown_Behind_The_Neck",
-      "images": [
-        "Wide-Grip_Pulldown_Behind_The_Neck/0.jpg",
-        "Wide-Grip_Pulldown_Behind_The_Neck/1.jpg"
-      ]
-    },
-    {
-      "id": "back-widegrip-rear-pullup",
-      "name": "Wide-Grip Rear Pull-Up",
-      "equipment": "Bodyweight",
-      "difficulty": "Intermediate",
-      "instructions": "Grab the pull-up bar with the palms facing forward using a wide grip. As you have both arms extended in front of you holding the bar, bring your torso forward and head so that there is an imaginary line from the pull-up bar to the back of your neck. This is your starting position. Pull your torso up until the bar is near the back of your neck. To do this, draw the shoulders and upper arms down and back while slightly leaning your head forward. Exhale as you perform this portion of the movement. Tip: Concentrate on squeezing the back muscles once you reach the full contracted position. The upper torso should remain stationary as it moves through space and only the arms should move. The forearms should do no other work other than hold the bar. After a second on the contracted position, start to inhale and slowly lower your torso back to the starting position when your arms are fully extended and the lats are fully stretched. Repeat this motion for the prescribed amount of repetitions.",
-      "muscleGroup": "Back",
-      "primaryMuscles": [
-        "Lats"
-      ],
-      "secondaryMuscles": [
-        "Biceps Long Head", "Biceps Short Head",
-        "Middle Back",
-        "Front Deltoids", "Side Deltoids"
-      ],
-      "originalId": "Wide-Grip_Rear_Pull-Up",
-      "images": [
-        "Wide-Grip_Rear_Pull-Up/0.jpg",
-        "Wide-Grip_Rear_Pull-Up/1.jpg"
+      "primaryMuscles": ["Lats", "Upper Back"],
+      "secondaryMuscles": ["Biceps", "Core", "Forearms"],
+      "equipment": "Pull-up Bar, Weight Belt, Dumbbell, Weight Vest",
+      "difficulty": "Advanced",
+      "instructions": "The progression from bodyweight pull-ups when additional resistance is needed. Adding weight increases strength and muscle mass development. Various methods exist for adding resistance, each with unique benefits and challenges.",
+      "variants": [
+        {
+          "equipment": "Dip Belt with Plates",
+          "difficulty": "Advanced",
+          "pros": [
+            "Easy to incrementally increase weight (2.5-5 lb jumps)",
+            "Weight hangs naturally without interfering",
+            "Can load very heavy for maximum strength gains",
+            "Most common and accessible weighted option",
+            "Weight is secure and won't shift during set"
+          ],
+          "cons": [
+            "Belt can be uncomfortable on hips/groin",
+            "Requires dip belt purchase",
+            "Plates swinging can throw off balance",
+            "Can be awkward getting on/off pull-up bar",
+            "May need assistance attaching heavy weight"
+          ],
+          "setupTips": [
+            "Attach weight plates to dip belt chain",
+            "Secure belt around hips, not too tight",
+            "Step onto box/bench to reach bar comfortably",
+            "Let weights settle before starting first rep",
+            "Maintain strict form, no swinging or kipping"
+          ]
+        },
+        {
+          "equipment": "Dumbbell Between Feet",
+          "difficulty": "Advanced",
+          "pros": [
+            "No special equipment needed beyond dumbbell",
+            "Good for lighter weight additions (5-25 lbs)",
+            "Forces you to stay tight to hold weight",
+            "Convenient option when dip belt not available",
+            "Inexpensive method for adding resistance"
+          ],
+          "cons": [
+            "Constant focus required to hold dumbbell",
+            "Can't load as heavy as belt method",
+            "Risk of dropping weight on yourself or others",
+            "Fatiguing to calves and feet",
+            "Awkward to get into starting position"
+          ],
+          "setupTips": [
+            "Secure dumbbell between crossed ankles",
+            "Start from box or bench at hang position",
+            "Squeeze ankles tight throughout entire set",
+            "Perform reps with controlled tempo",
+            "Have somewhere safe to release weight when done"
+          ]
+        },
+        {
+          "equipment": "Weight Vest",
+          "difficulty": "Advanced",
+          "pros": [
+            "Weight distributed evenly across torso",
+            "Most natural feeling of weighted options",
+            "Hands completely free for optimal grip",
+            "Can wear for multiple exercises in workout",
+            "No swinging weight to throw off balance"
+          ],
+          "cons": [
+            "Expensive investment ($100-300+)",
+            "Limited to vest's maximum weight capacity",
+            "Can't easily adjust weight between sets",
+            "Bulky and hot to wear during workout",
+            "Difficult to make small weight increments"
+          ],
+          "setupTips": [
+            "Ensure vest fits snugly without restricting breathing",
+            "Distribute weight pockets evenly front and back",
+            "Start with lighter loads to adapt to vest feel",
+            "Focus on same form as bodyweight pull-ups",
+            "Consider removable weight vest for progression"
+          ]
+        }
       ]
     }
   ],
