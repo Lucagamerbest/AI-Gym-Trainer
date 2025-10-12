@@ -9,1860 +9,646 @@ export const exerciseDatabase = {
     {
       "id": "chest-1",
       "name": "Bench Press",
-      "equipment": "Machine",
-      "difficulty": "Intermediate",
-      "instructions": "Adjust seat so handles align with chest, press forward without locking elbows",
       "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Triceps Lateral Head", "Triceps Medial Head",
-        "Front Deltoids", "Side Deltoids"
+      "primaryMuscles": ["Chest", "Middle Chest"],
+      "secondaryMuscles": ["Triceps", "Front Deltoids"],
+      "equipment": "Barbell, Dumbbell, Smith Machine, Machine",
+      "difficulty": "Intermediate",
+      "instructions": "A fundamental compound exercise for building chest mass and strength. Can be performed with various equipment including barbell, dumbbells, Smith machine, or chest press machines. Press the weight upward from chest level, focusing on chest contraction.",
+      "variants": [
+        {
+          "equipment": "Barbell",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Allows heaviest loading for maximum strength gains",
+            "Both arms work together for stable movement path",
+            "Easy to progressively overload with small weight increments",
+            "Standard competitive powerlifting movement",
+            "Requires spotter for safety at heavy weights"
+          ],
+          "cons": [
+            "Fixed bar path may cause shoulder discomfort for some",
+            "Requires spotter for maximum effort sets",
+            "Can create muscle imbalances if one side is stronger"
+          ],
+          "setupTips": [
+            "Lie with eyes under the bar, feet flat on floor",
+            "Retract shoulder blades and maintain arch in lower back",
+            "Grip width slightly wider than shoulder width",
+            "Unrack with arms extended, lower to mid-chest",
+            "Touch chest lightly then press explosively"
+          ]
+        },
+        {
+          "equipment": "Dumbbell",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Greater range of motion than barbell",
+            "Each arm works independently, correcting imbalances",
+            "More natural movement path reduces shoulder strain",
+            "Can bring dumbbells together at top for peak contraction",
+            "Safer to train alone without spotter"
+          ],
+          "cons": [
+            "Harder to control than barbell, especially at heavy weights",
+            "Difficult to get heavy dumbbells into starting position",
+            "Cannot load as heavy as barbell version"
+          ],
+          "setupTips": [
+            "Sit on bench with dumbbells on thighs",
+            "Lie back while bringing dumbbells to shoulders",
+            "Start with dumbbells at chest level, elbows at 45 degrees",
+            "Press up and slightly together, squeezing chest at top",
+            "Lower with control until stretch is felt in chest"
+          ]
+        },
+        {
+          "equipment": "Smith Machine",
+          "difficulty": "Beginner",
+          "pros": [
+            "Fixed bar path provides stability for beginners",
+            "Can train safely without a spotter using safety catches",
+            "Easy to rack at any point during set",
+            "Good for focusing on chest contraction without balancing",
+            "Useful for drop sets and high-rep training"
+          ],
+          "cons": [
+            "Fixed path may not match natural pressing arc",
+            "Less stabilizer muscle activation",
+            "Can encourage poor form if relied upon exclusively"
+          ],
+          "setupTips": [
+            "Position bench so bar lowers to mid-chest",
+            "Set safety catches just below chest level",
+            "Retract shoulders and maintain tight core",
+            "Lower bar with control, pause briefly at chest",
+            "Press explosively, rotating hooks to rack if needed"
+          ]
+        },
+        {
+          "equipment": "Machine",
+          "difficulty": "Beginner",
+          "pros": [
+            "Very safe and beginner-friendly",
+            "Consistent resistance throughout movement",
+            "Easy to change weight quickly for drop sets",
+            "Good for training to failure safely",
+            "Isolates chest by minimizing stabilizer involvement"
+          ],
+          "cons": [
+            "Fixed movement path may not fit all body types",
+            "Less functional strength transfer",
+            "Reduced stabilizer muscle development",
+            "Machine availability varies between gyms"
+          ],
+          "setupTips": [
+            "Adjust seat so handles align with mid-chest",
+            "Ensure back is flat against pad with feet planted",
+            "Grip handles with wrists straight and neutral",
+            "Press forward smoothly without locking elbows",
+            "Control the return, feeling stretch in chest"
+          ]
+        }
       ]
     },
     {
       "id": "chest-2",
-      "name": "Cable Bench Press",
-      "equipment": "Cable Machine",
-      "difficulty": "Intermediate",
-      "instructions": "Sit upright, press handles forward, return slowly",
+      "name": "Incline Bench Press",
       "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Triceps Lateral Head", "Triceps Medial Head",
-        "Front Deltoids", "Side Deltoids"
+      "primaryMuscles": ["Chest", "Upper Chest"],
+      "secondaryMuscles": ["Front Deltoids", "Triceps"],
+      "equipment": "Barbell, Dumbbell, Smith Machine, Machine",
+      "difficulty": "Intermediate",
+      "instructions": "Performed on an incline bench (15-45 degrees) to target the upper portion of the chest. The higher the incline, the more emphasis shifts to the front deltoids. Press weight upward at an angle, focusing on upper chest engagement.",
+      "variants": [
+        {
+          "equipment": "Barbell",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Excellent for building upper chest mass",
+            "Allows heavy loading with stable bar path",
+            "Both arms work together for coordinated strength",
+            "Easy to track progress with consistent bar path",
+            "Targets often-underdeveloped upper chest area"
+          ],
+          "cons": [
+            "Requires spotter for heavy sets",
+            "Can be awkward to unrack and rerack",
+            "Shoulder involvement increases with steeper incline",
+            "Fixed bar path may cause shoulder discomfort"
+          ],
+          "setupTips": [
+            "Set bench to 15-30 degrees (30-45 shifts to shoulders)",
+            "Position eyes under bar with feet flat on floor",
+            "Retract shoulder blades and maintain arch",
+            "Lower bar to upper chest just below collarbone",
+            "Press straight up, avoiding bar drift toward face or belly"
+          ]
+        },
+        {
+          "equipment": "Dumbbell",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Greater range of motion and chest stretch",
+            "Natural movement path reduces shoulder strain",
+            "Corrects left-right strength imbalances",
+            "Can adjust arm angle to target specific areas",
+            "Easier to train without spotter"
+          ],
+          "cons": [
+            "Challenging to get heavy dumbbells into position",
+            "Requires more stabilization than barbell",
+            "Harder to maintain consistent form when fatigued"
+          ],
+          "setupTips": [
+            "Set bench to 30 degrees for optimal upper chest focus",
+            "Kick dumbbells up from thighs as you lie back",
+            "Start with dumbbells at shoulder level, palms forward",
+            "Press up and slightly together, squeezing at top",
+            "Lower until slight stretch felt in upper chest"
+          ]
+        },
+        {
+          "equipment": "Smith Machine",
+          "difficulty": "Beginner",
+          "pros": [
+            "Fixed path allows focus on upper chest contraction",
+            "Safe to train without spotter using safety hooks",
+            "Easy to rack at any point in set",
+            "Good for high-rep pump work",
+            "Stable platform for learning movement pattern"
+          ],
+          "cons": [
+            "Fixed bar path may not suit all shoulder angles",
+            "Less stabilizer activation than free weights",
+            "Can develop reliance on machine guidance"
+          ],
+          "setupTips": [
+            "Set bench to 30 degrees under Smith machine bar",
+            "Position so bar lowers to upper chest",
+            "Set safety catches appropriately",
+            "Retract shoulders and press bar straight up",
+            "Rotate bar to engage hooks for racking"
+          ]
+        },
+        {
+          "equipment": "Machine",
+          "difficulty": "Beginner",
+          "pros": [
+            "Very safe and easy to learn",
+            "Isolates upper chest effectively",
+            "Quick weight changes for drop sets",
+            "Good for training to failure safely",
+            "Consistent resistance throughout range"
+          ],
+          "cons": [
+            "Fixed path may not fit all body types",
+            "Limited stabilizer muscle engagement",
+            "Machine design varies significantly between brands"
+          ],
+          "setupTips": [
+            "Adjust seat so handles are at upper chest level",
+            "Ensure proper back support and foot placement",
+            "Press handles up and together smoothly",
+            "Avoid locking elbows at top of movement",
+            "Control negative portion for maximum muscle tension"
+          ]
+        }
       ]
     },
     {
       "id": "chest-3",
-      "name": "Converging Bench Press",
-      "equipment": "Cable Machine",
-      "difficulty": "Intermediate",
-      "instructions": "Press forward while converging arms to center",
+      "name": "Decline Bench Press",
       "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Triceps Lateral Head", "Triceps Medial Head",
-        "Front Deltoids", "Side Deltoids"
+      "primaryMuscles": ["Chest", "Lower Chest"],
+      "secondaryMuscles": ["Triceps", "Front Deltoids"],
+      "equipment": "Barbell, Dumbbell, Smith Machine",
+      "difficulty": "Intermediate",
+      "instructions": "Performed on a decline bench (15-30 degrees below horizontal) to emphasize the lower chest. Requires securing feet under leg supports. Press weight upward from the declined position, focusing on lower chest contraction.",
+      "variants": [
+        {
+          "equipment": "Barbell",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Targets lower chest for complete pec development",
+            "Often allows heavier weight than flat bench",
+            "Reduced shoulder strain compared to flat press",
+            "Good for building overall chest thickness",
+            "Stable movement with both hands on bar"
+          ],
+          "cons": [
+            "Requires spotter for safety",
+            "Can cause head rush from blood flow to head",
+            "Uncomfortable for some due to inverted position",
+            "Reracking can be awkward"
+          ],
+          "setupTips": [
+            "Secure feet firmly under leg support pads",
+            "Decline angle of 15-30 degrees is optimal",
+            "Position so bar lowers to lower chest area",
+            "Maintain retracted shoulders throughout movement",
+            "Press bar straight up, not toward face"
+          ]
+        },
+        {
+          "equipment": "Dumbbell",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Greater range of motion than barbell",
+            "Each arm works independently",
+            "More natural pressing angle for shoulders",
+            "Easier to bail out safely if needed",
+            "Can bring dumbbells together for peak contraction"
+          ],
+          "cons": [
+            "Difficult to get into position from decline angle",
+            "Requires significant stabilization",
+            "Inverted position can be uncomfortable",
+            "Challenging to maintain balance with heavy weights"
+          ],
+          "setupTips": [
+            "Have spotter hand you dumbbells once positioned",
+            "Secure feet before accepting weight",
+            "Start with dumbbells at lower chest level",
+            "Press up and together, focusing on lower chest",
+            "Hand dumbbells to spotter before sitting up"
+          ]
+        },
+        {
+          "equipment": "Smith Machine",
+          "difficulty": "Beginner",
+          "pros": [
+            "Safer than free weight decline pressing",
+            "Can train without spotter using safety catches",
+            "Fixed path aids focus on lower chest contraction",
+            "Easy to rack at any point during set",
+            "Good for high-rep training"
+          ],
+          "cons": [
+            "Fixed bar path may not suit all users",
+            "Less stabilizer muscle activation",
+            "Still requires securing feet properly"
+          ],
+          "setupTips": [
+            "Set decline bench under Smith machine",
+            "Secure feet firmly before unracking",
+            "Position so bar lowers to lower chest",
+            "Set safety catches for protection",
+            "Press bar straight up and rotate to rack"
+          ]
+        }
       ]
     },
     {
       "id": "chest-4",
-      "name": "Incline Bench Press",
-      "equipment": "Machine",
-      "difficulty": "Intermediate",
-      "instructions": "Seat at incline, press forward, avoid locking elbows",
+      "name": "Chest Fly",
       "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Upper Chest"
-      ],
-      "secondaryMuscles": [
-        "Triceps Lateral Head", "Triceps Medial Head",
-        "Front Deltoids", "Side Deltoids"
+      "primaryMuscles": ["Chest", "Middle Chest"],
+      "secondaryMuscles": ["Front Deltoids"],
+      "equipment": "Dumbbell, Cable, Machine",
+      "difficulty": "Intermediate",
+      "instructions": "An isolation movement that stretches and contracts the chest through a wide arcing motion. Keep elbows slightly bent throughout and focus on squeezing the chest at the peak contraction. Avoid using excessive weight that compromises form.",
+      "variants": [
+        {
+          "equipment": "Dumbbell",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Deep stretch at bottom position for muscle growth",
+            "Natural arc of motion follows muscle fibers",
+            "Can be done flat, incline, or decline",
+            "Strong mind-muscle connection",
+            "Minimal equipment needed"
+          ],
+          "cons": [
+            "Higher injury risk if using too much weight",
+            "Challenging to maintain consistent elbow angle",
+            "Difficult to train heavy safely",
+            "Tension decreases at top of movement"
+          ],
+          "setupTips": [
+            "Start with lighter weight than pressing movements",
+            "Lie back with dumbbells extended above chest",
+            "Maintain slight bend in elbows throughout",
+            "Lower dumbbells in wide arc until chest stretch felt",
+            "Bring dumbbells together above chest, squeeze hard"
+          ]
+        },
+        {
+          "equipment": "Cable",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Constant tension throughout entire range of motion",
+            "Very safe with lower injury risk",
+            "Can adjust angle by moving pulleys",
+            "Excellent for high-rep pump work",
+            "Easy to control tempo and form"
+          ],
+          "cons": [
+            "Requires cable machine access",
+            "Setup takes longer than dumbbells",
+            "May feel less natural for some users"
+          ],
+          "setupTips": [
+            "Set cables at shoulder height for middle chest",
+            "Step forward into split stance for stability",
+            "Start with arms extended to sides, slight elbow bend",
+            "Bring handles together in front of chest",
+            "Focus on chest squeeze, not arm movement"
+          ]
+        },
+        {
+          "equipment": "Machine (Pec Deck)",
+          "difficulty": "Beginner",
+          "pros": [
+            "Very safe and easy to learn",
+            "Isolates chest without requiring stabilization",
+            "Consistent movement path",
+            "Perfect for beginners or training to failure",
+            "Quick weight changes for drop sets"
+          ],
+          "cons": [
+            "Fixed path may not fit all body types",
+            "Less functional than free weight variations",
+            "Can encourage poor posture if back not supported"
+          ],
+          "setupTips": [
+            "Adjust seat so handles align with chest",
+            "Press back firmly against pad",
+            "Keep elbows aligned with or slightly behind shoulders",
+            "Bring handles together using chest, not arms",
+            "Squeeze hard at peak contraction for 1-2 seconds"
+          ]
+        }
       ]
     },
     {
       "id": "chest-5",
-      "name": "Cable Incline Bench Press",
-      "equipment": "Cable Machine",
-      "difficulty": "Intermediate",
-      "instructions": "Press upward at 45°, one or both arms",
+      "name": "Cable Crossover",
       "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Upper Chest"
-      ],
-      "secondaryMuscles": [
-        "Triceps Lateral Head", "Triceps Medial Head",
-        "Front Deltoids", "Side Deltoids"
+      "primaryMuscles": ["Chest", "Upper Chest", "Lower Chest"],
+      "secondaryMuscles": ["Front Deltoids"],
+      "equipment": "Cable",
+      "difficulty": "Intermediate",
+      "instructions": "A versatile cable exercise that can target different areas of the chest depending on the angle. High to low emphasizes lower chest, low to high targets upper chest, and middle height works the entire chest. Provides constant tension throughout the movement.",
+      "variants": [
+        {
+          "equipment": "High to Low",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Emphasizes lower chest development",
+            "Constant tension throughout movement",
+            "Safe and easy to control",
+            "Great for chest definition and striations",
+            "Excellent mind-muscle connection"
+          ],
+          "cons": [
+            "Requires cable machine with high pulley setting",
+            "Can be awkward to get into position with heavy weight",
+            "Less mass-building than pressing movements"
+          ],
+          "setupTips": [
+            "Set pulleys to highest position",
+            "Stand in center with handles at sides, arms extended",
+            "Step forward into split stance for stability",
+            "Pull handles down and together in front of hips",
+            "Squeeze lower chest hard at bottom, control return"
+          ]
+        },
+        {
+          "equipment": "Low to High",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Targets upper chest specifically",
+            "Constant tension benefits muscle growth",
+            "Safe movement with low injury risk",
+            "Good for shaping upper chest area",
+            "Can adjust angle easily for variation"
+          ],
+          "cons": [
+            "Requires cable machine setup",
+            "May feel awkward initially",
+            "Not ideal for heavy loading"
+          ],
+          "setupTips": [
+            "Set pulleys to lowest position",
+            "Stand centered, grasp handles with arms at sides",
+            "Step forward, lean slightly forward at hips",
+            "Bring handles up and together at upper chest level",
+            "Focus on upper chest contraction at peak"
+          ]
+        },
+        {
+          "equipment": "Middle",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Works entire chest evenly",
+            "Constant tension maximizes time under tension",
+            "Very safe and controllable",
+            "Great finishing exercise for chest workouts",
+            "Easy to adjust resistance on the fly"
+          ],
+          "cons": [
+            "Requires cable machine access",
+            "Setup can be time-consuming in busy gyms",
+            "Limited heavy loading potential"
+          ],
+          "setupTips": [
+            "Set pulleys at shoulder/chest height",
+            "Position yourself centered between pulleys",
+            "Step forward with staggered stance",
+            "Bring handles together at chest level with slight bend in elbows",
+            "Squeeze chest at center, control eccentric phase"
+          ]
+        }
       ]
     },
     {
       "id": "chest-6",
-      "name": "Converging Incline Press",
-      "equipment": "Cable Machine",
-      "difficulty": "Intermediate",
-      "instructions": "Press upward at 45° with arms converging",
+      "name": "Push-ups",
       "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Upper Chest"
-      ],
-      "secondaryMuscles": [
-        "Triceps Lateral Head", "Triceps Medial Head",
-        "Front Deltoids", "Side Deltoids"
+      "primaryMuscles": ["Chest", "Middle Chest"],
+      "secondaryMuscles": ["Triceps", "Front Deltoids", "Core"],
+      "equipment": "Bodyweight",
+      "difficulty": "Beginner",
+      "instructions": "A fundamental bodyweight exercise that builds chest, triceps, and shoulder strength while engaging the core. Can be modified with hand placement and body angle to target different areas and adjust difficulty. Excellent for building endurance and muscular control.",
+      "variants": [
+        {
+          "equipment": "Standard",
+          "difficulty": "Beginner",
+          "pros": [
+            "Can be done anywhere, no equipment needed",
+            "Builds functional pressing strength",
+            "Engages core and stabilizer muscles",
+            "Easily modified for progression",
+            "Low injury risk with proper form"
+          ],
+          "cons": [
+            "Limited resistance for advanced lifters",
+            "Can be too difficult for true beginners",
+            "Harder to target specific chest areas"
+          ],
+          "setupTips": [
+            "Place hands slightly wider than shoulder width",
+            "Maintain straight line from head to heels",
+            "Keep elbows at 45-degree angle to body",
+            "Lower chest to within inch of floor",
+            "Press up explosively while maintaining plank position"
+          ]
+        },
+        {
+          "equipment": "Wide Grip",
+          "difficulty": "Beginner",
+          "pros": [
+            "Greater chest emphasis than standard push-up",
+            "Better stretch at bottom position",
+            "Good for building chest width",
+            "Still works full kinetic chain",
+            "Can be done anywhere"
+          ],
+          "cons": [
+            "More shoulder strain than standard width",
+            "Slightly shorter range of motion",
+            "May be harder on wrists"
+          ],
+          "setupTips": [
+            "Place hands 6-12 inches wider than shoulders",
+            "Maintain tight core and neutral spine",
+            "Lower until chest nearly touches floor",
+            "Focus on chest stretch at bottom position",
+            "Press up while squeezing chest throughout"
+          ]
+        },
+        {
+          "equipment": "Diamond",
+          "difficulty": "Advanced",
+          "pros": [
+            "Emphasizes triceps and inner chest",
+            "Builds lockout strength",
+            "Increases time under tension",
+            "Great for tricep development",
+            "No equipment needed"
+          ],
+          "cons": [
+            "Very challenging for beginners",
+            "Can strain wrists if not properly conditioned",
+            "Less overall chest activation than wide grip"
+          ],
+          "setupTips": [
+            "Place hands together forming diamond shape with index fingers and thumbs",
+            "Position hands under chest, not face",
+            "Keep elbows close to body throughout movement",
+            "Lower until chest touches hands",
+            "Press up forcefully, focusing on triceps contraction"
+          ]
+        },
+        {
+          "equipment": "Decline",
+          "difficulty": "Advanced",
+          "pros": [
+            "Increases difficulty significantly",
+            "Greater upper chest and shoulder emphasis",
+            "Builds strength for advanced variations",
+            "Increases core engagement",
+            "Progressive overload without weights"
+          ],
+          "cons": [
+            "Too difficult for beginners",
+            "Requires elevated surface for feet",
+            "More shoulder strain than standard",
+            "Can cause blood rush to head"
+          ],
+          "setupTips": [
+            "Place feet on bench or elevated surface",
+            "Hands at shoulder width or slightly wider",
+            "Maintain rigid plank position",
+            "Lower chest to floor with control",
+            "Press back up powerfully, avoiding sagging hips"
+          ]
+        }
       ]
     },
     {
       "id": "chest-7",
-      "name": "Decline Bench Press",
-      "equipment": "Machine",
+      "name": "Chest Dips",
+      "muscleGroup": "Chest",
+      "primaryMuscles": ["Chest", "Lower Chest"],
+      "secondaryMuscles": ["Triceps", "Front Deltoids"],
+      "equipment": "Bodyweight, Dip Belt, Assisted Machine",
       "difficulty": "Intermediate",
-      "instructions": "Lean back slightly, press forward at chest level",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Lower Chest"
-      ],
-      "secondaryMuscles": [
-        "Triceps Lateral Head", "Triceps Medial Head",
-        "Front Deltoids", "Side Deltoids"
-      ]
-    },
-    {
-      "id": "chest-8",
-      "name": "Cable Decline Bench Press",
-      "equipment": "Cable Machine",
-      "difficulty": "Intermediate",
-      "instructions": "Press forward parallel to floor, controlled return",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Lower Chest"
-      ],
-      "secondaryMuscles": [
-        "Triceps Lateral Head", "Triceps Medial Head",
-        "Front Deltoids", "Side Deltoids"
-      ]
-    },
-    {
-      "id": "chest-9",
-      "name": "Converging Decline Bench Press",
-      "equipment": "Cable Machine",
-      "difficulty": "Intermediate",
-      "instructions": "Same as decline press, but converge arms inward",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Lower Chest"
-      ],
-      "secondaryMuscles": [
-        "Triceps Lateral Head", "Triceps Medial Head",
-        "Front Deltoids", "Side Deltoids"
-      ]
-    },
-    {
-      "id": "chest-10",
-      "name": "Self-Stabilizing Chest Press",
-      "equipment": "Cable Machine",
-      "difficulty": "Intermediate",
-      "instructions": "Sit without back support, press forward, engage core",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Triceps Lateral Head", "Triceps Medial Head",
-        "Front Deltoids", "Side Deltoids",
-        "Core"
-      ]
-    },
-    {
-      "id": "chest-11",
-      "name": "Cable Pec Fly",
-      "equipment": "Cable Machine",
-      "difficulty": "Intermediate",
-      "instructions": "Bring arms together in circular motion, neutral grip",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids"
-      ]
-    },
-    {
-      "id": "chest-12",
-      "name": "Cable Incline Fly",
-      "equipment": "Cable Machine",
-      "difficulty": "Intermediate",
-      "instructions": "Bring arms together and upward in circular motion",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Upper Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids"
-      ]
-    },
-    {
-      "id": "chest-13",
-      "name": "Cable Low Fly",
-      "equipment": "Cable Machine",
-      "difficulty": "Intermediate",
-      "instructions": "From low position, raise arms up to chest height",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Upper Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids"
-      ]
-    },
-    {
-      "id": "chest-alternating-floor-press",
-      "name": "Alternating Floor Press",
-      "equipment": "Kettlebell",
-      "difficulty": "Beginner",
-      "instructions": "Lie on the floor with two kettlebells next to your shoulders. Position one in place on your chest and then the other, gripping the kettlebells on the handle with the palms facing forward. Extend both arms, so that the kettlebells are being held above your chest. Lower one kettlebell, bringing it to your chest and turn the wrist in the direction of the locked out kettlebell. Raise the kettlebell and repeat on the opposite side.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Abdominals",
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Alternating_Floor_Press",
-      "images": [
-        "Alternating_Floor_Press/0.jpg",
-        "Alternating_Floor_Press/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-around-the-worlds",
-      "name": "Around The Worlds",
-      "equipment": "Dumbbell",
-      "difficulty": "Intermediate",
-      "instructions": "Lay down on a flat bench holding a dumbbell in each hand with the palms of the hands facing towards the ceiling. Tip: Your arms should be parallel to the floor and next to your thighs. To avoid injury, make sure that you keep your elbows slightly bent. This will be your starting position. Now move the dumbbells by creating a semi-circle as you displace them from the initial position to over the head. All of the movement should happen with the arms parallel to the floor at all times. Breathe in as you perform this portion of the movement. Reverse the movement to return the weight to the starting position as you exhale.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids"
-      ],
-      "originalId": "Around_The_Worlds",
-      "images": [
-        "Around_The_Worlds/0.jpg",
-        "Around_The_Worlds/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-barbell-bench-press-medium-gri",
-      "name": "Barbell Bench Press - Medium Grip",
-      "equipment": "Barbell",
-      "difficulty": "Beginner",
-      "instructions": "Lie back on a flat bench. Using a medium width grip (a grip that creates a 90-degree angle in the middle of the movement between the forearms and the upper arms), lift the bar from the rack and hold it straight over you with your arms locked. This will be your starting position. From the starting position, breathe in and begin coming down slowly until the bar touches your middle chest. After a brief pause, push the bar back to the starting position as you breathe out. Focus on pushing the bar using your chest muscles. Lock your arms and squeeze your chest in the contracted position at the top of the motion, hold for a second and then start coming down slowly again. Tip: Ideally, lowering the weight should take about twice as long as raising it. Repeat the movement for the prescribed amount of repetitions. When you are done, place the bar back in the rack.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Barbell_Bench_Press_-_Medium_Grip",
-      "images": [
-        "Barbell_Bench_Press_-_Medium_Grip/0.jpg",
-        "Barbell_Bench_Press_-_Medium_Grip/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-barbell-guillotine-bench-press",
-      "name": "Barbell Guillotine Bench Press",
-      "equipment": "Barbell",
-      "difficulty": "Intermediate",
-      "instructions": "Using a medium width grip (a grip that creates a 90-degree angle in the middle of the movement between the forearms and the upper arms), lift the bar from the rack and hold it straight over your neck with your arms locked. This will be your starting position. As you breathe in, bring the bar down slowly until it is about 1 inch from your neck. After a second pause, bring the bar back to the starting position as you breathe out and push the bar using your chest muscles. Lock your arms and squeeze your chest in the contracted position, hold for a second and then start coming down slowly again. It should take at least twice as long to go down than to come up. Repeat the movement for the prescribed amount of repetitions. When you are done, place the bar back in the rack.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Barbell_Guillotine_Bench_Press",
-      "images": [
-        "Barbell_Guillotine_Bench_Press/0.jpg",
-        "Barbell_Guillotine_Bench_Press/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-barbell-incline-bench-press-me",
-      "name": "Barbell Incline Bench Press - Medium Grip",
-      "equipment": "Barbell",
-      "difficulty": "Beginner",
-      "instructions": "Lie back on an incline bench. Using a medium-width grip (a grip that creates a 90-degree angle in the middle of the movement between the forearms and the upper arms), lift the bar from the rack and hold it straight over you with your arms locked. This will be your starting position. As you breathe in, come down slowly until you feel the bar on you upper chest. After a second pause, bring the bar back to the starting position as you breathe out and push the bar using your chest muscles. Lock your arms in the contracted position, squeeze your chest, hold for a second and then start coming down slowly again. Tip: it should take at least twice as long to go down than to come up. Repeat the movement for the prescribed amount of repetitions. When you are done, place the bar back in the rack.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Barbell_Incline_Bench_Press_-_Medium_Grip",
-      "images": [
-        "Barbell_Incline_Bench_Press_-_Medium_Grip/0.jpg",
-        "Barbell_Incline_Bench_Press_-_Medium_Grip/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-behind-head-chest-stretch",
-      "name": "Behind Head Chest Stretch",
-      "equipment": "Other",
-      "difficulty": "Advanced",
-      "instructions": "Sit upright on the floor with your partner behind you. Place your hands behind your hand, and push your elbows back as far as you can. Your partner should hold your elbows. This will be your starting position. Gently attempt to pull your elbows forward with your hands still behind your head for 10 or more seconds. Your partner should prevent your elbows from moving. Now, relax your muscles and have your partner gently pull the elbows back as far as it comfortable for you. Be sure to let your partner know when the stretch is adequate to prevent overstretching or injury.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids"
-      ],
-      "originalId": "Behind_Head_Chest_Stretch",
-      "images": [
-        "Behind_Head_Chest_Stretch/0.jpg",
-        "Behind_Head_Chest_Stretch/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-bench-press-with-bands",
-      "name": "Bench Press - With Bands",
-      "equipment": "Other",
-      "difficulty": "Beginner",
-      "instructions": "Using a flat bench secure a band under the leg of the bench that is nearest to your head. Once the band is secure, grab it by both handles and lie down on the bench. Extend your arms so that you are holding the band handles in front of you at shoulder width. Once at shoulder width, rotate your wrists forward so that the palms of your hands are facing away from you. This will be your starting position. Bring down the handles slowly until your elbow forms a 90 degree angle. Keep full control at all times. As you breathe out, bring the handles up using your pectoral muscles. Lock your arms in the contracted position, squeeze your chest, hold for a second and then start coming down slowly. Tip: It should take at least twice as long to go down than to come up. Repeat the movement for the prescribed amount of repetitions of your training program.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Bench_Press_-_With_Bands",
-      "images": [
-        "Bench_Press_-_With_Bands/0.jpg",
-        "Bench_Press_-_With_Bands/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-bentarm-dumbbell-pullover",
-      "name": "Bent-Arm Dumbbell Pullover",
-      "equipment": "Dumbbell",
-      "difficulty": "Intermediate",
-      "instructions": "Place a dumbbell standing up on a flat bench. Ensuring that the dumbbell stays securely placed at the top of the bench, lie perpendicular to the bench (torso across it as in forming a cross) with only your shoulders lying on the surface. Hips should be below the bench and legs bent with feet firmly on the floor. The head will be off the bench as well. Grasp the dumbbell with both hands and hold it straight over your chest with a bend in your arms. Both palms should be pressing against the underside one of the sides of the dumbbell. This will be your starting position. Caution: Always ensure that the dumbbell used for this exercise is secure. Using a dumbbell with loose plates can result in the dumbbell falling apart and falling on your face. While keeping your arms locked in the bent arm position, lower the weight slowly in an arc behind your head while breathing in until you feel a stretch on the chest. At that point, bring the dumbbell back to the starting position using the arc through which the weight was lowered and exhale as you perform this movement. Hold the weight on the initial position for a second and repeat the motion for the prescribed number of repetitions.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Lats",
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Bent-Arm_Dumbbell_Pullover",
-      "images": [
-        "Bent-Arm_Dumbbell_Pullover/0.jpg",
-        "Bent-Arm_Dumbbell_Pullover/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-bodyweight-flyes",
-      "name": "Bodyweight Flyes",
-      "equipment": "Other",
-      "difficulty": "Intermediate",
-      "instructions": "Position two equally loaded EZ bars on the ground next to each other. Ensure they are able to roll. Assume a push-up position over the bars, supporting your weight on your toes and hands with your arms extended and body straight. Place your hands on the bars. This will be your starting position. Using a slow and controlled motion, move your hands away from the midline of your body, rolling the bars apart. Inhale during this portion of the motion. After moving the bars as far apart as you can, return to the starting position by pulling them back together. Exhale as you perform this movement.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Abdominals",
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Bodyweight_Flyes",
-      "images": [
-        "Bodyweight_Flyes/0.jpg",
-        "Bodyweight_Flyes/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-butterfly",
-      "name": "Butterfly",
-      "equipment": "Machine",
-      "difficulty": "Beginner",
-      "instructions": "Sit on the machine with your back flat on the pad. Take hold of the handles. Tip: Your upper arms should be positioned parallel to the floor; adjust the machine accordingly. This will be your starting position. Push the handles together slowly as you squeeze your chest in the middle. Breathe out during this part of the motion and hold the contraction for a second. Return back to the starting position slowly as you inhale until your chest muscles are fully stretched. Repeat for the recommended amount of repetitions.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [],
-      "originalId": "Butterfly",
-      "images": [
-        "Butterfly/0.jpg",
-        "Butterfly/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-cable-chest-press",
-      "name": "Cable Chest Press",
-      "equipment": "Cable Machine",
-      "difficulty": "Beginner",
-      "instructions": "Adjust the weight to an appropriate amount and be seated, grasping the handles. Your upper arms should be about 45 degrees to the body, with your head and chest up. The elbows should be bent to about 90 degrees. This will be your starting position. Begin by extending through the elbow, pressing the handles together straight in front of you. Keep your shoulder blades retracted as you execute the movement. After pausing at full extension, return to th starting position, keeping tension on the cables. You can also execute this movement with your back off the pad, at an incline or decline, or alternate hands.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Cable_Chest_Press",
-      "images": [
-        "Cable_Chest_Press/0.jpg",
-        "Cable_Chest_Press/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-cable-crossover",
-      "name": "Cable Crossover",
-      "equipment": "Cable Machine",
-      "difficulty": "Beginner",
-      "instructions": "To get yourself into the starting position, place the pulleys on a high position (above your head), select the resistance to be used and hold the pulleys in each hand. Step forward in front of an imaginary straight line between both pulleys while pulling your arms together in front of you. Your torso should have a small forward bend from the waist. This will be your starting position. With a slight bend on your elbows in order to prevent stress at the biceps tendon, extend your arms to the side (straight out at both sides) in a wide arc until you feel a stretch on your chest. Breathe in as you perform this portion of the movement. Tip: Keep in mind that throughout the movement, the arms and torso should remain stationary; the movement should only occur at the shoulder joint. Return your arms back to the starting position as you breathe out. Make sure to use the same arc of motion used to lower the weights. Hold for a second at the starting position and repeat the movement for the prescribed amount of repetitions.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids"
-      ],
-      "originalId": "Cable_Crossover",
-      "images": [
-        "Cable_Crossover/0.jpg",
-        "Cable_Crossover/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-cable-iron-cross",
-      "name": "Cable Iron Cross",
-      "equipment": "Cable Machine",
-      "difficulty": "Beginner",
-      "instructions": "Begin by moving the pulleys to the high position, select the resistance to be used, and take a handle in each hand. Stand directly between both pulleys with your arms extended out to your sides. Your head and chest should be up while your arms form a \"T\". This will be your starting position. Keeping the elbows extended, pull your arms straight to your sides. Return your arms back to the starting position after a pause at the peak contraction. Continue the movement for the prescribed number of repetitions.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [],
-      "originalId": "Cable_Iron_Cross",
-      "images": [
-        "Cable_Iron_Cross/0.jpg",
-        "Cable_Iron_Cross/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-chain-press",
-      "name": "Chain Press",
-      "equipment": "Other",
-      "difficulty": "Intermediate",
-      "instructions": "Begin by connecting the chains to the cable handle attachments. Position yourself on the flat bench in the same position as for a dumbbell press. Your wrists should be pronated and arms perpendicular to the floor. This will be your starting position. Lower the chains by flexing the elbows, unloading some of the chain onto the floor. Continue until your elbow forms a 90 degree angle, and then reverse the motion by extending through the elbow to lockout.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Chain_Press",
-      "images": [
-        "Chain_Press/0.jpg",
-        "Chain_Press/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-and-front-of-shoulder-st",
-      "name": "Chest And Front Of Shoulder Stretch",
-      "equipment": "Other",
-      "difficulty": "Beginner",
-      "instructions": "Start off by standing with your legs together, holding a bodybar or a broomstick. Take a slightly wider than shoulder width grip on the pole and hold it in front of you with your palms facing down. Carefully lift the pole up and behind your head.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids"
-      ],
-      "originalId": "Chest_And_Front_Of_Shoulder_Stretch",
-      "images": [
-        "Chest_And_Front_Of_Shoulder_Stretch/0.jpg",
-        "Chest_And_Front_Of_Shoulder_Stretch/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-push-from-3-point-stance",
-      "name": "Chest Push from 3 point stance",
-      "equipment": "Other",
-      "difficulty": "Beginner",
-      "instructions": "Begin in a three point stance, squatted down with your back flat and one hand on the ground. Place the medicine ball directly in front of you. To begin, take your first step as you pull the ball to your chest, positioning both hands to prepare for the throw. As you execute the second step, explosively release the ball forward as hard as possible.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Abdominals",
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Chest_Push_from_3_point_stance",
-      "images": [
-        "Chest_Push_from_3_point_stance/0.jpg",
-        "Chest_Push_from_3_point_stance/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-push-multiple-response",
-      "name": "Chest Push (multiple response)",
-      "equipment": "Other",
-      "difficulty": "Beginner",
-      "instructions": "Begin in a kneeling position facing a wall or utilize a partner. Hold the ball with both hands tight into the chest. Execute the pass by exploding forward and outward with the hips while pushing the ball as hard as possible. Follow through by falling forward, catching yourself with your hands. Immediately return to an upright position. Repeat for the desired number of repetitions.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Abdominals",
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Chest_Push_multiple_response",
-      "images": [
-        "Chest_Push_multiple_response/0.jpg",
-        "Chest_Push_multiple_response/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-push-single-response",
-      "name": "Chest Push (single response)",
-      "equipment": "Other",
-      "difficulty": "Beginner",
-      "instructions": "Begin in a kneeling position holding the medicine ball with both hands tightly into the chest. Execute the pass by exploding forward and outward with the hips while pushing the ball as far as possible. Follow through by falling forward, catching yourself with your hands.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Abdominals",
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Chest_Push_single_response",
-      "images": [
-        "Chest_Push_single_response/0.jpg",
-        "Chest_Push_single_response/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-push-with-run-release",
-      "name": "Chest Push with Run Release",
-      "equipment": "Other",
-      "difficulty": "Beginner",
-      "instructions": "Begin in an athletic stance with the knees bent, hips back, and back flat. Hold the medicine ball near your legs. This will be your starting position. While taking your first step draw the medicine ball into your chest. As you take the second step, explosively push the ball forward, immediately sprinting for 10 yards after the release. If you are really fast, you can catch your own pass!",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Abdominals",
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Chest_Push_with_Run_Release",
-      "images": [
-        "Chest_Push_with_Run_Release/0.jpg",
-        "Chest_Push_with_Run_Release/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-stretch-on-stability-bal",
-      "name": "Chest Stretch on Stability Ball",
-      "equipment": "Other",
-      "difficulty": "Beginner",
-      "instructions": "Get on your hands and knees next to an exercise ball. Place your elbows on top of the ball, keeping your arm out to your side. This will be your starting position. Lower your torso towards the floor, keeping your elbow on top of the ball. Hold the stretch for 20-30 seconds, and repeat with the other arm.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [],
-      "originalId": "Chest_Stretch_on_Stability_Ball",
-      "images": [
-        "Chest_Stretch_on_Stability_Ball/0.jpg",
-        "Chest_Stretch_on_Stability_Ball/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-clock-pushup",
-      "name": "Clock Push-Up",
-      "equipment": "Bodyweight",
-      "difficulty": "Intermediate",
-      "instructions": "Move into a prone position on the floor, supporting your weight on your hands and toes. Your arms should be fully extended with the hands around shoulder width. Keep your body straight throughout the movement. This will be your starting position. Descend by flexing at the elbow, lowering your chest toward the ground. At the bottom, reverse the motion by pushing yourself up through elbow extension as quickly as possible until you are air borne. Aim to \"jump\" 12-18 inches to one side. As you accelerate up, move your outside foot away from your direction of travel. Leaving the ground, shift your body about 30 degrees for the next repetition. Return to the starting position and repeat the exercise, working all the way around until you are back where you started.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Clock_Push-Up",
-      "images": [
-        "Clock_Push-Up/0.jpg",
-        "Clock_Push-Up/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-cross-over-with-bands",
-      "name": "Cross Over - With Bands",
-      "equipment": "Other",
-      "difficulty": "Beginner",
-      "instructions": "Secure an exercise band around a stationary post. While facing away from the post, grab the handles on both ends of the band and step forward enough to create tension on the band. Raise your arms to the sides, parallel to the floor, perpendicular to your torso (your torso and the arms should resemble the letter \"T\") and with the palms facing forward. Have them extended with a slight bend at the elbows. This will be your starting position. While keeping your arms straight, bring them across your chest in a semicircular motion to the front as you exhale and flex your pecs. Hold the contraction for a second. Slowly return to the starting position as you inhale. Perform for the recommended amount of repetitions.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Biceps Long Head", "Biceps Short Head",
-        "Front Deltoids", "Side Deltoids"
-      ],
-      "originalId": "Cross_Over_-_With_Bands",
-      "images": [
-        "Cross_Over_-_With_Bands/0.jpg",
-        "Cross_Over_-_With_Bands/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-decline-barbell-bench-press",
-      "name": "Decline Barbell Bench Press",
-      "equipment": "Barbell",
-      "difficulty": "Beginner",
-      "instructions": "Secure your legs at the end of the decline bench and slowly lay down on the bench. Using a medium width grip (a grip that creates a 90-degree angle in the middle of the movement between the forearms and the upper arms), lift the bar from the rack and hold it straight over you with your arms locked. The arms should be perpendicular to the floor. This will be your starting position. Tip: In order to protect your rotator cuff, it is best if you have a spotter help you lift the barbell off the rack. As you breathe in, come down slowly until you feel the bar on your lower chest. After a second pause, bring the bar back to the starting position as you breathe out and push the bar using your chest muscles. Lock your arms and squeeze your chest in the contracted position, hold for a second and then start coming down slowly again. Tip: It should take at least twice as long to go down than to come up). Repeat the movement for the prescribed amount of repetitions. When you are done, place the bar back in the rack.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Decline_Barbell_Bench_Press",
-      "images": [
-        "Decline_Barbell_Bench_Press/0.jpg",
-        "Decline_Barbell_Bench_Press/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-decline-dumbbell-bench-press",
-      "name": "Decline Dumbbell Bench Press",
-      "equipment": "Dumbbell",
-      "difficulty": "Beginner",
-      "instructions": "Secure your legs at the end of the decline bench and lie down with a dumbbell on each hand on top of your thighs. The palms of your hand will be facing each other. Once you are laying down, move the dumbbells in front of you at shoulder width. Once at shoulder width, rotate your wrists forward so that the palms of your hands are facing away from you. This will be your starting position. Bring down the weights slowly to your side as you breathe out. Keep full control of the dumbbells at all times. Tip: Throughout the motion, the forearms should always be perpendicular to the floor. As you breathe out, push the dumbbells up using your pectoral muscles. Lock your arms in the contracted position, squeeze your chest, hold for a second and then start coming down slowly. Tip: It should take at least twice as long to go down than to come up.. Repeat the movement for the prescribed amount of repetitions of your training program.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Decline_Dumbbell_Bench_Press",
-      "images": [
-        "Decline_Dumbbell_Bench_Press/0.jpg",
-        "Decline_Dumbbell_Bench_Press/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-decline-dumbbell-flyes",
-      "name": "Decline Dumbbell Flyes",
-      "equipment": "Dumbbell",
-      "difficulty": "Beginner",
-      "instructions": "Secure your legs at the end of the decline bench and lie down with a dumbbell on each hand on top of your thighs. The palms of your hand will be facing each other. Once you are laying down, move the dumbbells in front of you at shoulder width. The palms of the hands should be facing each other and the arms should be perpendicular to the floor and fully extended. This will be your starting position. With a slight bend on your elbows in order to prevent stress at the biceps tendon, lower your arms out at both sides in a wide arc until you feel a stretch on your chest. Breathe in as you perform this portion of the movement. Tip: Keep in mind that throughout the movement, the arms should remain stationary; the movement should only occur at the shoulder joint. Return your arms back to the starting position as you squeeze your chest muscles and breathe out. Tip: Make sure to use the same arc of motion used to lower the weights. Hold for a second at the contracted position and repeat the movement for the prescribed amount of repetitions.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [],
-      "originalId": "Decline_Dumbbell_Flyes",
-      "images": [
-        "Decline_Dumbbell_Flyes/0.jpg",
-        "Decline_Dumbbell_Flyes/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-decline-pushup",
-      "name": "Decline Push-Up",
-      "equipment": "Other",
-      "difficulty": "Beginner",
-      "instructions": "Lie on the floor face down and place your hands about 36 inches apart while holding your torso up at arms length. Move your feet up to a box or bench. This will be your starting position. Next, lower yourself downward until your chest almost touches the floor as you inhale. Now breathe out and press your upper body back up to the starting position while squeezing your chest. After a brief pause at the top contracted position, you can begin to lower yourself downward again for as many repetitions as needed.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Decline_Push-Up",
-      "images": [
-        "Decline_Push-Up/0.jpg",
-        "Decline_Push-Up/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-decline-smith-press",
-      "name": "Decline Smith Press",
-      "equipment": "Machine",
-      "difficulty": "Beginner",
-      "instructions": "Place a decline bench underneath the Smith machine. Now place the barbell at a height that you can reach when lying down and your arms are almost fully extended. Using a pronated grip that is wider than shoulder width, unlock the bar from the rack and hold it straight over you with your arms extended. This will be your starting position. As you inhale, lower the bar under control by allowing the elbows to flex, lightly contacting the torso. After a brief pause, bring the bar back to the starting position by extending the elbows, exhaling as you do so. Repeat the movement for the prescribed amount of repetitions. When the set is complete, lock the bar back in the rack.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Decline_Smith_Press",
-      "images": [
-        "Decline_Smith_Press/0.jpg",
-        "Decline_Smith_Press/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-dips-chest-version",
-      "name": "Dips - Chest Version",
-      "equipment": "Other",
-      "difficulty": "Intermediate",
-      "instructions": "For this exercise you will need access to parallel bars. To get yourself into the starting position, hold your body at arms length (arms locked) above the bars. While breathing in, lower yourself slowly with your torso leaning forward around 30 degrees or so and your elbows flared out slightly until you feel a slight stretch in the chest. Once you feel the stretch, use your chest to bring your body back to the starting position as you breathe out. Tip: Remember to squeeze the chest at the top of the movement for a second. Repeat the movement for the prescribed amount of repetitions.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Dips_-_Chest_Version",
-      "images": [
-        "Dips_-_Chest_Version/0.jpg",
-        "Dips_-_Chest_Version/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-drop-push",
-      "name": "Drop Push",
-      "equipment": "Other",
-      "difficulty": "Intermediate",
-      "instructions": "Position low boxes or other platforms 2-3 feet apart. Move to a pushup position between them, supporting yourself by placing your hands on the boxes. With good posture, drop from the platforms by pressing up and moving your hands to shoulder width, cushioning your landing by absorbing the impact through the arm.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Drop_Push",
-      "images": [
-        "Drop_Push/0.jpg",
-        "Drop_Push/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-dumbbell-bench-press",
-      "name": "Dumbbell Bench Press",
-      "equipment": "Dumbbell",
-      "difficulty": "Beginner",
-      "instructions": "Lie down on a flat bench with a dumbbell in each hand resting on top of your thighs. The palms of your hands will be facing each other. Then, using your thighs to help raise the dumbbells up, lift the dumbbells one at a time so that you can hold them in front of you at shoulder width. Once at shoulder width, rotate your wrists forward so that the palms of your hands are facing away from you. The dumbbells should be just to the sides of your chest, with your upper arm and forearm creating a 90 degree angle. Be sure to maintain full control of the dumbbells at all times. This will be your starting position. Then, as you breathe out, use your chest to push the dumbbells up. Lock your arms at the top of the lift and squeeze your chest, hold for a second and then begin coming down slowly. Tip: Ideally, lowering the weight should take about twice as long as raising it. Repeat the movement for the prescribed amount of repetitions of your training program.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Dumbbell_Bench_Press",
-      "images": [
-        "Dumbbell_Bench_Press/0.jpg",
-        "Dumbbell_Bench_Press/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-dumbbell-bench-press-with-neut",
-      "name": "Dumbbell Bench Press with Neutral Grip",
-      "equipment": "Dumbbell",
-      "difficulty": "Beginner",
-      "instructions": "Take a dumbbell in each hand and lay back onto a flat bench. Your feet should be flat on the floor and your shoulder blades retracted. Maintaining a neutral grip, palms facing each other, begin with your arms extended directly above you, perpendicular to the floor. This will be your starting position. Begin the movement by flexing the elbow, lowering the upper arms to the side. Descend until the dumbbells are to your torso. Pause, then extend the elbow and return to the starting position.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Dumbbell_Bench_Press_with_Neutral_Grip",
-      "images": [
-        "Dumbbell_Bench_Press_with_Neutral_Grip/0.jpg",
-        "Dumbbell_Bench_Press_with_Neutral_Grip/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-dumbbell-flyes",
-      "name": "Dumbbell Flyes",
-      "equipment": "Dumbbell",
-      "difficulty": "Beginner",
-      "instructions": "Lie down on a flat bench with a dumbbell on each hand resting on top of your thighs. The palms of your hand will be facing each other. Then using your thighs to help raise the dumbbells, lift the dumbbells one at a time so you can hold them in front of you at shoulder width with the palms of your hands facing each other. Raise the dumbbells up like you're pressing them, but stop and hold just before you lock out. This will be your starting position. With a slight bend on your elbows in order to prevent stress at the biceps tendon, lower your arms out at both sides in a wide arc until you feel a stretch on your chest. Breathe in as you perform this portion of the movement. Tip: Keep in mind that throughout the movement, the arms should remain stationary; the movement should only occur at the shoulder joint. Return your arms back to the starting position as you squeeze your chest muscles and breathe out. Tip: Make sure to use the same arc of motion used to lower the weights. Hold for a second at the contracted position and repeat the movement for the prescribed amount of repetitions.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [],
-      "originalId": "Dumbbell_Flyes",
-      "images": [
-        "Dumbbell_Flyes/0.jpg",
-        "Dumbbell_Flyes/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-dynamic-chest-stretch",
-      "name": "Dynamic Chest Stretch",
-      "equipment": "Other",
-      "difficulty": "Beginner",
-      "instructions": "Stand with your hands together, arms extended directly in front of you. This will be your starting position. Keeping your arms straight, quickly move your arms back as far as possible and back in again, similar to an exaggerated clapping motion. Repeat 5-10 times, increasing speed as you do so.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Middle Back"
-      ],
-      "originalId": "Dynamic_Chest_Stretch",
-      "images": [
-        "Dynamic_Chest_Stretch/0.jpg",
-        "Dynamic_Chest_Stretch/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-elbows-back",
-      "name": "Elbows Back",
-      "equipment": "Other",
-      "difficulty": "Beginner",
-      "instructions": "Stand up straight. Place both hands on your lower back, fingers pointing downward and elbows out. Then gently pull your elbows back aiming to touch them together.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids"
-      ],
-      "originalId": "Elbows_Back",
-      "images": [
-        "Elbows_Back/0.jpg",
-        "Elbows_Back/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-extended-range-onearm-kettlebe",
-      "name": "Extended Range One-Arm Kettlebell Floor Press",
-      "equipment": "Kettlebell",
-      "difficulty": "Beginner",
-      "instructions": "Lie on the floor and position a kettlebell for one arm to press. The kettlebell should be held by the handle. The leg on the same side that you are pressing should be bent, with the knee crossing over the midline of the body. Press the kettlebell by extending the elbow and adducting the arm, pressing it above your body. Return to the starting position.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Extended_Range_One-Arm_Kettlebell_Floor_Press",
-      "images": [
-        "Extended_Range_One-Arm_Kettlebell_Floor_Press/0.jpg",
-        "Extended_Range_One-Arm_Kettlebell_Floor_Press/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-flat-bench-cable-flyes",
-      "name": "Flat Bench Cable Flyes",
-      "equipment": "Cable Machine",
-      "difficulty": "Intermediate",
-      "instructions": "Position a flat bench between two low pulleys so that when you are laying on it, your chest will be lined up with the cable pulleys. Lay flat on the bench and keep your feet on the ground. Have someone hand you the handles on each hand. You will grab each single handle attachment with a palms up grip. Extend your arms by your side with a slight bend on your elbows. Tip: You will keep this bend constant through the whole movement. Your arms should be parallel to the floor. This is your starting position. Now start lifting the arms in a semi-circle motion directly in front of you by pulling the cables together until both hands meet at the top of the movement. Squeeze your chest as you perform this motion and breathe out during this movement. Also, hold the contraction for a second at the top. Tip: When performed correctly, at the top position of this movement, your arms should be perpendicular to your torso and the floor touching above your chest. Slowly come back to the starting position. Repeat for the recommended amount of repetitions.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [],
-      "originalId": "Flat_Bench_Cable_Flyes",
-      "images": [
-        "Flat_Bench_Cable_Flyes/0.jpg",
-        "Flat_Bench_Cable_Flyes/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-forward-drag-with-press",
-      "name": "Forward Drag with Press",
-      "equipment": "Other",
-      "difficulty": "Intermediate",
-      "instructions": "Attach a dual handled chain or rope attachment to the sled. You should be facing away from the sled, holding a handle in each hand. Begin the movement by moving forward for one step. Leaning forward, extend through the legs and hips to move, pausing with each step to extend through the elbows, pressing your hands forward. Step forward until you return to the start position prepared to press.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Calves",
-        "Glutes",
-        "Hamstrings",
-        "Quadriceps",
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Forward_Drag_with_Press",
-      "images": [
-        "Forward_Drag_with_Press/0.jpg",
-        "Forward_Drag_with_Press/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-front-raise-and-pullover",
-      "name": "Front Raise And Pullover",
-      "equipment": "Barbell",
-      "difficulty": "Beginner",
-      "instructions": "Lie on a flat bench while holding a barbell using a palms down grip that is about 15 inches apart. Place the bar on your upper thighs, extend your arms and lock them while keeping a slight bend on the elbows. This will be your starting position. Now raise the weight using a semicircular motion and keeping your arms straight as you inhale. Continue the same movement until the bar is on the other side above your head . (Tip: the bar will travel approximately 180-degrees). At this point your arms should be parallel to the floor with the palms of your hands facing the ceiling. Now return the barbell to the starting position by reversing the motion as you exhale. Repeat for the recommended amount of repetitions.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Lats",
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Front_Raise_And_Pullover",
-      "images": [
-        "Front_Raise_And_Pullover/0.jpg",
-        "Front_Raise_And_Pullover/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-hammer-grip-incline-db-bench-p",
-      "name": "Hammer Grip Incline DB Bench Press",
-      "equipment": "Dumbbell",
-      "difficulty": "Beginner",
-      "instructions": "Lie back on an incline bench with a dumbbell on each hand on top of your thighs. The palms of your hand will be facing each other. By using your thighs to help you get the dumbbells up, clean the dumbbells one arm at a time so that you can hold them at shoulder width. Once at shoulder width, keep the palms of your hands with a neutral grip (palms facing each other). Keep your elbows flared out with the upper arms in line with the shoulders (perpendicular to the torso) and the elbows bent creating a 90-degree angle between the upper arm and the forearm. This will be your starting position. Now bring down the weights slowly to your side as you breathe in. Keep full control of the dumbbells at all times. As you breathe out, push the dumbbells up using your pectoral muscles. Lock your arms in the contracted position, hold for a second and then start coming down slowly. Tip: It should take at least twice as long to go down than to come up. Repeat the movement for the prescribed amount of repetitions. When you are done, place the dumbbells back in your thighs and then on the floor. This is the safest manner to dispose of the dumbbells.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Hammer_Grip_Incline_DB_Bench_Press",
-      "images": [
-        "Hammer_Grip_Incline_DB_Bench_Press/0.jpg",
-        "Hammer_Grip_Incline_DB_Bench_Press/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-heavy-bag-thrust",
-      "name": "Heavy Bag Thrust",
-      "equipment": "Other",
-      "difficulty": "Beginner",
-      "instructions": "Utilize a heavy bag for this exercise. Assume an upright stance next to the bag, with your feet staggered, fairly wide apart. Place your hand on the bag at about chest height. This will be your starting position. Begin by twisting at the waist, pushing the bag forward as hard as possible. Perform this move quickly, pushing the bag away from your body. Receive the bag as it swings back by reversing these steps.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Abdominals",
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Heavy_Bag_Thrust",
-      "images": [
-        "Heavy_Bag_Thrust/0.jpg",
-        "Heavy_Bag_Thrust/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-incline-cable-chest-press",
-      "name": "Incline Cable Chest Press",
-      "equipment": "Cable Machine",
-      "difficulty": "Beginner",
-      "instructions": "Adjust the weight to an appropriate amount and be seated, grasping the handles. Your upper arms should be about 45 degrees to the body, with your head and chest up. The elbows should be bent to about 90 degrees. This will be your starting position. Begin by extending through the elbow, pressing the handles together straight in front of you. Keep your shoulder blades retracted as you execute the movement. After pausing at full extension, return to the starting position, keeping tension on the cables.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Incline_Cable_Chest_Press",
-      "images": [
-        "Incline_Cable_Chest_Press/0.jpg",
-        "Incline_Cable_Chest_Press/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-incline-cable-flye",
-      "name": "Incline Cable Flye",
-      "equipment": "Cable Machine",
-      "difficulty": "Intermediate",
-      "instructions": "To get yourself into the starting position, set the pulleys at the floor level (lowest level possible on the machine that is below your torso). Place an incline bench (set at 45 degrees) in between the pulleys, select a weight on each one and grab a pulley on each hand. With a handle on each hand, lie on the incline bench and bring your hands together at arms length in front of your face. This will be your starting position. With a slight bend of your elbows (in order to prevent stress at the biceps tendon), lower your arms out at both sides in a wide arc until you feel a stretch on your chest. Breathe in as you perform this portion of the movement. Tip: Keep in mind that throughout the movement, the arms should remain stationary. The movement should only occur at the shoulder joint. Return your arms back to the starting position as you squeeze your chest muscles and exhale. Hold the contracted position for a second. Tip: Make sure to use the same arc of motion used to lower the weights. Repeat the movement for the prescribed amount of repetitions.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids"
-      ],
-      "originalId": "Incline_Cable_Flye",
-      "images": [
-        "Incline_Cable_Flye/0.jpg",
-        "Incline_Cable_Flye/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-incline-dumbbell-bench-with-pa",
-      "name": "Incline Dumbbell Bench With Palms Facing In",
-      "equipment": "Dumbbell",
-      "difficulty": "Beginner",
-      "instructions": "Lie back on an incline bench with a dumbbell on each hand on top of your thighs. The palms of your hand will be facing each other. By using your thighs to help you get the dumbbells up, clean the dumbbells one arm at a time so that you can hold them at shoulder width. Once at shoulder width, keep the palms of your hands with a neutral grip (palms facing each other). Keep your elbows flared out with the upper arms in line with the shoulders (perpendicular to the torso) and the elbows bent creating a 90-degree angle between the upper arm and the forearm. This will be your starting position. Now bring down the weights slowly to your side as you breathe in. Keep full control of the dumbbells at all times. As you breathe out, push the dumbbells up using your pectoral muscles. Lock your arms in the contracted position, hold for a second and then start coming down slowly. Tip: It should take at least twice as long to go down than to come up. Repeat the movement for the prescribed amount of repetitions. When you are done, place the dumbbells back in your thighs and then on the floor. This is the safest manner to dispose of the dumbbells.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Incline_Dumbbell_Bench_With_Palms_Facing_In",
-      "images": [
-        "Incline_Dumbbell_Bench_With_Palms_Facing_In/0.jpg",
-        "Incline_Dumbbell_Bench_With_Palms_Facing_In/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-incline-dumbbell-flyes",
-      "name": "Incline Dumbbell Flyes",
-      "equipment": "Dumbbell",
-      "difficulty": "Beginner",
-      "instructions": "Hold a dumbbell on each hand and lie on an incline bench that is set to an incline angle of no more than 30 degrees. Extend your arms above you with a slight bend at the elbows. Now rotate the wrists so that the palms of your hands are facing you. Tip: The pinky fingers should be next to each other. This will be your starting position. As you breathe in, start to slowly lower the arms to the side while keeping the arms extended and while rotating the wrists until the palms of the hand are facing each other. Tip: At the end of the movement the arms will be by your side with the palms facing the ceiling. As you exhale start to bring the dumbbells back up to the starting position by reversing the motion and rotating the hands so that the pinky fingers are next to each other again. Tip: Keep in mind that the movement will only happen at the shoulder joint and at the wrist. There is no motion that happens at the elbow joint. Repeat for the recommended amount of repetitions.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids"
-      ],
-      "originalId": "Incline_Dumbbell_Flyes",
-      "images": [
-        "Incline_Dumbbell_Flyes/0.jpg",
-        "Incline_Dumbbell_Flyes/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-incline-dumbbell-flyes-with-a-",
-      "name": "Incline Dumbbell Flyes - With A Twist",
-      "equipment": "Dumbbell",
-      "difficulty": "Beginner",
-      "instructions": "Hold a dumbbell in each hand and lie on an incline bench that is set to an incline angle of no more than 30 degrees. Extend your arms above you with a slight bend at the elbows. Now rotate the wrists so that the palms of your hands are facing you. Tip: The pinky fingers should be next to each other. This will be your starting position. As you breathe in, start to slowly lower the arms to the side while keeping the arms extended and while rotating the wrists until the palms of the hand are facing each other. Tip: At the end of the movement the arms will be by your side with the palms facing the ceiling. As you exhale start to bring the dumbbells back up to the starting position by reversing the motion and rotating the hands so that the pinky fingers are next to each other again. Tip: Keep in mind that the movement will only happen at the shoulder joint and at the wrist. There is no motion that happens at the elbow joint. Repeat for the recommended amount of repetitions.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids"
-      ],
-      "originalId": "Incline_Dumbbell_Flyes_-_With_A_Twist",
-      "images": [
-        "Incline_Dumbbell_Flyes_-_With_A_Twist/0.jpg",
-        "Incline_Dumbbell_Flyes_-_With_A_Twist/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-incline-dumbbell-press",
-      "name": "Incline Dumbbell Press",
-      "equipment": "Dumbbell",
-      "difficulty": "Beginner",
-      "instructions": "Lie back on an incline bench with a dumbbell in each hand atop your thighs. The palms of your hands will be facing each other. Then, using your thighs to help push the dumbbells up, lift the dumbbells one at a time so that you can hold them at shoulder width. Once you have the dumbbells raised to shoulder width, rotate your wrists forward so that the palms of your hands are facing away from you. This will be your starting position. Be sure to keep full control of the dumbbells at all times. Then breathe out and push the dumbbells up with your chest. Lock your arms at the top, hold for a second, and then start slowly lowering the weight. Tip Ideally, lowering the weights should take about twice as long as raising them. Repeat the movement for the prescribed amount of repetitions. When you are done, place the dumbbells back on your thighs and then on the floor. This is the safest manner to release the dumbbells.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Incline_Dumbbell_Press",
-      "images": [
-        "Incline_Dumbbell_Press/0.jpg",
-        "Incline_Dumbbell_Press/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-incline-pushup",
-      "name": "Incline Push-Up",
-      "equipment": "Bodyweight",
-      "difficulty": "Beginner",
-      "instructions": "Stand facing bench or sturdy elevated platform. Place hands on edge of bench or platform, slightly wider than shoulder width. Position forefoot back from bench or platform with arms and body straight. Arms should be perpendicular to body. Keeping body straight, lower chest to edge of box or platform by bending arms. Push body up until arms are extended. Repeat.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Incline_Push-Up",
-      "images": [
-        "Incline_Push-Up/0.jpg",
-        "Incline_Push-Up/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-incline-pushup-depth-jump",
-      "name": "Incline Push-Up Depth Jump",
-      "equipment": "Other",
-      "difficulty": "Beginner",
-      "instructions": "For this drill you will need a box about 12 inches high, and two thick mats or aerobics steps. Place the steps just outside of your shoulders, and place your feet on top of the box so that you are in an incline pushup position, your hands just inside the steps. This will be your starting position. Begin by bending at the elbows to lower your body, quickly reversing position to push your body off of the ground. As you leave the ground, move your hands onto the steps, bending your elbows to absorb the impact. Repeat the motion to return to the starting position.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Incline_Push-Up_Depth_Jump",
-      "images": [
-        "Incline_Push-Up_Depth_Jump/0.jpg",
-        "Incline_Push-Up_Depth_Jump/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-incline-pushup-medium",
-      "name": "Incline Push-Up Medium",
-      "equipment": "Bodyweight",
-      "difficulty": "Beginner",
-      "instructions": "Stand facing a Smith machine bar or sturdy elevated platform at an appropriate height. Place your hands on the bar, with your hands about shoulder width apart. Position your feet back from the bar with arms and body straight. This will be your starting position. Keeping your body straight, lower your chest to the bar by bending the arms. Return to the starting position by extending the elbows, pressing yourself back up.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Abdominals",
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Incline_Push-Up_Medium",
-      "images": [
-        "Incline_Push-Up_Medium/0.jpg",
-        "Incline_Push-Up_Medium/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-incline-pushup-reverse-grip",
-      "name": "Incline Push-Up Reverse Grip",
-      "equipment": "Bodyweight",
-      "difficulty": "Beginner",
-      "instructions": "Stand facing a Smith machine bar or sturdy elevated platform at an appropriate height. Place your hands on the bar palms up, with your hands about shoulder width apart. Position your feet back from the bar with arms and body straight. This will be your starting position. Keeping your body straight, lower your chest to the bar by bending the arms. Return to the starting position by extending the elbows, pressing yourself back up.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Abdominals",
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Incline_Push-Up_Reverse_Grip",
-      "images": [
-        "Incline_Push-Up_Reverse_Grip/0.jpg",
-        "Incline_Push-Up_Reverse_Grip/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-incline-pushup-wide",
-      "name": "Incline Push-Up Wide",
-      "equipment": "Bodyweight",
-      "difficulty": "Beginner",
-      "instructions": "Stand facing a Smith machine bar or sturdy elevated platform at an appropriate height. Place your hands on the bar, with your hands wider than shoulder width. Position your feet back from the bar with arms and body straight. Your arms should be perpendicular to the body. This will be your starting position. Keeping your body straight, lower your chest to the bar by bending the arms. Return to the starting position by extending the elbows, pressing yourself back up.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Abdominals",
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Incline_Push-Up_Wide",
-      "images": [
-        "Incline_Push-Up_Wide/0.jpg",
-        "Incline_Push-Up_Wide/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-isometric-chest-squeezes",
-      "name": "Isometric Chest Squeezes",
-      "equipment": "Bodyweight",
-      "difficulty": "Beginner",
-      "instructions": "While either seating or standing, bend your arms at a 90-degree angle and place the palms of your hands together in front of your chest. Tip: Your hands should be open with the palms together and fingers facing forward (perpendicular to your torso). Push both hands against each other as you contract your chest. Start with slow tension and increase slowly. Keep breathing normally as you execute this contraction. Hold for the recommended number of seconds. Now release the tension slowly. Rest for the recommended amount of time and repeat.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Isometric_Chest_Squeezes",
-      "images": [
-        "Isometric_Chest_Squeezes/0.jpg",
-        "Isometric_Chest_Squeezes/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-isometric-wipers",
-      "name": "Isometric Wipers",
-      "equipment": "Bodyweight",
-      "difficulty": "Beginner",
-      "instructions": "Assume a push-up position, supporting your weight on your hands and toes while keeping your body straight. Your hands should be just outside of shoulder width. This will be your starting position. Begin by shifting your body weight as far to one side as possible, allowing the elbow on that side to flex as you lower your body. Reverse the motion by extending the flexed arm, pushing yourself up and then dropping to the other side. Repeat for the desired number of repetitions.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Abdominals",
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Isometric_Wipers",
-      "images": [
-        "Isometric_Wipers/0.jpg",
-        "Isometric_Wipers/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-legover-floor-press",
-      "name": "Leg-Over Floor Press",
-      "equipment": "Kettlebell",
-      "difficulty": "Intermediate",
-      "instructions": "Lie on the floor with one kettlebell in place on your chest, holding it by the handle. Extend leg on working side over leg on non-working side.Your free arm can be extended out to your side for support. Press the kettlebll into a locked out position. Lower the weight until the elbow touches the ground, keeping the kettlebell above the elbow. Repeat for the desired number of repetitions.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Leg-Over_Floor_Press",
-      "images": [
-        "Leg-Over_Floor_Press/0.jpg",
-        "Leg-Over_Floor_Press/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-leverage-chest-press",
-      "name": "Leverage Chest Press",
-      "equipment": "Machine",
-      "difficulty": "Beginner",
-      "instructions": "Load an appropriate weight onto the pins and adjust the seat for your height. The handles should be near the bottom or middle of the pectorals at the beginning of the motion. Your chest and head should be up and your shoulder blades retracted. This will be your starting position. Press the handles forward by extending through the elbow. After a brief pause at the top, return the weight just above the start position, keeping tension on the muscles by not returning the weight to the stops until the set is complete.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Leverage_Chest_Press",
-      "images": [
-        "Leverage_Chest_Press/0.jpg",
-        "Leverage_Chest_Press/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-leverage-decline-chest-press",
-      "name": "Leverage Decline Chest Press",
-      "equipment": "Machine",
-      "difficulty": "Beginner",
-      "instructions": "Load an appropriate weight onto the pins and adjust the seat for your height. The handles should be near the bottom of the pectorals at the beginning of the motion. Your chest and head should be up and your shoulder blades retracted. This will be your starting position. Press the handles forward by extending through the elbow. After a brief pause at the top, return the weight just above the start position, keeping tension on the muscles by not returning the weight to the stops until the set is complete.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Leverage_Decline_Chest_Press",
-      "images": [
-        "Leverage_Decline_Chest_Press/0.jpg",
-        "Leverage_Decline_Chest_Press/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-leverage-incline-chest-press",
-      "name": "Leverage Incline Chest Press",
-      "equipment": "Machine",
-      "difficulty": "Beginner",
-      "instructions": "Load an appropriate weight onto the pins and adjust the seat for your height. The handles should be near the top of the pectorals at the beginning of the motion. Your chest and head should be up and your shoulder blades retracted. This will be your starting position. Press the handles forward by extending through the elbow. After a brief pause at the top, return the weight just above the start position, keeping tension on the muscles by not returning the weight to the stops until the set is complete.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Leverage_Incline_Chest_Press",
-      "images": [
-        "Leverage_Incline_Chest_Press/0.jpg",
-        "Leverage_Incline_Chest_Press/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-low-cable-crossover",
-      "name": "Low Cable Crossover",
-      "equipment": "Cable Machine",
-      "difficulty": "Beginner",
-      "instructions": "To move into the starting position, place the pulleys at the low position, select the resistance to be used and grasp a handle in each hand. Step forward, gaining tension in the pulleys. Your palms should be facing forward, hands below the waist, and your arms straight. This will be your starting position. With a slight bend in your arms, draw your hands upward and toward the midline of your body. Your hands should come together in front of your chest, palms facing up. Return your arms back to the starting position after a brief pause.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids"
-      ],
-      "originalId": "Low_Cable_Crossover",
-      "images": [
-        "Low_Cable_Crossover/0.jpg",
-        "Low_Cable_Crossover/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-machine-bench-press",
-      "name": "Machine Bench Press",
-      "equipment": "Machine",
-      "difficulty": "Beginner",
-      "instructions": "Sit down on the Chest Press Machine and select the weight. Step on the lever provided by the machine since it will help you to bring the handles forward so that you can grab the handles and fully extend the arms. Grab the handles with a palms-down grip and lift your elbows so that your upper arms are parallel to the floor to the sides of your torso. Tip: Your forearms will be pointing forward since you are grabbing the handles. Once you bring the handles forward and extend the arms you will be at the starting position. Now bring the handles back towards you as you breathe in. Push the handles away from you as you flex your pecs and you breathe out. Hold the contraction for a second before going back to the starting position. Repeat for the recommended amount of reps. When finished step on the lever again and slowly get the handles back to their original place.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Machine_Bench_Press",
-      "images": [
-        "Machine_Bench_Press/0.jpg",
-        "Machine_Bench_Press/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-medicine-ball-chest-pass",
-      "name": "Medicine Ball Chest Pass",
-      "equipment": "Other",
-      "difficulty": "Beginner",
-      "instructions": "You will need a partner for this exercise. Lacking one, this movement can be performed against a wall. Begin facing your partner holding the medicine ball at your torso with both hands. Pull the ball to your chest, and reverse the motion by extending through the elbows. For sports applications, you can take a step as you throw. Your partner should catch the ball, and throw it back to you. Receive the throw with both hands at chest height.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Medicine_Ball_Chest_Pass",
-      "images": [
-        "Medicine_Ball_Chest_Pass/0.jpg",
-        "Medicine_Ball_Chest_Pass/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-neck-press",
-      "name": "Neck Press",
-      "equipment": "Barbell",
-      "difficulty": "Intermediate",
-      "instructions": "Lie back on a flat bench. Using a medium-width grip (a grip that creates a 90-degree angle in the middle of the movement between the forearms and the upper arms), lift the bar from the rack and hold it straight over your neck with your arms locked. This will be your starting position. As you breathe in, come down slowly until you feel the bar on your neck. After a second pause, bring the bar back to the starting position as you breathe out and push the bar using your chest muscles. Lock your arms and squeeze your chest in the contracted position, hold for a second and then start coming down slowly again. Tip: It should take at least twice as long to go down than to come up). Repeat the movement for the prescribed amount of repetitions. When you are done, place the bar back in the rack.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Neck_Press",
-      "images": [
-        "Neck_Press/0.jpg",
-        "Neck_Press/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-onearm-flat-bench-dumbbell-fly",
-      "name": "One-Arm Flat Bench Dumbbell Flye",
-      "equipment": "Dumbbell",
-      "difficulty": "Beginner",
-      "instructions": "Lie down on a flat bench with a dumbbell in one hand resting on top of your thigh. The palm of your hand with the dumbbell in it should be at a neutral grip. By using your thighs to help you get the dumbbell up, clean the dumbbell so that you can hold it in front of you with your lifting arm being fully extended. Remember to maintain a neutral grip with this exercise. Your non lifting hand should be to the side holding the flat bench for better support. This will be your starting position. Your arm with the weight should have a slight bend on your elbow in order to prevent stress at the biceps tendon. Begin by lowering your arm with the weight in it out in a wide arc until you feel a stretch on your chest. Breathe in as you perform this portion of the movement. Tip: Keep in mind that throughout the movement, your lifting arm should remain stationary; the movement should only occur at the shoulder joint. Return your lifting arm back to the starting position as you squeeze your chest muscles and breathe out. Tip: Make sure to use the same arc of motion used to lower the weights. Hold for a second at the contracted position and repeat the movement for the prescribed amount of repetitions. Switch arms and repeat the exercise.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [],
-      "originalId": "One-Arm_Flat_Bench_Dumbbell_Flye",
-      "images": [
-        "One-Arm_Flat_Bench_Dumbbell_Flye/0.jpg",
-        "One-Arm_Flat_Bench_Dumbbell_Flye/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-onearm-kettlebell-floor-press",
-      "name": "One-Arm Kettlebell Floor Press",
-      "equipment": "Kettlebell",
-      "difficulty": "Intermediate",
-      "instructions": "Lie on the floor holding a kettlebell with one hand, with your upper arm supported by the floor. The palm should be facing in. Press the kettlebell straight up toward the ceiling, rotating your wrist. Lower the kettlebell back to the starting position and repeat.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "One-Arm_Kettlebell_Floor_Press",
-      "images": [
-        "One-Arm_Kettlebell_Floor_Press/0.jpg",
-        "One-Arm_Kettlebell_Floor_Press/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-one-arm-dumbbell-bench-press",
-      "name": "One Arm Dumbbell Bench Press",
-      "equipment": "Dumbbell",
-      "difficulty": "Beginner",
-      "instructions": "Lie down on a flat bench with a dumbbell in one hand on top of your thigh. By using your thigh to help you get the dumbbell up, clean the dumbbell up so that you can hold it in front of you at shoulder width. Use the hand you are not lifting with to help position the dumbbell over you properly. Once at shoulder width, rotate your wrist forward so that the palm of your hand is facing away from you. This will be your starting position. Bring down the weights slowly to your side as you breathe in. Keep full control of the dumbbell at all times. Tip: Use the hand that you are not lifting with to help keep the dumbbell balance as you may struggle a bit at first. Only use your non-lifting hand if it is needed. Otherwise, keep it resting to the side. As you breathe out, push the dumbbells up using your pectoral muscles. Lock your arms in the contracted position, squeeze your chest, hold for a second and then start coming down slowly. Tip: It should take at least twice as long to go down than to come up. Repeat the movement for the prescribed amount of repetitions of your training program. Switch arms and repeat the movement.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "One_Arm_Dumbbell_Bench_Press",
-      "images": [
-        "One_Arm_Dumbbell_Bench_Press/0.jpg",
-        "One_Arm_Dumbbell_Bench_Press/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-plyo-kettlebell-pushups",
-      "name": "Plyo Kettlebell Pushups",
-      "equipment": "Kettlebell",
-      "difficulty": "Advanced",
-      "instructions": "Place a kettlebell on the floor. Place yourself in a pushup position, on your toes with one hand on the ground and one hand holding the kettlebell, with your elbows extended. This will be your starting position. Begin by lowering yourself as low as you can, keeping your back straight. Quickly and forcefully reverse direction, pushing yourself up to the other side of the kettlebell, switching hands as you do so. Continue the movement by descending and repeating the movement back and forth.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Plyo_Kettlebell_Pushups",
-      "images": [
-        "Plyo_Kettlebell_Pushups/0.jpg",
-        "Plyo_Kettlebell_Pushups/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-plyo-pushup",
-      "name": "Plyo Push-up",
-      "equipment": "Bodyweight",
-      "difficulty": "Beginner",
-      "instructions": "Move into a prone position on the floor, supporting your weight on your hands and toes. Your arms should be fully extended with the hands around shoulder width. Keep your body straight throughout the movement. This will be your starting position. Descend by flexing at the elbow, lowering your chest towards the ground. At the bottom, reverse the motion by pushing yourself up through elbow extension as quickly as possible. Attempt to push your upper body up until your hands leave the ground. Return to the starting position and repeat the exercise. For added difficulty, add claps into the movement while you are air borne.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Plyo_Push-up",
-      "images": [
-        "Plyo_Push-up/0.jpg",
-        "Plyo_Push-up/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-pushup-wide",
-      "name": "Push-Up Wide",
-      "equipment": "Bodyweight",
-      "difficulty": "Beginner",
-      "instructions": "With your hands wide apart, support your body on your toes and hands in a plank position. Your elbows should be extended and your body straight. Do not allow your hips to sag. This will be your starting position. To begin, allow the elbows to flex, lowering your chest to the floor as you inhale. Using your pectoral muscles, press your upper body back up to the starting position by extending the elbows. Exhale as you perform this step. After pausing at the contracted position, repeat the movement for the prescribed amount of repetitions.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Abdominals",
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Push-Up_Wide",
-      "images": [
-        "Push-Up_Wide/0.jpg",
-        "Push-Up_Wide/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-pushups-with-feet-elevated",
-      "name": "Push-Ups With Feet Elevated",
-      "equipment": "Bodyweight",
-      "difficulty": "Beginner",
-      "instructions": "Lie on the floor face down and place your hands about 36 inches apart from each other holding your torso up at arms length. Place your toes on top of a flat bench. This will allow your body to be elevated. Note: The higher the elevation of the flat bench, the higher the resistance of the exercise is. Lower yourself until your chest almost touches the floor as you inhale. Using your pectoral muscles, press your upper body back up to the starting position and squeeze your chest. Breathe out as you perform this step. After a second pause at the contracted position, repeat the movement for the prescribed amount of repetitions.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Push-Ups_With_Feet_Elevated",
-      "images": [
-        "Push-Ups_With_Feet_Elevated/0.jpg",
-        "Push-Ups_With_Feet_Elevated/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-pushups-with-feet-on-an-exerci",
-      "name": "Push-Ups With Feet On An Exercise Ball",
-      "equipment": "Other",
-      "difficulty": "Intermediate",
-      "instructions": "Lie on the floor face down and place your hands about 36 inches apart from each other holding your torso up at arms length. Place your toes on top of an exercise ball. This will allow your body to be elevated. Lower yourself until your chest almost touches the floor as you inhale. Using your pectoral muscles, press your upper body back up to the starting position and squeeze your chest. Breathe out as you perform this step. After a second pause at the contracted position, repeat the movement for the prescribed amount of repetitions.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Push-Ups_With_Feet_On_An_Exercise_Ball",
-      "images": [
-        "Push-Ups_With_Feet_On_An_Exercise_Ball/0.jpg",
-        "Push-Ups_With_Feet_On_An_Exercise_Ball/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-push-up-to-side-plank",
-      "name": "Push Up to Side Plank",
-      "equipment": "Bodyweight",
-      "difficulty": "Beginner",
-      "instructions": "Get into pushup position on the toes with your hands just outside of shoulder width. Perform a pushup by allowing the elbows to flex. As you descend, keep your body straight. Do one pushup and as you come up, shift your weight on the left side of the body, twist to the side while bringing the right arm up towards the ceiling in a side plank. Lower the arm back to the floor for another pushup and then twist to the other side. Repeat the series, alternating each side, for 10 or more reps.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Abdominals",
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Push_Up_to_Side_Plank",
-      "images": [
-        "Push_Up_to_Side_Plank/0.jpg",
-        "Push_Up_to_Side_Plank/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-pushups",
-      "name": "Pushups",
-      "equipment": "Bodyweight",
-      "difficulty": "Beginner",
-      "instructions": "Lie on the floor face down and place your hands about 36 inches apart while holding your torso up at arms length. Next, lower yourself downward until your chest almost touches the floor as you inhale. Now breathe out and press your upper body back up to the starting position while squeezing your chest. After a brief pause at the top contracted position, you can begin to lower yourself downward again for as many repetitions as needed.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Pushups",
-      "images": [
-        "Pushups/0.jpg",
-        "Pushups/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-pushups-close-and-wide-hand-po",
-      "name": "Pushups (Close and Wide Hand Positions)",
-      "equipment": "Bodyweight",
-      "difficulty": "Beginner",
-      "instructions": "Lie on the floor face down and body straight with your toes on the floor and the hands wider than shoulder width for a wide hand position and closer than shoulder width for a close hand position. Make sure you are holding your torso up at arms length. Lower yourself until your chest almost touches the floor as you inhale. Using your pectoral muscles, press your upper body back up to the starting position and squeeze your chest. Breathe out as you perform this step. After a second pause at the contracted position, repeat the movement for the prescribed amount of repetitions.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Pushups_Close_and_Wide_Hand_Positions",
-      "images": [
-        "Pushups_Close_and_Wide_Hand_Positions/0.jpg",
-        "Pushups_Close_and_Wide_Hand_Positions/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-singlearm-cable-crossover",
-      "name": "Single-Arm Cable Crossover",
-      "equipment": "Cable Machine",
-      "difficulty": "Beginner",
-      "instructions": "Begin by moving the pulleys to the high position, select the resistance to be used, and take a handle in each hand. Step forward in front of both pulleys with your arms extended in front of you, bringing your hands together. Your head and chest should be up as you lean forward, while your feet should be staggered. This will be your starting position. Keeping your left arm in place, allow your right arm to extend out to the side, maintaining a slight bend at the elbow. The right arm should be perpendicular to the body at approximately shoulder level. Return your arm back to the starting position by pulling your hand back to the midline of the body. Hold for a second at the starting position and repeat the movement on the opposite side. Continue alternating back and forth for the prescribed number of repetitions.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [],
-      "originalId": "Single-Arm_Cable_Crossover",
-      "images": [
-        "Single-Arm_Cable_Crossover/0.jpg",
-        "Single-Arm_Cable_Crossover/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-singlearm-pushup",
-      "name": "Single-Arm Push-Up",
-      "equipment": "Bodyweight",
-      "difficulty": "Intermediate",
-      "instructions": "Begin laying prone on the ground. Move yourself into a position supporting your weight on your toes and one arm. Your working arm should be placed directly under the shoulder, fully extended. Your legs should be extended, and for this movement you may need a wider base, placing your feet further apart than in a normal push-up. Maintain good posture, and place your free hand behind your back. This will be your starting position. Lower yourself by allowing the elbow to flex until you touch the ground. Descend slowly, and reverse direction be extending the arm to return to the starting position.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Single-Arm_Push-Up",
-      "images": [
-        "Single-Arm_Push-Up/0.jpg",
-        "Single-Arm_Push-Up/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-smith-machine-bench-press",
-      "name": "Smith Machine Bench Press",
-      "equipment": "Machine",
-      "difficulty": "Beginner",
-      "instructions": "Place a flat bench underneath the smith machine. Now place the barbell at a height that you can reach when lying down and your arms are almost fully extended. Once the weight you need is selected, lie down on the flat bench. Using a pronated grip that is wider than shoulder width, unlock the bar from the rack and hold it straight over you with your arms locked. This will be your starting position. As you breathe in, come down slowly until you feel the bar on your middle chest. After a second pause, bring the bar back to the starting position as you breathe out and push the bar using your chest muscles. Lock your arms in the contracted position, hold for a second and then start coming down slowly again. Tip: It should take at least twice as long to go down than to come up. Repeat the movement for the prescribed amount of repetitions. When you are done, lock the bar back in the rack.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Smith_Machine_Bench_Press",
-      "images": [
-        "Smith_Machine_Bench_Press/0.jpg",
-        "Smith_Machine_Bench_Press/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-smith-machine-decline-press",
-      "name": "Smith Machine Decline Press",
-      "equipment": "Machine",
-      "difficulty": "Beginner",
-      "instructions": "Position a decline bench in the rack so that the bar will be above your chest. Load an appropriate weight and take your place on the bench. Rotate the bar to unhook it from the rack and fully extend your arms. Your back should be slightly arched and your shoulder blades retracted. This will be your starting position. Begin the movement by flexing your arms, lowering the bar to your chest. Pause briefly, and then extend your arms to push the weight back to the starting position. After completing the desired number of repetitions, rotate the bar to rack the weight.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Smith_Machine_Decline_Press",
-      "images": [
-        "Smith_Machine_Decline_Press/0.jpg",
-        "Smith_Machine_Decline_Press/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-smith-machine-incline-bench-pr",
-      "name": "Smith Machine Incline Bench Press",
-      "equipment": "Machine",
-      "difficulty": "Beginner",
-      "instructions": "Place an incline bench underneath the smith machine. Place the barbell at a height that you can reach when lying down and your arms are almost fully extended. Once the weight you need is selected, lie down on the incline bench and make sure your upper chest is aligned with the barbell. Using a pronated grip (palms facing forward) that is wider than shoulder width, unlock the bar from the rack and hold it straight over you with your arms locked. This will be your starting position. As you breathe in, come down slowly until you feel the bar on your upper chest. After a second pause, bring the bar back to the starting position as you breathe out and push the bar using your chest muscles. Lock your arms in the contracted position, hold for a second and then start coming down slowly again. Tip: It should take at least twice as long to go down than to come up. Repeat the movement for the prescribed amount of repetitions. When you are done, place the bar back in the rack.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Smith_Machine_Incline_Bench_Press",
-      "images": [
-        "Smith_Machine_Incline_Bench_Press/0.jpg",
-        "Smith_Machine_Incline_Bench_Press/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-standing-cable-chest-press",
-      "name": "Standing Cable Chest Press",
-      "equipment": "Cable Machine",
-      "difficulty": "Beginner",
-      "instructions": "Position dual pulleys to chest height and select an appropriate weight. Stand a foot or two in front of the cables, holding one in each hand. You can stagger your stance for better stability. Position the upper arm at a 90 degree angle with the shoulder blades together. This will be your starting position. Keeping the rest of the body stationary, extend through the elbows to press the handles forward, drawing them together in front of you. Pause at the top of the motion, and return to the starting position.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Standing_Cable_Chest_Press",
-      "images": [
-        "Standing_Cable_Chest_Press/0.jpg",
-        "Standing_Cable_Chest_Press/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-straightarm-dumbbell-pullover",
-      "name": "Straight-Arm Dumbbell Pullover",
-      "equipment": "Dumbbell",
-      "difficulty": "Intermediate",
-      "instructions": "Place a dumbbell standing up on a flat bench. Ensuring that the dumbbell stays securely placed at the top of the bench, lie perpendicular to the bench (torso across it as in forming a cross) with only your shoulders lying on the surface. Hips should be below the bench and legs bent with feet firmly on the floor. The head will be off the bench as well. Grasp the dumbbell with both hands and hold it straight over your chest at arms length. Both palms should be pressing against the underside one of the sides of the dumbbell. This will be your starting position.\nCaution: Always ensure that the dumbbell used for this exercise is secure. Using a dumbbell with loose plates can result in the dumbbell falling apart and falling on your face. While keeping your arms straight, lower the weight slowly in an arc behind your head while breathing in until you feel a stretch on the chest. At that point, bring the dumbbell back to the starting position using the arc through which the weight was lowered and exhale as you perform this movement. Hold the weight on the initial position for a second and repeat the motion for the prescribed number of repetitions.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Lats",
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Straight-Arm_Dumbbell_Pullover",
-      "images": [
-        "Straight-Arm_Dumbbell_Pullover/0.jpg",
-        "Straight-Arm_Dumbbell_Pullover/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-suspended-pushup",
-      "name": "Suspended Push-Up",
-      "equipment": "Other",
-      "difficulty": "Beginner",
-      "instructions": "Anchor your suspension straps securely to the top of a rack or other object. Leaning into the straps, take a handle in each hand and move into a push-up plank position. You should be as close to parallel to the ground as you can manage with your arms fully extended, maintaining good posture. Maintaining a straight, rigid torso, descend slowly by allowing the elbows to flex. Continue until your elbows break 90 degrees, pausing before you extend to return to the starting position.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Suspended_Push-Up",
-      "images": [
-        "Suspended_Push-Up/0.jpg",
-        "Suspended_Push-Up/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-svend-press",
-      "name": "Svend Press",
-      "equipment": "Other",
-      "difficulty": "Beginner",
-      "instructions": "Begin in a standing position. Press two lightweight plates together with your hands. Hold the plates together close to your chest to create an isometric contraction in your chest muscles. Your fingers should be pointed forward. This is your starting position. Squeeze the plates between your palms and extend your arms directly out in front of you in a controlled motion. Pause at the top of the motion, and then slowly return to the starting position.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Forearms",
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Svend_Press",
-      "images": [
-        "Svend_Press/0.jpg",
-        "Svend_Press/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-widegrip-barbell-bench-press",
-      "name": "Wide-Grip Barbell Bench Press",
-      "equipment": "Barbell",
-      "difficulty": "Intermediate",
-      "instructions": "Lie back on a flat bench with feet firm on the floor. Using a wide, pronated (palms forward) grip that is around 3 inches away from shoulder width (for each hand), lift the bar from the rack and hold it straight over you with your arms locked. The bar will be perpendicular to the torso and the floor. This will be your starting position. As you breathe in, come down slowly until you feel the bar on your middle chest. After a second pause, bring the bar back to the starting position as you breathe out and push the bar using your chest muscles. Lock your arms and squeeze your chest in the contracted position, hold for a second and then start coming down slowly again. Tip: It should take at least twice as long to go down than to come up. Repeat the movement for the prescribed amount of repetitions.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Wide-Grip_Barbell_Bench_Press",
-      "images": [
-        "Wide-Grip_Barbell_Bench_Press/0.jpg",
-        "Wide-Grip_Barbell_Bench_Press/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-widegrip-decline-barbell-bench",
-      "name": "Wide-Grip Decline Barbell Bench Press",
-      "equipment": "Barbell",
-      "difficulty": "Intermediate",
-      "instructions": "Lie back on a decline bench with the feet securely locked at the front of the bench. Using a wide, pronated (palms forward) grip that is around 3 inches away from shoulder width (for each hand), lift the bar from the rack and hold it straight over you with your arms locked. The bar will be perpendicular to the torso and the floor. This will be your starting position. As you breathe in, come down slowly until you feel the bar on your lower chest. After a second pause, bring the bar back to the starting position as you breathe out and push the bar using your chest muscles. Lock your arms and squeeze your chest in the contracted position, hold for a second and then start coming down slowly again. Tip: It should take at least twice as long to go down than to come up. Repeat the movement for the prescribed amount of repetitions.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Wide-Grip_Decline_Barbell_Bench_Press",
-      "images": [
-        "Wide-Grip_Decline_Barbell_Bench_Press/0.jpg",
-        "Wide-Grip_Decline_Barbell_Bench_Press/1.jpg"
-      ]
-    },
-    {
-      "id": "chest-widegrip-decline-barbell-pullo",
-      "name": "Wide-Grip Decline Barbell Pullover",
-      "equipment": "Barbell",
-      "difficulty": "Intermediate",
-      "instructions": "Lie down on a decline bench with both legs securely locked in position. Reach for the barbell behind the head using a pronated grip (palms facing out). Make sure to grab the barbell wider than shoulder width apart for this exercise. Slowly lift the barbell up from the floor by using your arms. When positioned properly, your arms should be fully extended and perpendicular to the floor. This is the starting position. Begin by moving the barbell back down in a semicircular motion as if you were going to place it on the floor, but instead, stop when the arms are parallel to the floor. Tip: Keep the arms fully extended at all times. The movement should only happen at the shoulder joint. Inhale as you perform this portion of the movement. Now bring the barbell up while exhaling until you are back at the starting position. Remember to keep full control of the barbell at all times. Repeat the movement for the prescribed amount of repetitions of your training program. When finished with your set, slowly lower the barbell back down until it is level with your head and release it.",
-      "muscleGroup": "Chest",
-      "primaryMuscles": [
-        "Chest"
-      ],
-      "secondaryMuscles": [
-        "Front Deltoids", "Side Deltoids",
-        "Triceps Lateral Head", "Triceps Medial Head"
-      ],
-      "originalId": "Wide-Grip_Decline_Barbell_Pullover",
-      "images": [
-        "Wide-Grip_Decline_Barbell_Pullover/0.jpg",
-        "Wide-Grip_Decline_Barbell_Pullover/1.jpg"
+      "instructions": "A compound bodyweight exercise emphasizing the lower chest. Lean forward during the movement to shift emphasis to chest (upright position targets triceps more). Lower body until slight stretch felt in chest, then press back up. Excellent for building lower chest mass and strength.",
+      "variants": [
+        {
+          "equipment": "Bodyweight",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Excellent lower chest developer",
+            "Builds functional pressing strength",
+            "Works chest, triceps, and shoulders together",
+            "Can be done at most gyms or parks",
+            "Easy to progress with added weight"
+          ],
+          "cons": [
+            "Too difficult for many beginners",
+            "Can strain shoulders if form is poor",
+            "Requires good shoulder mobility",
+            "May cause sternum discomfort initially"
+          ],
+          "setupTips": [
+            "Grip parallel bars firmly with arms extended",
+            "Lean torso forward 20-30 degrees for chest emphasis",
+            "Lower body with control until chest stretch felt",
+            "Keep elbows flared slightly outward, not tucked",
+            "Press up powerfully, maintaining forward lean"
+          ]
+        },
+        {
+          "equipment": "Weighted (Dip Belt)",
+          "difficulty": "Advanced",
+          "pros": [
+            "Progressive overload for continued growth",
+            "Builds significant lower chest mass",
+            "Develops impressive pressing power",
+            "Easy to track strength progress",
+            "Compound movement for overall development"
+          ],
+          "cons": [
+            "Requires dip belt and weight plates",
+            "Higher injury risk with heavy loads",
+            "Can be hard on shoulders and elbows",
+            "Difficult to bail out if form breaks down"
+          ],
+          "setupTips": [
+            "Attach weight securely to dip belt",
+            "Start with small weight increments (5-10 lbs)",
+            "Maintain same forward lean as bodyweight dips",
+            "Control descent carefully with added weight",
+            "Use full range of motion, avoid partial reps"
+          ]
+        },
+        {
+          "equipment": "Assisted Machine",
+          "difficulty": "Beginner",
+          "pros": [
+            "Perfect for beginners building strength",
+            "Adjustable assistance level",
+            "Safe way to learn proper form",
+            "Can train to failure safely",
+            "Gradual progression to bodyweight dips"
+          ],
+          "cons": [
+            "Machine availability varies",
+            "Less stabilizer muscle engagement",
+            "May not transfer perfectly to free dips",
+            "Fixed movement path"
+          ],
+          "setupTips": [
+            "Select assistance weight (higher weight = easier)",
+            "Kneel or stand on assistance platform",
+            "Lean forward to emphasize chest over triceps",
+            "Lower until chest stretch felt, press back up",
+            "Gradually reduce assistance as strength improves"
+          ]
+        }
       ]
     }
   ],
