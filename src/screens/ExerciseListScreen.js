@@ -4,7 +4,7 @@
 // Last working version: 2025-09-13
 // Status: WORKING - Exercise Library displays correctly on all platforms
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView, Platform, TextInput, Image, Modal } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ScreenLayout from '../components/ScreenLayout';
@@ -13,7 +13,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { getExercisesByMuscleGroup } from '../data/exerciseDatabase';
 import { useWorkout } from '../context/WorkoutContext';
 
-
+// Cache for loaded exercises to make subsequent loads instant
+const exerciseCache = new Map();
 export default function ExerciseListScreen({ navigation, route }) {
   const { isWorkoutActive, activeWorkout, updateWorkout } = useWorkout();
   const {
@@ -37,6 +38,7 @@ export default function ExerciseListScreen({ navigation, route }) {
   const [showFilters, setShowFilters] = useState(false);
   const [showFullScreenImage, setShowFullScreenImage] = useState(false);
   const [selectedImageUri, setSelectedImageUri] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   // Active muscle filters - initialized from selectedMuscleGroups or default to all
   const [activeMuscleFilters, setActiveMuscleFilters] = useState(
     selectedMuscleGroups && selectedMuscleGroups.length > 0
@@ -97,61 +99,127 @@ export default function ExerciseListScreen({ navigation, route }) {
   }, []);
 
   const loadExercises = useCallback(async () => {
-    let filteredExercises = [];
+    setIsLoading(true);
+    try {
+      let filteredExercises = [];
 
-    // Use activeMuscleFilters for loading exercises
-    const muscleGroupsToLoad = activeMuscleFilters;
+      // Use activeMuscleFilters for loading exercises
+      const muscleGroupsToLoad = activeMuscleFilters;
 
-    // Load all muscle groups in parallel for speed
-    const promises = muscleGroupsToLoad.map(async (muscleGroup) => {
-      try {
-        const groupExercises = await getExercisesByMuscleGroup(muscleGroup);
-        return groupExercises || [];
-      } catch (error) {
-        return [];
-      }
-    });
+      // Load all muscle groups in parallel for speed, using cache when available
+      const promises = muscleGroupsToLoad.map(async (muscleGroup) => {
+        try {
+          // Check cache first for instant loading
+          if (exerciseCache.has(muscleGroup)) {
+            return exerciseCache.get(muscleGroup);
+          }
 
-    const results = await Promise.all(promises);
-    filteredExercises = results.flat();
-
-
-    if (selectedDifficulty !== 'all') {
-      const beforeFilter = filteredExercises.length;
-      filteredExercises = filteredExercises.filter(exercise => 
-        exercise.difficulty === selectedDifficulty
-      );
-    }
-
-    // Filter by equipment type
-    if (selectedEquipment !== 'all') {
-      filteredExercises = filteredExercises.filter(exercise => {
-        const equipment = exercise.equipment?.toLowerCase() || '';
-        if (selectedEquipment === 'bodyweight') {
-          return equipment === 'bodyweight' || equipment === 'none' || equipment === '';
-        } else if (selectedEquipment === 'machine') {
-          return equipment === 'machine';
-        } else if (selectedEquipment === 'cable') {
-          return equipment === 'cable' || equipment === 'cable machine';
+          // Load from database and cache it
+          const groupExercises = await getExercisesByMuscleGroup(muscleGroup);
+          if (groupExercises) {
+            exerciseCache.set(muscleGroup, groupExercises);
+          }
+          return groupExercises || [];
+        } catch (error) {
+          return [];
         }
-        return true;
       });
-    }
 
-    // Filter by search query
-    if (searchQuery.trim() !== '') {
-      const query = searchQuery.toLowerCase().trim();
-      filteredExercises = filteredExercises.filter(exercise => 
-        exercise.name.toLowerCase().includes(query) ||
-        (exercise.description && exercise.description.toLowerCase().includes(query))
-      );
-    }
+      const results = await Promise.all(promises);
+      filteredExercises = results.flat();
 
-    setExercises(filteredExercises);
+      // Combine all filters into a single pass for better performance
+      const hasFilters = selectedDifficulty !== 'all' || selectedEquipment !== 'all' || searchQuery.trim() !== '';
+
+      if (hasFilters) {
+        const query = searchQuery.toLowerCase().trim();
+
+        filteredExercises = filteredExercises.filter(exercise => {
+          // Difficulty filter
+          if (selectedDifficulty !== 'all' && exercise.difficulty !== selectedDifficulty) {
+            return false;
+          }
+
+          // Equipment filter
+          if (selectedEquipment !== 'all') {
+            const equipment = exercise.equipment?.toLowerCase() || '';
+            if (selectedEquipment === 'bodyweight') {
+              if (!(equipment === 'bodyweight' || equipment === 'none' || equipment === '')) {
+                return false;
+              }
+            } else if (selectedEquipment === 'machine') {
+              if (equipment !== 'machine') {
+                return false;
+              }
+            } else if (selectedEquipment === 'cable') {
+              if (!(equipment === 'cable' || equipment === 'cable machine')) {
+                return false;
+              }
+            }
+          }
+
+          // Search query filter
+          if (query) {
+            const nameMatch = exercise.name.toLowerCase().includes(query);
+            const descMatch = exercise.description && exercise.description.toLowerCase().includes(query);
+            if (!nameMatch && !descMatch) {
+              return false;
+            }
+          }
+
+          return true;
+        });
+      }
+
+      setExercises(filteredExercises);
+    } finally {
+      setIsLoading(false);
+    }
   }, [activeMuscleFilters, selectedDifficulty, selectedEquipment, searchQuery]);
 
 
   const startWorkoutWithExercise = (exercise) => {
+    // Check if exercise has variants - if so, navigate to equipment selection
+    console.log('🔍 Exercise selected:', exercise.name, 'Has variants?', exercise.variants, 'Count:', exercise.variants?.length);
+    if (exercise.variants && exercise.variants.length > 1) {
+      console.log('✅ NAVIGATING TO EQUIPMENT SELECTION SCREEN FOR WORKOUT');
+      navigation.navigate('EquipmentVariantSelection', {
+        exercise,
+        mode: 'workout',
+        onSelect: proceedWithExercise,
+        // Pass through context for proper navigation after selection
+        navigationContext: {
+          fromWorkout,
+          fromProgramCreation,
+          fromProgramDayEdit,
+          programDayIndex,
+          selectedMuscleGroups,
+          fromLibrary
+        }
+      });
+      return;
+    }
+
+    // If exercise has only one variant, use it directly
+    if (exercise.variants && exercise.variants.length === 1) {
+      const variant = exercise.variants[0];
+      const exerciseWithVariant = {
+        ...exercise,
+        displayName: exercise.name,
+        name: `${exercise.name} (${variant.equipment})`,
+        selectedVariant: variant,
+        equipment: variant.equipment,
+        difficulty: variant.difficulty,
+      };
+      proceedWithExercise(exerciseWithVariant);
+      return;
+    }
+
+    // No variants - use exercise as-is (legacy exercises)
+    proceedWithExercise(exercise);
+  };
+
+  const proceedWithExercise = (exercise) => {
     // If we're adding to a program creation or day edit
     if (fromProgramCreation || fromProgramDayEdit) {
       // Navigate to WorkoutDayEdit screen with the exercise and remember muscle groups
@@ -190,6 +258,23 @@ export default function ExerciseListScreen({ navigation, route }) {
       });
     }
   };
+
+  // For viewing exercise info - navigate to equipment selection page
+  const showInfoForExercise = (exercise) => {
+    console.log('📖 Info button pressed for:', exercise.name, 'Has variants?', exercise.variants?.length);
+    // If exercise has variants, navigate to full-page equipment selection
+    if (exercise.variants && exercise.variants.length > 1) {
+      console.log('✅ NAVIGATING TO EQUIPMENT SELECTION SCREEN FOR INFO');
+      navigation.navigate('EquipmentVariantSelection', {
+        exercise,
+        mode: 'info'
+      });
+    } else {
+      // No variants, navigate directly to detail
+      navigation.navigate('ExerciseDetail', { exercise, fromWorkout: false });
+    }
+  };
+
 
   const getEquipmentIcon = (equipment) => {
     switch (equipment) {
@@ -399,7 +484,12 @@ export default function ExerciseListScreen({ navigation, route }) {
       </View>
 
       {/* Exercise List */}
-      {exercises.length === 0 ? (
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingIcon}>⏳</Text>
+          <Text style={styles.loadingText}>Loading exercises...</Text>
+        </View>
+      ) : exercises.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyIcon}>🤷‍♂️</Text>
           <Text style={styles.emptyTitle}>No exercises found</Text>
@@ -454,19 +544,26 @@ export default function ExerciseListScreen({ navigation, route }) {
                   <View style={styles.detailedExerciseContent}>
                 {/* Exercise Name */}
                 {item.isCustom && <Text style={styles.customBadge}>⭐ CUSTOM</Text>}
-                <Text style={styles.exerciseName}>{item.name}</Text>
+                <Text style={styles.exerciseName} numberOfLines={2} ellipsizeMode="tail">{item.name}</Text>
 
                 {/* Exercise Meta */}
                 <View style={styles.exerciseMeta}>
-                  <View style={styles.equipmentTag}>
-                    <Text style={styles.equipmentIcon}>{getEquipmentIcon(item.equipment)}</Text>
-                    <Text style={styles.equipmentText}>{item.equipment}</Text>
+                  <View style={styles.equipmentTagRow}>
+                    {item.variants && item.variants.length > 0 ? (
+                      item.variants.map((variant, idx) => (
+                        <Text key={idx} style={styles.equipmentIconOnly}>
+                          {getEquipmentIcon(variant.equipment)}
+                        </Text>
+                      ))
+                    ) : (
+                      <Text style={styles.equipmentIconOnly}>{getEquipmentIcon(item.equipment)}</Text>
+                    )}
                   </View>
                   {item.difficulty === 'Beginner' && (
                     <View style={[styles.difficultyShape, styles.beginnerCircle]} />
                   )}
                   {item.difficulty === 'Intermediate' && (
-                    <Text style={styles.intermediateTriangle}>🔸</Text>
+                    <View style={[styles.difficultyShape, styles.intermediateTriangle]} />
                   )}
                   {item.difficulty === 'Advanced' && (
                     <View style={[styles.difficultyShape, styles.advancedSquare]} />
@@ -479,9 +576,7 @@ export default function ExerciseListScreen({ navigation, route }) {
                 <View style={styles.actionButtons}>
                   <TouchableOpacity
                     style={styles.infoButton}
-                    onPress={() => {
-                      navigation.navigate('ExerciseDetail', { exercise: item, fromWorkout: false });
-                    }}
+                    onPress={() => showInfoForExercise(item)}
                   >
                     <Text style={styles.infoButtonText}>Info</Text>
                   </TouchableOpacity>
@@ -520,19 +615,26 @@ export default function ExerciseListScreen({ navigation, route }) {
                 <View style={styles.exerciseContent}>
                   {/* Exercise Name */}
                   {item.isCustom && <Text style={styles.customBadge}>⭐ CUSTOM</Text>}
-                  <Text style={styles.exerciseName}>{item.name}</Text>
+                  <Text style={styles.exerciseName} numberOfLines={2} ellipsizeMode="tail">{item.name}</Text>
 
                   {/* Exercise Meta */}
                   <View style={styles.exerciseMeta}>
-                    <View style={styles.equipmentTag}>
-                      <Text style={styles.equipmentIcon}>{getEquipmentIcon(item.equipment)}</Text>
-                      <Text style={styles.equipmentText}>{item.equipment}</Text>
+                    <View style={styles.equipmentTagRow}>
+                      {item.variants && item.variants.length > 0 ? (
+                        item.variants.map((variant, idx) => (
+                          <Text key={idx} style={styles.equipmentIconOnly}>
+                            {getEquipmentIcon(variant.equipment)}
+                          </Text>
+                        ))
+                      ) : (
+                        <Text style={styles.equipmentIconOnly}>{getEquipmentIcon(item.equipment)}</Text>
+                      )}
                     </View>
                     {item.difficulty === 'Beginner' && (
                       <View style={[styles.difficultyShape, styles.beginnerCircle]} />
                     )}
                     {item.difficulty === 'Intermediate' && (
-                      <Text style={styles.intermediateTriangle}>🔸</Text>
+                      <View style={[styles.difficultyShape, styles.intermediateTriangle]} />
                     )}
                     {item.difficulty === 'Advanced' && (
                       <View style={[styles.difficultyShape, styles.advancedSquare]} />
@@ -543,9 +645,7 @@ export default function ExerciseListScreen({ navigation, route }) {
                   <View style={styles.actionButtons}>
                     <TouchableOpacity
                       style={styles.infoButton}
-                      onPress={() => {
-                        navigation.navigate('ExerciseDetail', { exercise: item, fromWorkout: false });
-                      }}
+                      onPress={() => showInfoForExercise(item)}
                     >
                       <Text style={styles.infoButtonText}>Info</Text>
                     </TouchableOpacity>
@@ -790,6 +890,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: Colors.text,
     marginBottom: Spacing.xs,
+    lineHeight: 18,
   },
   actionButtons: {
     flexDirection: 'row',
@@ -815,36 +916,52 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: Spacing.sm,
-    height: 24,
+    minHeight: 24,
   },
   equipmentTag: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.primary + '15',
-    paddingHorizontal: Spacing.sm,
+    paddingHorizontal: Spacing.xs,
     paddingVertical: 4,
     borderRadius: BorderRadius.sm,
+    marginRight: Spacing.xs,
+  },
+  equipmentTagRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.primary + '15',
+    paddingHorizontal: Spacing.xs,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.sm,
+    marginRight: Spacing.xs,
+    gap: 4,
   },
   equipmentIcon: {
     fontSize: 14,
     marginRight: 4,
   },
+  equipmentIconOnly: {
+    fontSize: 16,
+  },
   equipmentText: {
     fontSize: Typography.fontSize.xs,
     color: Colors.primary,
     fontWeight: '600',
+    flex: 1,
   },
   difficultyShape: {
-    width: 14,
-    height: 14,
+    width: 16,
+    height: 16,
   },
   beginnerCircle: {
     backgroundColor: '#4CAF50',
-    borderRadius: 7,
+    borderRadius: 8,
   },
   intermediateTriangle: {
-    fontSize: 14,
-    color: '#FF9800',
+    backgroundColor: '#FF9800',
+    transform: [{ rotate: '45deg' }],
+    borderRadius: 2,
   },
   advancedSquare: {
     backgroundColor: '#F44336',
@@ -855,6 +972,22 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     lineHeight: 20,
     marginTop: Spacing.sm,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.xxl,
+    marginTop: Spacing.xxl,
+  },
+  loadingIcon: {
+    fontSize: 64,
+    marginBottom: Spacing.lg,
+  },
+  loadingText: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: 'bold',
+    color: Colors.primary,
+    marginBottom: Spacing.sm,
   },
   emptyContainer: {
     alignItems: 'center',

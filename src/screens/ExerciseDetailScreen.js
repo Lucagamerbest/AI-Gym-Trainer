@@ -31,9 +31,12 @@ export default function ExerciseDetailScreen({ navigation, route }) {
     try {
       setLoading(true);
       const userId = user?.email || 'guest';
+      console.log('📊 Loading progress for exercise:', exercise.name);
       const progress = await WorkoutStorageService.getExerciseProgressByName(exercise.name, userId);
+      console.log('📊 Progress data:', progress ? `${progress.records.length} records` : 'null');
       setProgressData(progress);
     } catch (error) {
+      console.error('❌ Error loading progress:', error);
     } finally {
       setLoading(false);
     }
@@ -176,7 +179,7 @@ export default function ExerciseDetailScreen({ navigation, route }) {
             color: Colors.text,
             numberOfLines: 1,
           }}>
-            {exercise?.name || "Exercise Detail"}
+            {exercise?.displayName || exercise?.name || "Exercise Detail"}
           </Text>
           <Text style={{
             fontSize: getResponsiveFontSize(Typography.fontSize.sm),
@@ -260,7 +263,7 @@ export default function ExerciseDetailScreen({ navigation, route }) {
             paddingHorizontal: getResponsiveSpacing(0.5),
             flexWrap: 'wrap',
           }}>
-            {exercise?.name || 'NO NAME'}
+            {exercise?.displayName || exercise?.name || 'NO NAME'}
           </Text>
 
         {/* Equipment and Difficulty - Responsive Layout */}
@@ -296,21 +299,35 @@ export default function ExerciseDetailScreen({ navigation, route }) {
           </View>
 
           <View style={{
-            backgroundColor: getDifficultyColor(exercise?.difficulty) + '20',
-            paddingHorizontal: getResponsiveSpacing(0.75),
-            paddingVertical: getResponsiveSpacing(0.5),
-            borderRadius: BorderRadius.md,
-            minHeight: getResponsiveSize(36, 40, 44),
-            justifyContent: 'center',
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: getResponsiveSpacing(0.5),
           }}>
-            <Text style={{
-              fontSize: getResponsiveFontSize(Typography.fontSize.md),
-              color: getDifficultyColor(exercise?.difficulty),
-              fontWeight: 'bold',
-              textAlign: 'center',
-            }}>
-              {exercise?.difficulty || 'Unknown'}
-            </Text>
+            {exercise?.difficulty === 'Beginner' && (
+              <View style={{
+                width: 24,
+                height: 24,
+                backgroundColor: '#4CAF50',
+                borderRadius: 12,
+              }} />
+            )}
+            {exercise?.difficulty === 'Intermediate' && (
+              <View style={{
+                width: 24,
+                height: 24,
+                backgroundColor: '#FF9800',
+                transform: [{ rotate: '45deg' }],
+                borderRadius: 4,
+              }} />
+            )}
+            {exercise?.difficulty === 'Advanced' && (
+              <View style={{
+                width: 24,
+                height: 24,
+                backgroundColor: '#F44336',
+                borderRadius: 0,
+              }} />
+            )}
           </View>
         </View>
 
