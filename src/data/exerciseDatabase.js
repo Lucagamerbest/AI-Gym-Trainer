@@ -2572,6 +2572,990 @@ export const exerciseDatabase = {
       "difficulty": "Beginner",
       "instructions": "A fundamental glute exercise performed lying on the ground. Drive hips upward by squeezing glutes, forming a straight line from shoulders to knees. Barbell allows progressive overload, dumbbell is more accessible, and bodyweight is perfect for beginners or activation work. Excellent for learning proper glute engagement and building the glute bridge pattern."
     }
+  ],
+  "forearms": [
+    {
+      "id": "forearms-1",
+      "name": "Wrist Curl",
+      "muscleGroup": "Forearms",
+      "primaryMuscles": ["Forearms", "Wrist Flexors"],
+      "secondaryMuscles": ["Grip"],
+      "equipment": "Barbell, Dumbbell, Cable",
+      "difficulty": "Beginner",
+      "instructions": "A fundamental forearm exercise targeting the wrist flexors. Sit with forearms resting on thighs or bench, palms facing up. Allow the weight to roll down to fingertips, then curl wrists upward contracting forearms. Barbell allows bilateral work with heavier loads, dumbbells provide independent arm training, and cables offer constant tension throughout the movement.",
+      "variants": [
+        {
+          "equipment": "Barbell",
+          "difficulty": "Beginner",
+          "pros": [
+            "Allows heavier loading for strength development",
+            "Both forearms work together for balanced development",
+            "Simple setup and execution",
+            "Easy to progressively overload"
+          ],
+          "cons": [
+            "May create imbalances if one side is weaker",
+            "Fixed grip position may be uncomfortable for some",
+            "Requires stable positioning to avoid dropping"
+          ],
+          "setupTips": [
+            "Sit with forearms supported on bench or thighs",
+            "Grip barbell with palms facing up, hands shoulder-width",
+            "Let weight roll to fingertips with wrists extended",
+            "Curl wrists upward, contracting forearms fully",
+            "Control the descent back to starting position"
+          ]
+        },
+        {
+          "equipment": "Dumbbell",
+          "difficulty": "Beginner",
+          "pros": [
+            "Each forearm works independently",
+            "Natural grip angle reduces wrist strain",
+            "Can identify and correct strength imbalances",
+            "Easy to perform with minimal equipment"
+          ],
+          "cons": [
+            "Lighter loads than barbell variation",
+            "Requires more stability and control",
+            "Takes longer to complete both arms"
+          ],
+          "setupTips": [
+            "Support one forearm on bench with palm up",
+            "Hold dumbbell with wrist extended",
+            "Roll weight to fingertips then curl upward",
+            "Focus on full range of motion",
+            "Complete all reps before switching arms"
+          ]
+        },
+        {
+          "equipment": "Cable",
+          "difficulty": "Beginner",
+          "pros": [
+            "Constant tension throughout movement",
+            "Smooth resistance curve",
+            "Easy to adjust weight quickly",
+            "Reduced stress on wrist joint"
+          ],
+          "cons": [
+            "Requires cable machine access",
+            "Setup takes more time",
+            "May feel less stable than free weights"
+          ],
+          "setupTips": [
+            "Attach straight bar to low cable pulley",
+            "Kneel or sit facing away from machine",
+            "Rest forearms on bench with palms up",
+            "Curl wrists against cable resistance",
+            "Maintain constant tension throughout set"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "forearms-2",
+      "name": "Reverse Wrist Curl",
+      "muscleGroup": "Forearms",
+      "primaryMuscles": ["Forearms", "Wrist Extensors"],
+      "secondaryMuscles": ["Grip"],
+      "equipment": "Barbell, Dumbbell, EZ Bar",
+      "difficulty": "Beginner",
+      "instructions": "Targets the wrist extensors on top of the forearm. Sit with forearms supported, palms facing down. Lower the weight by extending wrists downward, then curl wrists upward contracting the forearm extensors. This exercise is crucial for balanced forearm development and injury prevention.",
+      "variants": [
+        {
+          "equipment": "Barbell",
+          "difficulty": "Beginner",
+          "pros": [
+            "Bilateral training for balanced development",
+            "Simple and effective movement pattern",
+            "Good for building extensor strength",
+            "Easy to track progressive overload"
+          ],
+          "cons": [
+            "Can be uncomfortable on wrists",
+            "Fixed grip may cause strain",
+            "Typically uses lighter weights than wrist curls"
+          ],
+          "setupTips": [
+            "Sit with forearms on bench, palms down",
+            "Grip barbell with hands shoulder-width apart",
+            "Lower weight by extending wrists downward",
+            "Curl wrists upward, contracting extensors",
+            "Use lighter weight than regular wrist curls"
+          ]
+        },
+        {
+          "equipment": "Dumbbell",
+          "difficulty": "Beginner",
+          "pros": [
+            "Natural wrist angle reduces discomfort",
+            "Independent arm training",
+            "Better for identifying imbalances",
+            "More comfortable grip position"
+          ],
+          "cons": [
+            "Requires more stability",
+            "Takes longer to train both arms",
+            "Lower total load capacity"
+          ],
+          "setupTips": [
+            "Support forearm on bench, palm down",
+            "Hold dumbbell with wrist extended downward",
+            "Curl wrist upward against resistance",
+            "Focus on controlled movement",
+            "Keep forearm stable on support"
+          ]
+        },
+        {
+          "equipment": "EZ Bar",
+          "difficulty": "Beginner",
+          "pros": [
+            "Angled grip reduces wrist strain",
+            "More comfortable than straight bar",
+            "Good compromise between barbell and dumbbells",
+            "Allows heavier loading than dumbbells"
+          ],
+          "cons": [
+            "Requires EZ bar availability",
+            "Still has fixed grip position",
+            "May not fit all grip preferences"
+          ],
+          "setupTips": [
+            "Use close grip on angled portion of bar",
+            "Rest forearms on bench with palms down",
+            "Lower bar by extending wrists",
+            "Curl wrists upward through full range",
+            "Keep movement controlled and smooth"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "forearms-3",
+      "name": "Farmer's Walk",
+      "muscleGroup": "Forearms",
+      "primaryMuscles": ["Forearms", "Grip Strength"],
+      "secondaryMuscles": ["Traps", "Core", "Shoulders"],
+      "equipment": "Dumbbell, Trap Bar, Kettlebell",
+      "difficulty": "Beginner",
+      "instructions": "A functional exercise that builds crushing grip strength and overall forearm endurance. Hold heavy weights at your sides and walk for distance or time. This exercise also develops core stability, trap strength, and overall conditioning. Essential for functional strength and grip development.",
+      "variants": [
+        {
+          "equipment": "Dumbbell",
+          "difficulty": "Beginner",
+          "pros": [
+            "Most accessible equipment option",
+            "Natural grip position",
+            "Easy to scale weight appropriately",
+            "Builds functional carrying strength",
+            "Great for grip endurance"
+          ],
+          "cons": [
+            "May need heavy dumbbells for advanced lifters",
+            "Can be limited by gym equipment",
+            "Requires adequate walking space"
+          ],
+          "setupTips": [
+            "Select heavy dumbbells you can hold for 30-60 seconds",
+            "Stand tall with weights at sides",
+            "Engage core and maintain upright posture",
+            "Walk with controlled steps for distance or time",
+            "Squeeze handles hard throughout movement"
+          ]
+        },
+        {
+          "equipment": "Trap Bar",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Allows very heavy loading",
+            "Balanced weight distribution",
+            "Excellent for grip strength development",
+            "Natural hand position reduces strain",
+            "Can use same equipment as trap bar deadlifts"
+          ],
+          "cons": [
+            "Requires trap bar and adequate space",
+            "Less portable than dumbbells",
+            "May not fit through narrow spaces"
+          ],
+          "setupTips": [
+            "Load trap bar with appropriate weight",
+            "Step inside and grip handles",
+            "Lift with proper deadlift form",
+            "Walk maintaining upright posture",
+            "Focus on not dropping shoulders forward"
+          ]
+        },
+        {
+          "equipment": "Kettlebell",
+          "difficulty": "Beginner",
+          "pros": [
+            "Compact and easy to handle",
+            "Slightly offset center of mass challenges stability",
+            "Great for home gym setups",
+            "Versatile for other exercises"
+          ],
+          "cons": [
+            "Handle design may differ from dumbbells",
+            "Weight increases in larger increments",
+            "May have limited heavy options"
+          ],
+          "setupTips": [
+            "Hold kettlebells by handles at sides",
+            "Keep wrists neutral and straight",
+            "Maintain tall posture with chest up",
+            "Take controlled steps forward",
+            "Focus on maintaining grip throughout walk"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "forearms-4",
+      "name": "Plate Pinch",
+      "muscleGroup": "Forearms",
+      "primaryMuscles": ["Forearms", "Pinch Grip"],
+      "secondaryMuscles": ["Fingers", "Thumb"],
+      "equipment": "Two Plates Smooth, Single Plate, Weight Plate Hold",
+      "difficulty": "Intermediate",
+      "instructions": "Develops pinch grip strength by holding weight plates between fingers and thumb. Hold plates smooth side out for maximum challenge. This exercise specifically targets thumb and finger strength, crucial for activities requiring pinching force. Hold for time to build grip endurance.",
+      "variants": [
+        {
+          "equipment": "Two Plates Smooth",
+          "difficulty": "Advanced",
+          "pros": [
+            "Maximum pinch grip challenge",
+            "Builds exceptional thumb strength",
+            "Progressive by adding plate weight",
+            "Develops crushing pinch grip",
+            "Excellent for rock climbing and grip sports"
+          ],
+          "cons": [
+            "Very challenging for beginners",
+            "Requires smooth-sided plates",
+            "Can be fatiguing quickly",
+            "Limited by thumb strength"
+          ],
+          "setupTips": [
+            "Place two plates together, smooth sides out",
+            "Pinch plates between thumb and fingers",
+            "Stand tall with arm at side",
+            "Hold for maximum time",
+            "Start with lighter plates and progress"
+          ]
+        },
+        {
+          "equipment": "Single Plate",
+          "difficulty": "Intermediate",
+          "pros": [
+            "More manageable for beginners",
+            "Still very effective for pinch grip",
+            "Easier to control",
+            "Can use various plate weights"
+          ],
+          "cons": [
+            "Less challenging than two plates",
+            "May progress quickly beyond single plate capacity",
+            "Requires smooth plates for best results"
+          ],
+          "setupTips": [
+            "Hold single plate by pinching smooth edge",
+            "Use thumb on one side, fingers on other",
+            "Keep arm straight at side",
+            "Hold for time, aim for 30-60 seconds",
+            "Progress to heavier plates or two plates"
+          ]
+        },
+        {
+          "equipment": "Weight Plate Hold",
+          "difficulty": "Beginner",
+          "pros": [
+            "Great starting point for grip training",
+            "Can use textured or smooth plates",
+            "Easy to implement in any gym",
+            "Good for timed holds and endurance"
+          ],
+          "cons": [
+            "Less specific to pinch grip",
+            "May not challenge thumb as much",
+            "Easier than smooth plate variations"
+          ],
+          "setupTips": [
+            "Hold plate by edge using comfortable grip",
+            "Can use single hand or both hands",
+            "Stand or sit with plate at side",
+            "Focus on maintaining grip for time",
+            "Progress by increasing weight or time"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "forearms-5",
+      "name": "Wrist Roller",
+      "muscleGroup": "Forearms",
+      "primaryMuscles": ["Forearms", "Wrist Flexors", "Wrist Extensors"],
+      "secondaryMuscles": ["Grip", "Shoulders"],
+      "equipment": "Standing, Seated",
+      "difficulty": "Intermediate",
+      "instructions": "A classic forearm developer using a rope or strap attached to a weight. Roll the weight up by rotating wrists in alternating fashion, then control the descent. This exercise builds both forearm flexors and extensors while developing grip endurance. Can be performed standing or seated.",
+      "variants": [
+        {
+          "equipment": "Standing",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Engages entire body for stability",
+            "Builds forearm strength and endurance",
+            "Works both flexors and extensors",
+            "Classic old-school exercise",
+            "Can be done with simple DIY equipment"
+          ],
+          "cons": [
+            "Requires specific equipment or DIY setup",
+            "Can fatigue shoulders holding arms extended",
+            "Takes time to complete full set",
+            "Difficult to isolate forearms completely"
+          ],
+          "setupTips": [
+            "Hold roller with arms extended in front",
+            "Stand with feet shoulder-width apart",
+            "Roll weight up using alternating wrist motions",
+            "Keep arms parallel to ground throughout",
+            "Control weight on descent for maximum benefit"
+          ]
+        },
+        {
+          "equipment": "Seated",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Removes shoulder fatigue from equation",
+            "Better isolation of forearm muscles",
+            "More comfortable for longer sets",
+            "Easier to maintain form",
+            "Can focus purely on forearm work"
+          ],
+          "cons": [
+            "Requires specific setup or equipment",
+            "Less functional than standing variation",
+            "May need bench or elevated surface"
+          ],
+          "setupTips": [
+            "Sit with forearms supported on thighs or bench",
+            "Hold roller with wrists extended past knees",
+            "Roll weight up using wrist rotation",
+            "Control descent slowly for eccentric work",
+            "Complete both roll up and roll down for full set"
+          ]
+        }
+      ]
+    }
+  ],
+  "cardio": [
+    {
+      "id": "cardio-1",
+      "name": "Treadmill",
+      "muscleGroup": "Cardio",
+      "primaryMuscles": ["Cardiovascular System", "Legs"],
+      "secondaryMuscles": ["Calves", "Core"],
+      "equipment": "Walking, Jogging, Running, Incline Walking, HIIT Intervals",
+      "difficulty": "Beginner",
+      "instructions": "A versatile cardiovascular exercise machine allowing various training intensities from walking to sprinting. Adjust speed and incline to target different energy systems and intensities. Walking is great for recovery and fat burning, jogging for steady-state cardio, running for higher intensity, incline walking for glute and hamstring emphasis, and HIIT intervals for maximum metabolic effect.",
+      "variants": [
+        {
+          "equipment": "Walking",
+          "difficulty": "Beginner",
+          "pros": [
+            "Low impact on joints",
+            "Sustainable for long durations",
+            "Great for fat burning and recovery",
+            "Accessible for all fitness levels",
+            "Can be done while watching content"
+          ],
+          "cons": [
+            "Lower calorie burn than higher intensities",
+            "Less cardiovascular challenge",
+            "May not improve fitness as quickly"
+          ],
+          "setupTips": [
+            "Start at comfortable pace (2.5-4 mph)",
+            "Maintain upright posture",
+            "Swing arms naturally",
+            "Aim for 30-60 minutes for fat burning",
+            "Can increase incline for more challenge"
+          ]
+        },
+        {
+          "equipment": "Jogging",
+          "difficulty": "Beginner",
+          "pros": [
+            "Good cardiovascular training stimulus",
+            "Moderate calorie burn",
+            "Builds aerobic base",
+            "Sustainable for moderate durations",
+            "Improves running efficiency"
+          ],
+          "cons": [
+            "More impact than walking",
+            "May be too intense for beginners",
+            "Can be monotonous"
+          ],
+          "setupTips": [
+            "Set pace between 4.5-6.5 mph",
+            "Maintain conversational pace",
+            "Focus on steady breathing rhythm",
+            "Start with 20-30 minutes",
+            "Gradually increase duration"
+          ]
+        },
+        {
+          "equipment": "Running",
+          "difficulty": "Intermediate",
+          "pros": [
+            "High calorie burn",
+            "Excellent cardiovascular training",
+            "Builds speed and endurance",
+            "Time-efficient workout",
+            "Improves VO2 max"
+          ],
+          "cons": [
+            "High impact on joints",
+            "Not sustainable for long durations",
+            "Requires good fitness base",
+            "Higher injury risk"
+          ],
+          "setupTips": [
+            "Set pace above 6.5 mph",
+            "Warm up thoroughly before running",
+            "Maintain proper running form",
+            "Limit duration based on fitness level",
+            "Cool down with walking afterward"
+          ]
+        },
+        {
+          "equipment": "Incline Walking",
+          "difficulty": "Beginner",
+          "pros": [
+            "Targets glutes and hamstrings more",
+            "Lower impact than running",
+            "Higher calorie burn than flat walking",
+            "Mimics hill training",
+            "Joint-friendly intensity"
+          ],
+          "cons": [
+            "Can be harder on ankles and Achilles",
+            "May need to slow pace on steep inclines",
+            "Some treadmills have limited incline"
+          ],
+          "setupTips": [
+            "Set incline between 5-15%",
+            "Reduce speed to 2.5-3.5 mph",
+            "Stand upright, don't lean on handles",
+            "Focus on pushing through heels",
+            "Great for glute development while doing cardio"
+          ]
+        },
+        {
+          "equipment": "HIIT Intervals",
+          "difficulty": "Advanced",
+          "pros": [
+            "Maximum calorie burn and afterburn effect",
+            "Time-efficient workout",
+            "Improves both aerobic and anaerobic capacity",
+            "Boosts metabolism for hours after",
+            "Prevents adaptation to steady-state cardio"
+          ],
+          "cons": [
+            "Very demanding",
+            "Requires good fitness base",
+            "Higher injury risk if not careful",
+            "Can be too intense for beginners"
+          ],
+          "setupTips": [
+            "Warm up thoroughly for 5-10 minutes",
+            "Sprint at 80-90% max effort for 30-60 seconds",
+            "Recover with slow walk for 60-120 seconds",
+            "Repeat for 10-20 minutes total",
+            "Cool down with easy walking"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cardio-2",
+      "name": "Stationary Bike",
+      "muscleGroup": "Cardio",
+      "primaryMuscles": ["Cardiovascular System", "Quadriceps"],
+      "secondaryMuscles": ["Hamstrings", "Calves", "Glutes"],
+      "equipment": "Steady State, HIIT, Spin Class",
+      "difficulty": "Beginner",
+      "instructions": "Low-impact cardiovascular exercise using a stationary bicycle. Adjust resistance and cadence to control intensity. Excellent option for those with joint issues or recovering from injury. Can be used for steady-state cardio, high-intensity intervals, or structured spin classes for variety and motivation.",
+      "variants": [
+        {
+          "equipment": "Steady State",
+          "difficulty": "Beginner",
+          "pros": [
+            "Very low impact on joints",
+            "Sustainable for long durations",
+            "Great for active recovery",
+            "Can read or watch content while training",
+            "Builds aerobic base efficiently"
+          ],
+          "cons": [
+            "Can be monotonous",
+            "Lower calorie burn than higher intensities",
+            "May cause seat discomfort on long rides"
+          ],
+          "setupTips": [
+            "Adjust seat height so knee is slightly bent at bottom",
+            "Maintain moderate resistance and cadence (60-80 RPM)",
+            "Keep upper body relaxed",
+            "Aim for 30-60 minutes",
+            "Monitor heart rate to stay in aerobic zone"
+          ]
+        },
+        {
+          "equipment": "HIIT",
+          "difficulty": "Advanced",
+          "pros": [
+            "High calorie burn in short time",
+            "Builds both aerobic and anaerobic capacity",
+            "Low impact despite high intensity",
+            "Great for fat loss",
+            "Improves power output"
+          ],
+          "cons": [
+            "Very demanding",
+            "Can cause nausea if too intense",
+            "Requires good fitness base"
+          ],
+          "setupTips": [
+            "Warm up for 5-10 minutes",
+            "Sprint at high resistance for 20-40 seconds",
+            "Recover with light pedaling for 60-90 seconds",
+            "Repeat for 10-20 minutes",
+            "Cool down thoroughly"
+          ]
+        },
+        {
+          "equipment": "Spin Class",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Structured workout with variety",
+            "Motivating group environment",
+            "Instructor guidance on form and pacing",
+            "Music-driven intensity",
+            "Combines different training styles"
+          ],
+          "cons": [
+            "Class schedule may not fit your timing",
+            "Pace controlled by instructor",
+            "May be too intense or not challenging enough",
+            "Requires class membership or fee"
+          ],
+          "setupTips": [
+            "Arrive early to set up bike properly",
+            "Adjust resistance to your fitness level",
+            "Don't feel pressured to match everyone's pace",
+            "Stay hydrated throughout class",
+            "Focus on your own effort, not competition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cardio-3",
+      "name": "Rowing Machine",
+      "muscleGroup": "Cardio",
+      "primaryMuscles": ["Cardiovascular System", "Back", "Legs"],
+      "secondaryMuscles": ["Core", "Arms", "Shoulders"],
+      "equipment": "Steady State, HIIT Intervals",
+      "difficulty": "Intermediate",
+      "instructions": "Full-body cardiovascular exercise using a rowing ergometer. Combines leg drive, core engagement, and upper body pull for comprehensive conditioning. Excellent for building both cardiovascular endurance and muscular endurance across the entire body. Low impact despite high intensity potential.",
+      "variants": [
+        {
+          "equipment": "Steady State",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Full-body cardiovascular workout",
+            "Low impact on joints",
+            "Builds muscular endurance alongside cardio",
+            "Burns more calories than many other cardio options",
+            "Excellent for posterior chain development"
+          ],
+          "cons": [
+            "Requires proper technique to avoid injury",
+            "Can be fatiguing for lower back if form breaks down",
+            "May be challenging for beginners"
+          ],
+          "setupTips": [
+            "Start with legs drive, then lean back, then pull arms",
+            "Reverse the sequence on return: arms, lean, legs",
+            "Maintain strong core throughout movement",
+            "Aim for stroke rate of 20-24 strokes per minute",
+            "Keep consistent pace for 20-45 minutes"
+          ]
+        },
+        {
+          "equipment": "HIIT Intervals",
+          "difficulty": "Advanced",
+          "pros": [
+            "Maximum calorie burn",
+            "Full-body high-intensity training",
+            "Builds explosive power",
+            "Improves cardiovascular capacity rapidly",
+            "Time-efficient workout"
+          ],
+          "cons": [
+            "Very demanding on entire body",
+            "Easy to break form when fatigued",
+            "Can cause lower back strain if not careful",
+            "Requires solid rowing technique"
+          ],
+          "setupTips": [
+            "Warm up with 5-10 minutes easy rowing",
+            "Sprint with high power for 30-45 seconds",
+            "Recover with easy rowing for 60-90 seconds",
+            "Maintain proper form even when fatigued",
+            "Stop if form deteriorates significantly"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cardio-4",
+      "name": "Elliptical",
+      "muscleGroup": "Cardio",
+      "primaryMuscles": ["Cardiovascular System", "Legs"],
+      "secondaryMuscles": ["Glutes", "Core", "Arms"],
+      "equipment": "Forward, Reverse, HIIT",
+      "difficulty": "Beginner",
+      "instructions": "Low-impact cardiovascular machine with elliptical motion path. Provides smooth movement that's easy on joints while engaging both upper and lower body. Can be performed in forward or reverse direction to target muscles differently. Great option for those with joint issues or seeking variety in cardio training.",
+      "variants": [
+        {
+          "equipment": "Forward",
+          "difficulty": "Beginner",
+          "pros": [
+            "Extremely low impact",
+            "Natural forward motion feels intuitive",
+            "Engages both upper and lower body",
+            "Easy on joints while still providing cardio",
+            "Can sustain for long durations"
+          ],
+          "cons": [
+            "Can feel repetitive",
+            "Less calorie burn than running",
+            "Easy to \"cheat\" by using momentum",
+            "May not provide enough challenge for advanced athletes"
+          ],
+          "setupTips": [
+            "Stand upright with hands on moving handles",
+            "Push through full range of motion",
+            "Don't just let machine move your legs",
+            "Increase resistance for more challenge",
+            "Aim for 20-45 minutes steady-state"
+          ]
+        },
+        {
+          "equipment": "Reverse",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Targets glutes and hamstrings more",
+            "Adds variety to elliptical training",
+            "Still low impact like forward direction",
+            "Works different muscle activation patterns",
+            "Good for balanced leg development"
+          ],
+          "cons": [
+            "Feels awkward initially",
+            "Requires more focus and coordination",
+            "May be harder to maintain long durations"
+          ],
+          "setupTips": [
+            "Pedal backward maintaining smooth motion",
+            "Focus on pushing through heels",
+            "Keep chest up and core engaged",
+            "Start with shorter duration until comfortable",
+            "Can alternate between forward and reverse"
+          ]
+        },
+        {
+          "equipment": "HIIT",
+          "difficulty": "Advanced",
+          "pros": [
+            "High-intensity cardio without joint impact",
+            "Great option for interval training with injuries",
+            "Burns significant calories",
+            "Builds leg muscular endurance",
+            "Safer than treadmill sprints for many people"
+          ],
+          "cons": [
+            "Easy to lose form when fatigued",
+            "May not feel as intense as other HIIT options",
+            "Can be limited by machine resistance"
+          ],
+          "setupTips": [
+            "Warm up for 5-10 minutes at easy pace",
+            "Sprint at high resistance for 30-60 seconds",
+            "Recover with easy pace for 60-90 seconds",
+            "Maintain proper posture throughout intervals",
+            "Cool down with easy pace"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cardio-5",
+      "name": "Jump Rope",
+      "muscleGroup": "Cardio",
+      "primaryMuscles": ["Cardiovascular System", "Calves"],
+      "secondaryMuscles": ["Shoulders", "Core", "Coordination"],
+      "equipment": "Regular Bounce, Double Unders, HIIT",
+      "difficulty": "Intermediate",
+      "instructions": "Classic cardiovascular exercise using a jump rope. Highly portable and effective for building conditioning, coordination, and calf strength. Can be scaled from beginner single bounces to advanced double unders. Excellent warm-up tool or standalone cardio workout. Minimal equipment required.",
+      "variants": [
+        {
+          "equipment": "Regular Bounce",
+          "difficulty": "Beginner",
+          "pros": [
+            "Minimal equipment needed",
+            "Highly portable",
+            "Excellent for coordination",
+            "Builds calf strength and endurance",
+            "Can be done almost anywhere"
+          ],
+          "cons": [
+            "Requires coordination to learn",
+            "High impact on ankles and knees",
+            "Need adequate ceiling height",
+            "Can be frustrating for beginners"
+          ],
+          "setupTips": [
+            "Adjust rope length so handles reach armpits",
+            "Jump on balls of feet with minimal knee bend",
+            "Keep elbows close to body, rotate from wrists",
+            "Start with 30-60 second intervals",
+            "Rest as needed while learning"
+          ]
+        },
+        {
+          "equipment": "Double Unders",
+          "difficulty": "Advanced",
+          "pros": [
+            "Extremely high calorie burn",
+            "Builds explosive calf power",
+            "Improves timing and coordination",
+            "Time-efficient conditioning",
+            "CrossFit competition standard"
+          ],
+          "cons": [
+            "Difficult to learn",
+            "Very high impact",
+            "Can cause shin splints if overused",
+            "Frustrating while learning"
+          ],
+          "setupTips": [
+            "Jump higher than single bounces",
+            "Spin rope faster with wrist flick",
+            "Practice single-single-double rhythm",
+            "Land softly on balls of feet",
+            "Master regular bounces first"
+          ]
+        },
+        {
+          "equipment": "HIIT",
+          "difficulty": "Advanced",
+          "pros": [
+            "Maximum conditioning in minimal time",
+            "Builds mental toughness",
+            "Improves anaerobic capacity",
+            "Highly effective for fat loss",
+            "Can be done anywhere"
+          ],
+          "cons": [
+            "Very demanding",
+            "High injury risk if not careful",
+            "Requires solid jump rope skill base",
+            "Can be too intense for beginners"
+          ],
+          "setupTips": [
+            "Warm up with 3-5 minutes easy jumping",
+            "Sprint maximum effort for 20-40 seconds",
+            "Rest completely for 60-90 seconds",
+            "Repeat for 10-15 minutes total",
+            "Focus on maintaining form when fatigued"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cardio-6",
+      "name": "Stair Climber",
+      "muscleGroup": "Cardio",
+      "primaryMuscles": ["Cardiovascular System", "Glutes", "Quadriceps"],
+      "secondaryMuscles": ["Hamstrings", "Calves", "Core"],
+      "equipment": "Steady Pace, HIIT, Skip-a-Step",
+      "difficulty": "Intermediate",
+      "instructions": "Cardiovascular exercise machine simulating stair climbing. Excellent for building lower body strength and conditioning simultaneously. Targets glutes and legs while providing cardiovascular training. Can be adjusted from steady-state climbing to high-intensity intervals. Great option for those seeking lower body emphasis in cardio.",
+      "variants": [
+        {
+          "equipment": "Steady Pace",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Excellent glute and leg development",
+            "Lower impact than running",
+            "High calorie burn",
+            "Functional movement pattern",
+            "Builds lower body muscular endurance"
+          ],
+          "cons": [
+            "Can be monotonous",
+            "Fatiguing for legs and glutes",
+            "May cause knee discomfort for some",
+            "Tempting to lean on rails"
+          ],
+          "setupTips": [
+            "Stand upright without leaning on rails",
+            "Push through heels for glute engagement",
+            "Maintain steady, sustainable pace",
+            "Start with 15-30 minutes",
+            "Gradually increase duration or speed"
+          ]
+        },
+        {
+          "equipment": "HIIT",
+          "difficulty": "Advanced",
+          "pros": [
+            "Intense lower body and cardio workout",
+            "High calorie and fat burn",
+            "Builds leg power and endurance",
+            "Time-efficient training",
+            "Great for athletic conditioning"
+          ],
+          "cons": [
+            "Very demanding on legs",
+            "Can cause excessive fatigue",
+            "Easy to lose form when tired",
+            "May be too intense for beginners"
+          ],
+          "setupTips": [
+            "Warm up with 5 minutes easy climbing",
+            "Sprint at high speed for 30-45 seconds",
+            "Recover at slow pace for 60-90 seconds",
+            "Avoid leaning on rails during sprints",
+            "Stop if form deteriorates"
+          ]
+        },
+        {
+          "equipment": "Skip-a-Step",
+          "difficulty": "Advanced",
+          "pros": [
+            "Maximum glute activation",
+            "Builds single-leg power",
+            "Mimics climbing tall stairs",
+            "Higher calorie burn than regular stepping",
+            "Excellent for glute development"
+          ],
+          "cons": [
+            "Very demanding on glutes and legs",
+            "Higher injury risk if not careful",
+            "Requires good balance and coordination",
+            "Can't sustain as long as regular pace"
+          ],
+          "setupTips": [
+            "Skip every other step for double range of motion",
+            "Drive powerfully through heel",
+            "Keep core engaged for balance",
+            "Start with shorter intervals",
+            "Maintain controlled movement throughout"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cardio-7",
+      "name": "Burpees",
+      "muscleGroup": "Cardio",
+      "primaryMuscles": ["Cardiovascular System", "Full Body"],
+      "secondaryMuscles": ["Chest", "Shoulders", "Core", "Legs"],
+      "equipment": "Bodyweight, Push-up Burpees, Box Jump Burpees",
+      "difficulty": "Intermediate",
+      "instructions": "Full-body bodyweight exercise combining a squat, plank, push-up, and jump. One of the most effective conditioning exercises requiring no equipment. Builds cardiovascular endurance, muscular endurance, and explosive power. Can be scaled from basic version to advanced variations for all fitness levels.",
+      "variants": [
+        {
+          "equipment": "Bodyweight",
+          "difficulty": "Intermediate",
+          "pros": [
+            "No equipment needed",
+            "Full-body conditioning",
+            "High calorie burn",
+            "Can be done anywhere",
+            "Builds mental toughness"
+          ],
+          "cons": [
+            "Very fatiguing",
+            "Can be hard on wrists",
+            "Challenging for beginners",
+            "Easy to lose form when tired"
+          ],
+          "setupTips": [
+            "Start standing, drop to plank position",
+            "Optional: perform push-up at bottom",
+            "Jump feet back to hands",
+            "Explode upward with jump",
+            "Land softly and repeat"
+          ]
+        },
+        {
+          "equipment": "Push-up Burpees",
+          "difficulty": "Advanced",
+          "pros": [
+            "Adds upper body strength component",
+            "More complete full-body exercise",
+            "Higher calorie burn",
+            "Builds push-up strength endurance",
+            "Better for overall conditioning"
+          ],
+          "cons": [
+            "Much more demanding",
+            "Can cause form breakdown quickly",
+            "Harder on shoulders and chest",
+            "Not sustainable for long durations"
+          ],
+          "setupTips": [
+            "Include full push-up at bottom of each rep",
+            "Maintain plank position during push-up",
+            "Keep core tight throughout movement",
+            "Scale to knee push-ups if needed",
+            "Focus on quality over speed"
+          ]
+        },
+        {
+          "equipment": "Box Jump Burpees",
+          "difficulty": "Advanced",
+          "pros": [
+            "Maximum power and conditioning stimulus",
+            "Builds explosive leg power",
+            "Extremely high calorie burn",
+            "Great for athletic conditioning",
+            "Combines strength and cardio perfectly"
+          ],
+          "cons": [
+            "Highest injury risk of burpee variations",
+            "Requires box or platform",
+            "Very demanding",
+            "Can cause Achilles issues if overused",
+            "Easy to trip when fatigued"
+          ],
+          "setupTips": [
+            "Perform burpee in front of box",
+            "Jump onto box instead of vertical jump",
+            "Land softly on box with full foot contact",
+            "Step down safely between reps",
+            "Use appropriate box height for fitness level"
+          ]
+        }
+      ]
+    }
   ]
 };
 
@@ -2660,6 +3644,8 @@ export const getAllExercises = () => {
     ...exerciseDatabase.triceps,
     ...exerciseDatabase.abs,
     ...exerciseDatabase.legs,
+    ...exerciseDatabase.forearms,
+    ...exerciseDatabase.cardio,
     ...(exerciseDatabase.other || [])
   ];
 };
