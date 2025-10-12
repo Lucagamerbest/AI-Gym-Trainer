@@ -75,7 +75,7 @@ const isCardioExercise = (exercise) => {
 };
 
 // Exercise Card Component
-const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exerciseSets, onUpdateSet, onAddSet, onDeleteSet, onShowInfo, onSelectSetType, fromProgram, rpeEnabled, onStartCardioTimer, onPauseCardioTimer, cardioTimers }) => {
+const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exerciseSets, onUpdateSet, onAddSet, onDeleteSet, onShowInfo, onSelectSetType, onPairSuperset, supersetPairIndex, fromProgram, rpeEnabled, onStartCardioTimer, onPauseCardioTimer, cardioTimers }) => {
 
   // Function to get set type color
   const getSetTypeColor = (type) => {
@@ -83,6 +83,7 @@ const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exercise
       case 'warmup': return '#FFA500'; // Orange
       case 'dropset': return '#9B59B6'; // Purple
       case 'failure': return '#E74C3C'; // Red
+      case 'superset': return '#3498DB'; // Blue
       default: return Colors.primary; // Green for normal
     }
   };
@@ -93,6 +94,7 @@ const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exercise
       case 'warmup': return 'Warmup';
       case 'dropset': return 'Drop';
       case 'failure': return 'Failure';
+      case 'superset': return 'S';
       default: return '';
     }
   };
@@ -112,7 +114,8 @@ const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exercise
     <View
       style={[
         styles.exerciseCard,
-        isSelected && styles.currentExerciseCard
+        isSelected && styles.currentExerciseCard,
+        supersetPairIndex !== null && supersetPairIndex !== undefined && styles.supersetPairedCard
       ]}
     >
         {/* Exercise Header */}
@@ -125,28 +128,37 @@ const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exercise
               <Text style={styles.exerciseListNumber}>
                 {index + 1}
               </Text>
-              <Text style={styles.exerciseListName}>
+              <Text style={styles.exerciseListName} numberOfLines={1} ellipsizeMode="tail">
                 {exercise.name}
               </Text>
             </View>
-            <Text style={styles.exerciseListMeta}>
-              {exercise.equipment} • {exercise.difficulty}
-            </Text>
+            {supersetPairIndex !== null && supersetPairIndex !== undefined && (
+              <View style={styles.supersetBadgeRow}>
+                <Text style={styles.supersetBadgeText}>Superset with #{supersetPairIndex + 1}</Text>
+              </View>
+            )}
           </TouchableOpacity>
 
           <View style={styles.exerciseActions}>
             <TouchableOpacity
-              style={styles.infoButton}
+              style={styles.actionIconButton}
               onPress={() => onShowInfo(exercise)}
             >
-              <Text style={styles.infoButtonText}>ℹ️</Text>
+              <Text style={styles.actionIconText}>ℹ️</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.deleteButton}
+              style={[styles.actionIconButton, supersetPairIndex !== null && supersetPairIndex !== undefined && styles.pairButtonActive]}
+              onPress={() => onPairSuperset(index)}
+            >
+              <Text style={styles.actionIconText}>🔗</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.actionIconButton}
               onPress={() => onDelete(index)}
             >
-              <Text style={styles.deleteButtonText}>✕</Text>
+              <Text style={styles.actionIconText}>✕</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -323,6 +335,11 @@ export default function WorkoutScreen({ navigation, route }) {
   const [showSetTypeModal, setShowSetTypeModal] = useState(false);
   const [selectedSetForType, setSelectedSetForType] = useState({ exerciseIndex: null, setIndex: null });
   const [rpeEnabled, setRpeEnabled] = useState(false);
+
+  // Superset pairing state
+  const [supersetPairings, setSupersetPairings] = useState({}); // { exerciseIndex: pairedExerciseIndex }
+  const [showSupersetPairModal, setShowSupersetPairModal] = useState(false);
+  const [exerciseToPair, setExerciseToPair] = useState(null);
 
   // Exercise tracking state
   const [exerciseSets, setExerciseSets] = useState({});
@@ -1130,6 +1147,40 @@ export default function WorkoutScreen({ navigation, route }) {
     setSelectedSetForType({ exerciseIndex: null, setIndex: null });
   };
 
+  // Handle superset pairing
+  const handlePairSuperset = (exerciseIndex) => {
+    setExerciseToPair(exerciseIndex);
+    setShowSupersetPairModal(true);
+  };
+
+  // Apply superset pairing
+  const applySupersetPair = (pairedExerciseIndex) => {
+    if (exerciseToPair !== null && pairedExerciseIndex !== exerciseToPair) {
+      // Create bidirectional pairing
+      const newPairings = { ...supersetPairings };
+      newPairings[exerciseToPair] = pairedExerciseIndex;
+      newPairings[pairedExerciseIndex] = exerciseToPair;
+      setSupersetPairings(newPairings);
+    }
+    setShowSupersetPairModal(false);
+    setExerciseToPair(null);
+  };
+
+  // Remove superset pairing
+  const removeSupersetPair = () => {
+    if (exerciseToPair !== null) {
+      const newPairings = { ...supersetPairings };
+      const pairedIndex = newPairings[exerciseToPair];
+      delete newPairings[exerciseToPair];
+      if (pairedIndex !== undefined) {
+        delete newPairings[pairedIndex];
+      }
+      setSupersetPairings(newPairings);
+    }
+    setShowSupersetPairModal(false);
+    setExerciseToPair(null);
+  };
+
   // Delete exercise from workout
   const deleteExercise = (index) => {
     setExerciseToDelete(index);
@@ -1371,6 +1422,8 @@ export default function WorkoutScreen({ navigation, route }) {
             onDeleteSet={deleteSet}
             onShowInfo={showExerciseDetail}
             onSelectSetType={handleSelectSetType}
+            onPairSuperset={handlePairSuperset}
+            supersetPairIndex={supersetPairings[index]}
             fromProgram={activeWorkout?.fromProgram || false}
             rpeEnabled={rpeEnabled}
             onStartCardioTimer={startCardioTimer}
@@ -1614,8 +1667,75 @@ export default function WorkoutScreen({ navigation, route }) {
             </TouchableOpacity>
 
             <TouchableOpacity
+              style={[styles.setTypeOption, styles.supersetOption]}
+              onPress={() => applySetType('superset')}
+            >
+              <View style={[styles.setTypeColorIndicator, { backgroundColor: '#3498DB' }]} />
+              <Text style={styles.setTypeOptionText}>Superset</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
               style={styles.cancelButton}
               onPress={() => setShowSetTypeModal(false)}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Superset Pairing Modal */}
+      <Modal
+        visible={showSupersetPairModal}
+        transparent={true}
+        animationType="slide"
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.setTypeModalContent}>
+            <Text style={styles.modalTitle}>Pair Superset With...</Text>
+            <Text style={styles.modalSubtitle}>
+              {exerciseToPair !== null ? workoutExercises[exerciseToPair]?.name : ''}
+            </Text>
+
+            <ScrollView style={styles.supersetPairList}>
+              {workoutExercises.map((ex, index) => {
+                if (index === exerciseToPair) return null; // Don't show the exercise we're pairing
+
+                return (
+                  <TouchableOpacity
+                    key={`pair-option-${index}`}
+                    style={[
+                      styles.supersetPairOption,
+                      supersetPairings[exerciseToPair] === index && styles.supersetPairOptionActive
+                    ]}
+                    onPress={() => applySupersetPair(index)}
+                  >
+                    <View style={styles.supersetPairOptionContent}>
+                      <Text style={styles.supersetPairNumber}>{index + 1}</Text>
+                      <Text style={styles.supersetPairExerciseName}>{ex.name}</Text>
+                    </View>
+                    {supersetPairings[index] !== undefined && supersetPairings[index] !== exerciseToPair && (
+                      <Text style={styles.supersetPairAlreadyPaired}>
+                        Paired with #{supersetPairings[index] + 1}
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+
+            {supersetPairings[exerciseToPair] !== undefined && (
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonDanger]}
+                onPress={removeSupersetPair}
+              >
+                <Text style={[styles.modalButtonText, styles.modalButtonTextDanger]}>Remove Pairing</Text>
+              </TouchableOpacity>
+            )}
+
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => setShowSupersetPairModal(false)}
             >
               <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
@@ -1946,6 +2066,22 @@ const styles = StyleSheet.create({
     borderColor: Colors.primary,
     borderWidth: 2,
   },
+  supersetPairedCard: {
+    borderLeftWidth: 4,
+    borderLeftColor: '#3498DB',
+  },
+  supersetBadgeRow: {
+    backgroundColor: '#3498DB' + '10',
+    borderRadius: BorderRadius.sm,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    marginTop: 4,
+  },
+  supersetBadgeText: {
+    fontSize: Typography.fontSize.xs,
+    color: '#3498DB',
+    fontWeight: '600',
+  },
   exerciseHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1955,8 +2091,7 @@ const styles = StyleSheet.create({
   exerciseActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.xs,
-    paddingRight: Spacing.sm,
+    gap: 2,
   },
   moveButton: {
     padding: Spacing.xs,
@@ -1966,13 +2101,6 @@ const styles = StyleSheet.create({
   moveButtonText: {
     fontSize: 18,
     color: Colors.primary,
-  },
-  deleteButton: {
-    padding: Spacing.sm,
-  },
-  deleteButtonText: {
-    fontSize: 20,
-    color: Colors.textMuted,
   },
   setsContainer: {
     padding: Spacing.sm,
@@ -2122,7 +2250,6 @@ const styles = StyleSheet.create({
   exerciseListHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 2,
   },
   exerciseListNumber: {
     fontSize: Typography.fontSize.lg,
@@ -2135,23 +2262,22 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.md,
     fontWeight: 'bold',
     color: Colors.text,
-    marginBottom: Spacing.xs,
+    flex: 1,
   },
-  exerciseListMeta: {
-    fontSize: Typography.fontSize.sm,
-    color: Colors.textSecondary,
-  },
-  infoButton: {
-    padding: Spacing.xs,
+  actionIconButton: {
+    padding: 6,
     alignItems: 'center',
     justifyContent: 'center',
-    width: 32,
-    height: 32,
-    marginRight: Spacing.xs,
+    minWidth: 28,
+    height: 28,
+    marginLeft: 4,
+    borderRadius: BorderRadius.sm,
   },
-  infoButtonText: {
-    fontSize: 16,
-    color: Colors.primary,
+  actionIconText: {
+    fontSize: 15,
+  },
+  pairButtonActive: {
+    backgroundColor: '#3498DB' + '20',
   },
   exerciseCardContainer: {
     alignItems: 'center',
@@ -2557,6 +2683,9 @@ const styles = StyleSheet.create({
   failureSetOption: {
     borderColor: '#E74C3C',
   },
+  supersetOption: {
+    borderColor: '#3498DB',
+  },
   setTypeColorIndicator: {
     width: 24,
     height: 24,
@@ -2590,5 +2719,50 @@ const styles = StyleSheet.create({
   cardioTimerButtonText: {
     fontSize: 16,
     color: Colors.background,
+  },
+  // Superset Pairing Modal Styles
+  modalSubtitle: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: Spacing.md,
+  },
+  supersetPairList: {
+    maxHeight: 300,
+    marginBottom: Spacing.md,
+  },
+  supersetPairOption: {
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    marginBottom: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  supersetPairOptionActive: {
+    borderColor: '#3498DB',
+    backgroundColor: '#3498DB' + '10',
+  },
+  supersetPairOptionContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  supersetPairNumber: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: 'bold',
+    color: Colors.primary,
+    marginRight: Spacing.md,
+    minWidth: 30,
+  },
+  supersetPairExerciseName: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.text,
+    flex: 1,
+  },
+  supersetPairAlreadyPaired: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textMuted,
+    marginTop: Spacing.xs,
+    fontStyle: 'italic',
   },
 });
