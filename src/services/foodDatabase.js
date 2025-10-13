@@ -6,13 +6,12 @@ try {
   SQLite = require('expo-sqlite');
   db = SQLite.openDatabase('foodtracker.db');
 } catch (error) {
-  console.log('SQLite not available on this platform');
+  // SQLite not available on this platform
 }
 
 // Initialize database tables
 export const initDatabase = () => {
   if (!db) {
-    console.log('Database not available on this platform');
     return Promise.resolve();
   }
 
@@ -41,7 +40,7 @@ export const initDatabase = () => {
           updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
         );`,
         [],
-        () => console.log('Foods table created'),
+        () => {},
         (_, error) => console.error('Error creating foods table:', error)
       );
 
@@ -61,7 +60,7 @@ export const initDatabase = () => {
           FOREIGN KEY (food_id) REFERENCES foods (id)
         );`,
         [],
-        () => console.log('Daily consumption table created'),
+        () => {},
         (_, error) => console.error('Error creating daily consumption table:', error)
       );
 
@@ -75,7 +74,7 @@ export const initDatabase = () => {
           FOREIGN KEY (food_id) REFERENCES foods (id)
         );`,
         [],
-        () => console.log('User favorites table created'),
+        () => {},
         (_, error) => console.error('Error creating favorites table:', error)
       );
 
@@ -83,21 +82,21 @@ export const initDatabase = () => {
       tx.executeSql(
         'CREATE INDEX IF NOT EXISTS idx_foods_name ON foods (name);',
         [],
-        () => console.log('Name index created'),
+        () => {},
         (_, error) => console.error('Error creating name index:', error)
       );
 
       tx.executeSql(
         'CREATE INDEX IF NOT EXISTS idx_foods_barcode ON foods (barcode);',
         [],
-        () => console.log('Barcode index created'),
+        () => {},
         (_, error) => console.error('Error creating barcode index:', error)
       );
 
       tx.executeSql(
         'CREATE INDEX IF NOT EXISTS idx_consumption_date ON daily_consumption (date);',
         [],
-        () => console.log('Date index created'),
+        () => {},
         (_, error) => console.error('Error creating date index:', error)
       );
     },
@@ -284,7 +283,7 @@ const updateFavorites = (tx, foodId) => {
        use_count = use_count + 1,
        last_used = CURRENT_TIMESTAMP`,
     [foodId],
-    () => console.log('Favorite updated'),
+    () => {},
     (_, error) => console.error('Error updating favorite:', error)
   );
 };

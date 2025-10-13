@@ -26,8 +26,6 @@ export const initDatabase = async () => {
     const isInitialized = await AsyncStorage.getItem(DB_INITIALIZED_KEY);
 
     if (!isInitialized) {
-      console.log('Initializing comprehensive food database...');
-
       // Add all comprehensive foods to database
       let addedCount = 0;
       for (const food of comprehensiveFoods) {
@@ -39,7 +37,6 @@ export const initDatabase = async () => {
         }
       }
 
-      console.log(`Added ${addedCount} verified foods to database`);
       await AsyncStorage.setItem(DB_INITIALIZED_KEY, 'true');
     }
   } catch (error) {
@@ -166,7 +163,7 @@ export const searchFoods = async (searchQuery) => {
           }
         }
       } catch (error) {
-        console.log('API search failed, using local results only');
+        // API search failed, using local results only
       }
     }
 

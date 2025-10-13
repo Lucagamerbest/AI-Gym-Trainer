@@ -26,7 +26,6 @@ export default function FoodDetailScreen({ route, navigation }) {
   // Log screen ID when FoodDetailScreen receives it
   React.useEffect(() => {
     if (fromMealPlanTemplate && screenId) {
-      console.log('🍽️ FoodDetailScreen opened from CreateMealPlan ID:', screenId);
     }
   }, [fromMealPlanTemplate, screenId]);
 
@@ -327,7 +326,6 @@ export default function FoodDetailScreen({ route, navigation }) {
 
     // Navigate back to appropriate screen with the food data
     if (fromMealPlanTemplate) {
-      console.log('⬅️ FoodDetailScreen navigating back to CreateMealPlan ID:', screenId);
 
       // Calculate how many screens to pop to get back to CreateMealPlan
       const state = navigation.getState();
@@ -335,9 +333,6 @@ export default function FoodDetailScreen({ route, navigation }) {
       const createMealPlanIndex = state.routes.findIndex(r => r.name === 'CreateMealPlan');
 
       if (createMealPlanIndex !== -1) {
-        console.log('✅ Found existing CreateMealPlan at index:', createMealPlanIndex);
-        console.log('   Current index:', currentIndex, '- will pop', currentIndex - createMealPlanIndex, 'screen(s)');
-        console.log('   Current screenId:', state.routes[createMealPlanIndex].params?.screenId);
 
         // First, dispatch action to update the target screen's params
         navigation.dispatch({
@@ -355,7 +350,6 @@ export default function FoodDetailScreen({ route, navigation }) {
         const screensToPop = currentIndex - createMealPlanIndex;
         navigation.pop(screensToPop);
       } else {
-        console.log('⚠️ CreateMealPlan not found in stack, creating new one');
         // Fallback
         navigation.navigate('CreateMealPlan', {
           addedFood: foodData,
@@ -732,16 +726,21 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     marginHorizontal: Spacing.lg,
     marginBottom: Spacing.lg,
-    padding: Spacing.lg,
-    borderRadius: BorderRadius.lg,
-    borderWidth: 1,
+    padding: Spacing.xl,
+    borderRadius: BorderRadius.xl,
+    borderWidth: 2,
     borderColor: Colors.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
   },
   ratingHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.md,
   },
   ratingTitleRow: {
     flexDirection: 'row',
@@ -751,28 +750,43 @@ const styles = StyleSheet.create({
   nutriScoreBadge: {
     backgroundColor: Colors.primary,
     paddingHorizontal: Spacing.sm,
-    paddingVertical: 2,
-    borderRadius: BorderRadius.sm,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.md,
     marginLeft: Spacing.sm,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.3,
+    shadowRadius: 2,
+    elevation: 2,
   },
   nutriScoreText: {
     fontSize: Typography.fontSize.xs,
-    color: 'white',
-    fontWeight: '600',
+    color: '#000',
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
   ratingEmoji: {
-    fontSize: 24,
+    fontSize: 32,
   },
   ratingBar: {
-    height: 20,
-    backgroundColor: Colors.border,
-    borderRadius: BorderRadius.md,
+    height: 24,
+    backgroundColor: Colors.border + '40',
+    borderRadius: BorderRadius.xl,
     overflow: 'hidden',
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.md,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
   },
   ratingFill: {
     height: '100%',
-    borderRadius: BorderRadius.md,
+    borderRadius: BorderRadius.xl,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
   },
   ratingTextRow: {
     flexDirection: 'row',
@@ -823,28 +837,38 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     marginHorizontal: Spacing.lg,
     marginBottom: Spacing.lg,
-    padding: Spacing.lg,
-    borderRadius: BorderRadius.lg,
-    borderWidth: 1,
+    padding: Spacing.xl,
+    borderRadius: BorderRadius.xl,
+    borderWidth: 2,
     borderColor: Colors.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
   },
   servingControls: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.lg,
   },
   servingButton: {
-    width: 40,
-    height: 40,
-    borderRadius: BorderRadius.full,
+    width: 50,
+    height: 50,
+    borderRadius: BorderRadius.round,
     backgroundColor: Colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
   },
   servingButtonText: {
-    fontSize: 24,
-    color: 'white',
+    fontSize: 28,
+    color: '#000',
     fontWeight: 'bold',
   },
   servingDisplay: {
@@ -864,35 +888,52 @@ const styles = StyleSheet.create({
   quickServings: {
     flexDirection: 'row',
     justifyContent: 'space-around',
+    gap: Spacing.sm,
   },
   quickButton: {
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
     backgroundColor: Colors.background,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 2,
     borderColor: Colors.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
   quickButtonActive: {
     backgroundColor: Colors.primary,
     borderColor: Colors.primary,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
   },
   quickButtonText: {
     fontSize: Typography.fontSize.sm,
-    color: Colors.primary,
+    color: Colors.text,
+    fontWeight: '600',
   },
   quickButtonTextActive: {
-    color: 'white',
-    fontWeight: '600',
+    color: '#000',
+    fontWeight: '700',
   },
   nutritionCard: {
     backgroundColor: Colors.surface,
     marginHorizontal: Spacing.lg,
     marginBottom: Spacing.lg,
-    padding: Spacing.lg,
-    borderRadius: BorderRadius.lg,
-    borderWidth: 1,
+    padding: Spacing.xl,
+    borderRadius: BorderRadius.xl,
+    borderWidth: 2,
     borderColor: Colors.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
   },
   nutritionSubtitle: {
     fontSize: Typography.fontSize.sm,
@@ -963,19 +1004,24 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     marginHorizontal: Spacing.lg,
     marginBottom: Spacing.xl,
-    padding: Spacing.lg,
+    paddingVertical: Spacing.lg,
+    paddingHorizontal: Spacing.xl,
     borderRadius: BorderRadius.xl,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 8,
+    borderWidth: 2,
+    borderColor: Colors.primary,
   },
   addButtonText: {
-    fontSize: Typography.fontSize.lg,
-    fontWeight: 'bold',
-    color: 'black',
+    fontSize: Typography.fontSize.xl,
+    fontWeight: '800',
+    color: '#000',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
   },
   stickyAddButton: {
     position: 'absolute',

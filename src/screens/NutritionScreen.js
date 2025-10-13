@@ -908,6 +908,15 @@ export default function NutritionScreen({ navigation, route }) {
         <Text style={styles.mealPlansText}>Meal Plan Templates</Text>
       </TouchableOpacity>
 
+      {/* View Progress & Charts button */}
+      <TouchableOpacity
+        style={styles.progressChartsButton}
+        onPress={() => navigation.navigate('NutritionDashboard')}
+      >
+        <Text style={styles.progressChartsIcon}>📊</Text>
+        <Text style={styles.progressChartsText}>View Progress & Charts</Text>
+      </TouchableOpacity>
+
       {/* Planned Meals Section */}
       {Object.values(plannedMeals).some(meals => meals.length > 0) && (
         <View style={styles.plannedSection}>
@@ -1086,35 +1095,6 @@ export default function NutritionScreen({ navigation, route }) {
           </View>
         </StyledCard>
 
-        {/* DEBUG RESET BUTTON - REMOVE IN PRODUCTION */}
-        <TouchableOpacity
-          style={styles.debugResetButton}
-          onPress={async () => {
-            // Reset all nutrition data
-            const emptyMeals = {
-              breakfast: [],
-              lunch: [],
-              dinner: [],
-              snacks: []
-            };
-            setMeals(emptyMeals);
-            setConsumed(0);
-            setConsumedMacros({
-              proteinGrams: 0,
-              carbsGrams: 0,
-              fatGrams: 0,
-            });
-
-            // Clear AsyncStorage
-            await AsyncStorage.removeItem(DAILY_NUTRITION_KEY);
-            await AsyncStorage.setItem(LAST_RESET_DATE_KEY, new Date().toISOString());
-
-            Alert.alert('Debug', 'All nutrition data has been reset!');
-          }}
-        >
-          <Text style={styles.debugResetText}>🔧 DEBUG: Reset All Calories</Text>
-        </TouchableOpacity>
-
       <MacroGoalsModal
         visible={showMacroModal}
         onClose={() => setShowMacroModal(false)}
@@ -1127,35 +1107,47 @@ export default function NutritionScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   statsCard: {
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
   },
   statsHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     width: '100%',
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.lg,
   },
   statsTitle: {
-    fontSize: Typography.fontSize.md,
-    fontWeight: '600',
+    fontSize: Typography.fontSize.lg,
+    fontWeight: '700',
     color: Colors.text,
+    letterSpacing: 0.3,
   },
   editIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.primary + '20',
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.primary + '25',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 6,
+    borderRadius: BorderRadius.lg,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2,
   },
   editIcon: {
-    fontSize: 12,
+    fontSize: 14,
     marginRight: 4,
   },
   editHint: {
     fontSize: Typography.fontSize.xs,
     color: Colors.primary,
-    fontWeight: '600',
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
   statsRow: {
     flexDirection: 'row',
@@ -1207,32 +1199,43 @@ const styles = StyleSheet.create({
   macroCard: {
     marginTop: Spacing.md,
     position: 'relative',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
   },
   macroGoalsRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    paddingVertical: Spacing.sm,
+    paddingVertical: Spacing.md,
     backgroundColor: Colors.background,
-    borderRadius: BorderRadius.sm,
-    marginBottom: Spacing.sm,
+    borderRadius: BorderRadius.lg,
+    marginBottom: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.border + '40',
   },
   macroGoalCompact: {
     flex: 1,
     alignItems: 'center',
   },
   macroGoalValue: {
-    fontSize: Typography.fontSize.lg,
-    fontWeight: 'bold',
+    fontSize: Typography.fontSize.xl,
+    fontWeight: '800',
+    letterSpacing: 0.3,
   },
   macroGoalLabel: {
     fontSize: Typography.fontSize.xs,
     color: Colors.textSecondary,
-    marginBottom: 2,
+    marginBottom: 4,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   macroGoalDivider: {
     width: 1,
-    height: 30,
+    height: 35,
     backgroundColor: Colors.border,
   },
   macroProgressRow: {
@@ -1438,10 +1441,15 @@ const styles = StyleSheet.create({
   actionButton: {
     flex: 1,
     paddingVertical: Spacing.lg,
-    borderRadius: BorderRadius.lg,
+    borderRadius: BorderRadius.xl,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 4,
   },
   scanButton: {
     backgroundColor: '#1a1a1a',
@@ -1450,25 +1458,28 @@ const styles = StyleSheet.create({
   searchButton: {
     backgroundColor: Colors.primary,
     borderColor: Colors.primary,
-    flex: 1.5,  // Make search button 50% wider
+    flex: 1.5,
+    shadowColor: Colors.primary,
+    shadowOpacity: 0.4,
   },
   recipesButton: {
     backgroundColor: '#1a1a1a',
     borderColor: Colors.primary,
   },
   actionButtonIcon: {
-    fontSize: 24,
+    fontSize: 28,
     marginBottom: Spacing.xs,
   },
   actionButtonText: {
     fontSize: Typography.fontSize.md,
-    fontWeight: '600',
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
   greenText: {
     color: Colors.primary,
   },
   blackText: {
-    color: '#1a1a1a',
+    color: '#000',
   },
   orangeText: {
     color: '#FF9800',
@@ -1477,24 +1488,59 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FF980020',
+    backgroundColor: '#FF980025',
     borderWidth: 2,
-    borderColor: '#FF980050',
-    borderRadius: BorderRadius.md,
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.md,
+    borderColor: '#FF9800',
+    borderRadius: BorderRadius.xl,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
     marginHorizontal: Spacing.lg,
     marginTop: Spacing.sm,
     marginBottom: Spacing.md,
+    shadowColor: '#FF9800',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
   },
   mealPlansIcon: {
-    fontSize: 20,
-    marginRight: Spacing.xs,
+    fontSize: 24,
+    marginRight: Spacing.sm,
   },
   mealPlansText: {
     fontSize: Typography.fontSize.md,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#FF9800',
+    letterSpacing: 0.5,
+  },
+  progressChartsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.primary + '25',
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    borderRadius: BorderRadius.xl,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    marginHorizontal: Spacing.lg,
+    marginTop: Spacing.sm,
+    marginBottom: Spacing.md,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  progressChartsIcon: {
+    fontSize: 24,
+    marginRight: Spacing.sm,
+  },
+  progressChartsText: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '700',
+    color: Colors.primary,
+    letterSpacing: 0.5,
   },
   // Planned Status Indicator styles
   plannedStatusContainer: {
@@ -1728,22 +1774,6 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.md,
     color: Colors.text,
     fontWeight: '500',
-  },
-  debugResetButton: {
-    backgroundColor: '#ff4444',
-    padding: Spacing.md,
-    borderRadius: BorderRadius.md,
-    marginHorizontal: Spacing.lg,
-    marginTop: Spacing.xl,
-    marginBottom: Spacing.md,
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#cc0000',
-  },
-  debugResetText: {
-    color: 'white',
-    fontSize: Typography.fontSize.md,
-    fontWeight: 'bold',
   },
   plannedSection: {
     marginHorizontal: Spacing.lg,

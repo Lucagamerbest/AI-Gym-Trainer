@@ -70,7 +70,7 @@ export default function ImageViewerScreen({ route, navigation }) {
           await MediaLibrary.createAlbumAsync('Workout Wave', asset, false);
         }
       } catch (albumError) {
-        console.log('Album creation skipped:', albumError);
+        // Album creation skipped
       }
 
       Alert.alert('Success', 'Image saved to Photos!');

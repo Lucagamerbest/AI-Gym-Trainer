@@ -182,7 +182,7 @@ export default function ProfileScreen({ navigation }) {
         icon="📊"
         title="Progress & Goals"
         subtitle="Track your achievements and set new goals"
-        onPress={() => navigation.navigate('Progress')}
+        onPress={() => navigation.navigate('ProgressHub')}
         style={styles.progressCard}
       />
 

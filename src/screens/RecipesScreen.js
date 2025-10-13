@@ -39,7 +39,6 @@ export default function RecipesScreen({ navigation, route }) {
   // Log screen ID when RecipesScreen receives it
   useEffect(() => {
     if (fromMealPlanTemplate && screenId) {
-      console.log('📖 RecipesScreen opened from CreateMealPlan ID:', screenId);
     }
   }, [fromMealPlanTemplate, screenId]);
 
@@ -251,7 +250,6 @@ export default function RecipesScreen({ navigation, route }) {
 
             // Navigate back with the recipe data
             if (fromMealPlanTemplate) {
-              console.log('⬅️ RecipesScreen navigating back to CreateMealPlan ID:', screenId);
 
               // Calculate how many screens to pop to get back to CreateMealPlan
               const state = navigation.getState();
@@ -259,9 +257,6 @@ export default function RecipesScreen({ navigation, route }) {
               const createMealPlanIndex = state.routes.findIndex(r => r.name === 'CreateMealPlan');
 
               if (createMealPlanIndex !== -1) {
-                console.log('✅ Found existing CreateMealPlan at index:', createMealPlanIndex);
-                console.log('   Current index:', currentIndex, '- will pop', currentIndex - createMealPlanIndex, 'screen(s)');
-                console.log('   Current screenId:', state.routes[createMealPlanIndex].params?.screenId);
 
                 // First, dispatch action to update the target screen's params
                 navigation.dispatch({
@@ -279,7 +274,6 @@ export default function RecipesScreen({ navigation, route }) {
                 const screensToPop = currentIndex - createMealPlanIndex;
                 navigation.pop(screensToPop);
               } else {
-                console.log('⚠️ CreateMealPlan not found in stack, creating new one');
                 // Fallback
                 navigation.navigate('CreateMealPlan', {
                   addedFood: foodData,

@@ -34,7 +34,6 @@ const APIs = {
         }
         return { found: false };
       } catch (error) {
-        console.log('OpenFoodFacts error:', error.message);
         return { found: false };
       }
     }
@@ -83,7 +82,6 @@ const APIs = {
         }
         return { found: false };
       } catch (error) {
-        console.log('USDA API error:', error.message);
         return { found: false };
       }
     }
@@ -133,7 +131,6 @@ const APIs = {
         }
         return { found: false };
       } catch (error) {
-        console.log('Nutritionix error:', error.message);
         return { found: false };
       }
     }
@@ -175,7 +172,6 @@ const APIs = {
         }
         return { found: false };
       } catch (error) {
-        console.log('Edamam error:', error.message);
         return { found: false };
       }
     }
@@ -206,7 +202,6 @@ const APIs = {
         }
         return { found: false };
       } catch (error) {
-        console.log('UPCitemdb error:', error.message);
         return { found: false };
       }
     }
@@ -216,8 +211,6 @@ const APIs = {
 // Main enhanced API function that tries multiple sources
 export const enhancedFoodAPI = {
   getProductByBarcode: async (barcode) => {
-    console.log(`Searching for barcode: ${barcode}`);
-
     // Try each API in order of preference
     const apiOrder = [
       () => APIs.openFoodFacts.getProduct(barcode),
@@ -232,7 +225,6 @@ export const enhancedFoodAPI = {
       try {
         const result = await apiCall();
         if (result.found) {
-          console.log(`Found in ${result.source}`);
           return {
             ...result,
             barcode: barcode,
@@ -240,7 +232,6 @@ export const enhancedFoodAPI = {
           };
         }
       } catch (error) {
-        console.log('API error, trying next source...');
         continue;
       }
     }
@@ -275,7 +266,7 @@ export const enhancedFoodAPI = {
         })));
       }
     } catch (error) {
-      console.log('Search error:', error);
+      // Search error
     }
 
     return results;

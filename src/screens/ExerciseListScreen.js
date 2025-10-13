@@ -180,9 +180,7 @@ export default function ExerciseListScreen({ navigation, route }) {
 
   const startWorkoutWithExercise = (exercise) => {
     // Check if exercise has variants - if so, navigate to equipment selection
-    console.log('🔍 Exercise selected:', exercise.name, 'Has variants?', exercise.variants, 'Count:', exercise.variants?.length);
     if (exercise.variants && exercise.variants.length > 1) {
-      console.log('✅ NAVIGATING TO EQUIPMENT SELECTION SCREEN FOR WORKOUT');
       navigation.navigate('EquipmentVariantSelection', {
         exercise,
         mode: 'workout',
@@ -261,10 +259,8 @@ export default function ExerciseListScreen({ navigation, route }) {
 
   // For viewing exercise info - navigate to equipment selection page
   const showInfoForExercise = (exercise) => {
-    console.log('📖 Info button pressed for:', exercise.name, 'Has variants?', exercise.variants?.length);
     // If exercise has variants, navigate to full-page equipment selection
     if (exercise.variants && exercise.variants.length > 1) {
-      console.log('✅ NAVIGATING TO EQUIPMENT SELECTION SCREEN FOR INFO');
       navigation.navigate('EquipmentVariantSelection', {
         exercise,
         mode: 'info'

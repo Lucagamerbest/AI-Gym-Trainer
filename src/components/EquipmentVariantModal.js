@@ -25,10 +25,8 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
  * - onClose: () => void - Called when user closes modal
  */
 export default function EquipmentVariantModal({ visible, exercise, onSelect, onClose }) {
-  console.log('🎯 EquipmentVariantModal render - visible:', visible, 'exercise:', exercise?.name, 'variants:', exercise?.variants?.length);
 
   if (!exercise || !exercise.variants) {
-    console.log('⚠️ Modal returning null - no exercise or variants');
     return null;
   }
 

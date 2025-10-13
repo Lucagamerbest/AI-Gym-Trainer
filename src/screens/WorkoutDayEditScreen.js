@@ -46,6 +46,11 @@ export default function WorkoutDayEditScreen({ navigation, route }) {
   const isFocused = useIsFocused();
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
+  // Superset pairing state
+  const [supersetPairings, setSupersetPairings] = useState({});
+  const [showSupersetPairModal, setShowSupersetPairModal] = useState(false);
+  const [exerciseToPair, setExerciseToPair] = useState(null);
+
   // Prevent back navigation when there are unsaved changes
   useEffect(() => {
     const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
@@ -119,11 +124,9 @@ export default function WorkoutDayEditScreen({ navigation, route }) {
           setIsStandaloneWorkout(parsed.workoutDays.length === 1);
 
           // Check if we're in planning mode
-          console.log('Loading day data - fromPlanning:', parsed.fromPlanning, 'plannedDate:', parsed.plannedDate);
           if (parsed.fromPlanning) {
             setIsPlanning(true);
             setPlannedDate(parsed.plannedDate);
-            console.log('Planning mode activated for date:', parsed.plannedDate);
           }
         }
       }
@@ -495,8 +498,6 @@ export default function WorkoutDayEditScreen({ navigation, route }) {
 
   const performSave = async (name, description) => {
     try {
-      console.log('performSave - isPlanning:', isPlanning, 'plannedDate:', plannedDate);
-
       // Check if we're editing an existing workout
       const workoutId = route.params?.workoutId || programData?.workoutId;
       const fromWorkoutDetail = route.params?.fromWorkoutDetail;
@@ -537,9 +538,6 @@ export default function WorkoutDayEditScreen({ navigation, route }) {
         const plannedWorkouts = await AsyncStorage.getItem(PLANNED_WORKOUTS_KEY);
         const planned = plannedWorkouts ? JSON.parse(plannedWorkouts) : {};
 
-        console.log('Saving planned workout for date:', dateKey);
-        console.log('Workout data:', { name, description, exercises: dayData.exercises });
-
         planned[dateKey] = {
           type: 'custom',
           workoutName: name,
@@ -550,7 +548,6 @@ export default function WorkoutDayEditScreen({ navigation, route }) {
         };
 
         await AsyncStorage.setItem(PLANNED_WORKOUTS_KEY, JSON.stringify(planned));
-        console.log('Planned workout saved to calendar');
 
         // 2. ALSO save as standalone workout in My Plans
         const existingWorkouts = await AsyncStorage.getItem(STANDALONE_WORKOUTS_KEY);
@@ -566,7 +563,6 @@ export default function WorkoutDayEditScreen({ navigation, route }) {
 
         workouts.push(newWorkout);
         await AsyncStorage.setItem(STANDALONE_WORKOUTS_KEY, JSON.stringify(workouts));
-        console.log('Workout also saved to My Plans');
 
         // Clear temporary state
         await AsyncStorage.removeItem(STORAGE_KEY);
@@ -639,6 +635,40 @@ export default function WorkoutDayEditScreen({ navigation, route }) {
     setSelectedSetForType({ exerciseIndex: null, setIndex: null });
   };
 
+  // Handle superset pairing
+  const handlePairSuperset = (exerciseIndex) => {
+    setExerciseToPair(exerciseIndex);
+    setShowSupersetPairModal(true);
+  };
+
+  // Apply superset pairing
+  const applySupersetPair = (pairedExerciseIndex) => {
+    if (exerciseToPair !== null && pairedExerciseIndex !== exerciseToPair) {
+      // Create bidirectional pairing
+      const newPairings = { ...supersetPairings };
+      newPairings[exerciseToPair] = pairedExerciseIndex;
+      newPairings[pairedExerciseIndex] = exerciseToPair;
+      setSupersetPairings(newPairings);
+    }
+    setShowSupersetPairModal(false);
+    setExerciseToPair(null);
+  };
+
+  // Remove superset pairing
+  const removeSupersetPair = () => {
+    if (exerciseToPair !== null) {
+      const newPairings = { ...supersetPairings };
+      const pairedIndex = newPairings[exerciseToPair];
+      delete newPairings[exerciseToPair];
+      if (pairedIndex !== undefined) {
+        delete newPairings[pairedIndex];
+      }
+      setSupersetPairings(newPairings);
+    }
+    setShowSupersetPairModal(false);
+    setExerciseToPair(null);
+  };
+
   if (!dayData) {
     return (
       <ScreenLayout
@@ -679,7 +709,10 @@ export default function WorkoutDayEditScreen({ navigation, route }) {
         ) : (
           <>
             {dayData.exercises.map((exercise, exerciseIndex) => (
-              <View key={exercise.uniqueId} style={styles.exerciseCard}>
+              <View key={exercise.uniqueId} style={[
+                styles.exerciseCard,
+                supersetPairings[exerciseIndex] !== undefined && styles.supersetPairedCard
+              ]}>
                 <View style={styles.exerciseHeader}>
                   <View style={styles.exerciseTitleContainer}>
                     <Text style={styles.exerciseName}>{exercise.name}</Text>
@@ -687,13 +720,31 @@ export default function WorkoutDayEditScreen({ navigation, route }) {
                       {exercise.primaryMuscle}
                       {exercise.equipment && ` • ${exercise.equipment}`}
                     </Text>
+                    {supersetPairings[exerciseIndex] !== undefined && (
+                      <View style={styles.supersetBadgeRow}>
+                        <Text style={styles.supersetBadgeText}>
+                          Superset with #{supersetPairings[exerciseIndex] + 1}
+                        </Text>
+                      </View>
+                    )}
                   </View>
-                  <TouchableOpacity
-                    onPress={() => removeExercise(exerciseIndex)}
-                    style={styles.removeExerciseButton}
-                  >
-                    <Text style={styles.removeExerciseText}>×</Text>
-                  </TouchableOpacity>
+                  <View style={styles.exerciseActions}>
+                    <TouchableOpacity
+                      onPress={() => handlePairSuperset(exerciseIndex)}
+                      style={[
+                        styles.supersetButton,
+                        supersetPairings[exerciseIndex] !== undefined && styles.supersetButtonActive
+                      ]}
+                    >
+                      <Text style={styles.supersetButtonText}>🔗</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => removeExercise(exerciseIndex)}
+                      style={styles.removeExerciseButton}
+                    >
+                      <Text style={styles.removeExerciseText}>×</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
 
                 <View style={styles.setsContainer}>
@@ -920,6 +971,65 @@ export default function WorkoutDayEditScreen({ navigation, route }) {
               <Text style={styles.modalConfirmText}>{isPlanning ? 'Plan Workout' : 'Save Workout'}</Text>
             </TouchableOpacity>
           </View>
+        </View>
+      </View>
+    </Modal>
+
+    {/* Superset Pairing Modal */}
+    <Modal
+      visible={showSupersetPairModal}
+      transparent={true}
+      animationType="slide"
+      onRequestClose={() => setShowSupersetPairModal(false)}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.supersetModalContent}>
+          <Text style={styles.modalTitle}>Pair Superset With...</Text>
+          <Text style={styles.modalSubtitle}>
+            Select an exercise to superset with Exercise #{exerciseToPair !== null ? exerciseToPair + 1 : ''}
+          </Text>
+
+          <ScrollView style={styles.supersetPairList}>
+            {dayData.exercises?.map((ex, index) => {
+              if (index === exerciseToPair) return null; // Skip the exercise being paired
+              return (
+                <TouchableOpacity
+                  key={ex.uniqueId}
+                  style={[
+                    styles.supersetPairOption,
+                    supersetPairings[exerciseToPair] === index && styles.supersetPairOptionActive
+                  ]}
+                  onPress={() => applySupersetPair(index)}
+                >
+                  <View style={styles.supersetPairOptionContent}>
+                    <Text style={styles.supersetPairNumber}>{index + 1}</Text>
+                    <Text style={styles.supersetPairExerciseName}>{ex.name}</Text>
+                  </View>
+                  {supersetPairings[index] !== undefined && supersetPairings[index] !== exerciseToPair && (
+                    <Text style={styles.supersetPairAlreadyPaired}>
+                      Paired with #{supersetPairings[index] + 1}
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+
+          {supersetPairings[exerciseToPair] !== undefined && (
+            <TouchableOpacity
+              style={styles.removePairButton}
+              onPress={removeSupersetPair}
+            >
+              <Text style={styles.removePairButtonText}>Remove Pairing</Text>
+            </TouchableOpacity>
+          )}
+
+          <TouchableOpacity
+            style={styles.cancelButton}
+            onPress={() => setShowSupersetPairModal(false)}
+          >
+            <Text style={styles.cancelButtonText}>Cancel</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </Modal>
@@ -1245,6 +1355,117 @@ const styles = StyleSheet.create({
   },
   modalConfirmText: {
     color: Colors.background,
+    fontSize: Typography.fontSize.md,
+    fontWeight: 'bold',
+  },
+  // Superset Styles
+  supersetPairedCard: {
+    borderColor: '#3498DB',
+    borderWidth: 2,
+  },
+  supersetBadgeRow: {
+    marginTop: Spacing.sm,
+    backgroundColor: '#3498DB20',
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.sm,
+    alignSelf: 'flex-start',
+  },
+  supersetBadgeText: {
+    color: '#3498DB',
+    fontSize: Typography.fontSize.xs,
+    fontWeight: 'bold',
+  },
+  exerciseActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  supersetButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.surface,
+    borderWidth: 2,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  supersetButtonActive: {
+    backgroundColor: '#3498DB20',
+    borderColor: '#3498DB',
+  },
+  supersetButtonText: {
+    fontSize: 18,
+  },
+  supersetModalContent: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.xl,
+    width: '90%',
+    maxWidth: 400,
+    maxHeight: '70%',
+    borderWidth: 2,
+    borderColor: Colors.border,
+  },
+  modalSubtitle: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.lg,
+    textAlign: 'center',
+  },
+  supersetPairList: {
+    maxHeight: 300,
+    marginBottom: Spacing.md,
+  },
+  supersetPairOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.sm,
+    backgroundColor: Colors.background,
+    borderWidth: 2,
+    borderColor: Colors.border,
+  },
+  supersetPairOptionActive: {
+    backgroundColor: '#3498DB20',
+    borderColor: '#3498DB',
+  },
+  supersetPairOptionContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  supersetPairNumber: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: 'bold',
+    color: Colors.primary,
+    marginRight: Spacing.md,
+    width: 30,
+  },
+  supersetPairExerciseName: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.text,
+    flex: 1,
+  },
+  supersetPairAlreadyPaired: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textSecondary,
+    fontStyle: 'italic',
+  },
+  removePairButton: {
+    backgroundColor: Colors.error + '20',
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.error,
+  },
+  removePairButtonText: {
+    color: Colors.error,
     fontSize: Typography.fontSize.md,
     fontWeight: 'bold',
   },

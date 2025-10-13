@@ -25,9 +25,7 @@ export default function CreateMealPlanScreen({ navigation, route }) {
 
   // Log screen ID on mount
   useEffect(() => {
-    console.log('📱 CreateMealPlanScreen mounted with ID:', screenId);
     return () => {
-      console.log('📱 CreateMealPlanScreen unmounting with ID:', screenId);
     };
   }, []);
 
@@ -75,15 +73,12 @@ export default function CreateMealPlanScreen({ navigation, route }) {
   // Handle incoming food data from Recipes/FoodSearch
   useFocusEffect(
     React.useCallback(() => {
-      console.log('🔄 CreateMealPlanScreen focused with ID:', screenId);
-      console.log('   Route params:', JSON.stringify(route.params, null, 2));
 
       // Reset processed params when screen is focused
       processedParams.current = {};
 
       // Handle added food from RecipesScreen or FoodSearchScreen
       if (route.params?.addedFood && !processedParams.current.addedFood) {
-        console.log('✅ Processing addedFood for screen ID:', screenId);
         processedParams.current.addedFood = true;
         const { addedFood } = route.params;
 
@@ -95,7 +90,6 @@ export default function CreateMealPlanScreen({ navigation, route }) {
           const updatedDays = [...days];
           updatedDays[dayIndex].meals[mealType].push(addedFood);
           setDays(updatedDays);
-          console.log('✅ Food added to day', dayIndex, mealType, 'for screen ID:', screenId);
 
           // Clear the params
           navigation.setParams({ addedFood: undefined });
@@ -149,9 +143,7 @@ export default function CreateMealPlanScreen({ navigation, route }) {
   };
 
   const handleCopyFromPastMonth = async () => {
-    console.log('📅 Loading past month foods...');
     const savedPlans = await AsyncStorage.getItem(MEAL_PLANS_KEY);
-    console.log('   Saved plans:', savedPlans ? 'Found' : 'Not found');
 
     if (!savedPlans) {
       Alert.alert('No Data', 'No past meal data found');
@@ -160,12 +152,10 @@ export default function CreateMealPlanScreen({ navigation, route }) {
     }
 
     const mealPlans = JSON.parse(savedPlans);
-    console.log('   Meal plans keys:', Object.keys(mealPlans));
 
     // Get dates from the last 30 days
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    console.log('   Looking for meals after:', thirtyDaysAgo.toISOString());
 
     const allFoods = [];
 
@@ -173,20 +163,15 @@ export default function CreateMealPlanScreen({ navigation, route }) {
     Object.keys(mealPlans).forEach(dateKey => {
       const date = new Date(dateKey);
       if (date >= thirtyDaysAgo && mealPlans[dateKey]?.logged) {
-        console.log('   Found logged meals for:', dateKey);
         const meals = mealPlans[dateKey].logged;
-        console.log('   Meal types:', Object.keys(meals));
         // Get all meals from all meal types
         Object.values(meals).forEach(mealArray => {
           if (Array.isArray(mealArray)) {
-            console.log('   Adding', mealArray.length, 'foods');
             allFoods.push(...mealArray);
           }
         });
       }
     });
-
-    console.log('   Total foods collected:', allFoods.length);
 
     if (allFoods.length === 0) {
       Alert.alert('No Data', 'No meals found in the past month');
@@ -204,7 +189,6 @@ export default function CreateMealPlanScreen({ navigation, route }) {
     });
 
     const uniqueFoods = Array.from(uniqueFoodsMap.values());
-    console.log('   Unique foods:', uniqueFoods.length);
 
     // Sort: recipes first, then alphabetically
     uniqueFoods.sort((a, b) => {
@@ -213,7 +197,6 @@ export default function CreateMealPlanScreen({ navigation, route }) {
       return a.name.localeCompare(b.name);
     });
 
-    console.log('   Setting past foods:', uniqueFoods);
     setPastFoods(uniqueFoods);
     setSelectedPastFoods([]);
     setShowMealSourceModal(false);
@@ -255,8 +238,6 @@ export default function CreateMealPlanScreen({ navigation, route }) {
   };
 
   const handleAddFromRecipes = () => {
-    console.log('🔍 Navigating to Recipes from screen ID:', screenId);
-    console.log('   Context: dayIndex=', currentDayIndex, 'mealType=', selectedMealType);
     setShowMealSourceModal(false);
     // Navigate to recipes screen with template context
     navigation.navigate('Recipes', {
@@ -269,8 +250,6 @@ export default function CreateMealPlanScreen({ navigation, route }) {
   };
 
   const handleSearchFood = () => {
-    console.log('🔍 Navigating to FoodSearch from screen ID:', screenId);
-    console.log('   Context: dayIndex=', currentDayIndex, 'mealType=', selectedMealType);
     setShowMealSourceModal(false);
     // Navigate to food search with template context
     navigation.navigate('FoodSearch', {

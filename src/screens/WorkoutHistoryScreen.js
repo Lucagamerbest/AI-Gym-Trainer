@@ -325,85 +325,377 @@ export default function WorkoutHistoryScreen({ navigation }) {
     try {
       const userId = user?.email || 'guest';
 
-      // Create mock workout for October 4th, 2025
-      const mockWorkout = {
-        exercises: [
-          {
-            name: 'Bench Press',
-            equipment: 'Barbell',
-            primaryMuscle: 'Chest',
-            sets: [
-              { weight: '135', reps: '10', completed: true, rpe: '7' },
-              { weight: '185', reps: '8', completed: true, rpe: '8' },
-              { weight: '205', reps: '6', completed: true, rpe: '9' },
-            ]
-          },
-          {
-            name: 'Squat',
-            equipment: 'Barbell',
-            primaryMuscle: 'Quadriceps',
-            sets: [
-              { weight: '225', reps: '8', completed: true, rpe: '8' },
-              { weight: '275', reps: '6', completed: true, rpe: '9' },
-              { weight: '315', reps: '4', completed: true, rpe: '10' },
-            ]
-          },
-          {
-            name: 'Pull-ups',
-            equipment: 'Body Weight',
-            primaryMuscle: 'Back',
-            sets: [
-              { weight: '0', reps: '12', completed: true, rpe: '7' },
-              { weight: '0', reps: '10', completed: true, rpe: '8' },
-              { weight: '0', reps: '8', completed: true, rpe: '9' },
-            ]
-          }
-        ],
-        duration: '01:15:30',
-        startTime: '10:00 AM',
-        endTime: '11:15 AM'
-      };
+      // Create comprehensive mock workouts with equipment variants for all muscle groups
+      const workoutsToAdd = [
+        // CHEST WORKOUTS
+        {
+          date: new Date('2025-10-01T10:00:00'),
+          exercises: [
+            {
+              name: 'Bench Press (Barbell)',
+              displayName: 'Bench Press',
+              equipment: 'Barbell',
+              primaryMuscle: 'Chest',
+              sets: [
+                { weight: '135', reps: '10', completed: true },
+                { weight: '185', reps: '8', completed: true },
+                { weight: '205', reps: '6', completed: true },
+              ]
+            },
+            {
+              name: 'Incline Press (Dumbbell)',
+              displayName: 'Incline Press',
+              equipment: 'Dumbbell',
+              primaryMuscle: 'Chest',
+              sets: [
+                { weight: '60', reps: '12', completed: true },
+                { weight: '70', reps: '10', completed: true },
+                { weight: '75', reps: '8', completed: true },
+              ]
+            },
+            {
+              name: 'Chest Fly (Cable)',
+              displayName: 'Chest Fly',
+              equipment: 'Cable',
+              primaryMuscle: 'Chest',
+              sets: [
+                { weight: '40', reps: '15', completed: true },
+                { weight: '45', reps: '12', completed: true },
+              ]
+            }
+          ],
+          duration: '00:55:30',
+          startTime: '10:00 AM',
+          endTime: '10:55 AM',
+          workoutTitle: 'Chest Day'
+        },
+        // BACK WORKOUT
+        {
+          date: new Date('2025-10-02T14:00:00'),
+          exercises: [
+            {
+              name: 'Deadlift (Barbell)',
+              displayName: 'Deadlift',
+              equipment: 'Barbell',
+              primaryMuscle: 'Back',
+              sets: [
+                { weight: '225', reps: '8', completed: true },
+                { weight: '275', reps: '6', completed: true },
+                { weight: '315', reps: '4', completed: true },
+              ]
+            },
+            {
+              name: 'Bent Over Row (Barbell)',
+              displayName: 'Bent Over Row',
+              equipment: 'Barbell',
+              primaryMuscle: 'Back',
+              sets: [
+                { weight: '135', reps: '10', completed: true },
+                { weight: '155', reps: '8', completed: true },
+                { weight: '175', reps: '6', completed: true },
+              ]
+            },
+            {
+              name: 'Lat Pulldown (Cable)',
+              displayName: 'Lat Pulldown',
+              equipment: 'Cable',
+              primaryMuscle: 'Back',
+              sets: [
+                { weight: '120', reps: '12', completed: true },
+                { weight: '140', reps: '10', completed: true },
+                { weight: '160', reps: '8', completed: true },
+              ]
+            }
+          ],
+          duration: '01:05:15',
+          startTime: '14:00 PM',
+          endTime: '15:05 PM',
+          workoutTitle: 'Back Day'
+        },
+        // LEGS WORKOUT
+        {
+          date: new Date('2025-10-03T09:00:00'),
+          exercises: [
+            {
+              name: 'Squat (Barbell)',
+              displayName: 'Squat',
+              equipment: 'Barbell',
+              primaryMuscle: 'Quadriceps',
+              sets: [
+                { weight: '185', reps: '10', completed: true },
+                { weight: '225', reps: '8', completed: true },
+                { weight: '275', reps: '6', completed: true },
+              ]
+            },
+            {
+              name: 'Leg Press (Machine)',
+              displayName: 'Leg Press',
+              equipment: 'Machine',
+              primaryMuscle: 'Quadriceps',
+              sets: [
+                { weight: '300', reps: '12', completed: true },
+                { weight: '350', reps: '10', completed: true },
+                { weight: '400', reps: '8', completed: true },
+              ]
+            },
+            {
+              name: 'Romanian Deadlift (Dumbbell)',
+              displayName: 'Romanian Deadlift',
+              equipment: 'Dumbbell',
+              primaryMuscle: 'Hamstrings',
+              sets: [
+                { weight: '70', reps: '12', completed: true },
+                { weight: '80', reps: '10', completed: true },
+              ]
+            }
+          ],
+          duration: '01:10:00',
+          startTime: '09:00 AM',
+          endTime: '10:10 AM',
+          workoutTitle: 'Leg Day'
+        },
+        // SHOULDERS WORKOUT
+        {
+          date: new Date('2025-10-04T16:00:00'),
+          exercises: [
+            {
+              name: 'Overhead Press (Barbell)',
+              displayName: 'Overhead Press',
+              equipment: 'Barbell',
+              primaryMuscle: 'Shoulders',
+              sets: [
+                { weight: '95', reps: '10', completed: true },
+                { weight: '115', reps: '8', completed: true },
+                { weight: '135', reps: '6', completed: true },
+              ]
+            },
+            {
+              name: 'Lateral Raise (Dumbbell)',
+              displayName: 'Lateral Raise',
+              equipment: 'Dumbbell',
+              primaryMuscle: 'Shoulders',
+              sets: [
+                { weight: '20', reps: '15', completed: true },
+                { weight: '25', reps: '12', completed: true },
+                { weight: '30', reps: '10', completed: true },
+              ]
+            },
+            {
+              name: 'Face Pull (Cable)',
+              displayName: 'Face Pull',
+              equipment: 'Cable',
+              primaryMuscle: 'Shoulders',
+              sets: [
+                { weight: '60', reps: '15', completed: true },
+                { weight: '70', reps: '12', completed: true },
+              ]
+            }
+          ],
+          duration: '00:50:00',
+          startTime: '16:00 PM',
+          endTime: '16:50 PM',
+          workoutTitle: 'Shoulder Day'
+        },
+        // ARMS WORKOUT
+        {
+          date: new Date('2025-10-05T11:00:00'),
+          exercises: [
+            {
+              name: 'Barbell Curl (Barbell)',
+              displayName: 'Barbell Curl',
+              equipment: 'Barbell',
+              primaryMuscle: 'Biceps',
+              sets: [
+                { weight: '70', reps: '12', completed: true },
+                { weight: '80', reps: '10', completed: true },
+                { weight: '90', reps: '8', completed: true },
+              ]
+            },
+            {
+              name: 'Hammer Curl (Dumbbell)',
+              displayName: 'Hammer Curl',
+              equipment: 'Dumbbell',
+              primaryMuscle: 'Biceps',
+              sets: [
+                { weight: '35', reps: '12', completed: true },
+                { weight: '40', reps: '10', completed: true },
+              ]
+            },
+            {
+              name: 'Tricep Pushdown (Cable)',
+              displayName: 'Tricep Pushdown',
+              equipment: 'Cable',
+              primaryMuscle: 'Triceps',
+              sets: [
+                { weight: '60', reps: '15', completed: true },
+                { weight: '70', reps: '12', completed: true },
+                { weight: '80', reps: '10', completed: true },
+              ]
+            },
+            {
+              name: 'Overhead Extension (Dumbbell)',
+              displayName: 'Overhead Extension',
+              equipment: 'Dumbbell',
+              primaryMuscle: 'Triceps',
+              sets: [
+                { weight: '50', reps: '12', completed: true },
+                { weight: '60', reps: '10', completed: true },
+              ]
+            }
+          ],
+          duration: '00:55:00',
+          startTime: '11:00 AM',
+          endTime: '11:55 AM',
+          workoutTitle: 'Arm Day'
+        },
+        // SECOND CHEST WORKOUT (PROGRESS)
+        {
+          date: new Date('2025-10-06T10:00:00'),
+          exercises: [
+            {
+              name: 'Bench Press (Barbell)',
+              displayName: 'Bench Press',
+              equipment: 'Barbell',
+              primaryMuscle: 'Chest',
+              sets: [
+                { weight: '145', reps: '10', completed: true },
+                { weight: '195', reps: '8', completed: true },
+                { weight: '215', reps: '5', completed: true },
+              ]
+            },
+            {
+              name: 'Bench Press (Dumbbell)',
+              displayName: 'Bench Press',
+              equipment: 'Dumbbell',
+              primaryMuscle: 'Chest',
+              sets: [
+                { weight: '80', reps: '12', completed: true },
+                { weight: '90', reps: '10', completed: true },
+                { weight: '100', reps: '8', completed: true },
+              ]
+            }
+          ],
+          duration: '00:45:00',
+          startTime: '10:00 AM',
+          endTime: '10:45 AM',
+          workoutTitle: 'Chest Power'
+        },
+        // SECOND BACK WORKOUT
+        {
+          date: new Date('2025-10-07T14:00:00'),
+          exercises: [
+            {
+              name: 'Deadlift (Barbell)',
+              displayName: 'Deadlift',
+              equipment: 'Barbell',
+              primaryMuscle: 'Back',
+              sets: [
+                { weight: '235', reps: '8', completed: true },
+                { weight: '285', reps: '6', completed: true },
+                { weight: '325', reps: '3', completed: true },
+              ]
+            },
+            {
+              name: 'Bent Over Row (Dumbbell)',
+              displayName: 'Bent Over Row',
+              equipment: 'Dumbbell',
+              primaryMuscle: 'Back',
+              sets: [
+                { weight: '70', reps: '12', completed: true },
+                { weight: '80', reps: '10', completed: true },
+              ]
+            }
+          ],
+          duration: '00:50:00',
+          startTime: '14:00 PM',
+          endTime: '14:50 PM',
+          workoutTitle: 'Back Strength'
+        },
+        // SECOND LEGS WORKOUT
+        {
+          date: new Date('2025-10-08T09:00:00'),
+          exercises: [
+            {
+              name: 'Squat (Barbell)',
+              displayName: 'Squat',
+              equipment: 'Barbell',
+              primaryMuscle: 'Quadriceps',
+              sets: [
+                { weight: '195', reps: '10', completed: true },
+                { weight: '245', reps: '8', completed: true },
+                { weight: '285', reps: '5', completed: true },
+              ]
+            },
+            {
+              name: 'Lunge (Dumbbell)',
+              displayName: 'Lunge',
+              equipment: 'Dumbbell',
+              primaryMuscle: 'Quadriceps',
+              sets: [
+                { weight: '40', reps: '12', completed: true },
+                { weight: '50', reps: '10', completed: true },
+              ]
+            }
+          ],
+          duration: '00:55:00',
+          startTime: '09:00 AM',
+          endTime: '09:55 AM',
+          workoutTitle: 'Leg Hypertrophy'
+        }
+      ];
 
-      const exerciseSets = mockWorkout.exercises.map(ex => ex.sets);
-
-      // Set the date to October 4th, 2025
-      const oct4 = new Date('2025-10-04T10:00:00');
-
-      const workoutData = {
-        ...mockWorkout,
-        startTime: mockWorkout.startTime,
-        endTime: mockWorkout.endTime,
-        duration: mockWorkout.duration
-      };
-
-      // Manually create the workout with the specific date
-      const workout = {
-        id: Date.now().toString(),
-        userId,
-        date: oct4.toISOString(),
-        startTime: workoutData.startTime,
-        endTime: workoutData.endTime,
-        duration: workoutData.duration,
-        exercises: workoutData.exercises.map((exercise, index) => ({
-          ...exercise,
-          sets: exerciseSets[index] || [],
-          completedSets: exerciseSets[index]?.filter(set => set.completed).length || 0,
-          totalSets: exerciseSets[index]?.length || 0
-        }))
-      };
-
-      // Save directly to workout history
       const history = await WorkoutStorageService.getWorkoutHistory(userId);
-      history.push(workout);
+
+      for (const mockWorkout of workoutsToAdd) {
+        const exerciseSets = mockWorkout.exercises.map(ex => ex.sets);
+
+        const workout = {
+          id: Date.now().toString() + Math.random(),
+          userId,
+          date: mockWorkout.date.toISOString(),
+          startTime: mockWorkout.startTime,
+          endTime: mockWorkout.endTime,
+          duration: mockWorkout.duration,
+          workoutTitle: mockWorkout.workoutTitle,
+          workoutType: 'quick',
+          exercises: mockWorkout.exercises.map((exercise, index) => ({
+            ...exercise,
+            sets: exerciseSets[index] || [],
+            completedSets: exerciseSets[index]?.filter(set => set.completed).length || 0,
+            totalSets: exerciseSets[index]?.length || 0
+          }))
+        };
+
+        history.push(workout);
+
+        // Update exercise progress for each exercise
+        for (let i = 0; i < workout.exercises.length; i++) {
+          const exercise = workout.exercises[i];
+          if (exercise.sets && exercise.sets.length > 0) {
+            await WorkoutStorageService.updateExerciseProgress(exercise, userId, workout.id);
+          }
+        }
+      }
+
       await AsyncStorage.setItem(`workout_history_${userId}`, JSON.stringify(history));
 
       // Reload data
       await loadWorkoutHistory();
 
-      alert('Test workout added for October 4th! Check the calendar.');
+      Alert.alert(
+        'Success! 🎉',
+        `${workoutsToAdd.length} complete workouts added!\n\n` +
+        '✅ Chest: Bench Press, Incline Press, Chest Fly\n' +
+        '✅ Back: Deadlift, Bent Over Row, Lat Pulldown\n' +
+        '✅ Legs: Squat, Leg Press, Romanian Deadlift\n' +
+        '✅ Shoulders: Overhead Press, Lateral Raise\n' +
+        '✅ Arms: Curls, Tricep Pushdown\n\n' +
+        'All with multiple equipment variants!\n' +
+        'Check Exercise Library → Info to see progress!'
+      );
     } catch (error) {
       console.error('Error adding test workout:', error);
-      alert('Failed to add test workout');
+      Alert.alert('Error', 'Failed to add test workouts');
     }
   };
 
@@ -656,7 +948,7 @@ export default function WorkoutHistoryScreen({ navigation }) {
         {/* Test Button */}
         <StyledCard variant="elevated" style={styles.testCard}>
           <StyledButton
-            title="🧪 Add Test Workout (Oct 4th)"
+            title="🧪 Add Test Workouts with Equipment Variants"
             variant="secondary"
             onPress={addTestWorkoutData}
           />

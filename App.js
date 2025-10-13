@@ -29,6 +29,7 @@ import AIAssistantScreen from './src/screens/AIAssistantScreen';
 import DebugScreen from './src/screens/DebugScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import ProgressScreen from './src/screens/ProgressScreen';
+import ProgressHubScreen from './src/screens/ProgressHubScreen';
 import CameraScreen from './src/screens/CameraScreen';
 import FoodScanningScreen from './src/screens/FoodScanningScreen';
 import FoodScanResultScreen from './src/screens/FoodScanResultScreen';
@@ -48,6 +49,7 @@ import EditFoodItemScreen from './src/screens/EditFoodItemScreen';
 import ExerciseSettingsScreen from './src/screens/ExerciseSettingsScreen';
 import FoodSettingsScreen from './src/screens/FoodSettingsScreen';
 import MealPlanTemplatesScreen from './src/screens/MealPlanTemplatesScreen';
+import EquipmentVariantSelectionScreen from './src/screens/EquipmentVariantSelectionScreen';
 import CreateMealPlanScreen from './src/screens/CreateMealPlanScreen';
 import WorkoutHistoryScreen from './src/screens/WorkoutHistoryScreen';
 import TodayWorkoutOptionsScreen from './src/screens/TodayWorkoutOptionsScreen';
@@ -162,6 +164,7 @@ function AppNavigator() {
             <Stack.Screen name="CreateExercise" component={CreateExerciseScreen} />
             <Stack.Screen name="MuscleGroupSelection" component={MuscleGroupSelectionScreen} />
             <Stack.Screen name="ExerciseList" component={ExerciseListScreen} />
+            <Stack.Screen name="EquipmentVariantSelection" component={EquipmentVariantSelectionScreen} />
             <Stack.Screen name="ExerciseDetail" component={ExerciseDetailScreen} />
             <Stack.Screen name="Workout" component={WorkoutScreen} />
             <Stack.Screen name="WorkoutFinalization" component={WorkoutFinalizationScreen} />
@@ -185,6 +188,7 @@ function AppNavigator() {
             <Stack.Screen name="Settings" component={SettingsScreen} />
             <Stack.Screen name="ExerciseSettings" component={ExerciseSettingsScreen} />
             <Stack.Screen name="FoodSettings" component={FoodSettingsScreen} />
+            <Stack.Screen name="ProgressHub" component={ProgressHubScreen} />
             <Stack.Screen name="Progress" component={ProgressScreen} />
             <Stack.Screen name="Debug" component={DebugScreen} />
           </>

@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Modal, TextInput, Alert, Animated, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Modal, TextInput, Alert, Animated, Image, Platform } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import ScreenLayout from '../components/ScreenLayout';
 import SimpleChart from '../components/SimpleChart';
+import AchievementDetailModal from '../components/AchievementDetailModal';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { WorkoutStorageService } from '../services/workoutStorage';
 import { useAuth } from '../context/AuthContext';
@@ -36,6 +38,7 @@ export default function ProgressScreen({ navigation }) {
   const [goals, setGoals] = useState([]);
   const [showGoalModal, setShowGoalModal] = useState(false);
   const [showGoalTemplates, setShowGoalTemplates] = useState(true);
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [newGoal, setNewGoal] = useState({
     type: 'weight', // 'weight', 'reps', 'volume', 'frequency', 'streak'
     title: '',
@@ -47,6 +50,9 @@ export default function ProgressScreen({ navigation }) {
   // Phase 4: Achievements system
   const [achievements, setAchievements] = useState([]);
   const [achievementFilter, setAchievementFilter] = useState('all'); // 'all', 'milestones', 'consistency', 'strength', 'special'
+  const [showAchievementDetailModal, setShowAchievementDetailModal] = useState(false);
+  const [selectedAchievement, setSelectedAchievement] = useState(null);
+  const [achievementBreakdown, setAchievementBreakdown] = useState(null);
 
   // Phase 5: Animations
   const fadeAnim = useRef(new Animated.Value(1)).current;
@@ -135,8 +141,6 @@ export default function ProgressScreen({ navigation }) {
       setLoading(true);
       const userId = user?.email || 'guest';
 
-      console.log('[ProgressScreen] Loading progress data...');
-
       // Run migration to add workoutIds to existing exercise progress records
       await WorkoutStorageService.migrateExerciseProgressWithWorkoutIds(userId);
 
@@ -152,17 +156,12 @@ export default function ProgressScreen({ navigation }) {
       const history = await WorkoutStorageService.getWorkoutHistory(userId);
       setWorkoutHistory(history);
 
-      // Debug: Cross-reference exercise progress workoutIds with actual workout history
-      console.log('[ProgressScreen] Workout history IDs:', history.map(w => w.id));
-      console.log('[ProgressScreen] Total workouts in history:', history.length);
-
       // Check for orphaned progress records
       const allWorkoutIds = new Set(history.map(w => w.id));
       Object.entries(progress).forEach(([exerciseKey, exercise]) => {
         const orphanedRecords = exercise.records.filter(r => r.workoutId && !allWorkoutIds.has(r.workoutId));
         if (orphanedRecords.length > 0) {
           console.warn(`[${exercise.name}] HAS ${orphanedRecords.length} ORPHANED RECORDS!`);
-          console.log('  Orphaned workout IDs:', orphanedRecords.map(r => r.workoutId));
         }
       });
 
@@ -174,10 +173,38 @@ export default function ProgressScreen({ navigation }) {
       const userAchievements = await WorkoutStorageService.getAchievements(userId);
       setAchievements(userAchievements);
 
-      // Set default selected exercise to first one with data
+      // Set default selected exercise to most recently logged exercise
       const exercisesWithData = Object.keys(progress);
       if (exercisesWithData.length > 0 && !selectedExercise) {
-        selectExercise(exercisesWithData[0]);
+        // Find the exercise with the most recent record
+        let mostRecentExercise = null;
+        let mostRecentDate = null;
+
+        exercisesWithData.forEach(exerciseKey => {
+          const exercise = progress[exerciseKey];
+          if (exercise.records && exercise.records.length > 0) {
+            // Get the most recent record for this exercise
+            const latestRecord = exercise.records.reduce((latest, record) => {
+              const recordDate = new Date(record.date);
+              const latestDate = new Date(latest.date);
+              return recordDate > latestDate ? record : latest;
+            });
+
+            const latestDate = new Date(latestRecord.date);
+
+            if (!mostRecentDate || latestDate > mostRecentDate) {
+              mostRecentDate = latestDate;
+              mostRecentExercise = exerciseKey;
+            }
+          }
+        });
+
+        // Select the most recently logged exercise, or first one if no recent date found
+        if (mostRecentExercise) {
+          selectExercise(mostRecentExercise, timeRange, chartType, progress);
+        } else if (exercisesWithData.length > 0) {
+          selectExercise(exercisesWithData[0], timeRange, chartType, progress);
+        }
       }
     } catch (error) {
       console.error('Error loading progress data:', error);
@@ -225,9 +252,92 @@ export default function ProgressScreen({ navigation }) {
     setAchievements(updatedAchievements);
   };
 
-  const selectExercise = async (exerciseKey, range = timeRange, type = chartType) => {
+  const getAchievementBreakdown = async (achievement) => {
+    const userId = user?.email || 'guest';
+    const history = await WorkoutStorageService.getWorkoutHistory(userId);
+    const stats = await WorkoutStorageService.getUserStats(userId);
+
+    switch (achievement.type) {
+      case 'workouts':
+        // Show all workouts (or progress towards goal)
+        const totalWorkouts = stats.totalWorkouts || 0;
+        const workoutList = achievement.unlocked
+          ? history.slice(0, achievement.requirement)
+          : history.slice(0, Math.min(totalWorkouts, achievement.requirement));
+
+        return {
+          type: 'workouts',
+          total: totalWorkouts,
+          requirement: achievement.requirement,
+          unlocked: achievement.unlocked,
+          workouts: workoutList.map(w => ({
+            id: w.id,
+            title: w.workoutTitle,
+            date: new Date(w.date).toLocaleDateString(),
+            exercises: w.exercises.length,
+            duration: w.duration
+          }))
+        };
+
+      case 'volume':
+        // Show exercise breakdown by volume contribution
+        const exerciseVolumes = {};
+        history.forEach(workout => {
+          workout.exercises.forEach(exercise => {
+            const volume = (exercise.sets || []).reduce((sum, set) => {
+              return sum + ((parseFloat(set.weight) || 0) * (parseInt(set.reps) || 0));
+            }, 0);
+
+            if (!exerciseVolumes[exercise.name]) {
+              exerciseVolumes[exercise.name] = { name: exercise.name, volume: 0, workouts: 0 };
+            }
+            exerciseVolumes[exercise.name].volume += volume;
+            exerciseVolumes[exercise.name].workouts += 1;
+          });
+        });
+
+        const sortedExercises = Object.values(exerciseVolumes)
+          .sort((a, b) => b.volume - a.volume);
+
+        return {
+          type: 'volume',
+          total: stats.totalVolume || 0,
+          requirement: achievement.requirement,
+          unlocked: achievement.unlocked,
+          exercises: sortedExercises
+        };
+
+      case 'streak':
+        // Show recent workout dates for streak
+        const last30 = history.slice(-30).reverse();
+        return {
+          type: 'streak',
+          currentStreak: stats.currentStreak || 0,
+          requirement: achievement.requirement,
+          unlocked: achievement.unlocked,
+          recentWorkouts: last30.map(w => ({
+            date: new Date(w.date).toLocaleDateString(),
+            title: w.workoutTitle
+          }))
+        };
+
+      default:
+        return { type: 'general', message: 'Achievement unlocked!' };
+    }
+  };
+
+  const handleAchievementPress = async (achievement) => {
+    setSelectedAchievement(achievement);
+    const breakdown = await getAchievementBreakdown(achievement);
+    setAchievementBreakdown(breakdown);
+    setShowAchievementDetailModal(true);
+  };
+
+  const selectExercise = async (exerciseKey, range = timeRange, type = chartType, progressData = null) => {
     setSelectedExercise(exerciseKey);
-    const exerciseData = exerciseProgress[exerciseKey];
+    // Use provided progressData if available (for initial load), otherwise use state
+    const progress = progressData || exerciseProgress;
+    const exerciseData = progress[exerciseKey];
 
     if (exerciseData && exerciseData.records.length > 0) {
       // Filter records by time range
@@ -242,8 +352,6 @@ export default function ProgressScreen({ navigation }) {
         }
         workoutGroups[workoutId].push(record);
       });
-
-      console.log(`[selectExercise] ${exerciseData.name} - Total records: ${filteredRecords.length}, Unique workouts: ${Object.keys(workoutGroups).length}`);
 
       // Create one chart data point per workout
       const chartData = Object.entries(workoutGroups).map(([workoutId, records]) => {
@@ -287,7 +395,6 @@ export default function ProgressScreen({ navigation }) {
         return aDate - bDate;
       });
 
-      console.log(`[selectExercise] Chart will show ${chartData.length} data points`);
       setChartData(chartData);
     } else {
       setChartData(null);
@@ -654,7 +761,6 @@ export default function ProgressScreen({ navigation }) {
           onPress: async () => {
             try {
               const userId = user?.email || 'guest';
-              console.log('[CLEAR DATA] Starting data reset...');
 
               // Clear all data
               await WorkoutStorageService.clearAllData(userId);
@@ -662,8 +768,6 @@ export default function ProgressScreen({ navigation }) {
               // Also clear goals and achievements
               await AsyncStorage.removeItem(`goals_${userId}`);
               await AsyncStorage.removeItem(`achievements_${userId}`);
-
-              console.log('[CLEAR DATA] All data cleared successfully');
 
               // Reload to show empty state
               await loadProgressData();
@@ -1286,11 +1390,6 @@ export default function ProgressScreen({ navigation }) {
                     );
                     const sessionsCount = uniqueWorkoutIds.size;
 
-                    // Debug logging
-                    console.log(`[${exercise.name}] Total records: ${exercise.records.length}, Filtered: ${filteredRecords.length}, Unique workouts: ${sessionsCount}`);
-                    console.log(`  - WorkoutIds:`, Array.from(uniqueWorkoutIds));
-                    console.log(`  - Records without workoutId:`, filteredRecords.filter(r => !r.workoutId).length);
-
                     return (
                       <TouchableOpacity
                         key={exerciseKey}
@@ -1869,13 +1968,49 @@ export default function ProgressScreen({ navigation }) {
 
                 {/* Deadline (optional) */}
                 <Text style={styles.inputLabel}>Target Date (Optional)</Text>
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="YYYY-MM-DD"
-                  placeholderTextColor={Colors.textMuted}
-                  value={newGoal.deadline}
-                  onChangeText={(text) => setNewGoal({ ...newGoal, deadline: text })}
-                />
+                <TouchableOpacity
+                  style={styles.datePickerButton}
+                  onPress={() => setShowDatePicker(true)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.datePickerButtonText}>
+                    {newGoal.deadline
+                      ? new Date(newGoal.deadline).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })
+                      : 'Select Date'}
+                  </Text>
+                  <Text style={styles.datePickerButtonIcon}>📅</Text>
+                </TouchableOpacity>
+                {newGoal.deadline && (
+                  <TouchableOpacity
+                    style={styles.clearDateButton}
+                    onPress={() => setNewGoal({ ...newGoal, deadline: '' })}
+                  >
+                    <Text style={styles.clearDateButtonText}>Clear Date</Text>
+                  </TouchableOpacity>
+                )}
+
+                {/* Date Picker Modal */}
+                {showDatePicker && (
+                  <DateTimePicker
+                    value={newGoal.deadline ? new Date(newGoal.deadline) : new Date()}
+                    mode="date"
+                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                    onChange={(event, selectedDate) => {
+                      setShowDatePicker(Platform.OS === 'ios');
+                      if (selectedDate) {
+                        setNewGoal({
+                          ...newGoal,
+                          deadline: selectedDate.toISOString().split('T')[0]
+                        });
+                      }
+                    }}
+                    minimumDate={new Date()}
+                  />
+                )}
 
                     {/* Create Button */}
                     <TouchableOpacity
@@ -2004,20 +2139,26 @@ export default function ProgressScreen({ navigation }) {
             <Text style={styles.sectionTitle}>Unlocked ({unlockedFiltered.length})</Text>
             <View style={styles.achievementsGrid}>
               {unlockedFiltered.map((achievement) => (
-                <LinearGradient
+                <TouchableOpacity
                   key={achievement.id}
-                  colors={['rgba(16, 185, 129, 0.2)', 'rgba(5, 150, 105, 0.1)']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.achievementCard}
+                  onPress={() => handleAchievementPress(achievement)}
+                  activeOpacity={0.8}
+                  style={styles.achievementCardWrapper}
                 >
-                  <Text style={styles.achievementCardIcon}>{achievement.icon}</Text>
-                  <Text style={styles.achievementCardTitle}>{achievement.title}</Text>
-                  <Text style={styles.achievementCardDescription}>{achievement.description}</Text>
-                  <View style={styles.achievementBadge}>
-                    <Text style={styles.achievementBadgeText}>✓ UNLOCKED</Text>
-                  </View>
-                </LinearGradient>
+                  <LinearGradient
+                    colors={['rgba(16, 185, 129, 0.2)', 'rgba(5, 150, 105, 0.1)']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.achievementCard}
+                  >
+                    <Text style={styles.achievementCardIcon}>{achievement.icon}</Text>
+                    <Text style={styles.achievementCardTitle}>{achievement.title}</Text>
+                    <Text style={styles.achievementCardDescription}>{achievement.description}</Text>
+                    <View style={styles.achievementBadge}>
+                      <Text style={styles.achievementBadgeText}>✓ UNLOCKED</Text>
+                    </View>
+                  </LinearGradient>
+                </TouchableOpacity>
               ))}
             </View>
           </View>
@@ -2027,36 +2168,43 @@ export default function ProgressScreen({ navigation }) {
         {lockedFiltered.length > 0 && (
           <View style={styles.achievementsSection}>
             <Text style={styles.sectionTitle}>Locked ({lockedFiltered.length})</Text>
-            <View style={styles.achievementsGrid}>
+            <View style={styles.achievementsGridCentered}>
               {lockedFiltered.map((achievement) => {
                 const progress = getAchievementProgress(achievement);
                 const progressText = getProgressText(achievement);
 
                 return (
-                  <View key={achievement.id} style={[styles.achievementCard, styles.achievementCardLocked]}>
-                    <Text style={[styles.achievementCardIcon, styles.achievementCardIconLocked]}>
-                      {achievement.icon}
-                    </Text>
-                    <Text style={[styles.achievementCardTitle, styles.achievementCardTitleLocked]}>
-                      {achievement.title}
-                    </Text>
-                    <Text style={[styles.achievementCardDescription, styles.achievementCardDescriptionLocked]}>
-                      {achievement.description}
-                    </Text>
-                    {progress > 0 && (
-                      <>
-                        <View style={styles.achievementProgressBar}>
-                          <LinearGradient
-                            colors={[Colors.primary, Colors.primary + '80']}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 0 }}
-                            style={[styles.achievementProgressBarFill, { width: `${progress}%` }]}
-                          />
-                        </View>
-                        <Text style={styles.achievementProgressText}>{progressText}</Text>
-                      </>
-                    )}
-                  </View>
+                  <TouchableOpacity
+                    key={achievement.id}
+                    onPress={() => handleAchievementPress(achievement)}
+                    activeOpacity={0.8}
+                    style={styles.achievementCardWrapper}
+                  >
+                    <View style={[styles.achievementCard, styles.achievementCardLocked]}>
+                      <Text style={[styles.achievementCardIcon, styles.achievementCardIconLocked]}>
+                        {achievement.icon}
+                      </Text>
+                      <Text style={[styles.achievementCardTitle, styles.achievementCardTitleLocked]}>
+                        {achievement.title}
+                      </Text>
+                      <Text style={[styles.achievementCardDescription, styles.achievementCardDescriptionLocked]}>
+                        {achievement.description}
+                      </Text>
+                      {progress > 0 && (
+                        <>
+                          <View style={styles.achievementProgressBar}>
+                            <LinearGradient
+                              colors={[Colors.primary, Colors.primary + '80']}
+                              start={{ x: 0, y: 0 }}
+                              end={{ x: 1, y: 0 }}
+                              style={[styles.achievementProgressBarFill, { width: `${progress}%` }]}
+                            />
+                          </View>
+                          <Text style={styles.achievementProgressText}>{progressText}</Text>
+                        </>
+                      )}
+                    </View>
+                  </TouchableOpacity>
                 );
               })}
             </View>
@@ -2543,7 +2691,6 @@ export default function ProgressScreen({ navigation }) {
                               key={index}
                               onPress={() => {
                                 // You can add full-screen image viewer here if needed
-                                console.log('Photo tapped:', index);
                               }}
                               activeOpacity={0.8}
                             >
@@ -2621,6 +2768,14 @@ export default function ProgressScreen({ navigation }) {
             </View>
           </View>
         </Modal>
+
+        {/* Achievement Detail Modal */}
+        <AchievementDetailModal
+          visible={showAchievementDetailModal}
+          onClose={() => setShowAchievementDetailModal(false)}
+          achievement={selectedAchievement}
+          breakdown={achievementBreakdown}
+        />
       </View>
     </ScreenLayout>
   );
@@ -3838,6 +3993,33 @@ const styles = StyleSheet.create({
     color: Colors.text,
     marginBottom: Spacing.md,
   },
+  datePickerButton: {
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: Spacing.md,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+  },
+  datePickerButtonText: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.text,
+  },
+  datePickerButtonIcon: {
+    fontSize: 20,
+  },
+  clearDateButton: {
+    alignSelf: 'flex-start',
+    marginBottom: Spacing.md,
+  },
+  clearDateButtonText: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.error,
+    textDecorationLine: 'underline',
+  },
   createGoalModalButton: {
     backgroundColor: Colors.primary,
     borderRadius: BorderRadius.lg,
@@ -3948,18 +4130,18 @@ const styles = StyleSheet.create({
   // Achievements Tab Styles
   achievementSummary: {
     backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.xl,
-    padding: Spacing.xl,
-    marginBottom: Spacing.lg,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
     borderWidth: 1,
     borderColor: 'rgba(16, 185, 129, 0.3)',
   },
   achievementSummaryTitle: {
-    fontSize: Typography.fontSize.lg,
+    fontSize: Typography.fontSize.md,
     fontWeight: 'bold',
     color: Colors.text,
     textAlign: 'center',
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.sm,
   },
   achievementSummaryStats: {
     flexDirection: 'row',
@@ -3971,32 +4153,32 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   achievementSummaryValue: {
-    fontSize: Typography.fontSize.xxxl,
+    fontSize: Typography.fontSize.xxl,
     fontWeight: 'bold',
     color: Colors.primary,
   },
   achievementSummaryLabel: {
-    fontSize: Typography.fontSize.sm,
+    fontSize: Typography.fontSize.xs,
     color: Colors.textSecondary,
   },
   achievementSummaryDivider: {
     width: 1,
-    height: 40,
+    height: 30,
     backgroundColor: Colors.border,
   },
   achievementFilterScroll: {
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.md,
   },
   achievementFilterContainer: {
     paddingHorizontal: Spacing.xs,
   },
   achievementFilterButton: {
     backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.md,
+    borderRadius: BorderRadius.sm,
     borderWidth: 1,
     borderColor: Colors.border,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
     marginHorizontal: Spacing.xs,
     flexDirection: 'row',
     alignItems: 'center',
@@ -4007,10 +4189,10 @@ const styles = StyleSheet.create({
     borderColor: Colors.primary,
   },
   achievementFilterIcon: {
-    fontSize: 18,
+    fontSize: 14,
   },
   achievementFilterText: {
-    fontSize: Typography.fontSize.sm,
+    fontSize: Typography.fontSize.xs,
     fontWeight: '600',
     color: Colors.text,
   },
@@ -4025,11 +4207,19 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: Spacing.sm,
   },
-  achievementCard: {
+  achievementsGridCentered: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+    justifyContent: 'center',
+  },
+  achievementCardWrapper: {
     width: '48%',
+  },
+  achievementCard: {
     backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.sm,
     borderWidth: 1,
     borderColor: 'rgba(16, 185, 129, 0.3)',
     alignItems: 'center',
@@ -4039,14 +4229,14 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   achievementCardIcon: {
-    fontSize: 48,
-    marginBottom: Spacing.sm,
+    fontSize: 36,
+    marginBottom: Spacing.xs,
   },
   achievementCardIconLocked: {
     opacity: 0.5,
   },
   achievementCardTitle: {
-    fontSize: Typography.fontSize.md,
+    fontSize: Typography.fontSize.sm,
     fontWeight: 'bold',
     color: Colors.text,
     textAlign: 'center',
@@ -4056,41 +4246,43 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
   },
   achievementCardDescription: {
-    fontSize: Typography.fontSize.sm,
+    fontSize: Typography.fontSize.xs,
     color: Colors.textSecondary,
     textAlign: 'center',
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.xs,
   },
   achievementCardDescriptionLocked: {
     color: Colors.textMuted,
   },
   achievementBadge: {
-    backgroundColor: Colors.primary,
-    borderRadius: BorderRadius.sm,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs,
+    backgroundColor: '#000000',
+    borderRadius: BorderRadius.xs,
+    paddingHorizontal: Spacing.xs,
+    paddingVertical: 2,
+    marginTop: Spacing.xs,
   },
   achievementBadgeText: {
-    fontSize: Typography.fontSize.xs,
+    fontSize: 9,
     fontWeight: 'bold',
-    color: Colors.background,
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
   },
   achievementProgressBar: {
     width: '100%',
-    height: 6,
+    height: 4,
     backgroundColor: Colors.border,
-    borderRadius: 3,
+    borderRadius: 2,
     overflow: 'hidden',
-    marginTop: Spacing.sm,
+    marginTop: Spacing.xs,
   },
   achievementProgressBarFill: {
     height: '100%',
   },
   achievementProgressText: {
-    fontSize: Typography.fontSize.xs,
+    fontSize: 9,
     color: Colors.textSecondary,
     textAlign: 'center',
-    marginTop: Spacing.xs,
+    marginTop: 2,
   },
 
   // Celebration Toast

@@ -13,11 +13,6 @@ const APIs = {
         if (data.status === 1 && data.product) {
           const product = data.product;
 
-          // Debug log to see actual nutriscore data structure
-          if (product.nutriscore_data) {
-            console.log('Nutriscore data from API:', JSON.stringify(product.nutriscore_data, null, 2));
-          }
-
           return {
             found: true,
             source: 'Open Food Facts',
@@ -143,14 +138,13 @@ const APIs = {
                 data.proteins_value = product.nutriscore_data?.proteins_value || product.nutriments?.proteins_100g || 0;
               }
 
-              console.log('Parsed nutriscoreData:', data);
               return data;
             })(),
             servingSize: product.serving_size || '100g',
           };
         }
       } catch (error) {
-        console.log('OpenFoodFacts lookup failed, trying next source...');
+        // OpenFoodFacts lookup failed, trying next source
       }
       return null;
     }
@@ -216,7 +210,7 @@ const APIs = {
           }
         }
       } catch (error) {
-        console.log('USDA lookup failed, trying next source...');
+        // USDA lookup failed, trying next source
       }
       return null;
     }
@@ -271,7 +265,7 @@ const APIs = {
           };
         }
       } catch (error) {
-        console.log('FoodRepo lookup failed, trying next source...');
+        // FoodRepo lookup failed, trying next source
       }
       return null;
     }
@@ -282,8 +276,6 @@ export const foodAPI = {
   // Main function - tries multiple databases in sequence
   getProductByBarcode: async (barcode) => {
     try {
-      console.log('Searching for barcode:', barcode);
-
       // Clean the barcode
       const cleanBarcode = barcode.trim();
 
@@ -295,12 +287,9 @@ export const foodAPI = {
       ];
 
       for (const api of sources) {
-        console.log(`Trying ${api.baseUrl}...`);
         const result = await api.tryFetch(cleanBarcode);
 
         if (result && result.found) {
-          console.log(`✓ Found in ${result.source}:`, result.name);
-
           // Return in the exact format our app expects
           return {
             found: true,
@@ -320,7 +309,6 @@ export const foodAPI = {
       }
 
       // If no API found the product
-      console.log('Product not found in any database');
       return {
         found: false,
         barcode: cleanBarcode,

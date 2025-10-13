@@ -187,7 +187,6 @@ export default function MealPlanTemplatesScreen({ navigation }) {
           onPress={() => {
             // Generate unique screen ID for this template creation session
             const screenId = `template_${Date.now()}`;
-            console.log('🆕 Creating new template with screen ID:', screenId);
             navigation.navigate('CreateMealPlan', { screenId });
           }}
           activeOpacity={0.8}

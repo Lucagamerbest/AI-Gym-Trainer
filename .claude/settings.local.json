@@ -51,7 +51,17 @@
       "Bash(npx:*)",
       "Bash(dir:*)",
       "Bash(curl:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(del \"C:\\Users\\lucar\\AI-Gym-Trainer\\workout_detail_styles.txt\")",
+      "Bash(awk:*)",
+      "Bash(del merge-database.js)",
+      "Read(//c//**)",
+      "Bash(python:*)",
+      "Bash(python3:*)",
+      "Read(//c/**)",
+      "Bash(where node)",
+      "Bash(del temp_shoulders.txt)",
+      "Bash(del nul)"
     ],
     "deny": [],
     "ask": []

@@ -32,12 +32,6 @@ export default function FoodSearchScreen({ route, navigation }) {
     screenId
   } = route.params || {};
 
-  // Log screen ID when FoodSearchScreen receives it
-  useEffect(() => {
-    if (fromMealPlanTemplate && screenId) {
-      console.log('🔍 FoodSearchScreen opened from CreateMealPlan ID:', screenId);
-    }
-  }, [fromMealPlanTemplate, screenId]);
   const [searchText, setSearchText] = useState('');
   const [allFoods, setAllFoods] = useState([]);
   const [displayedFoods, setDisplayedFoods] = useState([]);
@@ -134,7 +128,6 @@ export default function FoodSearchScreen({ route, navigation }) {
 
   // Handle food selection
   const selectFood = (food) => {
-    console.log('🔍 FoodSearchScreen navigating to FoodDetail for CreateMealPlan ID:', screenId);
     // Navigate to food detail screen
     navigation.navigate('FoodDetail', {
       food,
@@ -324,12 +317,17 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderRadius: BorderRadius.xl,
     paddingHorizontal: Spacing.md,
-    height: 50,
-    borderWidth: 1,
+    height: 56,
+    borderWidth: 2,
     borderColor: Colors.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   searchIcon: {
-    fontSize: 20,
+    fontSize: 22,
     marginRight: Spacing.sm,
   },
   searchInput: {
@@ -337,6 +335,7 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.md,
     color: Colors.text,
     paddingVertical: 0,
+    fontWeight: '500',
   },
   clearButton: {
     padding: Spacing.xs,
@@ -361,13 +360,19 @@ const styles = StyleSheet.create({
   },
   sectionHeader: {
     marginBottom: Spacing.md,
-    marginHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs,
+    marginHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    backgroundColor: Colors.surface + '80',
+    borderRadius: BorderRadius.md,
+    borderLeftWidth: 3,
+    borderLeftColor: Colors.primary,
   },
   sectionTitle: {
     fontSize: Typography.fontSize.md,
-    fontWeight: '600',
-    color: Colors.textSecondary,
+    fontWeight: '700',
+    color: Colors.text,
+    letterSpacing: 0.3,
   },
   messageContainer: {
     flexDirection: 'row',
@@ -382,18 +387,18 @@ const styles = StyleSheet.create({
   },
   foodCard: {
     backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.lg,
-    paddingHorizontal: Spacing.xl,  // More horizontal padding
-    paddingVertical: Spacing.md,  // Reduced from lg to md
+    borderRadius: BorderRadius.xl,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.lg,
     marginBottom: Spacing.md,
-    marginHorizontal: Spacing.xs,  // Even smaller margins for wider cards
+    marginHorizontal: Spacing.md,
     borderWidth: 1,
     borderColor: Colors.border,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
   },
   foodHeader: {
     marginBottom: Spacing.md,
@@ -402,50 +407,64 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Spacing.xs,
+    marginBottom: Spacing.sm,
   },
   foodName: {
     fontSize: Typography.fontSize.lg,
-    fontWeight: '600',
+    fontWeight: '700',
     color: Colors.text,
     flex: 1,
+    letterSpacing: 0.2,
   },
   apiIndicator: {
     backgroundColor: Colors.primary,
-    paddingHorizontal: Spacing.xs,
-    paddingVertical: 2,
-    borderRadius: BorderRadius.sm,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.md,
     marginLeft: Spacing.sm,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.3,
+    shadowRadius: 2,
+    elevation: 2,
   },
   apiIndicatorText: {
     fontSize: Typography.fontSize.xs,
-    color: 'white',
-    fontWeight: '600',
+    color: '#000',
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
   foodCalories: {
-    fontSize: Typography.fontSize.sm,
+    fontSize: Typography.fontSize.md,
     color: Colors.primary,
-    fontWeight: '500',
+    fontWeight: '700',
   },
   macrosContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'space-around',
     paddingTop: Spacing.md,
     borderTopWidth: 1,
-    borderTopColor: Colors.border,
+    borderTopColor: Colors.border + '40',
+    gap: Spacing.sm,
   },
   macroItem: {
     alignItems: 'center',
     flex: 1,
+    backgroundColor: Colors.background,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
   },
   macroLabel: {
     fontSize: Typography.fontSize.xs,
-    color: Colors.textMuted,
-    marginBottom: 2,
+    color: Colors.textSecondary,
+    marginBottom: 4,
+    fontWeight: '500',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   macroValue: {
     fontSize: Typography.fontSize.md,
-    fontWeight: '600',
+    fontWeight: '700',
     color: Colors.text,
   },
 });

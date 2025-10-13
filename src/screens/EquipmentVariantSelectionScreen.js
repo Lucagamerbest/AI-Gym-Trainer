@@ -57,10 +57,6 @@ export default function EquipmentVariantSelectionScreen({ navigation, route }) {
       _originalExercise: exercise,
     };
 
-    console.log('🎯 Selected variant:', variant.equipment);
-    console.log('🎯 Exercise with variant:', exerciseWithVariant.name);
-    console.log('🎯 Display name:', exerciseWithVariant.displayName);
-
     if (mode === 'info') {
       // Navigate to exercise detail screen
       navigation.replace('ExerciseDetail', {

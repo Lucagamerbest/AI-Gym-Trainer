@@ -606,31 +606,59 @@ export class WorkoutStorageService {
       const achievements = [
         // Workout Milestones
         { id: 'first_workout', icon: '🎯', title: 'First Steps', description: 'Complete your first workout', category: 'milestones', requirement: 1, type: 'workouts' },
+        { id: 'workout_5', icon: '🌱', title: 'Seedling', description: 'Complete 5 workouts', category: 'milestones', requirement: 5, type: 'workouts' },
         { id: 'workout_10', icon: '💪', title: 'Getting Started', description: 'Complete 10 workouts', category: 'milestones', requirement: 10, type: 'workouts' },
         { id: 'workout_25', icon: '🔥', title: 'Quarter Century', description: 'Complete 25 workouts', category: 'milestones', requirement: 25, type: 'workouts' },
         { id: 'workout_50', icon: '⭐', title: 'Half Century', description: 'Complete 50 workouts', category: 'milestones', requirement: 50, type: 'workouts' },
+        { id: 'workout_75', icon: '🚀', title: 'On Fire', description: 'Complete 75 workouts', category: 'milestones', requirement: 75, type: 'workouts' },
         { id: 'workout_100', icon: '💯', title: 'Century Club', description: 'Complete 100 workouts', category: 'milestones', requirement: 100, type: 'workouts' },
+        { id: 'workout_150', icon: '🌟', title: 'Rising Star', description: 'Complete 150 workouts', category: 'milestones', requirement: 150, type: 'workouts' },
+        { id: 'workout_200', icon: '🏅', title: 'Bicentennial', description: 'Complete 200 workouts', category: 'milestones', requirement: 200, type: 'workouts' },
         { id: 'workout_250', icon: '🏆', title: 'Elite Lifter', description: 'Complete 250 workouts', category: 'milestones', requirement: 250, type: 'workouts' },
+        { id: 'workout_365', icon: '📅', title: 'Year Round', description: 'Complete 365 workouts', category: 'milestones', requirement: 365, type: 'workouts' },
+        { id: 'workout_500', icon: '👑', title: 'Legendary', description: 'Complete 500 workouts', category: 'milestones', requirement: 500, type: 'workouts' },
+        { id: 'workout_1000', icon: '💎', title: 'Diamond Status', description: 'Complete 1000 workouts', category: 'milestones', requirement: 1000, type: 'workouts' },
 
         // Streak Achievements
+        { id: 'streak_2', icon: '🔆', title: 'Momentum', description: 'Maintain a 2-day streak', category: 'consistency', requirement: 2, type: 'streak' },
         { id: 'streak_3', icon: '🔥', title: 'Hot Streak', description: 'Maintain a 3-day streak', category: 'consistency', requirement: 3, type: 'streak' },
+        { id: 'streak_5', icon: '⚡', title: 'Power Five', description: 'Maintain a 5-day streak', category: 'consistency', requirement: 5, type: 'streak' },
         { id: 'streak_7', icon: '📅', title: 'One Week Warrior', description: 'Maintain a 7-day streak', category: 'consistency', requirement: 7, type: 'streak' },
+        { id: 'streak_10', icon: '💥', title: 'Ten Day Train', description: 'Maintain a 10-day streak', category: 'consistency', requirement: 10, type: 'streak' },
         { id: 'streak_14', icon: '💪', title: 'Two Week Wonder', description: 'Maintain a 14-day streak', category: 'consistency', requirement: 14, type: 'streak' },
+        { id: 'streak_21', icon: '🎯', title: 'Habit Former', description: 'Maintain a 21-day streak', category: 'consistency', requirement: 21, type: 'streak' },
         { id: 'streak_30', icon: '🌟', title: 'Monthly Master', description: 'Maintain a 30-day streak', category: 'consistency', requirement: 30, type: 'streak' },
+        { id: 'streak_50', icon: '🚀', title: 'Unbreakable', description: 'Maintain a 50-day streak', category: 'consistency', requirement: 50, type: 'streak' },
+        { id: 'streak_75', icon: '💎', title: 'Committed', description: 'Maintain a 75-day streak', category: 'consistency', requirement: 75, type: 'streak' },
         { id: 'streak_100', icon: '👑', title: 'Unstoppable', description: 'Maintain a 100-day streak', category: 'consistency', requirement: 100, type: 'streak' },
+        { id: 'streak_180', icon: '🏆', title: 'Half Year Hero', description: 'Maintain a 180-day streak', category: 'consistency', requirement: 180, type: 'streak' },
+        { id: 'streak_365', icon: '🌍', title: 'Iron Will', description: 'Maintain a 365-day streak', category: 'consistency', requirement: 365, type: 'streak' },
 
         // Volume Achievements
+        { id: 'volume_5k', icon: '📈', title: 'Getting Heavy', description: 'Lift 5,000 lbs total', category: 'strength', requirement: 5000, type: 'volume' },
         { id: 'volume_10k', icon: '📊', title: 'Volume Starter', description: 'Lift 10,000 lbs total', category: 'strength', requirement: 10000, type: 'volume' },
-        { id: 'volume_50k', icon: '💪', title: 'Volume Crusher', description: 'Lift 50,000 lbs total', category: 'strength', requirement: 50000, type: 'volume' },
-        { id: 'volume_100k', icon: '🏋️', title: 'Six Figure Lifter', description: 'Lift 100,000 lbs total', category: 'strength', requirement: 100000, type: 'volume' },
-        { id: 'volume_500k', icon: '⚡', title: 'Volume Beast', description: 'Lift 500,000 lbs total', category: 'strength', requirement: 500000, type: 'volume' },
+        { id: 'volume_25k', icon: '💪', title: 'Quarter Ton', description: 'Lift 25,000 lbs total', category: 'strength', requirement: 25000, type: 'volume' },
+        { id: 'volume_50k', icon: '🏋️', title: 'Volume Crusher', description: 'Lift 50,000 lbs total', category: 'strength', requirement: 50000, type: 'volume' },
+        { id: 'volume_100k', icon: '⚡', title: 'Six Figure Lifter', description: 'Lift 100,000 lbs total', category: 'strength', requirement: 100000, type: 'volume' },
+        { id: 'volume_250k', icon: '🚀', title: 'Quarter Mil', description: 'Lift 250,000 lbs total', category: 'strength', requirement: 250000, type: 'volume' },
+        { id: 'volume_500k', icon: '💥', title: 'Volume Beast', description: 'Lift 500,000 lbs total', category: 'strength', requirement: 500000, type: 'volume' },
+        { id: 'volume_750k', icon: '🔱', title: 'Almost There', description: 'Lift 750,000 lbs total', category: 'strength', requirement: 750000, type: 'volume' },
         { id: 'volume_1m', icon: '👑', title: 'Million Pound Club', description: 'Lift 1,000,000 lbs total', category: 'strength', requirement: 1000000, type: 'volume' },
+        { id: 'volume_2m', icon: '💎', title: 'Double Trouble', description: 'Lift 2,000,000 lbs total', category: 'strength', requirement: 2000000, type: 'volume' },
 
         // Special Achievements
         { id: 'early_bird', icon: '🌅', title: 'Early Bird', description: 'Complete a workout before 7 AM', category: 'special', requirement: 1, type: 'early_workout' },
         { id: 'night_owl', icon: '🦉', title: 'Night Owl', description: 'Complete a workout after 10 PM', category: 'special', requirement: 1, type: 'late_workout' },
+        { id: 'midnight_warrior', icon: '🌙', title: 'Midnight Warrior', description: 'Complete a workout after midnight', category: 'special', requirement: 1, type: 'midnight_workout' },
+        { id: 'sunrise_grinder', icon: '🌄', title: 'Sunrise Grinder', description: 'Complete 10 workouts before 7 AM', category: 'special', requirement: 10, type: 'early_workouts' },
         { id: 'goal_achiever', icon: '🎯', title: 'Goal Achiever', description: 'Complete your first goal', category: 'special', requirement: 1, type: 'completed_goal' },
+        { id: 'goal_master', icon: '🏆', title: 'Goal Master', description: 'Complete 5 goals', category: 'special', requirement: 5, type: 'completed_goal' },
         { id: 'dedication', icon: '💎', title: 'Dedication', description: 'Work out 4 times in one week', category: 'special', requirement: 4, type: 'weekly_workouts' },
+        { id: 'overachiever', icon: '🚀', title: 'Overachiever', description: 'Work out 6 times in one week', category: 'special', requirement: 6, type: 'weekly_workouts' },
+        { id: 'daily_grind', icon: '⚡', title: 'Daily Grind', description: 'Work out 7 days in one week', category: 'special', requirement: 7, type: 'weekly_workouts' },
+        { id: 'weekend_warrior', icon: '⚔️', title: 'Weekend Warrior', description: 'Complete workouts on Sat & Sun', category: 'special', requirement: 1, type: 'weekend_workouts' },
+        { id: 'photographer', icon: '📸', title: 'Progress Tracker', description: 'Add photos to 5 workouts', category: 'special', requirement: 5, type: 'photos' },
+        { id: 'note_taker', icon: '📝', title: 'Detail Oriented', description: 'Add notes to 10 workouts', category: 'special', requirement: 10, type: 'notes' },
       ];
 
       return achievements.map(achievement => ({
@@ -681,10 +709,25 @@ export class WorkoutStorageService {
             });
             break;
 
+          case 'early_workouts':
+            const earlyCount = history.filter(w => {
+              const hour = new Date(w.startTime).getHours();
+              return hour < 7;
+            }).length;
+            shouldUnlock = earlyCount >= achievement.requirement;
+            break;
+
           case 'late_workout':
             shouldUnlock = history.some(w => {
               const hour = new Date(w.startTime).getHours();
               return hour >= 22;
+            });
+            break;
+
+          case 'midnight_workout':
+            shouldUnlock = history.some(w => {
+              const hour = new Date(w.startTime).getHours();
+              return hour >= 0 && hour < 4;
             });
             break;
 
@@ -697,6 +740,24 @@ export class WorkoutStorageService {
             lastWeek.setDate(lastWeek.getDate() - 7);
             const weekWorkouts = history.filter(w => new Date(w.date) >= lastWeek).length;
             shouldUnlock = weekWorkouts >= achievement.requirement;
+            break;
+
+          case 'weekend_workouts':
+            shouldUnlock = history.some(w => {
+              const date = new Date(w.date);
+              const dayOfWeek = date.getDay();
+              return dayOfWeek === 0 || dayOfWeek === 6; // Sunday or Saturday
+            });
+            break;
+
+          case 'photos':
+            const workoutsWithPhotos = history.filter(w => w.photos && w.photos.length > 0).length;
+            shouldUnlock = workoutsWithPhotos >= achievement.requirement;
+            break;
+
+          case 'notes':
+            const workoutsWithNotes = history.filter(w => w.notes && w.notes.trim().length > 0).length;
+            shouldUnlock = workoutsWithNotes >= achievement.requirement;
             break;
         }
 

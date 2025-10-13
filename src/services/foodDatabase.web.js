@@ -7,7 +7,6 @@ const FAVORITES_KEY = '@favorites';
 
 // Initialize database (no-op for web)
 export const initDatabase = async () => {
-  console.log('Using AsyncStorage for web');
   return Promise.resolve();
 };
 
@@ -326,7 +325,6 @@ export const saveFoodFromAPI = async (apiData) => {
 
   // Skip saving foods with no nutritional value
   if (finalCalories === 0 && protein === 0 && carbs === 0 && fat === 0) {
-    console.log('Skipping food with no nutritional data:', apiData.name);
     return null;
   }
 

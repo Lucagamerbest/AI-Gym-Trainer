@@ -6,8 +6,6 @@ const OPEN_FOOD_FACTS_API = 'https://world.openfoodfacts.org';
 // Search for products by name/query
 export const searchOpenFoodFacts = async (query, limit = 20) => {
   try {
-    console.log('[OpenFoodFacts] Searching for:', query);
-
     // API endpoint for searching products
     const url = `${OPEN_FOOD_FACTS_API}/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1&page_size=${limit}`;
 
@@ -20,11 +18,8 @@ export const searchOpenFoodFacts = async (query, limit = 20) => {
     const data = await response.json();
 
     if (!data.products || data.products.length === 0) {
-      console.log('[OpenFoodFacts] No products found');
       return [];
     }
-
-    console.log(`[OpenFoodFacts] Found ${data.products.length} products`);
 
     // Transform Open Food Facts data to our format
     return data.products.map(product => transformProduct(product));
@@ -37,8 +32,6 @@ export const searchOpenFoodFacts = async (query, limit = 20) => {
 // Get product by barcode
 export const getProductByBarcode = async (barcode) => {
   try {
-    console.log('[OpenFoodFacts] Fetching barcode:', barcode);
-
     const url = `${OPEN_FOOD_FACTS_API}/api/v0/product/${barcode}.json`;
     const response = await fetch(url);
 
@@ -49,11 +42,9 @@ export const getProductByBarcode = async (barcode) => {
     const data = await response.json();
 
     if (data.status !== 1 || !data.product) {
-      console.log('[OpenFoodFacts] Product not found');
       return null;
     }
 
-    console.log('[OpenFoodFacts] Product found:', data.product.product_name);
     return transformProduct(data.product);
   } catch (error) {
     console.error('[OpenFoodFacts] Barcode fetch error:', error);
@@ -183,7 +174,6 @@ export const hybridSearch = async (query, localResults) => {
 
   // If searching for whole foods and have good local results, skip API
   if (isWholeFoodSearch && localResults.length >= 5) {
-    console.log('[HybridSearch] Whole food search with good local results, skipping API');
     return {
       local: localResults,
       api: [],
@@ -193,7 +183,6 @@ export const hybridSearch = async (query, localResults) => {
 
   // If we have plenty of good local results for generic searches, use them
   if (isGenericSearch && localResults.length >= 10) {
-    console.log('[HybridSearch] Generic search with sufficient local results');
     return {
       local: localResults,
       api: [],
@@ -209,8 +198,6 @@ export const hybridSearch = async (query, localResults) => {
   ) && !isWholeFoodSearch;  // But not for whole food searches
 
   if (needsAPI) {
-    console.log('[HybridSearch] Fetching from API for specific/branded search');
-
     // If it's a barcode, use barcode lookup
     if (/^\d{8,13}$/.test(query)) {
       const product = await getProductByBarcode(query);

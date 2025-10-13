@@ -27,8 +27,6 @@ Notifications.setNotificationHandler({
 // Helper function to play notification sound using the "silent sound hack"
 const playNotificationSound = async () => {
   try {
-    console.log('🔊 Setting audio mode for silent mode override...');
-
     // CRITICAL: Set audio mode to play in silent mode
     await Audio.setAudioModeAsync({
       playsInSilentModeIOS: true,
@@ -40,8 +38,6 @@ const playNotificationSound = async () => {
       playThroughEarpieceAndroid: false,
     });
 
-    console.log('🔊 Creating sound object...');
-
     // Create and immediately play the notification sound
     const { sound } = await Audio.Sound.createAsync(
       { uri: 'https://actions.google.com/sounds/v1/alarms/beep_short.ogg' },
@@ -50,12 +46,9 @@ const playNotificationSound = async () => {
       false
     );
 
-    console.log('🔊 Sound created and playing!');
-
     // Clean up after sound finishes
     sound.setOnPlaybackStatusUpdate((status) => {
       if (status.didJustFinish) {
-        console.log('🔊 Sound finished, unloading...');
         sound.unloadAsync();
       }
     });
