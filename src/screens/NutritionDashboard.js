@@ -18,6 +18,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import ScreenLayout from '../components/ScreenLayout';
 import StyledCard from '../components/StyledCard';
 import StyledButton from '../components/StyledButton';
+import NutritionAchievementDetailModal from '../components/NutritionAchievementDetailModal';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import {
   getDailySummary,
@@ -65,6 +66,16 @@ export default function NutritionDashboard({ navigation }) {
     fatGoalDays: 0,
     perfectMacroDays: 0,
   });
+
+  // Streak calendar state
+  const [showStreakCalendar, setShowStreakCalendar] = useState(false);
+  const [streakDays, setStreakDays] = useState([]);
+  const [streakType, setStreakType] = useState('current'); // 'current' or 'longest'
+
+  // Achievement detail modal state
+  const [showAchievementDetailModal, setShowAchievementDetailModal] = useState(false);
+  const [selectedAchievement, setSelectedAchievement] = useState(null);
+  const [achievementBreakdown, setAchievementBreakdown] = useState(null);
 
   // Insights tab state
   const [insightsData, setInsightsData] = useState({
@@ -217,6 +228,59 @@ export default function NutritionDashboard({ navigation }) {
     } catch (error) {
       console.error('Error getting meal history data:', error);
       return { calories: 0, protein: 0, carbs: 0, fat: 0 };
+    }
+  };
+
+  const getAllMealHistory = async () => {
+    try {
+      const savedPlans = await AsyncStorage.getItem(MEAL_PLANS_KEY);
+      if (!savedPlans) {
+        return [];
+      }
+
+      const mealPlans = JSON.parse(savedPlans);
+      const allDays = [];
+
+      // Iterate through all dates in meal plans
+      Object.keys(mealPlans).forEach(dateStr => {
+        const dayData = mealPlans[dateStr];
+
+        if (dayData && dayData.logged) {
+          // Calculate totals for this day
+          let totalCalories = 0;
+          let totalProtein = 0;
+          let totalCarbs = 0;
+          let totalFat = 0;
+
+          ['breakfast', 'lunch', 'dinner', 'snacks'].forEach(mealType => {
+            const meals = dayData.logged[mealType] || [];
+            meals.forEach(meal => {
+              totalCalories += meal.calories || 0;
+              totalProtein += meal.protein || 0;
+              totalCarbs += meal.carbs || 0;
+              totalFat += meal.fat || 0;
+            });
+          });
+
+          if (totalCalories > 0) {
+            allDays.push({
+              date: dateStr,
+              calories: totalCalories,
+              protein: totalProtein,
+              carbs: totalCarbs,
+              fat: totalFat,
+            });
+          }
+        }
+      });
+
+      // Sort by date (oldest first)
+      allDays.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      return allDays;
+    } catch (error) {
+      console.error('Error getting all meal history:', error);
+      return [];
     }
   };
 
@@ -442,6 +506,258 @@ export default function NutritionDashboard({ navigation }) {
     } catch (error) {
       console.error('Error calculating goals data:', error);
     }
+  };
+
+  const loadStreakCalendarData = async () => {
+    try {
+      // Load last 90 days of data to show all recent streaks
+      const endDate = new Date();
+      const days = [];
+
+      for (let i = 89; i >= 0; i--) {
+        const date = new Date(endDate);
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+
+        const dayData = await getMealHistoryData(dateStr);
+        if (dayData.calories > 0) {
+          days.push({
+            date: dateStr,
+            dateObj: new Date(date),
+            calories: dayData.calories,
+            protein: dayData.protein,
+            carbs: dayData.carbs,
+            fat: dayData.fat,
+          });
+        }
+      }
+
+      setStreakDays(days);
+      console.log('📅 Loaded streak calendar data:', days.length, 'days with data');
+    } catch (error) {
+      console.error('Error loading streak calendar data:', error);
+    }
+  };
+
+  // Achievement breakdown logic
+  const getAchievementBreakdown = async (achievement) => {
+    try {
+      // Determine achievement type based on title/description
+      const title = achievement.title.toLowerCase();
+      const desc = achievement.desc.toLowerCase();
+
+      // Streak achievements
+      if (desc.includes('streak') && !desc.includes('tracked')) {
+        const recentDays = [];
+        const today = new Date();
+
+        // Get last 30 days for display
+        for (let i = 0; i < 30; i++) {
+          const date = new Date(today);
+          date.setDate(date.getDate() - i);
+          const dateStr = date.toISOString().split('T')[0];
+          const dayData = await getMealHistoryData(dateStr);
+
+          if (dayData.calories > 0) {
+            recentDays.push({
+              date: dateStr,
+              calories: dayData.calories,
+              protein: dayData.protein,
+            });
+          }
+        }
+
+        return {
+          type: 'streak',
+          current: goalsData.longestStreak,
+          required: parseInt(desc.match(/\d+/)?.[0]) || 0,
+          unlocked: achievement.unlocked,
+          recentDays: recentDays.reverse(),
+        };
+      }
+
+      // Days tracked achievements
+      if (desc.includes('days tracked')) {
+        const allDays = await getAllMealHistory();
+        const recentDays = allDays.slice(-10).reverse();
+
+        return {
+          type: 'days_tracked',
+          current: goalsData.totalDays,
+          required: parseInt(desc.match(/\d+/)?.[0]) || 0,
+          unlocked: achievement.unlocked,
+          recentDays: recentDays.map(d => ({
+            date: d.date,
+            calories: d.calories,
+            protein: d.protein,
+          })),
+        };
+      }
+
+      // Goal days achievements
+      if (desc.includes('goal days')) {
+        const allDays = await getAllMealHistory();
+        const goalDays = allDays.filter(d =>
+          Math.abs(d.calories - calorieGoal) <= calorieGoal * 0.1
+        );
+
+        return {
+          type: 'goal_days',
+          current: goalsData.daysAtGoal,
+          required: parseInt(desc.match(/\d+/)?.[0]) || 0,
+          unlocked: achievement.unlocked,
+          recentDays: goalDays.slice(-10).reverse().map(d => ({
+            date: d.date,
+            calories: d.calories,
+            goal: calorieGoal,
+          })),
+        };
+      }
+
+      // Consistency achievements
+      if (desc.includes('weekly') || desc.includes('monthly')) {
+        const isWeekly = desc.includes('weekly');
+        const current = isWeekly ? goalsData.weeklyConsistency : goalsData.monthlyConsistency;
+        const required = parseInt(desc.match(/\d+/)?.[0]) || 0;
+
+        return {
+          type: 'consistency',
+          current: Math.round(current),
+          required,
+          unlocked: achievement.unlocked,
+          daysLogged: goalsData.totalDays,
+          totalDays: isWeekly ? 7 : 30,
+        };
+      }
+
+      // Calorie total achievements
+      if (desc.includes('calories') && (desc.includes('k') || desc.includes('m'))) {
+        const allDays = await getAllMealHistory();
+        const avgPerDay = allDays.length > 0 ? goalsData.totalCalories / allDays.length : 0;
+
+        return {
+          type: 'calories',
+          current: Math.round(goalsData.totalCalories),
+          required: parseInt(desc.match(/\d+/)?.[0]) * (desc.includes('m') ? 1000000 : 1000) || 0,
+          unlocked: achievement.unlocked,
+          totalDays: allDays.length,
+          avgPerDay,
+        };
+      }
+
+      // Protein total achievements
+      if (desc.includes('protein') && (desc.includes('g') || desc.includes('kg'))) {
+        const allDays = await getAllMealHistory();
+        const avgPerDay = allDays.length > 0 ? goalsData.totalProtein / allDays.length : 0;
+
+        return {
+          type: 'protein',
+          current: Math.round(goalsData.totalProtein),
+          required: parseInt(desc.match(/\d+/)?.[0]) * (desc.includes('kg') ? 1000 : 1) || 0,
+          unlocked: achievement.unlocked,
+          totalDays: allDays.length,
+          avgPerDay,
+        };
+      }
+
+      // Protein goal days achievements
+      if (desc.includes('protein') && desc.includes('days')) {
+        const allDays = await getAllMealHistory();
+        const proteinGoal = 150; // TODO: Make configurable
+        const proteinGoalDays = allDays.filter(d => d.protein >= proteinGoal);
+
+        return {
+          type: 'protein_goal_days',
+          current: goalsData.proteinGoalDays,
+          required: parseInt(desc.match(/\d+/)?.[0]) || 0,
+          unlocked: achievement.unlocked,
+          recentDays: proteinGoalDays.slice(-10).reverse().map(d => ({
+            date: d.date,
+            protein: d.protein,
+            goal: proteinGoal,
+          })),
+        };
+      }
+
+      // Deficit achievements
+      if (desc.includes('deficit')) {
+        const allDays = await getAllMealHistory();
+        const deficitDays = allDays.filter(d => d.calories < calorieGoal);
+        const avgPerDay = deficitDays.length > 0 ? goalsData.totalDeficit / deficitDays.length : 0;
+
+        return {
+          type: 'deficit',
+          current: Math.round(goalsData.totalDeficit),
+          required: parseInt(desc.match(/\d+/)?.[0]) * 1000 || 0,
+          unlocked: achievement.unlocked,
+          daysCount: deficitDays.length,
+          avgPerDay,
+        };
+      }
+
+      // Surplus achievements
+      if (desc.includes('surplus')) {
+        const allDays = await getAllMealHistory();
+        const surplusDays = allDays.filter(d => d.calories > calorieGoal);
+        const avgPerDay = surplusDays.length > 0 ? goalsData.totalSurplus / surplusDays.length : 0;
+
+        return {
+          type: 'surplus',
+          current: Math.round(goalsData.totalSurplus),
+          required: parseInt(desc.match(/\d+/)?.[0]) * 1000 || 0,
+          unlocked: achievement.unlocked,
+          daysCount: surplusDays.length,
+          avgPerDay,
+        };
+      }
+
+      // Macro/perfect day achievements
+      if (desc.includes('perfect') || desc.includes('macro')) {
+        const allDays = await getAllMealHistory();
+        const perfectDays = allDays.filter(d => {
+          // Consider perfect if all macros within 10% of goals
+          const proteinGoal = 150;
+          const carbGoal = 200;
+          const fatGoal = 65;
+          return (
+            Math.abs(d.protein - proteinGoal) <= proteinGoal * 0.1 &&
+            Math.abs(d.carbs - carbGoal) <= carbGoal * 0.1 &&
+            Math.abs(d.fat - fatGoal) <= fatGoal * 0.1
+          );
+        });
+
+        return {
+          type: 'macros',
+          current: goalsData.perfectMacroDays,
+          required: parseInt(desc.match(/\d+/)?.[0]) || 1,
+          unlocked: achievement.unlocked,
+          recentDays: perfectDays.slice(-10).reverse().map(d => ({
+            date: d.date,
+            protein: d.protein,
+            carbs: d.carbs,
+            fat: d.fat,
+          })),
+        };
+      }
+
+      // Default fallback
+      return {
+        type: 'general',
+        current: 0,
+        required: 1,
+        unlocked: achievement.unlocked,
+      };
+    } catch (error) {
+      console.error('Error getting achievement breakdown:', error);
+      return null;
+    }
+  };
+
+  const handleAchievementPress = async (achievement) => {
+    setSelectedAchievement(achievement);
+    const breakdown = await getAchievementBreakdown(achievement);
+    setAchievementBreakdown(breakdown);
+    setShowAchievementDetailModal(true);
   };
 
   const calculateInsightsData = async () => {
@@ -781,6 +1097,217 @@ export default function NutritionDashboard({ navigation }) {
   const totalCalories = dailySummary?.totals?.calories || 0;
   const remainingCalories = calorieGoal - totalCalories;
   const progressPercentage = Math.min((totalCalories / calorieGoal) * 100, 100);
+
+  // Streak Calendar Rendering Function
+  const renderStreakCalendar = () => {
+    if (streakDays.length === 0) {
+      return (
+        <View style={styles.calendarEmptyState}>
+          <Text style={styles.calendarEmptyText}>No nutrition data logged yet</Text>
+          <Text style={styles.calendarEmptySubtext}>Start tracking your meals to see your streak!</Text>
+        </View>
+      );
+    }
+
+    // Get the date range (last 90 days)
+    const today = new Date();
+    const startDate = new Date(today);
+    startDate.setDate(startDate.getDate() - 89);
+
+    // Create a set of dates with data for quick lookup
+    const datesWithData = new Set(streakDays.map(d => d.date));
+    const sortedDates = Array.from(datesWithData).sort();
+
+    // Calculate which dates to highlight based on streak type
+    let streakDates = new Set();
+
+    if (streakType === 'current') {
+      // Find current streak - count backwards from today
+      const todayStr = today.toISOString().split('T')[0];
+      let currentDate = new Date(today);
+
+      // Only proceed if today has data
+      if (datesWithData.has(todayStr)) {
+        streakDates.add(todayStr);
+
+        // Count backwards
+        for (let i = 1; i < 365; i++) {
+          currentDate.setDate(currentDate.getDate() - 1);
+          const dateStr = currentDate.toISOString().split('T')[0];
+
+          if (datesWithData.has(dateStr)) {
+            streakDates.add(dateStr);
+          } else {
+            break; // Streak is broken
+          }
+        }
+      }
+      // If no current streak (today has no data or streak is 0), streakDates stays empty
+
+    } else if (streakType === 'longest') {
+      // Find the longest consecutive streak
+      let longestStreakDates = [];
+      let currentStreakDates = [];
+
+      for (let i = 0; i < sortedDates.length; i++) {
+        const dateStr = sortedDates[i];
+
+        if (currentStreakDates.length === 0) {
+          // Start a new streak
+          currentStreakDates = [dateStr];
+        } else {
+          // Check if this date is consecutive to the last date
+          const lastDateStr = currentStreakDates[currentStreakDates.length - 1];
+          const lastDate = new Date(lastDateStr + 'T00:00:00');
+          const currentDate = new Date(dateStr + 'T00:00:00');
+          const dayDiff = Math.round((currentDate - lastDate) / (1000 * 60 * 60 * 24));
+
+          console.log(`Comparing ${lastDateStr} to ${dateStr}: diff = ${dayDiff} days`);
+
+          if (dayDiff === 1) {
+            // Consecutive day - add to current streak
+            currentStreakDates.push(dateStr);
+            console.log(`Added to streak: ${currentStreakDates.join(', ')}`);
+          } else {
+            // Streak broken - check if this was the longest (>= to prefer most recent when equal)
+            console.log(`Streak broken. Current streak length: ${currentStreakDates.length}, Longest so far: ${longestStreakDates.length}`);
+            if (currentStreakDates.length >= longestStreakDates.length) {
+              longestStreakDates = [...currentStreakDates];
+              console.log(`New longest streak: ${longestStreakDates.join(', ')}`);
+            }
+            // Start new streak
+            currentStreakDates = [dateStr];
+          }
+        }
+      }
+
+      // Check the last streak (>= to prefer most recent when equal)
+      console.log(`Final check - Current streak length: ${currentStreakDates.length}, Longest: ${longestStreakDates.length}`);
+      if (currentStreakDates.length >= longestStreakDates.length) {
+        longestStreakDates = [...currentStreakDates];
+        console.log(`Final longest streak: ${longestStreakDates.join(', ')}`);
+      }
+
+      console.log(`🏆 LONGEST STREAK IDENTIFIED: ${longestStreakDates.join(', ')} (${longestStreakDates.length} days)`);
+
+      // Set the longest streak dates
+      streakDates = new Set(longestStreakDates);
+    }
+
+    // Group days by month
+    const months = [];
+    let currentMonth = startDate.getMonth();
+    let currentYear = startDate.getFullYear();
+    let monthDays = [];
+
+    for (let i = 0; i < 90; i++) {
+      const date = new Date(startDate);
+      date.setDate(date.getDate() + i);
+      const dateStr = date.toISOString().split('T')[0];
+
+      if (date.getMonth() !== currentMonth || date.getFullYear() !== currentYear) {
+        // Push the completed month
+        months.push({
+          month: currentMonth,
+          year: currentYear,
+          days: monthDays,
+        });
+        monthDays = [];
+        currentMonth = date.getMonth();
+        currentYear = date.getFullYear();
+      }
+
+      monthDays.push({
+        date: dateStr,
+        day: date.getDate(),
+        dayOfWeek: date.getDay(),
+        hasData: datesWithData.has(dateStr),
+        isStreak: streakDates.has(dateStr),
+        isToday: dateStr === today.toISOString().split('T')[0],
+      });
+    }
+
+    // Push the last month
+    if (monthDays.length > 0) {
+      months.push({
+        month: currentMonth,
+        year: currentYear,
+        days: monthDays,
+      });
+    }
+
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'];
+    const dayNames = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+
+    return months.reverse().map((monthData, monthIdx) => {
+      // Calculate starting position (which day of week the month starts on)
+      const firstDayOfWeek = monthData.days.length > 0 ? monthData.days[0].dayOfWeek : 0;
+
+      // Add empty slots for days before the month starts
+      const calendarDays = [...Array(firstDayOfWeek).fill(null), ...monthData.days];
+
+      // Group into weeks
+      const weeks = [];
+      for (let i = 0; i < calendarDays.length; i += 7) {
+        weeks.push(calendarDays.slice(i, i + 7));
+      }
+
+      return (
+        <View key={`${monthData.year}-${monthData.month}`} style={styles.calendarMonthContainer}>
+          <Text style={styles.calendarMonthTitle}>
+            {monthNames[monthData.month]} {monthData.year}
+          </Text>
+
+          {/* Day names header */}
+          <View style={styles.calendarWeekHeader}>
+            {dayNames.map((day, idx) => (
+              <View key={idx} style={styles.calendarDayName}>
+                <Text style={styles.calendarDayNameText}>{day}</Text>
+              </View>
+            ))}
+          </View>
+
+          {/* Calendar grid */}
+          {weeks.map((week, weekIdx) => (
+            <View key={weekIdx} style={styles.calendarWeekRow}>
+              {week.map((day, dayIdx) => {
+                if (!day) {
+                  return <View key={`empty-${dayIdx}`} style={styles.calendarDayCell} />;
+                }
+
+                return (
+                  <View key={day.date} style={styles.calendarDayCell}>
+                    <View
+                      style={[
+                        styles.calendarDayCircle,
+                        day.isStreak && styles.calendarDayStreak,
+                        day.isToday && styles.calendarDayToday,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.calendarDayText,
+                          day.isStreak && styles.calendarDayTextStreak,
+                          day.isToday && styles.calendarDayTextToday,
+                        ]}
+                      >
+                        {day.day}
+                      </Text>
+                    </View>
+                  </View>
+                );
+              })}
+              {/* Fill remaining slots if week is incomplete */}
+              {[...Array(Math.max(0, 7 - week.length))].map((_, idx) => (
+                <View key={`fill-${idx}`} style={styles.calendarDayCell} />
+              ))}
+            </View>
+          ))}
+        </View>
+      );
+    });
+  };
 
   // Chart rendering helper functions
   const renderLineChart = () => {
@@ -1338,31 +1865,61 @@ export default function NutritionDashboard({ navigation }) {
       <StyledCard style={styles.goalsCard}>
         <Text style={styles.goalsCardTitle}>🔥 Streaks</Text>
         <View style={styles.streaksContainer}>
-          <View style={styles.streakItem}>
+          <TouchableOpacity
+            style={styles.streakItem}
+            onPress={() => {
+              setStreakType('current');
+              loadStreakCalendarData();
+              setShowStreakCalendar(true);
+            }}
+            activeOpacity={0.7}
+          >
             <Text style={styles.streakLabel}>Current Streak</Text>
-            <View style={styles.streakValueContainer}>
-              <Text style={styles.streakValue}>{goalsData.currentStreak}</Text>
-              <Text style={styles.streakDays}>days</Text>
+            <View style={styles.streakContentWrapper}>
+              <View style={styles.streakValueContainer}>
+                <Text style={styles.streakValue}>{goalsData.currentStreak}</Text>
+                <Text style={styles.streakDays}>days</Text>
+              </View>
+              <View style={styles.streakEmojiContainer}>
+                {goalsData.currentStreak > 0 ? (
+                  <Text style={styles.streakEmoji}>
+                    {goalsData.currentStreak >= 30 ? '🏆' : goalsData.currentStreak >= 7 ? '🔥' : '⭐'}
+                  </Text>
+                ) : (
+                  <Text style={styles.streakEmojiPlaceholder}>⭐</Text>
+                )}
+              </View>
             </View>
-            {goalsData.currentStreak > 0 && (
-              <Text style={styles.streakEmoji}>
-                {goalsData.currentStreak >= 30 ? '🏆' : goalsData.currentStreak >= 7 ? '🔥' : '⭐'}
-              </Text>
-            )}
-          </View>
+            <Text style={styles.streakViewCalendarHint}>Tap to view calendar</Text>
+          </TouchableOpacity>
           <View style={styles.streakDivider} />
-          <View style={styles.streakItem}>
+          <TouchableOpacity
+            style={styles.streakItem}
+            onPress={() => {
+              setStreakType('longest');
+              loadStreakCalendarData();
+              setShowStreakCalendar(true);
+            }}
+            activeOpacity={0.7}
+          >
             <Text style={styles.streakLabel}>Longest Streak</Text>
-            <View style={styles.streakValueContainer}>
-              <Text style={styles.streakValue}>{goalsData.longestStreak}</Text>
-              <Text style={styles.streakDays}>days</Text>
+            <View style={styles.streakContentWrapper}>
+              <View style={styles.streakValueContainer}>
+                <Text style={styles.streakValue}>{goalsData.longestStreak}</Text>
+                <Text style={styles.streakDays}>days</Text>
+              </View>
+              <View style={styles.streakEmojiContainer}>
+                {goalsData.longestStreak > 0 ? (
+                  <Text style={styles.streakEmoji}>
+                    {goalsData.longestStreak >= 30 ? '🏆' : goalsData.longestStreak >= 7 ? '🔥' : '⭐'}
+                  </Text>
+                ) : (
+                  <Text style={styles.streakEmojiPlaceholder}>⭐</Text>
+                )}
+              </View>
             </View>
-            {goalsData.longestStreak > 0 && (
-              <Text style={styles.streakEmoji}>
-                {goalsData.longestStreak >= 30 ? '🏆' : goalsData.longestStreak >= 7 ? '🔥' : '⭐'}
-              </Text>
-            )}
-          </View>
+            <Text style={styles.streakViewCalendarHint}>Tap to view calendar</Text>
+          </TouchableOpacity>
         </View>
       </StyledCard>
 
@@ -1429,362 +1986,168 @@ export default function NutritionDashboard({ navigation }) {
           <Text style={styles.achievementsSectionTitle}>🏅 Badges</Text>
           <Text style={styles.achievementsSectionSubtitle}>
             {(() => {
-              const achievements = {
-                // Streak & Consistency
-                rookie: goalsData.totalDays >= 1,
-                earlyBird: goalsData.longestStreak >= 3,
-                steadyProgress: goalsData.longestStreak >= 5,
-                weekWarrior: goalsData.longestStreak >= 7,
-                twoWeekChamp: goalsData.longestStreak >= 14,
-                monthMaster: goalsData.longestStreak >= 30,
-                centurion: goalsData.longestStreak >= 100,
-                consistentStar: goalsData.weeklyConsistency >= 80,
-                monthlyChampion: goalsData.monthlyConsistency >= 90,
-                diamondTracker: goalsData.daysAtGoal >= 50,
-                centuryClub: goalsData.daysAtGoal >= 100,
-                dedication: goalsData.totalDays >= 30,
-                // Cumulative Calories
-                calorieCounter: goalsData.totalCalories >= 10000,
-                nutritionScholar: goalsData.totalCalories >= 100000,
-                // Cumulative Protein
-                proteinStarter: goalsData.totalProtein >= 500,
-                proteinPro: goalsData.totalProtein >= 2000,
-                proteinGod: goalsData.totalProtein >= 5000,
-                // Deficit/Surplus
-                deficitWarrior: goalsData.totalDeficit >= 7000,
-                cutMaster: goalsData.totalDeficit >= 21000,
-                bulkKing: goalsData.totalSurplus >= 7000,
-                massGainer: goalsData.totalSurplus >= 21000,
-                // Macro Balance
-                balancedDiet: goalsData.perfectMacroDays >= 1,
-                macroMaster: goalsData.perfectMacroDays >= 10,
-                proteinChampion: goalsData.proteinGoalDays >= 30,
-              };
-              const unlocked = Object.values(achievements).filter(Boolean).length;
-              console.log('🏅 ACHIEVEMENTS DEBUG:', achievements);
-              console.log(`Unlocked: ${unlocked}/24`);
-              return `${unlocked} / 24 Unlocked`;
+              const achievementsArray = [
+                { icon: '🌱', title: 'Rookie', desc: 'Start tracking', unlocked: goalsData.totalDays >= 1 },
+                { icon: '🐣', title: 'Early Bird', desc: '3-day streak', unlocked: goalsData.longestStreak >= 3 },
+                { icon: '🚀', title: 'Steady Progress', desc: '5-day streak', unlocked: goalsData.longestStreak >= 5 },
+                { icon: '🔥', title: 'Week Warrior', desc: '7-day streak', unlocked: goalsData.longestStreak >= 7 },
+                { icon: '💪', title: 'Two-Week Champ', desc: '14-day streak', unlocked: goalsData.longestStreak >= 14 },
+                { icon: '🔥', title: 'Fire Keeper', desc: '21-day streak', unlocked: goalsData.longestStreak >= 21 },
+                { icon: '🏆', title: 'Month Master', desc: '30-day streak', unlocked: goalsData.longestStreak >= 30 },
+                { icon: '🌊', title: 'Unstoppable', desc: '60-day streak', unlocked: goalsData.longestStreak >= 60 },
+                { icon: '👑', title: 'Centurion', desc: '100-day streak', unlocked: goalsData.longestStreak >= 100 },
+                { icon: '⚡', title: 'Lightning', desc: '180-day streak', unlocked: goalsData.longestStreak >= 180 },
+                { icon: '🎖️', title: 'Year Warrior', desc: '365-day streak', unlocked: goalsData.longestStreak >= 365 },
+                { icon: '📅', title: 'Week Veteran', desc: '7+ days tracked', unlocked: goalsData.totalDays >= 7 },
+                { icon: '🎖️', title: 'Dedication', desc: '30+ days tracked', unlocked: goalsData.totalDays >= 30 },
+                { icon: '📆', title: 'Month Regular', desc: '60+ days tracked', unlocked: goalsData.totalDays >= 60 },
+                { icon: '🗓️', title: 'Quarter Pro', desc: '90+ days tracked', unlocked: goalsData.totalDays >= 90 },
+                { icon: '📋', title: 'Annual Hero', desc: '365+ days tracked', unlocked: goalsData.totalDays >= 365 },
+                { icon: '🌈', title: 'Goal Getter', desc: '10+ goal days', unlocked: goalsData.daysAtGoal >= 10 },
+                { icon: '💎', title: 'Diamond Tracker', desc: '50+ goal days', unlocked: goalsData.daysAtGoal >= 50 },
+                { icon: '🎯', title: 'Century Club', desc: '100+ goal days', unlocked: goalsData.daysAtGoal >= 100 },
+                { icon: '🎪', title: 'Goal Expert', desc: '200+ goal days', unlocked: goalsData.daysAtGoal >= 200 },
+                { icon: '🎨', title: 'Goal Legend', desc: '365+ goal days', unlocked: goalsData.daysAtGoal >= 365 },
+                { icon: '⭐', title: 'Consistent Star', desc: '80%+ weekly', unlocked: goalsData.weeklyConsistency >= 80 },
+                { icon: '💫', title: 'Perfect Week', desc: '100% weekly', unlocked: goalsData.weeklyConsistency >= 100 },
+                { icon: '🌟', title: 'Monthly Champion', desc: '90%+ monthly', unlocked: goalsData.monthlyConsistency >= 90 },
+                { icon: '🌠', title: 'Elite', desc: '95%+ monthly', unlocked: goalsData.monthlyConsistency >= 95 },
+                { icon: '✨', title: 'Perfect Month', desc: '100% monthly', unlocked: goalsData.monthlyConsistency >= 100 },
+                { icon: '📊', title: 'Calorie Counter', desc: '10k+ calories', unlocked: goalsData.totalCalories >= 10000 },
+                { icon: '🎓', title: 'Nutrition Scholar', desc: '100k+ calories', unlocked: goalsData.totalCalories >= 100000 },
+                { icon: '🔮', title: 'Calorie Pro', desc: '250k+ calories', unlocked: goalsData.totalCalories >= 250000 },
+                { icon: '🎆', title: 'Calorie King', desc: '500k+ calories', unlocked: goalsData.totalCalories >= 500000 },
+                { icon: '🌌', title: 'Calorie God', desc: '1M+ calories', unlocked: goalsData.totalCalories >= 1000000 },
+                { icon: '🥩', title: 'Protein Starter', desc: '500g protein', unlocked: goalsData.totalProtein >= 500 },
+                { icon: '🍗', title: 'Protein Pro', desc: '2kg protein', unlocked: goalsData.totalProtein >= 2000 },
+                { icon: '🦸', title: 'Protein God', desc: '5kg protein', unlocked: goalsData.totalProtein >= 5000 },
+                { icon: '🍖', title: 'Protein Beast', desc: '10kg protein', unlocked: goalsData.totalProtein >= 10000 },
+                { icon: '🥓', title: 'Protein Legend', desc: '20kg protein', unlocked: goalsData.totalProtein >= 20000 },
+                { icon: '🏅', title: 'Protein Champion', desc: '30+ protein days', unlocked: goalsData.proteinGoalDays >= 30 },
+                { icon: '🥇', title: 'Protein Elite', desc: '60+ protein days', unlocked: goalsData.proteinGoalDays >= 60 },
+                { icon: '⚔️', title: 'Deficit Warrior', desc: '7k+ deficit', unlocked: goalsData.totalDeficit >= 7000 },
+                { icon: '✂️', title: 'Cut Master', desc: '21k+ deficit', unlocked: goalsData.totalDeficit >= 21000 },
+                { icon: '🗡️', title: 'Cutting Pro', desc: '50k+ deficit', unlocked: goalsData.totalDeficit >= 50000 },
+                { icon: '👊', title: 'Bulk King', desc: '7k+ surplus', unlocked: goalsData.totalSurplus >= 7000 },
+                { icon: '🏋️', title: 'Mass Gainer', desc: '21k+ surplus', unlocked: goalsData.totalSurplus >= 21000 },
+                { icon: '💥', title: 'Bulk Master', desc: '50k+ surplus', unlocked: goalsData.totalSurplus >= 50000 },
+                { icon: '🥗', title: 'Balanced Diet', desc: '1+ perfect day', unlocked: goalsData.perfectMacroDays >= 1 },
+                { icon: '🎯', title: 'Macro Master', desc: '10+ perfect days', unlocked: goalsData.perfectMacroDays >= 10 },
+                { icon: '🔥', title: 'Macro Wizard', desc: '25+ perfect days', unlocked: goalsData.perfectMacroDays >= 25 },
+                { icon: '🌟', title: 'Macro God', desc: '50+ perfect days', unlocked: goalsData.perfectMacroDays >= 50 },
+              ];
+              const unlocked = achievementsArray.filter(a => a.unlocked).length;
+              console.log(`Unlocked: ${unlocked}/48`);
+              return `${unlocked} / 48 Unlocked`;
             })()}
           </Text>
         </View>
-        <View style={styles.achievementsGrid}>
-          {/* Row 1 */}
-          <View style={styles.achievementCardWrapper}>
-            <View style={[styles.achievementCard, goalsData.totalDays < 1 && styles.achievementCardLocked]}>
-              <Text style={[styles.achievementCardIcon, goalsData.totalDays < 1 && styles.achievementCardIconLocked]}>🌱</Text>
-              <Text style={[styles.achievementCardTitle, goalsData.totalDays < 1 && styles.achievementCardTitleLocked]}>Rookie</Text>
-              <Text style={[styles.achievementCardDescription, goalsData.totalDays < 1 && styles.achievementCardDescriptionLocked]}>Start tracking</Text>
-              {goalsData.totalDays >= 1 && (
-                <View style={styles.achievementBadge}>
-                  <Text style={styles.achievementBadgeText}>✓ UNLOCKED</Text>
-                </View>
-              )}
-            </View>
-          </View>
-          <View style={styles.achievementCardWrapper}>
-            <View style={[styles.achievementCard, goalsData.longestStreak < 3 && styles.achievementCardLocked]}>
-              <Text style={[styles.achievementCardIcon, goalsData.longestStreak < 3 && styles.achievementCardIconLocked]}>🐣</Text>
-              <Text style={[styles.achievementCardTitle, goalsData.longestStreak < 3 && styles.achievementCardTitleLocked]}>Early Bird</Text>
-              <Text style={[styles.achievementCardDescription, goalsData.longestStreak < 3 && styles.achievementCardDescriptionLocked]}>3-day streak</Text>
-              {goalsData.longestStreak >= 3 && (
-                <View style={styles.achievementBadge}>
-                  <Text style={styles.achievementBadgeText}>✓ UNLOCKED</Text>
-                </View>
-              )}
-            </View>
-          </View>
 
-          {/* Row 2 */}
-          <View style={styles.achievementCardWrapper}>
-            <View style={[styles.achievementCard, goalsData.longestStreak < 5 && styles.achievementCardLocked]}>
-              <Text style={[styles.achievementCardIcon, goalsData.longestStreak < 5 && styles.achievementCardIconLocked]}>🚀</Text>
-              <Text style={[styles.achievementCardTitle, goalsData.longestStreak < 5 && styles.achievementCardTitleLocked]}>Steady Progress</Text>
-              <Text style={[styles.achievementCardDescription, goalsData.longestStreak < 5 && styles.achievementCardDescriptionLocked]}>5-day streak</Text>
-              {goalsData.longestStreak >= 5 && (
-                <View style={styles.achievementBadge}>
-                  <Text style={styles.achievementBadgeText}>✓ UNLOCKED</Text>
-                </View>
-              )}
-            </View>
-          </View>
-          <View style={styles.achievementCardWrapper}>
-            <View style={[styles.achievementCard, goalsData.longestStreak < 7 && styles.achievementCardLocked]}>
-              <Text style={[styles.achievementCardIcon, goalsData.longestStreak < 7 && styles.achievementCardIconLocked]}>🔥</Text>
-              <Text style={[styles.achievementCardTitle, goalsData.longestStreak < 7 && styles.achievementCardTitleLocked]}>Week Warrior</Text>
-              <Text style={[styles.achievementCardDescription, goalsData.longestStreak < 7 && styles.achievementCardDescriptionLocked]}>7-day streak</Text>
-              {goalsData.longestStreak >= 7 && (
-                <View style={styles.achievementBadge}>
-                  <Text style={styles.achievementBadgeText}>✓ UNLOCKED</Text>
-                </View>
-              )}
-            </View>
-          </View>
+        {/* Unlocked Badges */}
+        {(() => {
+          const achievementsArray = [
+            { icon: '🌱', title: 'Rookie', desc: 'Start tracking', unlocked: goalsData.totalDays >= 1 },
+            { icon: '🐣', title: 'Early Bird', desc: '3-day streak', unlocked: goalsData.longestStreak >= 3 },
+            { icon: '🚀', title: 'Steady Progress', desc: '5-day streak', unlocked: goalsData.longestStreak >= 5 },
+            { icon: '🔥', title: 'Week Warrior', desc: '7-day streak', unlocked: goalsData.longestStreak >= 7 },
+            { icon: '💪', title: 'Two-Week Champ', desc: '14-day streak', unlocked: goalsData.longestStreak >= 14 },
+            { icon: '🔥', title: 'Fire Keeper', desc: '21-day streak', unlocked: goalsData.longestStreak >= 21 },
+            { icon: '🏆', title: 'Month Master', desc: '30-day streak', unlocked: goalsData.longestStreak >= 30 },
+            { icon: '🌊', title: 'Unstoppable', desc: '60-day streak', unlocked: goalsData.longestStreak >= 60 },
+            { icon: '👑', title: 'Centurion', desc: '100-day streak', unlocked: goalsData.longestStreak >= 100 },
+            { icon: '⚡', title: 'Lightning', desc: '180-day streak', unlocked: goalsData.longestStreak >= 180 },
+            { icon: '🎖️', title: 'Year Warrior', desc: '365-day streak', unlocked: goalsData.longestStreak >= 365 },
+            { icon: '📅', title: 'Week Veteran', desc: '7+ days tracked', unlocked: goalsData.totalDays >= 7 },
+            { icon: '🎖️', title: 'Dedication', desc: '30+ days tracked', unlocked: goalsData.totalDays >= 30 },
+            { icon: '📆', title: 'Month Regular', desc: '60+ days tracked', unlocked: goalsData.totalDays >= 60 },
+            { icon: '🗓️', title: 'Quarter Pro', desc: '90+ days tracked', unlocked: goalsData.totalDays >= 90 },
+            { icon: '📋', title: 'Annual Hero', desc: '365+ days tracked', unlocked: goalsData.totalDays >= 365 },
+            { icon: '🌈', title: 'Goal Getter', desc: '10+ goal days', unlocked: goalsData.daysAtGoal >= 10 },
+            { icon: '💎', title: 'Diamond Tracker', desc: '50+ goal days', unlocked: goalsData.daysAtGoal >= 50 },
+            { icon: '🎯', title: 'Century Club', desc: '100+ goal days', unlocked: goalsData.daysAtGoal >= 100 },
+            { icon: '🎪', title: 'Goal Expert', desc: '200+ goal days', unlocked: goalsData.daysAtGoal >= 200 },
+            { icon: '🎨', title: 'Goal Legend', desc: '365+ goal days', unlocked: goalsData.daysAtGoal >= 365 },
+            { icon: '⭐', title: 'Consistent Star', desc: '80%+ weekly', unlocked: goalsData.weeklyConsistency >= 80 },
+            { icon: '💫', title: 'Perfect Week', desc: '100% weekly', unlocked: goalsData.weeklyConsistency >= 100 },
+            { icon: '🌟', title: 'Monthly Champion', desc: '90%+ monthly', unlocked: goalsData.monthlyConsistency >= 90 },
+            { icon: '🌠', title: 'Elite', desc: '95%+ monthly', unlocked: goalsData.monthlyConsistency >= 95 },
+            { icon: '✨', title: 'Perfect Month', desc: '100% monthly', unlocked: goalsData.monthlyConsistency >= 100 },
+            { icon: '📊', title: 'Calorie Counter', desc: '10k+ calories', unlocked: goalsData.totalCalories >= 10000 },
+            { icon: '🎓', title: 'Nutrition Scholar', desc: '100k+ calories', unlocked: goalsData.totalCalories >= 100000 },
+            { icon: '🔮', title: 'Calorie Pro', desc: '250k+ calories', unlocked: goalsData.totalCalories >= 250000 },
+            { icon: '🎆', title: 'Calorie King', desc: '500k+ calories', unlocked: goalsData.totalCalories >= 500000 },
+            { icon: '🌌', title: 'Calorie God', desc: '1M+ calories', unlocked: goalsData.totalCalories >= 1000000 },
+            { icon: '🥩', title: 'Protein Starter', desc: '500g protein', unlocked: goalsData.totalProtein >= 500 },
+            { icon: '🍗', title: 'Protein Pro', desc: '2kg protein', unlocked: goalsData.totalProtein >= 2000 },
+            { icon: '🦸', title: 'Protein God', desc: '5kg protein', unlocked: goalsData.totalProtein >= 5000 },
+            { icon: '🍖', title: 'Protein Beast', desc: '10kg protein', unlocked: goalsData.totalProtein >= 10000 },
+            { icon: '🥓', title: 'Protein Legend', desc: '20kg protein', unlocked: goalsData.totalProtein >= 20000 },
+            { icon: '🏅', title: 'Protein Champion', desc: '30+ protein days', unlocked: goalsData.proteinGoalDays >= 30 },
+            { icon: '🥇', title: 'Protein Elite', desc: '60+ protein days', unlocked: goalsData.proteinGoalDays >= 60 },
+            { icon: '⚔️', title: 'Deficit Warrior', desc: '7k+ deficit', unlocked: goalsData.totalDeficit >= 7000 },
+            { icon: '✂️', title: 'Cut Master', desc: '21k+ deficit', unlocked: goalsData.totalDeficit >= 21000 },
+            { icon: '🗡️', title: 'Cutting Pro', desc: '50k+ deficit', unlocked: goalsData.totalDeficit >= 50000 },
+            { icon: '👊', title: 'Bulk King', desc: '7k+ surplus', unlocked: goalsData.totalSurplus >= 7000 },
+            { icon: '🏋️', title: 'Mass Gainer', desc: '21k+ surplus', unlocked: goalsData.totalSurplus >= 21000 },
+            { icon: '💥', title: 'Bulk Master', desc: '50k+ surplus', unlocked: goalsData.totalSurplus >= 50000 },
+            { icon: '🥗', title: 'Balanced Diet', desc: '1+ perfect day', unlocked: goalsData.perfectMacroDays >= 1 },
+            { icon: '🎯', title: 'Macro Master', desc: '10+ perfect days', unlocked: goalsData.perfectMacroDays >= 10 },
+            { icon: '🔥', title: 'Macro Wizard', desc: '25+ perfect days', unlocked: goalsData.perfectMacroDays >= 25 },
+            { icon: '🌟', title: 'Macro God', desc: '50+ perfect days', unlocked: goalsData.perfectMacroDays >= 50 },
+          ];
 
-          {/* Row 3 */}
-          <View style={styles.achievementCardWrapper}>
-            <View style={[styles.achievementCard, goalsData.longestStreak < 14 && styles.achievementCardLocked]}>
-              <Text style={[styles.achievementCardIcon, goalsData.longestStreak < 14 && styles.achievementCardIconLocked]}>💪</Text>
-              <Text style={[styles.achievementCardTitle, goalsData.longestStreak < 14 && styles.achievementCardTitleLocked]}>Two-Week Champ</Text>
-              <Text style={[styles.achievementCardDescription, goalsData.longestStreak < 14 && styles.achievementCardDescriptionLocked]}>14-day streak</Text>
-              {goalsData.longestStreak >= 14 && (
-                <View style={styles.achievementBadge}>
-                  <Text style={styles.achievementBadgeText}>✓ UNLOCKED</Text>
-                </View>
-              )}
-            </View>
-          </View>
-          <View style={styles.achievementCardWrapper}>
-            <View style={[styles.achievementCard, goalsData.longestStreak < 30 && styles.achievementCardLocked]}>
-              <Text style={[styles.achievementCardIcon, goalsData.longestStreak < 30 && styles.achievementCardIconLocked]}>🏆</Text>
-              <Text style={[styles.achievementCardTitle, goalsData.longestStreak < 30 && styles.achievementCardTitleLocked]}>Month Master</Text>
-              <Text style={[styles.achievementCardDescription, goalsData.longestStreak < 30 && styles.achievementCardDescriptionLocked]}>30-day streak</Text>
-              {goalsData.longestStreak >= 30 && (
-                <View style={styles.achievementBadge}>
-                  <Text style={styles.achievementBadgeText}>✓ UNLOCKED</Text>
-                </View>
-              )}
-            </View>
-          </View>
+          const unlockedAchievements = achievementsArray.filter(a => a.unlocked);
+          const lockedAchievements = achievementsArray.filter(a => !a.unlocked);
 
-          {/* Row 4 */}
-          <View style={styles.achievementCardWrapper}>
-            <View style={[styles.achievementCard, goalsData.longestStreak < 100 && styles.achievementCardLocked]}>
-              <Text style={[styles.achievementCardIcon, goalsData.longestStreak < 100 && styles.achievementCardIconLocked]}>👑</Text>
-              <Text style={[styles.achievementCardTitle, goalsData.longestStreak < 100 && styles.achievementCardTitleLocked]}>Centurion</Text>
-              <Text style={[styles.achievementCardDescription, goalsData.longestStreak < 100 && styles.achievementCardDescriptionLocked]}>100-day streak</Text>
-              {goalsData.longestStreak >= 100 && (
-                <View style={styles.achievementBadge}>
-                  <Text style={styles.achievementBadgeText}>✓ UNLOCKED</Text>
-                </View>
+          return (
+            <>
+              {unlockedAchievements.length > 0 && (
+                <>
+                  <Text style={styles.achievementCategoryTitle}>UNLOCKED</Text>
+                  <View style={styles.achievementsGrid}>
+                    {unlockedAchievements.map((achievement, index) => (
+                      <View key={`unlocked-${index}`} style={styles.achievementCardWrapper}>
+                        <TouchableOpacity
+                          style={styles.achievementCard}
+                          onPress={() => handleAchievementPress(achievement)}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={styles.achievementCardIcon}>{achievement.icon}</Text>
+                          <Text style={styles.achievementCardTitle}>{achievement.title}</Text>
+                          <Text style={styles.achievementCardDescription}>{achievement.desc}</Text>
+                          <View style={styles.achievementBadge}>
+                            <Text style={styles.achievementBadgeText}>✓ UNLOCKED</Text>
+                          </View>
+                        </TouchableOpacity>
+                      </View>
+                    ))}
+                  </View>
+                </>
               )}
-            </View>
-          </View>
-          <View style={styles.achievementCardWrapper}>
-            <View style={[styles.achievementCard, goalsData.weeklyConsistency < 80 && styles.achievementCardLocked]}>
-              <Text style={[styles.achievementCardIcon, goalsData.weeklyConsistency < 80 && styles.achievementCardIconLocked]}>⭐</Text>
-              <Text style={[styles.achievementCardTitle, goalsData.weeklyConsistency < 80 && styles.achievementCardTitleLocked]}>Consistent Star</Text>
-              <Text style={[styles.achievementCardDescription, goalsData.weeklyConsistency < 80 && styles.achievementCardDescriptionLocked]}>80%+ weekly</Text>
-              {goalsData.weeklyConsistency >= 80 && (
-                <View style={styles.achievementBadge}>
-                  <Text style={styles.achievementBadgeText}>✓ UNLOCKED</Text>
-                </View>
-              )}
-            </View>
-          </View>
 
-          {/* Row 5 */}
-          <View style={styles.achievementCardWrapper}>
-            <View style={[styles.achievementCard, goalsData.monthlyConsistency < 90 && styles.achievementCardLocked]}>
-              <Text style={[styles.achievementCardIcon, goalsData.monthlyConsistency < 90 && styles.achievementCardIconLocked]}>🌟</Text>
-              <Text style={[styles.achievementCardTitle, goalsData.monthlyConsistency < 90 && styles.achievementCardTitleLocked]}>Monthly Champion</Text>
-              <Text style={[styles.achievementCardDescription, goalsData.monthlyConsistency < 90 && styles.achievementCardDescriptionLocked]}>90%+ monthly</Text>
-              {goalsData.monthlyConsistency >= 90 && (
-                <View style={styles.achievementBadge}>
-                  <Text style={styles.achievementBadgeText}>✓ UNLOCKED</Text>
-                </View>
+              {lockedAchievements.length > 0 && (
+                <>
+                  <Text style={styles.achievementCategoryTitle}>LOCKED</Text>
+                  <View style={styles.achievementsGrid}>
+                    {lockedAchievements.map((achievement, index) => (
+                      <View key={`locked-${index}`} style={styles.achievementCardWrapper}>
+                        <TouchableOpacity
+                          style={[styles.achievementCard, styles.achievementCardLocked]}
+                          onPress={() => handleAchievementPress(achievement)}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={[styles.achievementCardIcon, styles.achievementCardIconLocked]}>{achievement.icon}</Text>
+                          <Text style={[styles.achievementCardTitle, styles.achievementCardTitleLocked]}>{achievement.title}</Text>
+                          <Text style={[styles.achievementCardDescription, styles.achievementCardDescriptionLocked]}>{achievement.desc}</Text>
+                        </TouchableOpacity>
+                      </View>
+                    ))}
+                  </View>
+                </>
               )}
-            </View>
-          </View>
-          <View style={styles.achievementCardWrapper}>
-            <View style={[styles.achievementCard, goalsData.daysAtGoal < 50 && styles.achievementCardLocked]}>
-              <Text style={[styles.achievementCardIcon, goalsData.daysAtGoal < 50 && styles.achievementCardIconLocked]}>💎</Text>
-              <Text style={[styles.achievementCardTitle, goalsData.daysAtGoal < 50 && styles.achievementCardTitleLocked]}>Diamond Tracker</Text>
-              <Text style={[styles.achievementCardDescription, goalsData.daysAtGoal < 50 && styles.achievementCardDescriptionLocked]}>50+ goal days</Text>
-              {goalsData.daysAtGoal >= 50 && (
-                <View style={styles.achievementBadge}>
-                  <Text style={styles.achievementBadgeText}>✓ UNLOCKED</Text>
-                </View>
-              )}
-            </View>
-          </View>
-
-          {/* Row 6 */}
-          <View style={styles.achievementCardWrapper}>
-            <View style={[styles.achievementCard, goalsData.daysAtGoal < 100 && styles.achievementCardLocked]}>
-              <Text style={[styles.achievementCardIcon, goalsData.daysAtGoal < 100 && styles.achievementCardIconLocked]}>🎯</Text>
-              <Text style={[styles.achievementCardTitle, goalsData.daysAtGoal < 100 && styles.achievementCardTitleLocked]}>Century Club</Text>
-              <Text style={[styles.achievementCardDescription, goalsData.daysAtGoal < 100 && styles.achievementCardDescriptionLocked]}>100+ goal days</Text>
-              {goalsData.daysAtGoal >= 100 && (
-                <View style={styles.achievementBadge}>
-                  <Text style={styles.achievementBadgeText}>✓ UNLOCKED</Text>
-                </View>
-              )}
-            </View>
-          </View>
-          <View style={styles.achievementCardWrapper}>
-            <View style={[styles.achievementCard, goalsData.totalDays < 30 && styles.achievementCardLocked]}>
-              <Text style={[styles.achievementCardIcon, goalsData.totalDays < 30 && styles.achievementCardIconLocked]}>🎖️</Text>
-              <Text style={[styles.achievementCardTitle, goalsData.totalDays < 30 && styles.achievementCardTitleLocked]}>Dedication</Text>
-              <Text style={[styles.achievementCardDescription, goalsData.totalDays < 30 && styles.achievementCardDescriptionLocked]}>30+ days tracked</Text>
-              {goalsData.totalDays >= 30 && (
-                <View style={styles.achievementBadge}>
-                  <Text style={styles.achievementBadgeText}>✓ UNLOCKED</Text>
-                </View>
-              )}
-            </View>
-          </View>
-
-          {/* CUMULATIVE CALORIES */}
-          {/* Row 7 */}
-          <View style={styles.achievementCardWrapper}>
-            <View style={[styles.achievementCard, goalsData.totalCalories < 10000 && styles.achievementCardLocked]}>
-              <Text style={[styles.achievementCardIcon, goalsData.totalCalories < 10000 && styles.achievementCardIconLocked]}>📊</Text>
-              <Text style={[styles.achievementCardTitle, goalsData.totalCalories < 10000 && styles.achievementCardTitleLocked]}>Calorie Counter</Text>
-              <Text style={[styles.achievementCardDescription, goalsData.totalCalories < 10000 && styles.achievementCardDescriptionLocked]}>10k+ calories</Text>
-              {goalsData.totalCalories >= 10000 && (
-                <View style={styles.achievementBadge}>
-                  <Text style={styles.achievementBadgeText}>✓ UNLOCKED</Text>
-                </View>
-              )}
-            </View>
-          </View>
-          <View style={styles.achievementCardWrapper}>
-            <View style={[styles.achievementCard, goalsData.totalCalories < 100000 && styles.achievementCardLocked]}>
-              <Text style={[styles.achievementCardIcon, goalsData.totalCalories < 100000 && styles.achievementCardIconLocked]}>🎓</Text>
-              <Text style={[styles.achievementCardTitle, goalsData.totalCalories < 100000 && styles.achievementCardTitleLocked]}>Nutrition Scholar</Text>
-              <Text style={[styles.achievementCardDescription, goalsData.totalCalories < 100000 && styles.achievementCardDescriptionLocked]}>100k+ calories</Text>
-              {goalsData.totalCalories >= 100000 && (
-                <View style={styles.achievementBadge}>
-                  <Text style={styles.achievementBadgeText}>✓ UNLOCKED</Text>
-                </View>
-              )}
-            </View>
-          </View>
-
-          {/* CUMULATIVE PROTEIN */}
-          {/* Row 8 */}
-          <View style={styles.achievementCardWrapper}>
-            <View style={[styles.achievementCard, goalsData.totalProtein < 500 && styles.achievementCardLocked]}>
-              <Text style={[styles.achievementCardIcon, goalsData.totalProtein < 500 && styles.achievementCardIconLocked]}>🥩</Text>
-              <Text style={[styles.achievementCardTitle, goalsData.totalProtein < 500 && styles.achievementCardTitleLocked]}>Protein Starter</Text>
-              <Text style={[styles.achievementCardDescription, goalsData.totalProtein < 500 && styles.achievementCardDescriptionLocked]}>500g protein</Text>
-              {goalsData.totalProtein >= 500 && (
-                <View style={styles.achievementBadge}>
-                  <Text style={styles.achievementBadgeText}>✓ UNLOCKED</Text>
-                </View>
-              )}
-            </View>
-          </View>
-          <View style={styles.achievementCardWrapper}>
-            <View style={[styles.achievementCard, goalsData.totalProtein < 2000 && styles.achievementCardLocked]}>
-              <Text style={[styles.achievementCardIcon, goalsData.totalProtein < 2000 && styles.achievementCardIconLocked]}>🍗</Text>
-              <Text style={[styles.achievementCardTitle, goalsData.totalProtein < 2000 && styles.achievementCardTitleLocked]}>Protein Pro</Text>
-              <Text style={[styles.achievementCardDescription, goalsData.totalProtein < 2000 && styles.achievementCardDescriptionLocked]}>2kg protein</Text>
-              {goalsData.totalProtein >= 2000 && (
-                <View style={styles.achievementBadge}>
-                  <Text style={styles.achievementBadgeText}>✓ UNLOCKED</Text>
-                </View>
-              )}
-            </View>
-          </View>
-
-          {/* Row 9 */}
-          <View style={styles.achievementCardWrapper}>
-            <View style={[styles.achievementCard, goalsData.totalProtein < 5000 && styles.achievementCardLocked]}>
-              <Text style={[styles.achievementCardIcon, goalsData.totalProtein < 5000 && styles.achievementCardIconLocked]}>⚡</Text>
-              <Text style={[styles.achievementCardTitle, goalsData.totalProtein < 5000 && styles.achievementCardTitleLocked]}>Protein God</Text>
-              <Text style={[styles.achievementCardDescription, goalsData.totalProtein < 5000 && styles.achievementCardDescriptionLocked]}>5kg protein</Text>
-              {goalsData.totalProtein >= 5000 && (
-                <View style={styles.achievementBadge}>
-                  <Text style={styles.achievementBadgeText}>✓ UNLOCKED</Text>
-                </View>
-              )}
-            </View>
-          </View>
-          <View style={styles.achievementCardWrapper}>
-            <View style={[styles.achievementCard, goalsData.proteinGoalDays < 30 && styles.achievementCardLocked]}>
-              <Text style={[styles.achievementCardIcon, goalsData.proteinGoalDays < 30 && styles.achievementCardIconLocked]}>🏅</Text>
-              <Text style={[styles.achievementCardTitle, goalsData.proteinGoalDays < 30 && styles.achievementCardTitleLocked]}>Protein Champion</Text>
-              <Text style={[styles.achievementCardDescription, goalsData.proteinGoalDays < 30 && styles.achievementCardDescriptionLocked]}>30 protein goals</Text>
-              {goalsData.proteinGoalDays >= 30 && (
-                <View style={styles.achievementBadge}>
-                  <Text style={styles.achievementBadgeText}>✓ UNLOCKED</Text>
-                </View>
-              )}
-            </View>
-          </View>
-
-          {/* DEFICIT ACHIEVEMENTS */}
-          {/* Row 10 */}
-          <View style={styles.achievementCardWrapper}>
-            <View style={[styles.achievementCard, goalsData.totalDeficit < 7000 && styles.achievementCardLocked]}>
-              <Text style={[styles.achievementCardIcon, goalsData.totalDeficit < 7000 && styles.achievementCardIconLocked]}>⚔️</Text>
-              <Text style={[styles.achievementCardTitle, goalsData.totalDeficit < 7000 && styles.achievementCardTitleLocked]}>Deficit Warrior</Text>
-              <Text style={[styles.achievementCardDescription, goalsData.totalDeficit < 7000 && styles.achievementCardDescriptionLocked]}>7k cal deficit</Text>
-              {goalsData.totalDeficit >= 7000 && (
-                <View style={styles.achievementBadge}>
-                  <Text style={styles.achievementBadgeText}>✓ UNLOCKED</Text>
-                </View>
-              )}
-            </View>
-          </View>
-          <View style={styles.achievementCardWrapper}>
-            <View style={[styles.achievementCard, goalsData.totalDeficit < 21000 && styles.achievementCardLocked]}>
-              <Text style={[styles.achievementCardIcon, goalsData.totalDeficit < 21000 && styles.achievementCardIconLocked]}>🔪</Text>
-              <Text style={[styles.achievementCardTitle, goalsData.totalDeficit < 21000 && styles.achievementCardTitleLocked]}>Cut Master</Text>
-              <Text style={[styles.achievementCardDescription, goalsData.totalDeficit < 21000 && styles.achievementCardDescriptionLocked]}>21k cal deficit</Text>
-              {goalsData.totalDeficit >= 21000 && (
-                <View style={styles.achievementBadge}>
-                  <Text style={styles.achievementBadgeText}>✓ UNLOCKED</Text>
-                </View>
-              )}
-            </View>
-          </View>
-
-          {/* SURPLUS ACHIEVEMENTS */}
-          {/* Row 11 */}
-          <View style={styles.achievementCardWrapper}>
-            <View style={[styles.achievementCard, goalsData.totalSurplus < 7000 && styles.achievementCardLocked]}>
-              <Text style={[styles.achievementCardIcon, goalsData.totalSurplus < 7000 && styles.achievementCardIconLocked]}>👑</Text>
-              <Text style={[styles.achievementCardTitle, goalsData.totalSurplus < 7000 && styles.achievementCardTitleLocked]}>Bulk King</Text>
-              <Text style={[styles.achievementCardDescription, goalsData.totalSurplus < 7000 && styles.achievementCardDescriptionLocked]}>7k cal surplus</Text>
-              {goalsData.totalSurplus >= 7000 && (
-                <View style={styles.achievementBadge}>
-                  <Text style={styles.achievementBadgeText}>✓ UNLOCKED</Text>
-                </View>
-              )}
-            </View>
-          </View>
-          <View style={styles.achievementCardWrapper}>
-            <View style={[styles.achievementCard, goalsData.totalSurplus < 21000 && styles.achievementCardLocked]}>
-              <Text style={[styles.achievementCardIcon, goalsData.totalSurplus < 21000 && styles.achievementCardIconLocked]}>💪</Text>
-              <Text style={[styles.achievementCardTitle, goalsData.totalSurplus < 21000 && styles.achievementCardTitleLocked]}>Mass Gainer</Text>
-              <Text style={[styles.achievementCardDescription, goalsData.totalSurplus < 21000 && styles.achievementCardDescriptionLocked]}>21k cal surplus</Text>
-              {goalsData.totalSurplus >= 21000 && (
-                <View style={styles.achievementBadge}>
-                  <Text style={styles.achievementBadgeText}>✓ UNLOCKED</Text>
-                </View>
-              )}
-            </View>
-          </View>
-
-          {/* MACRO BALANCE */}
-          {/* Row 12 */}
-          <View style={styles.achievementCardWrapper}>
-            <View style={[styles.achievementCard, goalsData.perfectMacroDays < 1 && styles.achievementCardLocked]}>
-              <Text style={[styles.achievementCardIcon, goalsData.perfectMacroDays < 1 && styles.achievementCardIconLocked]}>🍽️</Text>
-              <Text style={[styles.achievementCardTitle, goalsData.perfectMacroDays < 1 && styles.achievementCardTitleLocked]}>Balanced Diet</Text>
-              <Text style={[styles.achievementCardDescription, goalsData.perfectMacroDays < 1 && styles.achievementCardDescriptionLocked]}>Perfect macros</Text>
-              {goalsData.perfectMacroDays >= 1 && (
-                <View style={styles.achievementBadge}>
-                  <Text style={styles.achievementBadgeText}>✓ UNLOCKED</Text>
-                </View>
-              )}
-            </View>
-          </View>
-          <View style={styles.achievementCardWrapper}>
-            <View style={[styles.achievementCard, goalsData.perfectMacroDays < 10 && styles.achievementCardLocked]}>
-              <Text style={[styles.achievementCardIcon, goalsData.perfectMacroDays < 10 && styles.achievementCardIconLocked]}>🎯</Text>
-              <Text style={[styles.achievementCardTitle, goalsData.perfectMacroDays < 10 && styles.achievementCardTitleLocked]}>Macro Master</Text>
-              <Text style={[styles.achievementCardDescription, goalsData.perfectMacroDays < 10 && styles.achievementCardDescriptionLocked]}>10 perfect days</Text>
-              {goalsData.perfectMacroDays >= 10 && (
-                <View style={styles.achievementBadge}>
-                  <Text style={styles.achievementBadgeText}>✓ UNLOCKED</Text>
-                </View>
-              )}
-            </View>
-          </View>
-        </View>
+            </>
+          );
+        })()}
       </View>
     </>
   );
@@ -2298,6 +2661,77 @@ export default function NutritionDashboard({ navigation }) {
           )}
         </View>
       </Modal>
+
+      {/* Streak Calendar Modal */}
+      <Modal
+        visible={showStreakCalendar}
+        transparent={false}
+        animationType="slide"
+        onRequestClose={() => setShowStreakCalendar(false)}
+      >
+        <View style={styles.calendarModalContainer}>
+          <View style={styles.calendarModalHeader}>
+            <Text style={styles.calendarModalTitle}>
+              {streakType === 'current' ? '📅 Current Streak' : '📅 Longest Streak'}
+            </Text>
+            <TouchableOpacity
+              onPress={() => setShowStreakCalendar(false)}
+              style={styles.calendarCloseButton}
+            >
+              <Text style={styles.calendarCloseButtonText}>✕</Text>
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView
+            style={styles.calendarScrollView}
+            contentContainerStyle={styles.calendarScrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Streak Stats Summary */}
+            <View style={styles.calendarStatsContainer}>
+              <View style={styles.calendarStatBox}>
+                <Text style={styles.calendarStatLabel}>Current Streak</Text>
+                <Text style={styles.calendarStatValue}>{goalsData.currentStreak} days</Text>
+              </View>
+              <View style={styles.calendarStatBox}>
+                <Text style={styles.calendarStatLabel}>Longest Streak</Text>
+                <Text style={styles.calendarStatValue}>{goalsData.longestStreak} days</Text>
+              </View>
+              <View style={styles.calendarStatBox}>
+                <Text style={styles.calendarStatLabel}>Total Days</Text>
+                <Text style={styles.calendarStatValue}>{streakDays.length} days</Text>
+              </View>
+            </View>
+
+            <Text style={styles.calendarSubtitle}>
+              Days with logged nutrition (last 90 days)
+            </Text>
+
+            {renderStreakCalendar()}
+
+            <View style={styles.calendarLegend}>
+              <View style={styles.calendarLegendItem}>
+                <View style={[styles.calendarLegendDot, { backgroundColor: '#3B82F6' }]} />
+                <Text style={styles.calendarLegendText}>
+                  {streakType === 'current' ? 'Current streak days' : 'Longest streak days'}
+                </Text>
+              </View>
+              <View style={styles.calendarLegendItem}>
+                <View style={[styles.calendarLegendDot, { backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border }]} />
+                <Text style={styles.calendarLegendText}>All other days</Text>
+              </View>
+            </View>
+          </ScrollView>
+        </View>
+      </Modal>
+
+      {/* Achievement Detail Modal */}
+      <NutritionAchievementDetailModal
+        visible={showAchievementDetailModal}
+        onClose={() => setShowAchievementDetailModal(false)}
+        achievement={selectedAchievement}
+        breakdown={achievementBreakdown}
+      />
     </ScreenLayout>
   );
 }
@@ -2763,34 +3197,34 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
     borderColor: Colors.border,
-    padding: Spacing.lg,
-    marginBottom: Spacing.lg,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
     marginHorizontal: Spacing.md,
   },
   goalsCardTitle: {
-    fontSize: Typography.fontSize.xl,
-    fontWeight: '800',
+    fontSize: Typography.fontSize.md,
+    fontWeight: '700',
     color: Colors.text,
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.sm,
     textAlign: 'center',
     letterSpacing: 0.3,
   },
   goalValueContainer: {
     alignItems: 'center',
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.sm,
   },
   goalValue: {
-    fontSize: Typography.fontSize.xxxl,
+    fontSize: Typography.fontSize.xxl,
     fontWeight: 'bold',
     color: Colors.primary,
   },
   goalUnit: {
-    fontSize: Typography.fontSize.md,
+    fontSize: Typography.fontSize.sm,
     color: Colors.textSecondary,
-    marginTop: 4,
+    marginTop: 2,
   },
   goalHint: {
-    fontSize: Typography.fontSize.sm,
+    fontSize: Typography.fontSize.xs,
     color: Colors.textMuted,
     textAlign: 'center',
     marginBottom: Spacing.md,
@@ -2823,6 +3257,12 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     marginBottom: Spacing.sm,
   },
+  streakContentWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.md,
+  },
   streakValueContainer: {
     alignItems: 'center',
   },
@@ -2836,9 +3276,18 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     marginTop: 2,
   },
+  streakEmojiContainer: {
+    width: 40,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   streakEmoji: {
     fontSize: 40,
-    marginTop: Spacing.sm,
+  },
+  streakEmojiPlaceholder: {
+    fontSize: 40,
+    opacity: 0.2,
   },
   streakDivider: {
     width: 1,
@@ -2847,7 +3296,7 @@ const styles = StyleSheet.create({
     marginHorizontal: Spacing.md,
   },
   consistencyItem: {
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.md,
   },
   consistencyHeader: {
     flexDirection: 'row',
@@ -2856,12 +3305,12 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
   },
   consistencyLabel: {
-    fontSize: Typography.fontSize.md,
+    fontSize: Typography.fontSize.sm,
     fontWeight: '600',
     color: Colors.text,
   },
   consistencyPercentage: {
-    fontSize: Typography.fontSize.lg,
+    fontSize: Typography.fontSize.md,
     fontWeight: 'bold',
     color: Colors.primary,
   },
@@ -3405,6 +3854,15 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     fontWeight: '600',
   },
+  achievementCategoryTitle: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: 'bold',
+    color: Colors.text,
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.md,
+    marginHorizontal: Spacing.md,
+    letterSpacing: 1,
+  },
   achievementsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -3463,5 +3921,182 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#FFFFFF',
     letterSpacing: 0.5,
+  },
+  // Streak Calendar Hint
+  streakViewCalendarHint: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.primary,
+    marginTop: Spacing.xs,
+    opacity: 0.8,
+  },
+  // Calendar Modal Styles
+  calendarModalContainer: {
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
+  calendarModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: Spacing.lg,
+    paddingTop: Platform.OS === 'ios' ? 60 : Spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    backgroundColor: Colors.surface,
+  },
+  calendarModalTitle: {
+    fontSize: Typography.fontSize.xl,
+    fontWeight: 'bold',
+    color: Colors.text,
+  },
+  calendarCloseButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  calendarCloseButtonText: {
+    fontSize: Typography.fontSize.xl,
+    color: Colors.text,
+    fontWeight: 'bold',
+  },
+  calendarScrollView: {
+    flex: 1,
+  },
+  calendarScrollContent: {
+    padding: Spacing.lg,
+  },
+  calendarStatsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: Spacing.lg,
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+  },
+  calendarStatBox: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  calendarStatLabel: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textSecondary,
+    marginBottom: 4,
+  },
+  calendarStatValue: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: 'bold',
+    color: Colors.primary,
+  },
+  calendarSubtitle: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.lg,
+    textAlign: 'center',
+  },
+  calendarEmptyState: {
+    padding: Spacing.xxl,
+    alignItems: 'center',
+  },
+  calendarEmptyText: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: Spacing.sm,
+  },
+  calendarEmptySubtext: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+  },
+  calendarMonthContainer: {
+    marginBottom: Spacing.xl,
+  },
+  calendarMonthTitle: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: 'bold',
+    color: Colors.text,
+    marginBottom: Spacing.md,
+  },
+  calendarWeekHeader: {
+    flexDirection: 'row',
+    marginBottom: Spacing.sm,
+  },
+  calendarDayName: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  calendarDayNameText: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+  },
+  calendarWeekRow: {
+    flexDirection: 'row',
+    marginBottom: Spacing.xs,
+  },
+  calendarDayCell: {
+    flex: 1,
+    aspectRatio: 1,
+    padding: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 40,
+  },
+  calendarDayCircle: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 100,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+  },
+  calendarDayWithData: {
+    backgroundColor: '#D1D5DB',
+  },
+  calendarDayStreak: {
+    backgroundColor: '#3B82F6',
+  },
+  calendarDayToday: {
+    borderWidth: 2,
+    borderColor: '#FBBF24',
+  },
+  calendarDayText: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+  },
+  calendarDayTextWithData: {
+    color: Colors.text,
+    fontWeight: '600',
+  },
+  calendarDayTextStreak: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+  },
+  calendarDayTextToday: {
+    fontWeight: 'bold',
+  },
+  calendarLegend: {
+    marginTop: Spacing.lg,
+    padding: Spacing.md,
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.md,
+  },
+  calendarLegendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+  },
+  calendarLegendDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: Spacing.sm,
+  },
+  calendarLegendText: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.text,
   },
 });
