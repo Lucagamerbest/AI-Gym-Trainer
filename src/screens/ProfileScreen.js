@@ -12,7 +12,7 @@ import * as Google from 'expo-auth-session/providers/google';
 WebBrowser.maybeCompleteAuthSession();
 
 export default function ProfileScreen({ navigation }) {
-  const { user, signIn, signOut } = useAuth();
+  const { user, signIn, signInWithGoogle, signOut } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [userStats, setUserStats] = useState(null);
 
@@ -48,38 +48,23 @@ export default function ProfileScreen({ navigation }) {
   const handleGoogleSignIn = async (response) => {
     try {
       setIsLoading(true);
-      
-      // Get the authentication response
+
       const { authentication } = response;
-      
-      if (authentication?.accessToken) {
-        // Fetch user info using the access token
-        const userInfoResponse = await fetch(
-          'https://www.googleapis.com/userinfo/v2/me',
-          {
-            headers: { Authorization: `Bearer ${authentication.accessToken}` },
-          }
-        );
-        
-        const userInfo = await userInfoResponse.json();
-        
-        // Save user data
-        const userData = {
-          email: userInfo.email,
-          name: userInfo.name,
-          picture: userInfo.picture,
-          provider: 'google',
-        };
-        
-        const result = await signIn(userData);
-        
+
+      if (authentication?.idToken) {
+        // Sign in with Firebase Auth using Google credential
+        const result = await signInWithGoogle({ idToken: authentication.idToken });
+
         if (result.success) {
           Alert.alert('Success', 'Signed in with Google!');
         } else {
-          Alert.alert('Sign In Failed', 'Please try again');
+          Alert.alert('Sign In Failed', result.error || 'Please try again');
         }
+      } else {
+        Alert.alert('Sign In Failed', 'Failed to get Google credentials');
       }
     } catch (error) {
+      console.error('Google Sign-In Error:', error);
       Alert.alert('Sign In Error', 'Something went wrong. Please try again.');
     } finally {
       setIsLoading(false);

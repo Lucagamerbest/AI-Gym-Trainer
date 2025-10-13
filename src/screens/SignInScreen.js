@@ -28,7 +28,7 @@ export default function SignInScreen({ navigation }) {
   const slideAnim = useRef(new Animated.Value(50)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
   
-  const { signIn } = useAuth();
+  const { signIn, signInWithGoogle, signInWithEmail, createAccountWithEmail } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
@@ -102,17 +102,16 @@ export default function SignInScreen({ navigation }) {
 
     setIsLoading(true);
     try {
-      // In a real app, you'd verify credentials with a backend
-      // For now, we'll accept any valid email/password
-      const userData = {
-        email: email.toLowerCase(),
-        name: name || email.split('@')[0],
-        provider: 'email',
-      };
-      
-      await signIn(userData);
+      // Sign in with Firebase Auth
+      const result = await signInWithEmail(email.toLowerCase(), password);
+
+      if (result.success) {
+        Alert.alert('Success', 'Signed in successfully!');
+      } else {
+        Alert.alert('Sign In Failed', result.error || 'Please check your credentials and try again');
+      }
     } catch (error) {
-      Alert.alert('Sign In Failed', 'Please try again');
+      Alert.alert('Sign In Failed', 'An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -136,17 +135,23 @@ export default function SignInScreen({ navigation }) {
 
     setIsLoading(true);
     try {
-      // In a real app, you'd create the account on a backend
-      const userData = {
-        email: email.toLowerCase(),
-        name: name,
-        provider: 'email',
-      };
-      
-      await signIn(userData);
-      Alert.alert('Success', 'Account created successfully!');
+      // Create account with Firebase Auth
+      const result = await createAccountWithEmail(email.toLowerCase(), password, name);
+
+      if (result.success) {
+        Alert.alert('Success', 'Account created successfully!');
+      } else {
+        // Provide more specific error messages
+        if (result.error.includes('email-already-in-use')) {
+          Alert.alert('Registration Failed', 'This email is already registered. Please sign in instead.');
+        } else if (result.error.includes('weak-password')) {
+          Alert.alert('Registration Failed', 'Password is too weak. Please use a stronger password.');
+        } else {
+          Alert.alert('Registration Failed', result.error || 'Please try again');
+        }
+      }
     } catch (error) {
-      Alert.alert('Registration Failed', 'Please try again');
+      Alert.alert('Registration Failed', 'An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -165,35 +170,23 @@ export default function SignInScreen({ navigation }) {
   const handleGoogleSignIn = async (response) => {
     try {
       setIsGoogleLoading(true);
-      
+
       const { authentication } = response;
-      
-      if (authentication?.accessToken) {
-        const userInfoResponse = await fetch(
-          'https://www.googleapis.com/userinfo/v2/me',
-          {
-            headers: { Authorization: `Bearer ${authentication.accessToken}` },
-          }
-        );
-        
-        const userInfo = await userInfoResponse.json();
-        
-        const userData = {
-          email: userInfo.email,
-          name: userInfo.name,
-          picture: userInfo.picture,
-          provider: 'google',
-        };
-        
-        const result = await signIn(userData);
-        
+
+      if (authentication?.idToken) {
+        // Sign in with Firebase Auth using Google credential
+        const result = await signInWithGoogle({ idToken: authentication.idToken });
+
         if (result.success) {
           Alert.alert('Success', 'Signed in with Google!');
         } else {
-          Alert.alert('Sign In Failed', 'Please try again');
+          Alert.alert('Sign In Failed', result.error || 'Please try again');
         }
+      } else {
+        Alert.alert('Sign In Failed', 'Failed to get Google credentials');
       }
     } catch (error) {
+      console.error('Google Sign-In Error:', error);
       Alert.alert('Sign In Error', 'Something went wrong. Please try again.');
     } finally {
       setIsGoogleLoading(false);
