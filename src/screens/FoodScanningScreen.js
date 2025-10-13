@@ -174,13 +174,22 @@ export default function FoodScanningScreen({ navigation, route }) {
                 activeOpacity={0.7}
               >
                 <View style={styles.historyItemContent}>
-                  {item.image && (
-                    <Image
-                      source={{ uri: item.image }}
-                      style={styles.historyItemImage}
-                      resizeMode="cover"
-                    />
-                  )}
+                  <View style={styles.imagesContainer}>
+                    {item.image && (
+                      <Image
+                        source={{ uri: item.image }}
+                        style={styles.historyItemImage}
+                        resizeMode="cover"
+                      />
+                    )}
+                    {item.barcodePhotoUri && (
+                      <Image
+                        source={{ uri: item.barcodePhotoUri }}
+                        style={styles.barcodePhotoThumb}
+                        resizeMode="cover"
+                      />
+                    )}
+                  </View>
                   <View style={styles.historyItemInfo}>
                     <Text style={styles.historyItemName} numberOfLines={1}>
                       {item.name}
@@ -324,12 +333,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: Spacing.md,
   },
-  historyItemImage: {
-    width: 60,
-    height: 60,
-    borderRadius: BorderRadius.md,
+  imagesContainer: {
+    flexDirection: 'row',
     marginRight: Spacing.md,
+    gap: 4,
+  },
+  historyItemImage: {
+    width: 50,
+    height: 50,
+    borderRadius: BorderRadius.md,
     backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.primary + '30',
+  },
+  barcodePhotoThumb: {
+    width: 50,
+    height: 50,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.success + '30',
   },
   historyItemInfo: {
     flex: 1,

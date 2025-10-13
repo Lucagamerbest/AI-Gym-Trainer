@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Alert,
   TextInput,
+  Modal,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ScreenLayout from '../components/ScreenLayout';
@@ -18,13 +19,16 @@ import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { saveFoodFromAPI, addToDaily, initDatabase } from '../services/foodDatabaseService';
 
 const SCAN_HISTORY_KEY = '@food_scan_history';
+const DAILY_NUTRITION_KEY = '@daily_nutrition';
+const MEAL_PLANS_KEY = '@meal_plans';
 
 export default function FoodScanResultScreen({ navigation, route }) {
-  const { productData, barcode } = route.params;
+  const { productData, barcode, barcodePhotoUri } = route.params;
   const [isSaving, setIsSaving] = useState(false);
   const [servingSize, setServingSize] = useState('100');
   const [isEditingServing, setIsEditingServing] = useState(false);
   const [showNutriScoreModal, setShowNutriScoreModal] = useState(false);
+  const [showBarcodePhoto, setShowBarcodePhoto] = useState(false);
 
   // Auto-detect if product is liquid based on common indicators
   const isLiquid = productData.name?.toLowerCase().includes('drink') ||
@@ -73,6 +77,7 @@ export default function FoodScanResultScreen({ navigation, route }) {
         name: productData.name,
         brand: productData.brand,
         image: productData.imageUrl,
+        barcodePhotoUri: barcodePhotoUri,
         calories: Math.round(productData.nutrition.calories * multiplier),
         protein: parseFloat((productData.nutrition.protein * multiplier).toFixed(1)),
         carbs: parseFloat((productData.nutrition.carbs * multiplier).toFixed(1)),
@@ -84,11 +89,60 @@ export default function FoodScanResultScreen({ navigation, route }) {
       const updatedHistory = [newScan, ...history.slice(0, 19)];
       await AsyncStorage.setItem(SCAN_HISTORY_KEY, JSON.stringify(updatedHistory));
 
+      // IMPORTANT: Also update @daily_nutrition for NutritionScreen
+      const dailyNutritionData = await AsyncStorage.getItem(DAILY_NUTRITION_KEY);
+      const dailyNutrition = dailyNutritionData ? JSON.parse(dailyNutritionData) : {
+        consumed: 0,
+        consumedMacros: { proteinGrams: 0, carbsGrams: 0, fatGrams: 0 },
+        meals: { breakfast: [], lunch: [], dinner: [], snacks: [] },
+        plannedMeals: { breakfast: [], lunch: [], dinner: [], snacks: [] },
+        consumedPlannedMeals: { breakfast: [], lunch: [], dinner: [], snacks: [] },
+        selectedMeal: 'breakfast',
+        lastUpdated: new Date().toISOString()
+      };
+
+      // Add to snacks
+      const foodForNutrition = {
+        name: productData.name,
+        calories: Math.round(productData.nutrition.calories * multiplier),
+        protein: parseFloat((productData.nutrition.protein * multiplier).toFixed(1)),
+        carbs: parseFloat((productData.nutrition.carbs * multiplier).toFixed(1)),
+        fat: parseFloat((productData.nutrition.fat * multiplier).toFixed(1)),
+      };
+
+      dailyNutrition.meals.snacks = dailyNutrition.meals.snacks || [];
+      dailyNutrition.meals.snacks.push(foodForNutrition);
+      dailyNutrition.consumed = (dailyNutrition.consumed || 0) + foodForNutrition.calories;
+      dailyNutrition.consumedMacros.proteinGrams += foodForNutrition.protein;
+      dailyNutrition.consumedMacros.carbsGrams += foodForNutrition.carbs;
+      dailyNutrition.consumedMacros.fatGrams += foodForNutrition.fat;
+      dailyNutrition.lastUpdated = new Date().toISOString();
+
+      await AsyncStorage.setItem(DAILY_NUTRITION_KEY, JSON.stringify(dailyNutrition));
+
+      // Also sync to meal plans calendar
+      const today = new Date().toISOString().split('T')[0];
+      const savedPlans = await AsyncStorage.getItem(MEAL_PLANS_KEY);
+      const mealPlans = savedPlans ? JSON.parse(savedPlans) : {};
+      mealPlans[today] = {
+        ...mealPlans[today],
+        logged: dailyNutrition.meals
+      };
+      await AsyncStorage.setItem(MEAL_PLANS_KEY, JSON.stringify(mealPlans));
+
       Alert.alert(
         'Success',
         `Added ${servingSize}g of ${productData.name} to your daily intake!`,
         [
-          { text: 'OK', onPress: () => navigation.navigate('NutritionDashboard') }
+          {
+            text: 'Scan Another',
+            onPress: () => navigation.navigate('Camera', { returnScreen: 'FoodScanning' })
+          },
+          {
+            text: 'Done',
+            onPress: () => navigation.navigate('Nutrition'),
+            style: 'cancel'
+          }
         ]
       );
     } catch (error) {
@@ -135,11 +189,21 @@ export default function FoodScanResultScreen({ navigation, route }) {
         {/* Product Image and Basic Info - Compact */}
         <StyledCard style={styles.productCard}>
           {productData.imageUrl && (
-            <Image
-              source={{ uri: productData.imageUrl }}
-              style={styles.productImage}
-              resizeMode="contain"
-            />
+            <TouchableOpacity
+              onPress={() => barcodePhotoUri && setShowBarcodePhoto(true)}
+              activeOpacity={barcodePhotoUri ? 0.7 : 1}
+            >
+              <Image
+                source={{ uri: productData.imageUrl }}
+                style={styles.productImage}
+                resizeMode="contain"
+              />
+              {barcodePhotoUri && (
+                <View style={styles.tapHintContainer}>
+                  <Text style={styles.tapHintText}>📷 Tap to see scan</Text>
+                </View>
+              )}
+            </TouchableOpacity>
           )}
           <View style={styles.productInfo}>
             <Text style={styles.productName} numberOfLines={2}>{productData.name}</Text>
@@ -313,6 +377,42 @@ export default function FoodScanResultScreen({ navigation, route }) {
         nutriscoreData={productData.nutriscoreData}
         productName={productData.name}
       />
+
+      {/* Barcode Photo Modal */}
+      <Modal
+        visible={showBarcodePhoto}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowBarcodePhoto(false)}
+      >
+        <View style={styles.barcodeModalOverlay}>
+          <TouchableOpacity
+            style={styles.barcodeModalClose}
+            onPress={() => setShowBarcodePhoto(false)}
+            activeOpacity={0.9}
+          >
+            <View style={styles.barcodeModalContent}>
+              <View style={styles.barcodeModalHeader}>
+                <Text style={styles.barcodeModalTitle}>Your Scanned Barcode</Text>
+                <TouchableOpacity
+                  onPress={() => setShowBarcodePhoto(false)}
+                  style={styles.closeButton}
+                >
+                  <Text style={styles.closeButtonText}>✕</Text>
+                </TouchableOpacity>
+              </View>
+              {barcodePhotoUri && (
+                <Image
+                  source={{ uri: barcodePhotoUri }}
+                  style={styles.barcodePhotoImage}
+                  resizeMode="contain"
+                />
+              )}
+              <Text style={styles.barcodeModalHint}>Tap anywhere to close</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </ScreenLayout>
   );
 }
@@ -583,5 +683,73 @@ const styles = StyleSheet.create({
   },
   nutriScoreE: {
     backgroundColor: '#E63E11',  // Red - Bad
+  },
+  tapHintContainer: {
+    position: 'absolute',
+    bottom: 5,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    paddingVertical: 4,
+    alignItems: 'center',
+  },
+  tapHintText: {
+    color: 'white',
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  barcodeModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.95)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  barcodeModalClose: {
+    flex: 1,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  barcodeModalContent: {
+    width: '90%',
+    maxHeight: '80%',
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+  },
+  barcodeModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
+  barcodeModalTitle: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: 'bold',
+    color: Colors.text,
+  },
+  closeButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.error + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  closeButtonText: {
+    fontSize: 20,
+    color: Colors.error,
+    fontWeight: 'bold',
+  },
+  barcodePhotoImage: {
+    width: '100%',
+    height: 400,
+    borderRadius: BorderRadius.md,
+  },
+  barcodeModalHint: {
+    textAlign: 'center',
+    color: Colors.textSecondary,
+    fontSize: Typography.fontSize.sm,
+    marginTop: Spacing.md,
   },
 });

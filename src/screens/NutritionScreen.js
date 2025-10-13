@@ -709,7 +709,7 @@ export default function NutritionScreen({ navigation, route }) {
             </View>
           </View>
         <Text style={[styles.deficitText, calorieDeficit > 0 ? styles.deficitPositive : styles.deficitNegative]}>
-          {calorieDeficit > 0 ? '🎯 Deficit' : '⚠️ Surplus'}: {Math.abs(calorieDeficit)} cal
+          {calorieDeficit > 0 ? '🎯 Deficit' : '⚠️ Surplus'}: {Math.round(Math.abs(calorieDeficit))} cal
         </Text>
       </StyledCard>
 
@@ -906,15 +906,6 @@ export default function NutritionScreen({ navigation, route }) {
       >
         <Text style={styles.mealPlansIcon}>📋</Text>
         <Text style={styles.mealPlansText}>Meal Plan Templates</Text>
-      </TouchableOpacity>
-
-      {/* View Progress & Charts button */}
-      <TouchableOpacity
-        style={styles.progressChartsButton}
-        onPress={() => navigation.navigate('NutritionDashboard')}
-      >
-        <Text style={styles.progressChartsIcon}>📊</Text>
-        <Text style={styles.progressChartsText}>View Progress & Charts</Text>
       </TouchableOpacity>
 
       {/* Planned Meals Section */}

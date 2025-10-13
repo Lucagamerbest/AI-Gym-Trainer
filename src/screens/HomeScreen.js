@@ -58,7 +58,7 @@ function HomeScreen({ navigation }) {
       }
 
       // Calculate remaining calories
-      const remaining = Math.max(0, calorieGoal - consumedCalories);
+      const remaining = Math.round(Math.max(0, calorieGoal - consumedCalories));
       setRemainingCalories(remaining);
     } catch (error) {
       console.error('Error loading nutrition data:', error);
@@ -321,7 +321,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   statValue: {
-    fontSize: Typography.fontSize.xl,
+    fontSize: Typography.fontSize.lg,
     fontWeight: 'bold',
     color: Colors.primary,
     textShadowColor: 'rgba(16, 185, 129, 0.3)',

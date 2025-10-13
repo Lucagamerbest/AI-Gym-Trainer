@@ -41,15 +41,33 @@ export default function CameraScreen({ navigation, route }) {
     setIsLoading(true);
     setIsScanning(false);
 
+    let barcodePhotoUri = null;
+
     try {
+      // Take a photo of the barcode immediately
+      if (cameraRef.current && isReady) {
+        try {
+          const photo = await cameraRef.current.takePictureAsync({
+            quality: 0.7,
+            base64: false,
+          });
+          barcodePhotoUri = photo.uri;
+          console.log('📸 Captured barcode photo:', barcodePhotoUri);
+        } catch (photoError) {
+          console.log('⚠️ Could not capture photo:', photoError.message);
+          // Continue without photo
+        }
+      }
+
       // Fetch product info from API
       const result = await foodAPI.getProductByBarcode(data);
 
       if (result.found) {
-        // Navigate to FoodScanResult screen with product data
+        // Navigate to FoodScanResult screen with product data AND barcode photo
         navigation.navigate('FoodScanResult', {
           productData: result,
-          barcode: data
+          barcode: data,
+          barcodePhotoUri: barcodePhotoUri
         });
       } else {
         Alert.alert(
