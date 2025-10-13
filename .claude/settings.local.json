@@ -61,7 +61,9 @@
       "Read(//c/**)",
       "Bash(where node)",
       "Bash(del temp_shoulders.txt)",
-      "Bash(del nul)"
+      "Bash(del nul)",
+      "Bash(del \"C:\\Users\\lucar\\AI-Gym-Trainer\\add-test-streak-data.js\")",
+      "Bash(del:*)"
     ],
     "deny": [],
     "ask": []

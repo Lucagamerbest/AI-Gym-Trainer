@@ -1,14 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ScreenLayout from '../components/ScreenLayout';
 import StyledCard from '../components/StyledCard';
 import StyledButton from '../components/StyledButton';
 import { Colors, Spacing, Typography } from '../constants/theme';
+import BackendService from '../services/backend/BackendService';
 
 export default function DebugScreen({ navigation }) {
   const [users, setUsers] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
+
+  // Backend testing state
+  const [backendStatus, setBackendStatus] = useState('not-tested');
+  const [backendLoading, setBackendLoading] = useState(false);
 
   useEffect(() => {
     loadStoredData();
@@ -58,6 +63,27 @@ export default function DebugScreen({ navigation }) {
     );
   };
 
+  const testBackendConnection = async () => {
+    setBackendLoading(true);
+    setBackendStatus('testing');
+
+    try {
+      const success = await BackendService.testConnection();
+      setBackendStatus(success ? 'success' : 'failed');
+
+      if (success) {
+        Alert.alert('✅ Success', 'Firebase backend connected successfully!');
+      } else {
+        Alert.alert('❌ Failed', 'Could not connect to Firebase. Check your .env.local file.');
+      }
+    } catch (error) {
+      setBackendStatus('failed');
+      Alert.alert('❌ Error', error.message);
+    } finally {
+      setBackendLoading(false);
+    }
+  };
+
   return (
     <ScreenLayout
       title="Debug: User Storage"
@@ -67,9 +93,49 @@ export default function DebugScreen({ navigation }) {
       showHome={true}
     >
       <StyledCard variant="elevated" style={styles.infoCard}>
+        <Text style={styles.infoTitle}>🔥 Firebase Backend Connection</Text>
+        <Text style={styles.infoText}>• Test connection to Firebase/Firestore</Text>
+        <Text style={styles.infoText}>• Make sure you filled in .env.local</Text>
+        <Text style={styles.infoText}>• Restart dev server after updating .env.local</Text>
+
+        <StyledButton
+          title={backendLoading ? "Testing..." : "Test Backend Connection"}
+          icon={backendLoading ? "" : "🔌"}
+          size="md"
+          variant="primary"
+          fullWidth
+          onPress={testBackendConnection}
+          disabled={backendLoading}
+          style={styles.testButton}
+        />
+
+        {backendStatus !== 'not-tested' && (
+          <View style={[
+            styles.statusBox,
+            backendStatus === 'success' ? styles.successBox :
+            backendStatus === 'failed' ? styles.errorBox :
+            styles.testingBox
+          ]}>
+            {backendLoading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator color={Colors.primary} />
+                <Text style={styles.statusText}>Testing connection...</Text>
+              </View>
+            ) : (
+              <Text style={styles.statusText}>
+                {backendStatus === 'success' ? '✅ Connected to Firebase!' :
+                 backendStatus === 'failed' ? '❌ Connection Failed' :
+                 '⏳ Testing...'}
+              </Text>
+            )}
+          </View>
+        )}
+      </StyledCard>
+
+      <StyledCard variant="elevated" style={styles.infoCard}>
         <Text style={styles.infoTitle}>📍 Data Storage Location</Text>
         <Text style={styles.infoText}>• Local device storage (AsyncStorage)</Text>
-        <Text style={styles.infoText}>• NOT in any cloud database</Text>
+        <Text style={styles.infoText}>• Soon: Cloud sync with Firebase</Text>
         <Text style={styles.infoText}>• Data persists until app is uninstalled</Text>
         <Text style={styles.infoText}>• Each device has its own storage</Text>
       </StyledCard>
@@ -204,5 +270,38 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     fontSize: Typography.fontSize.sm,
     marginBottom: Spacing.xs,
+  },
+  testButton: {
+    marginTop: Spacing.md,
+  },
+  statusBox: {
+    marginTop: Spacing.md,
+    padding: Spacing.md,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  successBox: {
+    backgroundColor: '#10B98144',
+    borderColor: '#10B981',
+  },
+  errorBox: {
+    backgroundColor: '#EF444444',
+    borderColor: '#EF4444',
+  },
+  testingBox: {
+    backgroundColor: Colors.surface,
+    borderColor: Colors.border,
+  },
+  statusText: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+    color: Colors.text,
+    textAlign: 'center',
+  },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
   },
 });

@@ -1,0 +1,187 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ============================================
+    // HELPER FUNCTIONS
+    // ============================================
+
+    /**
+     * Check if user is authenticated
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * Check if user is accessing their own data
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * Check if data being written has valid user ID
+     */
+    function hasValidUserId() {
+      return request.resource.data.userId == request.auth.uid;
+    }
+
+    /**
+     * Check if required fields are present
+     */
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    /**
+     * Validate timestamp is recent (within 1 hour)
+     */
+    function isRecentTimestamp(timestamp) {
+      return timestamp > request.time - duration.value(1, 'h');
+    }
+
+    // ============================================
+    // USER COLLECTION
+    // ============================================
+
+    /**
+     * users/{userId}
+     * - Users can read/write their own profile
+     * - Cannot create profiles with different UID
+     */
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+
+      allow create: if isOwner(userId)
+                    && hasRequiredFields(['uid', 'email', 'createdAt'])
+                    && request.resource.data.uid == userId;
+
+      allow update: if isOwner(userId)
+                    && request.resource.data.uid == userId;
+
+      allow delete: if isOwner(userId);
+
+      // ============================================
+      // USER SUBCOLLECTIONS
+      // ============================================
+
+      /**
+       * users/{userId}/workouts/{workoutId}
+       * - Users can read/write their own workouts
+       */
+      match /workouts/{workoutId} {
+        allow read: if isOwner(userId);
+
+        allow create: if isOwner(userId)
+                      && hasValidUserId()
+                      && hasRequiredFields(['userId', 'date', 'exercises']);
+
+        allow update: if isOwner(userId)
+                      && hasValidUserId();
+
+        allow delete: if isOwner(userId);
+      }
+
+      /**
+       * users/{userId}/meals/{mealId}
+       * - Users can read/write their own meals
+       */
+      match /meals/{mealId} {
+        allow read: if isOwner(userId);
+
+        allow create: if isOwner(userId)
+                      && hasValidUserId()
+                      && hasRequiredFields(['userId', 'date', 'foods']);
+
+        allow update: if isOwner(userId)
+                      && hasValidUserId();
+
+        allow delete: if isOwner(userId);
+      }
+
+      /**
+       * users/{userId}/progress/{progressId}
+       * - Users can read/write their own progress entries
+       */
+      match /progress/{progressId} {
+        allow read: if isOwner(userId);
+
+        allow create: if isOwner(userId)
+                      && hasValidUserId()
+                      && hasRequiredFields(['userId', 'date', 'weight']);
+
+        allow update: if isOwner(userId)
+                      && hasValidUserId();
+
+        allow delete: if isOwner(userId);
+      }
+
+      /**
+       * users/{userId}/ai_sessions/{sessionId}
+       * - Users can read/write their own AI chat history
+       */
+      match /ai_sessions/{sessionId} {
+        allow read: if isOwner(userId);
+
+        allow create: if isOwner(userId)
+                      && hasValidUserId()
+                      && hasRequiredFields(['userId', 'timestamp', 'userMessage', 'aiResponse']);
+
+        allow update: if isOwner(userId)
+                      && hasValidUserId();
+
+        allow delete: if isOwner(userId);
+      }
+    }
+
+    // ============================================
+    // GLOBAL COLLECTIONS (READ-ONLY)
+    // ============================================
+
+    /**
+     * exercises/{exerciseId}
+     * - All authenticated users can read
+     * - Only admins can write (through Firebase Admin SDK)
+     */
+    match /exercises/{exerciseId} {
+      allow read: if isSignedIn();
+      allow write: if false; // Only through Admin SDK
+    }
+
+    /**
+     * foods/{foodId}
+     * - All authenticated users can read
+     * - Only admins can write (through Firebase Admin SDK)
+     */
+    match /foods/{foodId} {
+      allow read: if isSignedIn();
+      allow write: if false; // Only through Admin SDK
+    }
+
+    // ============================================
+    // TEST COLLECTION (FOR DEBUG/TESTING)
+    // ============================================
+
+    /**
+     * test/{document}
+     * - Allow anyone to write for testing backend connection
+     * - Remove this in production!
+     */
+    match /test/{document} {
+      allow read, write: if isSignedIn();
+    }
+
+    // ============================================
+    // DEFAULT DENY
+    // ============================================
+
+    /**
+     * Deny all other access by default
+     */
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
