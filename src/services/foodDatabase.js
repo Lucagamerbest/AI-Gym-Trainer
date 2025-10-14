@@ -41,7 +41,7 @@ export const initDatabase = () => {
         );`,
         [],
         () => {},
-        (_, error) => console.error('Error creating foods table:', error)
+        (_, error) => {}
       );
 
       // Daily consumption table - tracks what user eats each day
@@ -61,7 +61,7 @@ export const initDatabase = () => {
         );`,
         [],
         () => {},
-        (_, error) => console.error('Error creating daily consumption table:', error)
+        (_, error) => {}
       );
 
       // User favorites table - quick access to frequent foods
@@ -75,7 +75,7 @@ export const initDatabase = () => {
         );`,
         [],
         () => {},
-        (_, error) => console.error('Error creating favorites table:', error)
+        (_, error) => {}
       );
 
       // Create indexes for better search performance
@@ -83,21 +83,21 @@ export const initDatabase = () => {
         'CREATE INDEX IF NOT EXISTS idx_foods_name ON foods (name);',
         [],
         () => {},
-        (_, error) => console.error('Error creating name index:', error)
+        (_, error) => {}
       );
 
       tx.executeSql(
         'CREATE INDEX IF NOT EXISTS idx_foods_barcode ON foods (barcode);',
         [],
         () => {},
-        (_, error) => console.error('Error creating barcode index:', error)
+        (_, error) => {}
       );
 
       tx.executeSql(
         'CREATE INDEX IF NOT EXISTS idx_consumption_date ON daily_consumption (date);',
         [],
         () => {},
-        (_, error) => console.error('Error creating date index:', error)
+        (_, error) => {}
       );
     },
     () => resolve(),
@@ -284,7 +284,7 @@ const updateFavorites = (tx, foodId) => {
        last_used = CURRENT_TIMESTAMP`,
     [foodId],
     () => {},
-    (_, error) => console.error('Error updating favorite:', error)
+    (_, error) => {}
   );
 };
 

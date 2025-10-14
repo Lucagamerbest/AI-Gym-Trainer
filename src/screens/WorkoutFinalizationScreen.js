@@ -66,7 +66,6 @@ export default function WorkoutFinalizationScreen({ navigation, route }) {
 
         setPhotos([...photos, base64]);
       } catch (error) {
-        console.error('Error processing image:', error);
         Alert.alert('Error', 'Failed to process image. Try another photo.');
       }
     }
@@ -101,7 +100,6 @@ export default function WorkoutFinalizationScreen({ navigation, route }) {
 
         setPhotos([...photos, base64]);
       } catch (error) {
-        console.error('Error processing image:', error);
         Alert.alert('Error', 'Failed to process image. Try taking another photo.');
       }
     }
@@ -147,7 +145,6 @@ export default function WorkoutFinalizationScreen({ navigation, route }) {
         saveResult,
       });
     } catch (error) {
-      console.error('Error saving workout:', error);
       Alert.alert('Error', 'Failed to save workout. Please try again.');
       setSaving(false);
     }
@@ -188,7 +185,6 @@ export default function WorkoutFinalizationScreen({ navigation, route }) {
         saveResult,
       });
     } catch (error) {
-      console.error('Error saving workout:', error);
       Alert.alert('Error', 'Failed to save workout. Please try again.');
       setSaving(false);
     }

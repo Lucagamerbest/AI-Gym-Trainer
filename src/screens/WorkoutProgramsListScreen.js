@@ -28,7 +28,6 @@ export default function WorkoutProgramsListScreen({ navigation }) {
         setPrograms(JSON.parse(storedPrograms));
       }
     } catch (error) {
-      console.error('Error loading programs:', error);
     }
   };
 
@@ -61,7 +60,6 @@ export default function WorkoutProgramsListScreen({ navigation }) {
               Alert.alert('Success', 'Program deleted successfully');
             } catch (error) {
               Alert.alert('Error', 'Failed to delete program');
-              console.error(error);
             }
           },
         },

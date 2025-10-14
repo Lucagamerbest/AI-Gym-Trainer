@@ -14,7 +14,6 @@ export default function EditFoodItemScreen({ route, navigation }) {
 
 
   if (!foodItem) {
-    console.error('📝 ERROR: No foodItem provided in route params!');
     Alert.alert('Error', 'No food item data provided');
     navigation.goBack();
     return null;
@@ -120,7 +119,6 @@ export default function EditFoodItemScreen({ route, navigation }) {
       });
       setSearchResults(results);
     } catch (error) {
-      console.error('Search error:', error);
       setSearchResults([]);
     }
     setIsSearching(false);

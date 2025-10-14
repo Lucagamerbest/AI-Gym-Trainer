@@ -137,7 +137,6 @@ export default function EnhancedFoodSearchScreen({ navigation }) {
         fetchFromAPI();
       }
     } catch (error) {
-      console.error('Search error:', error);
     } finally {
       setIsLoading(false);
     }
@@ -180,7 +179,6 @@ export default function EnhancedFoodSearchScreen({ navigation }) {
       setOffset(moreResults.nextOffset);
       setHasMore(moreResults.hasMore);
     } catch (error) {
-      console.error('Error loading more:', error);
     } finally {
       setIsLoadingMore(false);
     }

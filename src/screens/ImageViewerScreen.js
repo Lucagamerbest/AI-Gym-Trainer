@@ -75,7 +75,6 @@ export default function ImageViewerScreen({ route, navigation }) {
 
       Alert.alert('Success', 'Image saved to Photos!');
     } catch (error) {
-      console.error('Error saving image:', error);
       Alert.alert('Error', `Failed to save image: ${error.message}`);
     }
   };

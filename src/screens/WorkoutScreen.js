@@ -54,8 +54,7 @@ const playNotificationSound = async () => {
     });
 
   } catch (error) {
-    console.error('❌ Error playing notification sound:', error);
-  }
+      }
 };
 
 // Helper function to detect if exercise is cardio
@@ -355,8 +354,7 @@ export default function WorkoutScreen({ navigation, route }) {
           setRpeEnabled(savedRpeEnabled === 'true');
         }
       } catch (error) {
-        console.error('Error loading RPE setting:', error);
-      }
+              }
     };
 
     const requestNotificationPermissions = async () => {
@@ -382,8 +380,7 @@ export default function WorkoutScreen({ navigation, route }) {
           });
         }
       } catch (error) {
-        console.error('Error setting up notifications:', error);
-      }
+              }
     };
 
     // Set up notification listeners
@@ -445,8 +442,7 @@ export default function WorkoutScreen({ navigation, route }) {
             }
           }
         } catch (error) {
-          console.error('Error checking timer on resume:', error);
-        }
+                  }
       }
       appState.current = nextAppState;
     });
@@ -660,8 +656,7 @@ export default function WorkoutScreen({ navigation, route }) {
       }
       // If app is background/inactive - scheduled notification already fired, do nothing
     } catch (error) {
-      console.error('Error in handleRestTimerComplete:', error);
-    }
+          }
   };
 
   // Start rest timer
@@ -698,8 +693,7 @@ export default function WorkoutScreen({ navigation, route }) {
         },
       });
     } catch (error) {
-      console.error('Error storing timer:', error);
-    }
+          }
   };
 
   // Stop rest timer
@@ -712,8 +706,7 @@ export default function WorkoutScreen({ navigation, route }) {
     try {
       await AsyncStorage.removeItem('@rest_timer_end');
     } catch (error) {
-      console.error('Error clearing timer:', error);
-    }
+          }
   };
 
   // Cardio timer functions

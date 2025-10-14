@@ -46,7 +46,6 @@ export default function SignInScreen({ navigation }) {
 
   // Google Sign-In configuration
   const [request, response, promptAsync] = isAndroidEmulator ? [null, null, null] : Google.useAuthRequest({
-    expoClientId: '1011295206743-8jkfemcg0fcss02fgm14b9lhv282uk33.apps.googleusercontent.com',
     iosClientId: '1011295206743-rl70k9ibahkkgkf41j8qr6vfneedgb8s.apps.googleusercontent.com',
     androidClientId: '1011295206743-ab4i5hlk0qoh9ojqm9itmp932peacv4q.apps.googleusercontent.com',
     webClientId: '1011295206743-8jkfemcg0fcss02fgm14b9lhv282uk33.apps.googleusercontent.com',
@@ -105,11 +104,10 @@ export default function SignInScreen({ navigation }) {
       // Sign in with Firebase Auth
       const result = await signInWithEmail(email.toLowerCase(), password);
 
-      if (result.success) {
-        Alert.alert('Success', 'Signed in successfully!');
-      } else {
+      if (!result.success) {
         Alert.alert('Sign In Failed', result.error || 'Please check your credentials and try again');
       }
+      // If successful, don't show alert - just let the app navigate automatically
     } catch (error) {
       Alert.alert('Sign In Failed', 'An unexpected error occurred. Please try again.');
     } finally {
@@ -138,9 +136,7 @@ export default function SignInScreen({ navigation }) {
       // Create account with Firebase Auth
       const result = await createAccountWithEmail(email.toLowerCase(), password, name);
 
-      if (result.success) {
-        Alert.alert('Success', 'Account created successfully!');
-      } else {
+      if (!result.success) {
         // Provide more specific error messages
         if (result.error.includes('email-already-in-use')) {
           Alert.alert('Registration Failed', 'This email is already registered. Please sign in instead.');
@@ -150,6 +146,7 @@ export default function SignInScreen({ navigation }) {
           Alert.alert('Registration Failed', result.error || 'Please try again');
         }
       }
+      // If successful, don't show alert - just let the app navigate automatically
     } catch (error) {
       Alert.alert('Registration Failed', 'An unexpected error occurred. Please try again.');
     } finally {
@@ -177,16 +174,14 @@ export default function SignInScreen({ navigation }) {
         // Sign in with Firebase Auth using Google credential
         const result = await signInWithGoogle({ idToken: authentication.idToken });
 
-        if (result.success) {
-          Alert.alert('Success', 'Signed in with Google!');
-        } else {
+        if (!result.success) {
           Alert.alert('Sign In Failed', result.error || 'Please try again');
         }
+        // If successful, don't show alert - just let the app navigate automatically
       } else {
         Alert.alert('Sign In Failed', 'Failed to get Google credentials');
       }
     } catch (error) {
-      console.error('Google Sign-In Error:', error);
       Alert.alert('Sign In Error', 'Something went wrong. Please try again.');
     } finally {
       setIsGoogleLoading(false);

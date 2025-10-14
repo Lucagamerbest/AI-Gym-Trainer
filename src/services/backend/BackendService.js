@@ -18,7 +18,6 @@ class BackendService {
   constructor() {
     this.db = db;
     this.auth = auth;
-    console.log('📦 BackendService initialized');
   }
 
   // ========================================
@@ -31,8 +30,6 @@ class BackendService {
    */
   async testConnection() {
     try {
-      console.log('🔍 Testing Firebase connection...');
-
       const testRef = doc(collection(this.db, 'test'), 'connection-test');
       await setDoc(testRef, {
         timestamp: new Date().toISOString(),
@@ -40,11 +37,8 @@ class BackendService {
         version: '1.0.0'
       });
 
-      console.log('✅ Backend connection successful');
       return true;
     } catch (error) {
-      console.error('❌ Backend connection failed:', error);
-      console.error('Error details:', error.message);
       return false;
     }
   }
@@ -60,7 +54,6 @@ class BackendService {
   getCurrentUserId() {
     const user = this.auth.currentUser;
     if (!user) {
-      console.warn('⚠️ No user currently authenticated');
       return null;
     }
     return user.uid;
@@ -107,14 +100,11 @@ class BackendService {
             fatGrams: 65,
           },
         });
-        console.log('✅ User profile created:', firebaseUser.uid);
       } else {
         // Existing user - update profile
         await setDoc(userRef, userData, { merge: true });
-        console.log('✅ User profile updated:', firebaseUser.uid);
       }
     } catch (error) {
-      console.error('❌ Error creating/updating user profile:', error);
       throw error;
     }
   }
@@ -134,7 +124,6 @@ class BackendService {
       }
       return null;
     } catch (error) {
-      console.error('❌ Error getting user profile:', error);
       throw error;
     }
   }
@@ -151,9 +140,7 @@ class BackendService {
         settings,
         updatedAt: new Date().toISOString(),
       }, { merge: true });
-      console.log('✅ User settings updated');
     } catch (error) {
-      console.error('❌ Error updating settings:', error);
       throw error;
     }
   }
@@ -170,9 +157,7 @@ class BackendService {
         goals,
         updatedAt: new Date().toISOString(),
       }, { merge: true });
-      console.log('✅ User goals updated');
     } catch (error) {
-      console.error('❌ Error updating goals:', error);
       throw error;
     }
   }

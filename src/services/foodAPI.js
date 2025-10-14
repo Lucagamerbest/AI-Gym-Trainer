@@ -316,7 +316,6 @@ export const foodAPI = {
       };
 
     } catch (error) {
-      console.error('Error in foodAPI:', error.message || error);
       return {
         found: false,
         error: true,

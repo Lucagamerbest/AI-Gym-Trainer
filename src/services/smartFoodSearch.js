@@ -197,7 +197,6 @@ export const updateSearchHistory = async (food) => {
       await AsyncStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(history));
     }
   } catch (error) {
-    console.error('Error updating search history:', error);
   }
 };
 

@@ -159,7 +159,6 @@ export default function NutritionDashboard({ navigation }) {
         items: items,
       });
     } catch (error) {
-      console.error('Error loading daily summary:', error);
       setDailySummary({ totals: { calories: 0, protein: 0, carbs: 0, fat: 0 }, items: [] });
     }
   };
@@ -184,7 +183,7 @@ export default function NutritionDashboard({ navigation }) {
 
       setWeeklySummary(weekly);
     } catch (error) {
-      console.error('Error loading weekly summary:', error);
+      
     }
   };
 
@@ -226,7 +225,7 @@ export default function NutritionDashboard({ navigation }) {
         fat: totalFat,
       };
     } catch (error) {
-      console.error('Error getting meal history data:', error);
+      
       return { calories: 0, protein: 0, carbs: 0, fat: 0 };
     }
   };
@@ -279,7 +278,7 @@ export default function NutritionDashboard({ navigation }) {
 
       return allDays;
     } catch (error) {
-      console.error('Error getting all meal history:', error);
+      
       return [];
     }
   };
@@ -325,7 +324,7 @@ export default function NutritionDashboard({ navigation }) {
       setMultiDayData(data);
       calculateWeeklyComparison(data);
     } catch (error) {
-      console.error('Error loading multi-day data:', error);
+      
     }
   };
 
@@ -381,9 +380,6 @@ export default function NutritionDashboard({ navigation }) {
 
       // Debug: Log days with data
       const daysWithCalories = data.filter(d => d.calories > 0);
-      console.log('📊 GOALS DATA DEBUG:');
-      console.log(`Total days with logged data: ${daysWithCalories.length}`);
-      console.log('Recent days with data:', daysWithCalories.slice(-7).map(d => `${d.date}: ${d.calories} cal`));
 
       // Define "at goal" as within 10% of calorie goal
       const isAtGoal = (calories) => {
@@ -416,10 +412,7 @@ export default function NutritionDashboard({ navigation }) {
         }
       }
 
-      console.log(`Current tracking streak: ${currentStreak} days`);
-      console.log(`Longest tracking streak: ${longestStreak} days`);
-
-      // Calculate consistency metrics
+                  // Calculate consistency metrics
       const last7Days = data.slice(-7);
       const last30Days = data.slice(-30);
 
@@ -500,11 +493,9 @@ export default function NutritionDashboard({ navigation }) {
         perfectMacroDays,
       };
 
-      console.log('📈 Calculated Goals Data:', calculatedGoalsData);
-
-      setGoalsData(calculatedGoalsData);
+            setGoalsData(calculatedGoalsData);
     } catch (error) {
-      console.error('Error calculating goals data:', error);
+      
     }
   };
 
@@ -533,9 +524,8 @@ export default function NutritionDashboard({ navigation }) {
       }
 
       setStreakDays(days);
-      console.log('📅 Loaded streak calendar data:', days.length, 'days with data');
-    } catch (error) {
-      console.error('Error loading streak calendar data:', error);
+          } catch (error) {
+      
     }
   };
 
@@ -748,7 +738,7 @@ export default function NutritionDashboard({ navigation }) {
         unlocked: achievement.unlocked,
       };
     } catch (error) {
-      console.error('Error getting achievement breakdown:', error);
+      
       return null;
     }
   };
@@ -926,7 +916,7 @@ export default function NutritionDashboard({ navigation }) {
         insights,
       });
     } catch (error) {
-      console.error('Error calculating insights data:', error);
+      
     }
   };
 
@@ -1034,7 +1024,7 @@ export default function NutritionDashboard({ navigation }) {
       setModalType(type);
       setSelectedDayModal(true);
     } catch (error) {
-      console.error('Error loading day data:', error);
+      
     }
   };
 
@@ -1162,18 +1152,13 @@ export default function NutritionDashboard({ navigation }) {
           const currentDate = new Date(dateStr + 'T00:00:00');
           const dayDiff = Math.round((currentDate - lastDate) / (1000 * 60 * 60 * 24));
 
-          console.log(`Comparing ${lastDateStr} to ${dateStr}: diff = ${dayDiff} days`);
-
-          if (dayDiff === 1) {
+                    if (dayDiff === 1) {
             // Consecutive day - add to current streak
             currentStreakDates.push(dateStr);
-            console.log(`Added to streak: ${currentStreakDates.join(', ')}`);
           } else {
             // Streak broken - check if this was the longest (>= to prefer most recent when equal)
-            console.log(`Streak broken. Current streak length: ${currentStreakDates.length}, Longest so far: ${longestStreakDates.length}`);
-            if (currentStreakDates.length >= longestStreakDates.length) {
+                        if (currentStreakDates.length >= longestStreakDates.length) {
               longestStreakDates = [...currentStreakDates];
-              console.log(`New longest streak: ${longestStreakDates.join(', ')}`);
             }
             // Start new streak
             currentStreakDates = [dateStr];
@@ -1182,13 +1167,9 @@ export default function NutritionDashboard({ navigation }) {
       }
 
       // Check the last streak (>= to prefer most recent when equal)
-      console.log(`Final check - Current streak length: ${currentStreakDates.length}, Longest: ${longestStreakDates.length}`);
-      if (currentStreakDates.length >= longestStreakDates.length) {
+            if (currentStreakDates.length >= longestStreakDates.length) {
         longestStreakDates = [...currentStreakDates];
-        console.log(`Final longest streak: ${longestStreakDates.join(', ')}`);
       }
-
-      console.log(`🏆 LONGEST STREAK IDENTIFIED: ${longestStreakDates.join(', ')} (${longestStreakDates.length} days)`);
 
       // Set the longest streak dates
       streakDates = new Set(longestStreakDates);
@@ -2037,8 +2018,7 @@ export default function NutritionDashboard({ navigation }) {
                 { icon: '🌟', title: 'Macro God', desc: '50+ perfect days', unlocked: goalsData.perfectMacroDays >= 50 },
               ];
               const unlocked = achievementsArray.filter(a => a.unlocked).length;
-              console.log(`Unlocked: ${unlocked}/48`);
-              return `${unlocked} / 48 Unlocked`;
+                            return `${unlocked} / 48 Unlocked`;
             })()}
           </Text>
         </View>

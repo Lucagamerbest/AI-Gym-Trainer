@@ -160,9 +160,6 @@ export default function ProgressScreen({ navigation }) {
       const allWorkoutIds = new Set(history.map(w => w.id));
       Object.entries(progress).forEach(([exerciseKey, exercise]) => {
         const orphanedRecords = exercise.records.filter(r => r.workoutId && !allWorkoutIds.has(r.workoutId));
-        if (orphanedRecords.length > 0) {
-          console.warn(`[${exercise.name}] HAS ${orphanedRecords.length} ORPHANED RECORDS!`);
-        }
       });
 
       // Load goals
@@ -207,7 +204,6 @@ export default function ProgressScreen({ navigation }) {
         }
       }
     } catch (error) {
-      console.error('Error loading progress data:', error);
     } finally {
       setLoading(false);
     }
@@ -774,7 +770,6 @@ export default function ProgressScreen({ navigation }) {
 
               Alert.alert('Success', 'All data has been cleared. Starting fresh!');
             } catch (error) {
-              console.error('[CLEAR DATA] Error:', error);
               Alert.alert('Error', 'Failed to clear data');
             }
           }

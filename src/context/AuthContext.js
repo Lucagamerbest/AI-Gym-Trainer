@@ -8,6 +8,7 @@ import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  updateProfile,
 } from 'firebase/auth';
 import BackendService from '../services/backend/BackendService';
 
@@ -21,11 +22,7 @@ export function AuthProvider({ children }) {
 
   // Listen to Firebase Auth state changes
   useEffect(() => {
-    console.log('🔐 Setting up Firebase Auth listener...');
-
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      console.log('🔐 Auth state changed:', firebaseUser ? 'User signed in' : 'User signed out');
-
       if (firebaseUser) {
         // User is signed in
         const userData = {
@@ -41,9 +38,8 @@ export function AuthProvider({ children }) {
         // Create or update user profile in Firestore
         try {
           await BackendService.createOrUpdateUserProfile(firebaseUser);
-          console.log('✅ User profile synced to Firestore');
         } catch (error) {
-          console.error('❌ Error syncing user profile:', error);
+          // Silent fail
         }
       } else {
         // User is signed out
@@ -55,7 +51,6 @@ export function AuthProvider({ children }) {
 
     // Cleanup subscription on unmount
     return () => {
-      console.log('🔐 Cleaning up Firebase Auth listener');
       unsubscribe();
     };
   }, []);
@@ -66,15 +61,11 @@ export function AuthProvider({ children }) {
    */
   const signInWithGoogle = async (googleCredential) => {
     try {
-      console.log('🔐 Signing in with Google...');
-
       const credential = GoogleAuthProvider.credential(googleCredential.idToken);
       const result = await signInWithCredential(auth, credential);
 
-      console.log('✅ Google sign-in successful');
       return { success: true, user: result.user };
     } catch (error) {
-      console.error('❌ Google sign-in error:', error);
       return { success: false, error: error.message };
     }
   };
@@ -86,14 +77,10 @@ export function AuthProvider({ children }) {
    */
   const signInWithEmail = async (email, password) => {
     try {
-      console.log('🔐 Signing in with email...');
-
       const result = await signInWithEmailAndPassword(auth, email, password);
 
-      console.log('✅ Email sign-in successful');
       return { success: true, user: result.user };
     } catch (error) {
-      console.error('❌ Email sign-in error:', error);
       return { success: false, error: error.message };
     }
   };
@@ -106,23 +93,38 @@ export function AuthProvider({ children }) {
    */
   const createAccountWithEmail = async (email, password, displayName) => {
     try {
-      console.log('🔐 Creating account with email...');
-
       const result = await createUserWithEmailAndPassword(auth, email, password);
 
       // Update display name if provided
       if (displayName && result.user) {
-        result.user.displayName = displayName;
-        await BackendService.createOrUpdateUserProfile({
-          ...result.user,
+        // Update Firebase Auth profile with display name
+        await updateProfile(result.user, {
           displayName: displayName,
         });
+
+        // Reload the user to get fresh data with the updated displayName
+        await result.user.reload();
+
+        // Get the fresh user object
+        const updatedUser = auth.currentUser;
+
+        // Manually update the user state with the correct displayName
+        // This ensures the UI shows the correct name immediately
+        const userData = {
+          uid: updatedUser.uid,
+          email: updatedUser.email,
+          displayName: displayName, // Use the provided displayName directly
+          photoURL: updatedUser.photoURL,
+          provider: updatedUser.providerData[0]?.providerId || 'email',
+        };
+        setUser(userData);
+
+        // Also sync to Firestore with the updated user data
+        await BackendService.createOrUpdateUserProfile(updatedUser);
       }
 
-      console.log('✅ Account created successfully');
       return { success: true, user: result.user };
     } catch (error) {
-      console.error('❌ Account creation error:', error);
       return { success: false, error: error.message };
     }
   };
@@ -133,15 +135,12 @@ export function AuthProvider({ children }) {
    */
   const signIn = async (userData) => {
     try {
-      console.log('⚠️ Using legacy signIn (not Firebase Auth)');
-
       // For guest accounts or development
       setUser(userData);
       await AsyncStorage.setItem('user', JSON.stringify(userData));
 
       return { success: true };
     } catch (error) {
-      console.error('❌ Legacy sign-in error:', error);
       return { success: false, error: error.message };
     }
   };
@@ -151,18 +150,14 @@ export function AuthProvider({ children }) {
    */
   const signOut = async () => {
     try {
-      console.log('🔐 Signing out...');
-
       // Sign out from Firebase
       await firebaseSignOut(auth);
 
       // Clear local cache
       await AsyncStorage.clear();
 
-      console.log('✅ Sign out successful');
       return { success: true };
     } catch (error) {
-      console.error('❌ Sign out error:', error);
       return { success: false, error: error.message };
     }
   };

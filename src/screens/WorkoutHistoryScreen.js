@@ -83,7 +83,6 @@ export default function WorkoutHistoryScreen({ navigation }) {
       setWorkoutHistory(history);
       updateMarkedDates(history, plannedWorkouts);
     } catch (error) {
-      console.error('Error loading workout history:', error);
     }
   };
 
@@ -97,7 +96,6 @@ export default function WorkoutHistoryScreen({ navigation }) {
       const history = await WorkoutStorageService.getWorkoutHistory(userId);
       updateMarkedDates(history, plannedData);
     } catch (error) {
-      console.error('Error loading planned workouts:', error);
     }
   };
 
@@ -228,7 +226,6 @@ export default function WorkoutHistoryScreen({ navigation }) {
 
               Alert.alert('Success', `Successfully deleted ${count} planned workout${count > 1 ? 's' : ''}!`);
             } catch (error) {
-              console.error('Error deleting planned workouts:', error);
               Alert.alert('Error', 'Failed to delete some planned workouts');
             }
           }
@@ -316,7 +313,6 @@ export default function WorkoutHistoryScreen({ navigation }) {
 
       alert(`Workout copied to ${targetDateKeys.length} day${targetDateKeys.length > 1 ? 's' : ''}`);
     } catch (error) {
-      console.error('Error copying workout:', error);
       alert('Failed to copy workout');
     }
   };
@@ -694,7 +690,6 @@ export default function WorkoutHistoryScreen({ navigation }) {
         'Check Exercise Library → Info to see progress!'
       );
     } catch (error) {
-      console.error('Error adding test workout:', error);
       Alert.alert('Error', 'Failed to add test workouts');
     }
   };
@@ -757,7 +752,6 @@ export default function WorkoutHistoryScreen({ navigation }) {
                 Alert.alert('Error', 'Failed to delete workout');
               }
             } catch (error) {
-              console.error('Error deleting workout:', error);
               Alert.alert('Error', 'Failed to delete workout');
             }
           }
@@ -979,7 +973,6 @@ export default function WorkoutHistoryScreen({ navigation }) {
                           Alert.alert('Error', 'Failed to clean up records');
                         }
                       } catch (error) {
-                        console.error('Error cleaning up orphaned records:', error);
                         Alert.alert('Error', 'Failed to clean up records');
                       }
                     }

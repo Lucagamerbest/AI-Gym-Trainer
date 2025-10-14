@@ -170,7 +170,6 @@ export const unifiedFoodSearch = async (query, options = {}) => {
     return finalRanked.all;
 
   } catch (error) {
-    console.error('Unified search error:', error);
     // Fallback to overrides + basic local search
     const localResults = await searchFoods(query);
     return [...overrideResults, ...localResults].slice(0, limit);

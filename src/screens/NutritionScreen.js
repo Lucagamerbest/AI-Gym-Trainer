@@ -195,7 +195,6 @@ export default function NutritionScreen({ navigation, route }) {
         setMacroGoals(JSON.parse(saved));
       }
     } catch (error) {
-      console.error('Error loading macro goals:', error);
     }
   };
 
@@ -254,7 +253,6 @@ export default function NutritionScreen({ navigation, route }) {
         }
       }
     } catch (error) {
-      console.error('Error checking daily reset:', error);
     }
   };
 
@@ -280,9 +278,6 @@ export default function NutritionScreen({ navigation, route }) {
           mealCarbs += food.carbs || 0;
           mealFat += food.fat || 0;
         });
-
-        if (mealsData[mealType].length > 0) {
-        }
 
         totalCalories += mealCalories;
         totalProtein += mealProtein;
@@ -310,7 +305,6 @@ export default function NutritionScreen({ navigation, route }) {
         let loadedMeals = data.meals || { breakfast: [], lunch: [], dinner: [], snacks: [] };
         let loadedPlannedMeals = data.plannedMeals || { breakfast: [], lunch: [], dinner: [], snacks: [] };
         let loadedConsumedPlanned = data.consumedPlannedMeals || { breakfast: [], lunch: [], dinner: [], snacks: [] };
-
 
         // MIGRATION: If plannedMeals doesn't exist in saved data, check if current meals came from today's plan
         if (!data.plannedMeals) {
@@ -342,7 +336,6 @@ export default function NutritionScreen({ navigation, route }) {
         setConsumedPlannedMeals(loadedConsumedPlanned);
         setSelectedMeal(data.selectedMeal || 'breakfast');
 
-
         // Save the migrated data
         if (!data.plannedMeals && Object.values(loadedPlannedMeals).some(meals => meals.length > 0)) {
           await saveDailyNutrition(totals.calories, {
@@ -363,17 +356,14 @@ export default function NutritionScreen({ navigation, route }) {
 
         // Sync to calendar on load
         await syncMealsToCalendar(loadedMeals);
-      } else {
       }
       setDataLoaded(true); // Mark data as loaded
     } catch (error) {
-      console.error('💾 Error loading daily nutrition:', error);
       setDataLoaded(true); // Mark as loaded even on error
     }
   };
 
   const saveDailyNutrition = async (newConsumed, newMacros, newMeals, newSelectedMeal, newPlannedMeals = null, newConsumedPlanned = null) => {
-
     try {
       // Ensure we have valid objects
       const safeMeals = newMeals || { breakfast: [], lunch: [], dinner: [], snacks: [] };
@@ -383,7 +373,6 @@ export default function NutritionScreen({ navigation, route }) {
       const safeConsumedPlanned = newConsumedPlanned !== null
         ? (newConsumedPlanned || { breakfast: [], lunch: [], dinner: [], snacks: [] })
         : (consumedPlannedMeals || { breakfast: [], lunch: [], dinner: [], snacks: [] });
-
 
       const data = {
         consumed: newConsumed || 0,
@@ -400,8 +389,6 @@ export default function NutritionScreen({ navigation, route }) {
       // Also sync to calendar meal plans
       await syncMealsToCalendar(safeMeals);
     } catch (error) {
-      console.error('💿 Error saving daily nutrition:', error);
-      console.error('💿 Error stack:', error.stack);
     }
   };
 
@@ -423,7 +410,6 @@ export default function NutritionScreen({ navigation, route }) {
       // Save updated meal plans
       await AsyncStorage.setItem(MEAL_PLANS_KEY, JSON.stringify(mealPlans));
     } catch (error) {
-      console.error('Error syncing meals to calendar:', error);
     }
   };
 
@@ -474,11 +460,8 @@ export default function NutritionScreen({ navigation, route }) {
 
         // Also sync to calendar
         await syncMealsToCalendar(updatedMeals);
-
-      } else {
       }
     } catch (error) {
-      console.error('🔴 Error deleting food:', error);
     }
   };
 
@@ -511,12 +494,8 @@ export default function NutritionScreen({ navigation, route }) {
 
         // Also sync to calendar
         await syncMealsToCalendar(updatedMeals);
-
-      } else {
       }
     } catch (error) {
-      console.error('🟢 Error editing food:', error);
-      console.error('🟢 Error stack:', error.stack);
     }
   };
 
@@ -530,7 +509,6 @@ export default function NutritionScreen({ navigation, route }) {
 
       Alert.alert('Success', 'All planned meals have been cleared');
     } catch (error) {
-      console.error('Error clearing planned meals:', error);
       Alert.alert('Error', 'Failed to clear planned meals');
     }
   };
@@ -575,7 +553,6 @@ export default function NutritionScreen({ navigation, route }) {
         fatGrams: totals.fat
       }, updatedMeals, selectedMeal, updatedPlannedMeals, updatedConsumedPlanned);
     } catch (error) {
-      console.error('Error marking planned food as consumed:', error);
     }
   };
 
@@ -590,7 +567,6 @@ export default function NutritionScreen({ navigation, route }) {
       // Save to storage
       await saveDailyNutrition(consumed, consumedMacros, meals, selectedMeal, updatedPlannedMeals);
     } catch (error) {
-      console.error('Error deleting planned food:', error);
     }
   };
 
@@ -653,10 +629,6 @@ export default function NutritionScreen({ navigation, route }) {
   const proteinSegments = getSegmentWidths(proteinBreakdown, macroGoals.proteinGrams);
   const carbsSegments = getSegmentWidths(carbsBreakdown, macroGoals.carbsGrams);
   const fatSegments = getSegmentWidths(fatBreakdown, macroGoals.fatGrams);
-
-  // Debug current state on every render
-  useEffect(() => {
-  }, [consumed, consumedMacros, meals]);
 
   // Get current date formatted
   const getCurrentDate = () => {

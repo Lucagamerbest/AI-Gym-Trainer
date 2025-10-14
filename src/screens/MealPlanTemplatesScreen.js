@@ -42,7 +42,6 @@ export default function MealPlanTemplatesScreen({ navigation }) {
         setTemplates(JSON.parse(saved));
       }
     } catch (error) {
-      console.error('Error loading meal plan templates:', error);
     }
   };
 
@@ -63,7 +62,6 @@ export default function MealPlanTemplatesScreen({ navigation }) {
               Alert.alert('Success', 'Template deleted successfully');
             } catch (error) {
               Alert.alert('Error', 'Failed to delete template');
-              console.error(error);
             }
           },
         },
@@ -117,7 +115,6 @@ export default function MealPlanTemplatesScreen({ navigation }) {
         ]
       );
     } catch (error) {
-      console.error('Error scheduling template:', error);
       Alert.alert('Error', 'Failed to schedule meal plan');
     }
   };
@@ -143,7 +140,6 @@ export default function MealPlanTemplatesScreen({ navigation }) {
         { text: 'OK' }
       ]);
     } catch (error) {
-      console.error('Error applying template:', error);
       Alert.alert('Error', 'Failed to apply meal plan');
     }
   };

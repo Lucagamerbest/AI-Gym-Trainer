@@ -63,7 +63,9 @@
       "Bash(del temp_shoulders.txt)",
       "Bash(del nul)",
       "Bash(del \"C:\\Users\\lucar\\AI-Gym-Trainer\\add-test-streak-data.js\")",
-      "Bash(del:*)"
+      "Bash(del:*)",
+      "Bash(eas build:*)",
+      "WebFetch(domain:stackoverflow.com)"
     ],
     "deny": [],
     "ask": []

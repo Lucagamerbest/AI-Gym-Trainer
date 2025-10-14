@@ -12,6 +12,7 @@
       "bundleIdentifier": "com.workoutwave.app",
       "infoPlist": {
         "UIBackgroundModes": [
+          "audio",
           "audio"
         ],
         "CFBundleURLTypes": [
@@ -19,8 +20,14 @@
             "CFBundleURLSchemes": [
               "com.googleusercontent.apps.1011295206743-rl70k9ibahkkgkf41j8qr6vfneedgb8s"
             ]
+          },
+          {
+            "CFBundleURLSchemes": [
+              "com.googleusercontent.apps.1011295206743-rl70k9ibahkkgkf41j8qr6vfneedgb8s"
+            ]
           }
-        ]
+        ],
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -50,6 +57,11 @@
       "color": "#4CAF50",
       "androidMode": "default",
       "androidCollapsedTitle": "Rest Timer"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "8c7c4170-bb4a-46c8-bc8e-8288147175cc"
+      }
     }
   }
 }

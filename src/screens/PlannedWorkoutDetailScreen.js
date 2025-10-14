@@ -60,7 +60,6 @@ export default function PlannedWorkoutDetailScreen({ navigation, route }) {
                 ]
               );
             } catch (error) {
-              console.error('Error deleting planned workout:', error);
               Alert.alert('Error', 'Failed to delete planned workout');
             }
           },
@@ -118,7 +117,6 @@ export default function PlannedWorkoutDetailScreen({ navigation, route }) {
                 Alert.alert('Error', result.error || 'Failed to shift program schedule');
               }
             } catch (error) {
-              console.error('Error shifting program schedule:', error);
               Alert.alert('Error', 'Failed to shift program schedule');
             }
           },

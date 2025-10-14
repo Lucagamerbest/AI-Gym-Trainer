@@ -43,7 +43,6 @@ export default function CalorieBreakdownScreen({ route, navigation }) {
             }
           }
         } catch (error) {
-          console.error('Error loading latest data:', error);
         }
       };
 
@@ -106,7 +105,6 @@ export default function CalorieBreakdownScreen({ route, navigation }) {
         await AsyncStorage.setItem(DAILY_NUTRITION_KEY, JSON.stringify(data));
       }
     } catch (error) {
-      console.error('Error un-logging food:', error);
     }
   };
 
@@ -165,7 +163,6 @@ export default function CalorieBreakdownScreen({ route, navigation }) {
         await AsyncStorage.setItem(DAILY_NUTRITION_KEY, JSON.stringify(data));
       }
     } catch (error) {
-      console.error('Error re-logging food:', error);
     }
   };
 

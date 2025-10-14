@@ -43,7 +43,6 @@ export default function PlanWorkoutScreen({ navigation, route }) {
         setUserPrograms(JSON.parse(savedPrograms));
       }
     } catch (error) {
-      console.error('Error loading programs:', error);
     }
   };
 
@@ -54,7 +53,6 @@ export default function PlanWorkoutScreen({ navigation, route }) {
         setStandaloneWorkouts(JSON.parse(savedWorkouts));
       }
     } catch (error) {
-      console.error('Error loading standalone workouts:', error);
     }
   };
 
@@ -90,7 +88,6 @@ export default function PlanWorkoutScreen({ navigation, route }) {
         ]
       );
     } catch (error) {
-      console.error('Error saving planned workout:', error);
       Alert.alert('Error', 'Failed to save planned workout');
     }
   };

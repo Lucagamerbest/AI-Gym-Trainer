@@ -24,7 +24,6 @@ export const searchOpenFoodFacts = async (query, limit = 20) => {
     // Transform Open Food Facts data to our format
     return data.products.map(product => transformProduct(product));
   } catch (error) {
-    console.error('[OpenFoodFacts] Search error:', error);
     return [];
   }
 };
@@ -47,7 +46,6 @@ export const getProductByBarcode = async (barcode) => {
 
     return transformProduct(data.product);
   } catch (error) {
-    console.error('[OpenFoodFacts] Barcode fetch error:', error);
     return null;
   }
 };

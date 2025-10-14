@@ -90,7 +90,6 @@ export default function WorkoutProgramScreen({ navigation, route }) {
           navigation.setParams({ stateLoaded: true });
         }
       } catch (error) {
-        console.error('Error loading temp state:', error);
       }
     };
 
@@ -162,7 +161,6 @@ export default function WorkoutProgramScreen({ navigation, route }) {
         });
       }
     } catch (error) {
-      console.error('Error saving temp state:', error);
       Alert.alert('Error', 'Failed to save current state');
     }
   };
@@ -260,7 +258,6 @@ export default function WorkoutProgramScreen({ navigation, route }) {
       }
     } catch (error) {
       Alert.alert('Error', `Failed to save ${isStandaloneWorkout ? 'workout' : 'workout program'}`);
-      console.error(error);
     }
   };
 

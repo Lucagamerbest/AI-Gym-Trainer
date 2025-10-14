@@ -149,7 +149,6 @@ export default function MealsHistoryScreen({ navigation, route }) {
       await loadMealData();
       alert('Test data added! Check calendar for green dots on past dates.');
     } catch (error) {
-      console.error('Error adding test data:', error);
     }
   };
 
@@ -169,7 +168,6 @@ export default function MealsHistoryScreen({ navigation, route }) {
         setMealData(plans);
       }
     } catch (error) {
-      console.error('Error loading meal data:', error);
     }
   };
 
@@ -251,7 +249,6 @@ export default function MealsHistoryScreen({ navigation, route }) {
       setBulkDeleteMode(false);
       setSelectedDatesForDelete([]);
     } catch (error) {
-      console.error('Error bulk deleting planned meals:', error);
       Alert.alert('Error', 'Failed to clear planned meals');
     }
   };
@@ -339,7 +336,6 @@ export default function MealsHistoryScreen({ navigation, route }) {
         [{ text: 'OK' }]
       );
     } catch (error) {
-      console.error('Error copying meals:', error);
       setShowCopyModal(false);
       setCopySourceDate(null);
       alert('Failed to copy meals');
@@ -395,7 +391,6 @@ export default function MealsHistoryScreen({ navigation, route }) {
         [{ text: 'OK' }]
       );
     } catch (error) {
-      console.error('Error copying meals:', error);
       setShowCopyModal(false);
       setCopySourceDate(null);
       setSelectedFutureDates([]);
@@ -425,7 +420,6 @@ export default function MealsHistoryScreen({ navigation, route }) {
         await loadMealData();
       }
     } catch (error) {
-      console.error('Error deleting planned meal type:', error);
     }
   };
 
@@ -440,7 +434,6 @@ export default function MealsHistoryScreen({ navigation, route }) {
         await loadMealData();
       }
     } catch (error) {
-      console.error('Error deleting planned food item:', error);
     }
   };
 
@@ -455,7 +448,6 @@ export default function MealsHistoryScreen({ navigation, route }) {
         await loadMealData();
       }
     } catch (error) {
-      console.error('Error editing planned food item:', error);
     }
   };
 
@@ -482,7 +474,6 @@ export default function MealsHistoryScreen({ navigation, route }) {
       await AsyncStorage.setItem(MEAL_PLANS_KEY, JSON.stringify(mealPlans));
       await loadMealData();
     } catch (error) {
-      console.error('Error adding food to planned date:', error);
     }
   };
 

@@ -58,7 +58,6 @@ export default function FoodSearchScreen({ route, navigation }) {
         const itemsToDisplay = popularItems.length > 0 ? popularItems : foods.slice(0, 20);
         setDisplayedFoods(itemsToDisplay);
       } catch (error) {
-        console.error('Failed to initialize foods:', error);
         setDisplayedFoods([]);
       } finally {
         setIsLoading(false);
@@ -93,7 +92,6 @@ export default function FoodSearchScreen({ route, navigation }) {
 
       setDisplayedFoods(results);
     } catch (error) {
-      console.error('Search error:', error);
       // Fallback to local search
       const localResults = allFoods.filter(food =>
         food.name.toLowerCase().includes(query.toLowerCase())

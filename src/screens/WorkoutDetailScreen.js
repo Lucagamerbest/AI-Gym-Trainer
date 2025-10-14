@@ -118,7 +118,6 @@ export default function WorkoutDetailScreen({ navigation, route }) {
         refresh: Date.now()
       });
     } catch (error) {
-      console.error('Error editing workout:', error);
       Alert.alert('Error', 'Failed to edit workout');
     }
   };
@@ -144,7 +143,6 @@ export default function WorkoutDetailScreen({ navigation, route }) {
               }
             } catch (error) {
               Alert.alert('Error', 'Failed to delete workout');
-              console.error(error);
             }
           },
         },
@@ -222,7 +220,6 @@ export default function WorkoutDetailScreen({ navigation, route }) {
         ]
       );
     } catch (error) {
-      console.error('Error adding workout to calendar:', error);
       Alert.alert('Error', 'Failed to add workout to calendar');
     }
   };

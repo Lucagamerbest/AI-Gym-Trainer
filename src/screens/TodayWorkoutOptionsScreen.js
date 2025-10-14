@@ -24,7 +24,6 @@ export default function TodayWorkoutOptionsScreen({ navigation }) {
         setUserPrograms(JSON.parse(savedPrograms));
       }
     } catch (error) {
-      console.error('Error loading programs:', error);
     }
   };
 
@@ -35,7 +34,6 @@ export default function TodayWorkoutOptionsScreen({ navigation }) {
         setStandaloneWorkouts(JSON.parse(savedWorkouts));
       }
     } catch (error) {
-      console.error('Error loading standalone workouts:', error);
     }
   };
 

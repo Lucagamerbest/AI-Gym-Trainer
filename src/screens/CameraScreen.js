@@ -52,9 +52,7 @@ export default function CameraScreen({ navigation, route }) {
             base64: false,
           });
           barcodePhotoUri = photo.uri;
-          console.log('📸 Captured barcode photo:', barcodePhotoUri);
         } catch (photoError) {
-          console.log('⚠️ Could not capture photo:', photoError.message);
           // Continue without photo
         }
       }
@@ -87,7 +85,6 @@ export default function CameraScreen({ navigation, route }) {
         );
       }
     } catch (error) {
-      console.error('Error in handleBarCodeScanned:', error);
       const errorMessage = result?.message || error.message || 'Failed to fetch product information. Please check your internet connection.';
 
       Alert.alert(

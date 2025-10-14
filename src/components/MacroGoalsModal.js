@@ -48,7 +48,6 @@ export default function MacroGoalsModal({ visible, onClose, onSave }) {
         setFatGrams(goals.fatGrams.toString());
       }
     } catch (error) {
-      console.error('Error loading macro goals:', error);
     }
   };
 

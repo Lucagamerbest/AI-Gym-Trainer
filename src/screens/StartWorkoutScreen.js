@@ -67,7 +67,6 @@ export default function StartWorkoutScreen({ navigation }) {
 
       setRecentWorkouts(recentItems.slice(0, 3));
     } catch (error) {
-      console.error('Error loading recent workouts:', error);
     }
   };
 

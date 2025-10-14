@@ -81,7 +81,6 @@ export default function WorkoutDayEditScreen({ navigation, route }) {
           setRpeEnabled(savedRpeEnabled === 'true');
         }
       } catch (error) {
-        console.error('Error loading RPE setting:', error);
       }
     };
     loadRPESetting();
@@ -131,7 +130,6 @@ export default function WorkoutDayEditScreen({ navigation, route }) {
         }
       }
     } catch (error) {
-      console.error('Error loading day data:', error);
     }
   };
 
@@ -196,7 +194,6 @@ export default function WorkoutDayEditScreen({ navigation, route }) {
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedProgram));
       setProgramData(updatedProgram);
     } catch (error) {
-      console.error('Error saving changes:', error);
     }
   };
 
@@ -475,7 +472,6 @@ export default function WorkoutDayEditScreen({ navigation, route }) {
         handleBackToProgram();
       }
     } catch (error) {
-      console.error('Error saving:', error);
       Alert.alert('Error', 'Failed to save changes');
     }
   };
@@ -612,7 +608,6 @@ export default function WorkoutDayEditScreen({ navigation, route }) {
       }
     } catch (error) {
       Alert.alert('Error', `Failed to ${isPlanning ? 'plan' : 'save'} workout`);
-      console.error(error);
     }
   };
 

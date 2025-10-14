@@ -34,7 +34,6 @@ export default function ExerciseDetailScreen({ navigation, route }) {
       const progress = await WorkoutStorageService.getExerciseProgressByName(exercise.name, userId);
       setProgressData(progress);
     } catch (error) {
-      console.error('❌ Error loading progress:', error);
     } finally {
       setLoading(false);
     }

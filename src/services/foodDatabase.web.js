@@ -37,7 +37,6 @@ export const saveFood = async (foodData) => {
     await AsyncStorage.setItem(FOODS_KEY, JSON.stringify(existingFoods));
     return foodId;
   } catch (error) {
-    console.error('Error saving food:', error);
     throw error;
   }
 };
@@ -48,7 +47,6 @@ const getFoods = async () => {
     const foods = await AsyncStorage.getItem(FOODS_KEY);
     return foods ? JSON.parse(foods) : [];
   } catch (error) {
-    console.error('Error getting foods:', error);
     return [];
   }
 };
@@ -79,7 +77,6 @@ export const searchFoods = async (searchQuery) => {
     // Return ALL matching valid results
     return validFoods;
   } catch (error) {
-    console.error('Error searching foods:', error);
     return [];
   }
 };
@@ -90,7 +87,6 @@ export const getFoodByBarcode = async (barcode) => {
     const foods = await getFoods();
     return foods.find(food => food.barcode === barcode) || null;
   } catch (error) {
-    console.error('Error getting food by barcode:', error);
     return null;
   }
 };
@@ -134,7 +130,6 @@ export const addToDaily = async (foodId, quantity, mealType = 'snack') => {
 
     return consumptionEntry.id;
   } catch (error) {
-    console.error('Error adding to daily:', error);
     throw error;
   }
 };
@@ -158,7 +153,6 @@ const updateFavoritesWeb = async (foodId) => {
 
     await AsyncStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
   } catch (error) {
-    console.error('Error updating favorites:', error);
   }
 };
 
@@ -194,7 +188,6 @@ export const getDailySummary = async (date = null) => {
       }
     };
   } catch (error) {
-    console.error('Error getting daily summary:', error);
     return {
       date: date || new Date().toISOString().split('T')[0],
       items: [],
@@ -221,7 +214,6 @@ export const getFavorites = async (limit = 10) => {
 
     return favoritesList;
   } catch (error) {
-    console.error('Error getting favorites:', error);
     return [];
   }
 };
@@ -250,7 +242,6 @@ export const getRecentFoods = async (limit = 10) => {
       .map(id => foods.find(f => f.id === id))
       .filter(Boolean);
   } catch (error) {
-    console.error('Error getting recent foods:', error);
     return [];
   }
 };
@@ -266,7 +257,6 @@ export const removeFromDaily = async (consumptionId) => {
 
     return 1; // Return rows affected
   } catch (error) {
-    console.error('Error removing from daily:', error);
     throw error;
   }
 };
@@ -305,7 +295,6 @@ export const getWeeklySummary = async () => {
 
     return summary;
   } catch (error) {
-    console.error('Error getting weekly summary:', error);
     return [];
   }
 };

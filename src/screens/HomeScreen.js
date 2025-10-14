@@ -61,7 +61,6 @@ function HomeScreen({ navigation }) {
       const remaining = Math.round(Math.max(0, calorieGoal - consumedCalories));
       setRemainingCalories(remaining);
     } catch (error) {
-      console.error('Error loading nutrition data:', error);
     }
   };
 

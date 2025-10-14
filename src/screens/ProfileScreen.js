@@ -64,7 +64,6 @@ export default function ProfileScreen({ navigation }) {
         Alert.alert('Sign In Failed', 'Failed to get Google credentials');
       }
     } catch (error) {
-      console.error('Google Sign-In Error:', error);
       Alert.alert('Sign In Error', 'Something went wrong. Please try again.');
     } finally {
       setIsLoading(false);
@@ -81,18 +80,19 @@ export default function ProfileScreen({ navigation }) {
     >
       <View style={styles.profileHeader}>
         <View style={styles.avatarContainer}>
-          {user?.picture ? (
-            <Image source={{ uri: user.picture }} style={styles.avatarImage} />
+          {user?.photoURL ? (
+            <Image source={{ uri: user.photoURL }} style={styles.avatarImage} />
           ) : (
             <Text style={styles.avatarIcon}>👤</Text>
           )}
         </View>
-        <Text style={styles.userName}>{user?.name || 'Guest User'}</Text>
+        <Text style={styles.userName}>{user?.displayName || 'Guest User'}</Text>
         <Text style={styles.userEmail}>{user?.email || 'Not signed in'}</Text>
         <Text style={styles.userStatus}>
-          {user?.provider === 'google' ? '✓ Google Account' : 
-           user?.provider === 'apple' ? '✓ Apple Account' : 
-           user?.provider === 'email' ? '✓ Email Account' :
+          {user?.provider === 'google.com' ? '✓ Google Account' :
+           user?.provider === 'apple.com' ? '✓ Apple Account' :
+           user?.provider === 'password' ? '✓ Regular Account' :
+           user?.subscriptionType === 'premium' ? '✓ Premium Account' :
            'Guest Account'}
         </Text>
       </View>
@@ -127,10 +127,16 @@ export default function ProfileScreen({ navigation }) {
           <View style={styles.accountInfo}>
             <Text style={styles.accountLabel}>Signed in as</Text>
             <Text style={styles.accountEmail}>{user.email}</Text>
-            {user.provider === 'google' && (
+            {user.provider === 'google.com' && (
               <View style={styles.providerBadge}>
                 <Text style={styles.providerIcon}>G</Text>
                 <Text style={styles.providerText}>Google Account</Text>
+              </View>
+            )}
+            {user.provider === 'password' && (
+              <View style={styles.providerBadge}>
+                <Text style={styles.providerIcon}>📧</Text>
+                <Text style={styles.providerText}>Regular Account</Text>
               </View>
             )}
           </View>

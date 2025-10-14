@@ -31,7 +31,6 @@ export default function MyPlansScreen({ navigation }) {
         setPrograms(JSON.parse(savedPrograms));
       }
     } catch (error) {
-      console.error('Error loading programs:', error);
     }
   };
 
@@ -42,7 +41,6 @@ export default function MyPlansScreen({ navigation }) {
         setStandaloneWorkouts(JSON.parse(savedWorkouts));
       }
     } catch (error) {
-      console.error('Error loading standalone workouts:', error);
     }
   };
 
@@ -61,7 +59,6 @@ export default function MyPlansScreen({ navigation }) {
               await AsyncStorage.setItem(WORKOUT_PROGRAMS_KEY, JSON.stringify(updatedPrograms));
               setPrograms(updatedPrograms);
             } catch (error) {
-              console.error('Error deleting program:', error);
             }
           },
         },
@@ -84,7 +81,6 @@ export default function MyPlansScreen({ navigation }) {
               await AsyncStorage.setItem(STANDALONE_WORKOUTS_KEY, JSON.stringify(updatedWorkouts));
               setStandaloneWorkouts(updatedWorkouts);
             } catch (error) {
-              console.error('Error deleting workout:', error);
             }
           },
         },

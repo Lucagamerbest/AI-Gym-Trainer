@@ -363,7 +363,6 @@ export default function CreateMealPlanScreen({ navigation, route }) {
         { text: 'OK', onPress: () => navigation.goBack() }
       ]);
     } catch (error) {
-      console.error('Error saving template:', error);
       Alert.alert('Error', 'Failed to save meal plan template');
     }
   };

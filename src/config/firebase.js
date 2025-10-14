@@ -3,7 +3,8 @@
 
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
+import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Import environment variables
 import {
@@ -32,19 +33,17 @@ let auth;
 
 try {
   app = initializeApp(firebaseConfig);
-  console.log('✅ Firebase initialized successfully');
 
   // Initialize Firestore (database)
   db = getFirestore(app);
-  console.log('✅ Firestore connected');
 
-  // Initialize Authentication
-  auth = getAuth(app);
-  console.log('✅ Firebase Auth connected');
+  // Initialize Authentication with AsyncStorage persistence
+  auth = initializeAuth(app, {
+    persistence: getReactNativePersistence(AsyncStorage)
+  });
 
 } catch (error) {
-  console.error('❌ Firebase initialization error:', error);
-  console.error('Check your .env.local file has correct Firebase credentials');
+  // Silent fail - Firebase initialization errors will surface in actual usage
 }
 
 // Export for use in other files

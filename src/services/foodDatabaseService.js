@@ -40,7 +40,6 @@ export const initDatabase = async () => {
       await AsyncStorage.setItem(DB_INITIALIZED_KEY, 'true');
     }
   } catch (error) {
-    console.error('Error initializing comprehensive database:', error);
   }
 };
 
@@ -169,7 +168,6 @@ export const searchFoods = async (searchQuery) => {
 
     return validLocalResults;
   } catch (error) {
-    console.error('Search error:', error);
     return [];
   }
 };
@@ -206,7 +204,6 @@ export const getFoodByBarcode = async (barcode) => {
       }
     }
   } catch (error) {
-    console.error('Barcode lookup failed:', error);
   }
 
   return null;
@@ -221,7 +218,6 @@ const getCachedSearchResults = async (query) => {
       return cacheData.searches?.[query.toLowerCase()] || [];
     }
   } catch (error) {
-    console.error('Cache read error:', error);
   }
   return [];
 };
@@ -242,7 +238,6 @@ const cacheSearchResults = async (query, results) => {
 
     await AsyncStorage.setItem(API_CACHE_KEY, JSON.stringify(cache));
   } catch (error) {
-    console.error('Cache write error:', error);
   }
 };
 
@@ -254,7 +249,6 @@ const getCachedBarcode = async (barcode) => {
       return cacheData.barcodes?.[barcode] || null;
     }
   } catch (error) {
-    console.error('Cache read error:', error);
   }
   return null;
 };
@@ -275,7 +269,6 @@ const cacheBarcode = async (barcode, data) => {
 
     await AsyncStorage.setItem(API_CACHE_KEY, JSON.stringify(cache));
   } catch (error) {
-    console.error('Cache write error:', error);
   }
 };
 

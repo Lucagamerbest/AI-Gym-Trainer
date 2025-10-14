@@ -28,7 +28,6 @@ export default function ExerciseSettingsScreen({ navigation }) {
         setRpeEnabled(savedRpeEnabled === 'true');
       }
     } catch (error) {
-      console.error('Error loading settings:', error);
     }
   };
 
@@ -37,7 +36,6 @@ export default function ExerciseSettingsScreen({ navigation }) {
       await AsyncStorage.setItem('exerciseDisplayMode', mode);
       setDisplayMode(mode);
     } catch (error) {
-      console.error('Error saving display mode:', error);
     }
   };
 
@@ -46,7 +44,6 @@ export default function ExerciseSettingsScreen({ navigation }) {
       await AsyncStorage.setItem(RPE_ENABLED_KEY, value.toString());
       setRpeEnabled(value);
     } catch (error) {
-      console.error('Error toggling RPE:', error);
     }
   };
 

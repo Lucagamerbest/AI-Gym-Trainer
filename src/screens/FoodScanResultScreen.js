@@ -146,7 +146,6 @@ export default function FoodScanResultScreen({ navigation, route }) {
         ]
       );
     } catch (error) {
-      console.error('Error adding to history:', error);
       Alert.alert('Error', 'Failed to save product. Please try again.');
     } finally {
       setIsSaving(false);

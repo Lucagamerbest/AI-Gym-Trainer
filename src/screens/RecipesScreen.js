@@ -104,7 +104,6 @@ export default function RecipesScreen({ navigation, route }) {
         setRecipes(JSON.parse(saved));
       }
     } catch (error) {
-      console.error('Error loading recipes:', error);
     }
   };
 
@@ -113,7 +112,6 @@ export default function RecipesScreen({ navigation, route }) {
       await AsyncStorage.setItem(RECIPES_KEY, JSON.stringify(updatedRecipes));
       setRecipes(updatedRecipes);
     } catch (error) {
-      console.error('Error saving recipes:', error);
     }
   };
 
@@ -160,7 +158,6 @@ export default function RecipesScreen({ navigation, route }) {
 
       setSearchResults(results);
     } catch (error) {
-      console.error('Search error:', error);
       setSearchResults([]);
     }
     setIsSearching(false);

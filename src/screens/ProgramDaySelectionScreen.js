@@ -168,7 +168,6 @@ export default function ProgramDaySelectionScreen({ navigation, route }) {
         refresh: Date.now()
       });
     } catch (error) {
-      console.error('Error saving temp state:', error);
       Alert.alert('Error', 'Failed to edit day');
     }
   };
@@ -194,7 +193,6 @@ export default function ProgramDaySelectionScreen({ navigation, route }) {
               }
             } catch (error) {
               Alert.alert('Error', 'Failed to delete program');
-              console.error(error);
             }
           },
         },
@@ -218,7 +216,6 @@ export default function ProgramDaySelectionScreen({ navigation, route }) {
         refresh: Date.now()
       });
     } catch (error) {
-      console.error('Error editing program:', error);
       Alert.alert('Error', 'Failed to edit program');
     }
   };
@@ -251,7 +248,6 @@ export default function ProgramDaySelectionScreen({ navigation, route }) {
               }
             } catch (error) {
               Alert.alert('Error', 'Failed to delete day');
-              console.error(error);
             }
           },
         },
@@ -298,7 +294,6 @@ export default function ProgramDaySelectionScreen({ navigation, route }) {
         }
       }
     } catch (error) {
-      console.error('Error saving weekly schedule:', error);
       Alert.alert('Error', 'Failed to save weekly schedule');
     }
   };
@@ -369,7 +364,6 @@ export default function ProgramDaySelectionScreen({ navigation, route }) {
         Alert.alert('Error', result.error || 'Failed to schedule workouts');
       }
     } catch (error) {
-      console.error('Error scheduling workouts:', error);
       Alert.alert('Error', 'Failed to schedule workouts to calendar');
     }
   };
