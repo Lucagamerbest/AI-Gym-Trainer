@@ -153,8 +153,11 @@ export function AuthProvider({ children }) {
       // Sign out from Firebase
       await firebaseSignOut(auth);
 
-      // Clear local cache
-      await AsyncStorage.clear();
+      // Clear ONLY user session data (not workouts or other data)
+      // DO NOT use AsyncStorage.clear() - it deletes workouts!
+      await AsyncStorage.removeItem('user');
+      await AsyncStorage.removeItem('userToken');
+      await AsyncStorage.removeItem('authState');
 
       return { success: true };
     } catch (error) {

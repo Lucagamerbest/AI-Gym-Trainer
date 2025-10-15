@@ -121,7 +121,7 @@ export default function WorkoutFinalizationScreen({ navigation, route }) {
         photos: photos,
       };
 
-      const userId = user?.email || 'guest';
+      const userId = user?.uid || 'guest';
 
       const saveResult = await WorkoutStorageService.saveWorkout(
         finalWorkoutData,
@@ -162,7 +162,7 @@ export default function WorkoutFinalizationScreen({ navigation, route }) {
         photos: [],
       };
 
-      const userId = user?.email || 'guest';
+      const userId = user?.uid || 'guest';
       const saveResult = await WorkoutStorageService.saveWorkout(
         finalWorkoutData,
         exerciseSets,

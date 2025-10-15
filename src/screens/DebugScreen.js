@@ -6,8 +6,12 @@ import StyledCard from '../components/StyledCard';
 import StyledButton from '../components/StyledButton';
 import { Colors, Spacing, Typography } from '../constants/theme';
 import BackendService from '../services/backend/BackendService';
+import WorkoutSyncService from '../services/backend/WorkoutSyncService';
+import { WorkoutStorageService } from '../services/workoutStorage';
+import { useAuth } from '../context/AuthContext';
 
 export default function DebugScreen({ navigation }) {
+  const { user } = useAuth();
   const [users, setUsers] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
 
@@ -15,9 +19,42 @@ export default function DebugScreen({ navigation }) {
   const [backendStatus, setBackendStatus] = useState('not-tested');
   const [backendLoading, setBackendLoading] = useState(false);
 
+  // Sync testing state
+  const [syncStatus, setSyncStatus] = useState('');
+  const [syncLoading, setSyncLoading] = useState(false);
+  const [workoutCount, setWorkoutCount] = useState({ local: 0, cloud: 0 });
+
   useEffect(() => {
     loadStoredData();
+    loadWorkoutCounts();
   }, []);
+
+  const loadWorkoutCounts = async () => {
+    try {
+      // Get local workout count
+      const userId = user?.uid || 'guest';
+      const localWorkouts = await WorkoutStorageService.getWorkoutHistory(userId);
+
+      // Get cloud workout count (if authenticated)
+      let cloudCount = 0;
+      if (user?.uid) {
+        try {
+          const cloudWorkouts = await WorkoutSyncService.getAllWorkouts(10);
+          cloudCount = cloudWorkouts.length;
+        } catch (error) {
+          // User might not be authenticated or no cloud workouts yet
+          cloudCount = 0;
+        }
+      }
+
+      setWorkoutCount({
+        local: localWorkouts.length,
+        cloud: cloudCount
+      });
+    } catch (error) {
+      console.error('Error loading workout counts:', error);
+    }
+  };
 
   const loadStoredData = async () => {
     try {
@@ -84,6 +121,66 @@ export default function DebugScreen({ navigation }) {
     }
   };
 
+  const handleSyncLocalWorkouts = async () => {
+    if (!user?.uid) {
+      Alert.alert('⚠️ Not Authenticated', 'Please sign in with Google or Email to sync workouts.');
+      return;
+    }
+
+    setSyncLoading(true);
+    setSyncStatus('Syncing local workouts to cloud...');
+
+    try {
+      const userId = user.uid || 'guest';
+      const result = await WorkoutSyncService.syncLocalWorkouts(userId);
+
+      setSyncStatus(`✅ Synced: ${result.synced} workouts, Failed: ${result.failed}`);
+
+      // Refresh workout counts
+      await loadWorkoutCounts();
+
+      Alert.alert(
+        '✅ Sync Complete!',
+        `Successfully synced ${result.synced} workouts to Firebase!\n\n${result.failed > 0 ? `Failed: ${result.failed}` : ''}`
+      );
+    } catch (error) {
+      setSyncStatus(`❌ Error: ${error.message}`);
+      Alert.alert('❌ Sync Failed', error.message);
+    } finally {
+      setSyncLoading(false);
+    }
+  };
+
+  const handleDownloadWorkouts = async () => {
+    if (!user?.uid) {
+      Alert.alert('⚠️ Not Authenticated', 'Please sign in with Google or Email to download workouts.');
+      return;
+    }
+
+    setSyncLoading(true);
+    setSyncStatus('Downloading workouts from cloud...');
+
+    try {
+      const userId = user.uid || 'guest';
+      const workouts = await WorkoutSyncService.downloadCloudWorkouts(userId);
+
+      setSyncStatus(`✅ Downloaded ${workouts.length} workouts from cloud`);
+
+      // Refresh workout counts
+      await loadWorkoutCounts();
+
+      Alert.alert(
+        '✅ Download Complete!',
+        `Successfully downloaded and merged ${workouts.length} workouts from Firebase!`
+      );
+    } catch (error) {
+      setSyncStatus(`❌ Error: ${error.message}`);
+      Alert.alert('❌ Download Failed', error.message);
+    } finally {
+      setSyncLoading(false);
+    }
+  };
+
   return (
     <ScreenLayout
       title="Debug: User Storage"
@@ -130,6 +227,68 @@ export default function DebugScreen({ navigation }) {
             )}
           </View>
         )}
+      </StyledCard>
+
+      <StyledCard variant="elevated" style={styles.infoCard}>
+        <Text style={styles.infoTitle}>☁️ Workout Data Sync (Phase 5)</Text>
+        <Text style={styles.infoText}>• Sync local workouts to Firebase Cloud</Text>
+        <Text style={styles.infoText}>• Download cloud workouts to this device</Text>
+        <Text style={styles.infoText}>• Requires authentication (sign in first)</Text>
+
+        <View style={styles.statsRow}>
+          <View style={styles.statBox}>
+            <Text style={styles.statLabel}>Local Workouts</Text>
+            <Text style={styles.statValue}>{workoutCount.local}</Text>
+          </View>
+          <View style={styles.statBox}>
+            <Text style={styles.statLabel}>Cloud Workouts</Text>
+            <Text style={styles.statValue}>{workoutCount.cloud}</Text>
+          </View>
+        </View>
+
+        {!user?.uid && (
+          <View style={styles.warningBox}>
+            <Text style={styles.warningText}>⚠️ Not authenticated. Please sign in first.</Text>
+          </View>
+        )}
+
+        <View style={styles.buttonRow}>
+          <StyledButton
+            title={syncLoading ? "Syncing..." : "Sync to Cloud"}
+            icon={syncLoading ? "" : "☁️"}
+            size="md"
+            variant="primary"
+            onPress={handleSyncLocalWorkouts}
+            disabled={syncLoading || !user?.uid}
+            style={styles.halfButton}
+          />
+
+          <StyledButton
+            title={syncLoading ? "Loading..." : "Download"}
+            icon={syncLoading ? "" : "📥"}
+            size="md"
+            variant="secondary"
+            onPress={handleDownloadWorkouts}
+            disabled={syncLoading || !user?.uid}
+            style={styles.halfButton}
+          />
+        </View>
+
+        {syncStatus !== '' && (
+          <View style={styles.syncStatusBox}>
+            <Text style={styles.syncStatusText}>{syncStatus}</Text>
+          </View>
+        )}
+
+        <StyledButton
+          title="Refresh Counts"
+          icon="🔄"
+          size="sm"
+          variant="ghost"
+          fullWidth
+          onPress={loadWorkoutCounts}
+          style={styles.refreshButton}
+        />
       </StyledCard>
 
       <StyledCard variant="elevated" style={styles.infoCard}>
@@ -303,5 +462,67 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: Spacing.sm,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: Spacing.md,
+    marginBottom: Spacing.md,
+    gap: Spacing.md,
+  },
+  statBox: {
+    flex: 1,
+    backgroundColor: Colors.surface,
+    padding: Spacing.md,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  statLabel: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.xs,
+  },
+  statValue: {
+    fontSize: Typography.fontSize.xl,
+    fontWeight: 'bold',
+    color: Colors.primary,
+  },
+  warningBox: {
+    backgroundColor: '#FFA50022',
+    borderWidth: 1,
+    borderColor: '#FFA500',
+    padding: Spacing.md,
+    borderRadius: 8,
+    marginBottom: Spacing.md,
+  },
+  warningText: {
+    color: '#FFA500',
+    fontSize: Typography.fontSize.sm,
+    textAlign: 'center',
+    fontWeight: '600',
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+    marginBottom: Spacing.md,
+  },
+  halfButton: {
+    flex: 1,
+  },
+  syncStatusBox: {
+    backgroundColor: Colors.surface,
+    padding: Spacing.md,
+    borderRadius: 8,
+    marginBottom: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  syncStatusText: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.text,
+    textAlign: 'center',
+  },
+  refreshButton: {
+    marginTop: Spacing.xs,
   },
 });
