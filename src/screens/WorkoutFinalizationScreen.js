@@ -8,6 +8,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { WorkoutStorageService } from '../services/workoutStorage';
 import { useAuth } from '../context/AuthContext';
 import { useWorkout } from '../context/WorkoutContext';
+import SyncManager from '../services/backend/SyncManager';
 
 export default function WorkoutFinalizationScreen({ navigation, route }) {
   const { user } = useAuth();
@@ -135,6 +136,15 @@ export default function WorkoutFinalizationScreen({ navigation, route }) {
         return;
       }
 
+      // Auto-sync workout to Firebase
+      if (user?.uid) {
+        try {
+          await SyncManager.syncWorkout(userId, finalWorkoutData);
+        } catch (error) {
+          console.log('Sync will retry later:', error);
+        }
+      }
+
       // Clear workout from context
       finishWorkout();
 
@@ -173,6 +183,15 @@ export default function WorkoutFinalizationScreen({ navigation, route }) {
         Alert.alert('Error', 'Failed to save workout. Please try again.');
         setSaving(false);
         return;
+      }
+
+      // Auto-sync workout to Firebase
+      if (user?.uid) {
+        try {
+          await SyncManager.syncWorkout(userId, finalWorkoutData);
+        } catch (error) {
+          console.log('Sync will retry later:', error);
+        }
       }
 
       // Clear workout from context

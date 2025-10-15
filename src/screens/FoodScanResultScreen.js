@@ -17,12 +17,15 @@ import StyledCard from '../components/StyledCard';
 import NutriScoreModal from '../components/NutriScoreModal';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { saveFoodFromAPI, addToDaily, initDatabase } from '../services/foodDatabaseService';
+import { useAuth } from '../context/AuthContext';
+import SyncManager from '../services/backend/SyncManager';
 
 const SCAN_HISTORY_KEY = '@food_scan_history';
 const DAILY_NUTRITION_KEY = '@daily_nutrition';
 const MEAL_PLANS_KEY = '@meal_plans';
 
 export default function FoodScanResultScreen({ navigation, route }) {
+  const { user } = useAuth();
   const { productData, barcode, barcodePhotoUri } = route.params;
   const [isSaving, setIsSaving] = useState(false);
   const [servingSize, setServingSize] = useState('100');
@@ -66,7 +69,8 @@ export default function FoodScanResultScreen({ navigation, route }) {
 
       // Add to daily consumption with the serving size
       const size = servingSize === '' ? 0 : parseFloat(servingSize);
-      await addToDaily(foodId, size, 'snack');
+      const userId = user?.uid || 'guest';
+      await addToDaily(foodId, size, userId, 'snack');
 
       // Also keep in AsyncStorage for backward compatibility
       const historyData = await AsyncStorage.getItem(SCAN_HISTORY_KEY);
@@ -129,6 +133,15 @@ export default function FoodScanResultScreen({ navigation, route }) {
         logged: dailyNutrition.meals
       };
       await AsyncStorage.setItem(MEAL_PLANS_KEY, JSON.stringify(mealPlans));
+
+      // Trigger sync for authenticated users
+      if (user?.uid) {
+        try {
+          await SyncManager.syncTodaysMeals(userId);
+        } catch (syncError) {
+          console.log('Sync will retry later:', syncError);
+        }
+      }
 
       Alert.alert(
         'Success',

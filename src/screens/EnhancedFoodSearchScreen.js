@@ -19,6 +19,7 @@ import ScreenLayout from '../components/ScreenLayout';
 import StyledCard from '../components/StyledCard';
 import StyledButton from '../components/StyledButton';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
+import { useAuth } from '../context/AuthContext';
 import {
   initDatabase,
   searchFoods,
@@ -28,6 +29,7 @@ import {
   saveFoodFromAPI,
   saveFood,
 } from '../services/foodDatabaseService';
+import SyncManager from '../services/backend/SyncManager';
 import { foodAPI } from '../services/foodAPI';
 import {
   smartSearchFoods,
@@ -42,6 +44,7 @@ import {
 const { height: screenHeight } = Dimensions.get('window');
 
 export default function EnhancedFoodSearchScreen({ navigation }) {
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [bestMatch, setBestMatch] = useState(null);
   const [suggestedMatches, setSuggestedMatches] = useState([]);
@@ -197,7 +200,13 @@ export default function EnhancedFoodSearchScreen({ navigation }) {
 
     try {
       const quantity = portion.value;
-      await addToDaily(selectedFood.id || selectedFood.barcode, quantity, mealType);
+      const userId = user?.uid || 'guest';
+      await addToDaily(selectedFood.id || selectedFood.barcode, quantity, userId, mealType);
+
+      // Trigger sync for authenticated users
+      if (user?.uid) {
+        await SyncManager.syncTodaysMeals(userId);
+      }
 
       Alert.alert(
         'Added!',
@@ -587,17 +596,24 @@ export default function EnhancedFoodSearchScreen({ navigation }) {
               <View style={styles.modalActions}>
                 <StyledButton
                   title="Add"
-                  onPress={() => {
-                    addToDaily(
+                  onPress={async () => {
+                    const userId = user?.uid || 'guest';
+                    await addToDaily(
                       selectedFood.id || Date.now(),
                       parseFloat(servingSize) || 100,
+                      userId,
                       mealType
-                    ).then(() => {
-                      Alert.alert('Success', 'Food added to daily log');
-                      setShowAddModal(false);
-                      setSelectedFood(null);
-                      setServingSize('100');
-                    });
+                    );
+
+                    // Trigger sync for authenticated users
+                    if (user?.uid) {
+                      await SyncManager.syncTodaysMeals(userId);
+                    }
+
+                    Alert.alert('Success', 'Food added to daily log');
+                    setShowAddModal(false);
+                    setSelectedFood(null);
+                    setServingSize('100');
                   }}
                   style={styles.addButton}
                 />

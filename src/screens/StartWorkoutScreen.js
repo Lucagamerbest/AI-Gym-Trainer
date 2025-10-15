@@ -25,7 +25,7 @@ export default function StartWorkoutScreen({ navigation }) {
 
   const loadRecentWorkouts = async () => {
     try {
-      const userId = user?.email || 'guest';
+      const userId = user?.uid || 'guest';
 
       // Get workout history (completed workouts)
       const history = await WorkoutStorageService.getWorkoutHistory(userId);

@@ -1,13 +1,17 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'expo-status-bar';
-import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, ActivityIndicator, StyleSheet, AppState } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { WorkoutProvider } from './src/context/WorkoutContext';
 import { Colors } from './src/constants/theme';
+import SyncManager from './src/services/backend/SyncManager';
+import { initializeGemini } from './src/config/gemini';
+import AIBadge from './src/components/AIBadge';
+import ProactiveAIService from './src/services/ai/ProactiveAIService';
 
 // Import screens
 import SignInScreen from './src/screens/SignInScreen';
@@ -64,6 +68,28 @@ const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
 function TabNavigator() {
+  const { user } = useAuth();
+  const [aiSuggestionCount, setAISuggestionCount] = useState(0);
+
+  // Check for AI suggestions every 30 seconds
+  useEffect(() => {
+    const checkSuggestions = async () => {
+      if (!user?.uid) return;
+
+      try {
+        const suggestions = await ProactiveAIService.getAllSuggestions(user.uid);
+        setAISuggestionCount(suggestions.length);
+      } catch (error) {
+        console.log('Error checking AI suggestions:', error);
+      }
+    };
+
+    checkSuggestions();
+    const interval = setInterval(checkSuggestions, 30000); // Check every 30s
+
+    return () => clearInterval(interval);
+  }, [user?.uid]);
+
   return (
     <Tab.Navigator
       initialRouteName="Home"
@@ -85,7 +111,10 @@ function TabNavigator() {
         component={AIScreen}
         options={{
           tabBarIcon: ({ color, size }) => (
-            <Text style={{ fontSize: 24, color: Colors.primary }}>🤖</Text>
+            <View>
+              <Text style={{ fontSize: 24, color: Colors.primary }}>🤖</Text>
+              <AIBadge count={aiSuggestionCount} visible={aiSuggestionCount > 0} />
+            </View>
           ),
         }}
       />
@@ -112,7 +141,47 @@ function TabNavigator() {
 }
 
 function AppNavigator() {
-  const { isSignedIn, isLoading } = useAuth();
+  const { isSignedIn, isLoading, user } = useAuth();
+
+  // Initialize SyncManager and Gemini AI when app starts
+  useEffect(() => {
+    console.log('Initializing SyncManager...');
+    SyncManager.initialize();
+
+    // Initialize Gemini AI
+    try {
+      initializeGemini();
+    } catch (error) {
+      console.log('Gemini initialization skipped:', error.message);
+    }
+
+    // Cleanup on unmount
+    return () => {
+      SyncManager.cleanup();
+    };
+  }, []);
+
+  // Handle app state changes (foreground/background)
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', async (nextAppState) => {
+      if (nextAppState === 'active') {
+        console.log('App came to foreground, syncing...');
+        // Sync when app comes to foreground
+        if (user?.uid) {
+          try {
+            await SyncManager.checkNetworkStatus();
+            await SyncManager.syncPendingOperations();
+          } catch (error) {
+            console.log('Background sync error:', error);
+          }
+        }
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [user]);
 
   if (isLoading) {
     return (
@@ -124,24 +193,25 @@ function AppNavigator() {
   }
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator
-        screenOptions={{
-          headerShown: false,
-          cardStyle: { backgroundColor: Colors.background }
-        }}
-      >
-        {!isSignedIn ? (
-          <Stack.Screen name="SignIn" component={SignInScreen} />
-        ) : (
-          <>
-            <Stack.Screen
-              name="Main"
-              component={TabNavigator}
-              options={{ gestureEnabled: false }}
-            />
-            <Stack.Screen name="Nutrition" component={NutritionScreen} />
-            <Stack.Screen name="NutritionDashboard" component={NutritionDashboard} />
+    <>
+      <NavigationContainer>
+        <Stack.Navigator
+          screenOptions={{
+            headerShown: false,
+            cardStyle: { backgroundColor: Colors.background }
+          }}
+        >
+          {!isSignedIn ? (
+            <Stack.Screen name="SignIn" component={SignInScreen} />
+          ) : (
+            <>
+              <Stack.Screen
+                name="Main"
+                component={TabNavigator}
+                options={{ gestureEnabled: false }}
+              />
+              <Stack.Screen name="Nutrition" component={NutritionScreen} />
+              <Stack.Screen name="NutritionDashboard" component={NutritionDashboard} />
             <Stack.Screen name="FoodSearch" component={FoodSearchScreen} />
             <Stack.Screen name="FoodDetail" component={FoodDetailScreen} />
             <Stack.Screen name="FoodScanning" component={FoodScanningScreen} />
@@ -195,6 +265,7 @@ function AppNavigator() {
         )}
       </Stack.Navigator>
     </NavigationContainer>
+    </>
   );
 }
 

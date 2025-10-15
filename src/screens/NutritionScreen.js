@@ -7,6 +7,8 @@ import StyledButton from '../components/StyledButton';
 import StyledCard from '../components/StyledCard';
 import MacroGoalsModal from '../components/MacroGoalsModal';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
+import { useAuth } from '../context/AuthContext';
+import { getNutritionGoals, updateNutritionGoals } from '../services/userProfileService';
 
 const MACROS_KEY = '@macro_goals';
 const DAILY_NUTRITION_KEY = '@daily_nutrition';
@@ -14,6 +16,7 @@ const LAST_RESET_DATE_KEY = '@last_reset_date';
 const MEAL_PLANS_KEY = '@meal_plans';
 
 export default function NutritionScreen({ navigation, route }) {
+  const { user } = useAuth();
   const [consumed, setConsumed] = useState(0);
   const [burned] = useState(0); // Will be updated when exercise tracking is implemented
   const [showMacroModal, setShowMacroModal] = useState(false);
@@ -190,11 +193,16 @@ export default function NutritionScreen({ navigation, route }) {
 
   const loadMacroGoals = async () => {
     try {
-      const saved = await AsyncStorage.getItem(MACROS_KEY);
-      if (saved) {
-        setMacroGoals(JSON.parse(saved));
-      }
+      const userId = user?.uid || 'guest';
+      const goals = await getNutritionGoals(userId);
+      setMacroGoals({
+        calories: goals.calories,
+        proteinGrams: goals.protein,
+        carbsGrams: goals.carbs,
+        fatGrams: goals.fat,
+      });
     } catch (error) {
+      console.error('Error loading macro goals:', error);
     }
   };
 
@@ -413,8 +421,20 @@ export default function NutritionScreen({ navigation, route }) {
     }
   };
 
-  const handleSaveMacros = (newGoals) => {
-    setMacroGoals(newGoals);
+  const handleSaveMacros = async (newGoals) => {
+    try {
+      const userId = user?.uid || 'guest';
+      await updateNutritionGoals(userId, {
+        calories: newGoals.calories,
+        protein: newGoals.proteinGrams,
+        carbs: newGoals.carbsGrams,
+        fat: newGoals.fatGrams,
+      });
+      setMacroGoals(newGoals);
+    } catch (error) {
+      console.error('Error saving macro goals:', error);
+      Alert.alert('Error', 'Failed to save nutrition goals');
+    }
   };
 
   const calculateProgress = (consumed, goal) => {

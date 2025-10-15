@@ -6,6 +6,7 @@ import StyledButton from '../components/StyledButton';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { useAuth } from '../context/AuthContext';
 import { WorkoutStorageService } from '../services/workoutStorage';
+import SyncManager from '../services/backend/SyncManager';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 
@@ -15,19 +16,77 @@ export default function ProfileScreen({ navigation }) {
   const { user, signIn, signInWithGoogle, signOut } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [userStats, setUserStats] = useState(null);
+  const [syncStatus, setSyncStatus] = useState({ isOnline: true, isSyncing: false, pendingOperations: 0 });
+  const [lastSyncTime, setLastSyncTime] = useState(null);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   // Load user stats when component mounts or user changes
   useEffect(() => {
     loadUserStats();
+    loadSyncStatus();
   }, [user]);
 
   const loadUserStats = async () => {
     try {
-      const userId = user?.email || 'guest';
+      const userId = user?.uid || 'guest';
       const stats = await WorkoutStorageService.getUserStats(userId);
       setUserStats(stats);
     } catch (error) {
     }
+  };
+
+  const loadSyncStatus = async () => {
+    try {
+      const status = SyncManager.getSyncStatus();
+      setSyncStatus(status);
+
+      const lastSync = await SyncManager.getLastSyncTime();
+      setLastSyncTime(lastSync);
+    } catch (error) {
+      console.error('Error loading sync status:', error);
+    }
+  };
+
+  const handleManualSync = async () => {
+    if (!user?.uid) {
+      Alert.alert('Sign In Required', 'Please sign in to sync your data');
+      return;
+    }
+
+    setIsSyncing(true);
+    try {
+      const result = await SyncManager.manualSync(user.uid);
+
+      if (result.success) {
+        await loadSyncStatus();
+        Alert.alert(
+          'Sync Complete',
+          `Successfully synced ${result.results.successful} items`
+        );
+      }
+    } catch (error) {
+      Alert.alert(
+        'Sync Failed',
+        error.message || 'Please check your internet connection and try again'
+      );
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const formatLastSyncTime = () => {
+    if (!lastSyncTime) return 'Never';
+
+    const now = new Date();
+    const diff = now - lastSyncTime;
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (minutes < 1) return 'Just now';
+    if (minutes < 60) return `${minutes}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    return `${days}d ago`;
   };
 
   // Google Sign-In configuration with YOUR credentials
@@ -167,6 +226,41 @@ export default function ProfileScreen({ navigation }) {
           onPress={() => navigation.navigate('AIAssistant')}
           style={styles.aiButton}
         />
+      )}
+
+      {user && user.provider !== 'guest' && (
+        <StyledCard variant="elevated" style={styles.syncCard}>
+          <View style={styles.syncHeader}>
+            <Text style={styles.syncTitle}>📡 Cloud Sync</Text>
+            <View style={[styles.statusBadge, { backgroundColor: syncStatus.isOnline ? Colors.success + '20' : Colors.error + '20' }]}>
+              <Text style={[styles.statusText, { color: syncStatus.isOnline ? Colors.success : Colors.error }]}>
+                {syncStatus.isOnline ? 'Online' : 'Offline'}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.syncStats}>
+            <View style={styles.syncStatItem}>
+              <Text style={styles.syncStatLabel}>Last Sync</Text>
+              <Text style={styles.syncStatValue}>{formatLastSyncTime()}</Text>
+            </View>
+            <View style={styles.syncStatItem}>
+              <Text style={styles.syncStatLabel}>Pending</Text>
+              <Text style={styles.syncStatValue}>{syncStatus.pendingOperations}</Text>
+            </View>
+          </View>
+
+          <StyledButton
+            title={isSyncing ? "Syncing..." : "Sync Now"}
+            icon="🔄"
+            size="md"
+            variant="secondary"
+            fullWidth
+            onPress={handleManualSync}
+            disabled={isSyncing || !syncStatus.isOnline}
+            style={styles.syncButton}
+          />
+        </StyledCard>
       )}
 
       <StyledCard
@@ -332,6 +426,53 @@ const styles = StyleSheet.create({
   },
   aiButton: {
     marginBottom: Spacing.xl,
+  },
+  syncCard: {
+    marginBottom: Spacing.lg,
+  },
+  syncHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
+  syncTitle: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: 'bold',
+    color: Colors.text,
+  },
+  statusBadge: {
+    paddingVertical: Spacing.xs,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.round,
+  },
+  statusText: {
+    fontSize: Typography.fontSize.xs,
+    fontWeight: '600',
+  },
+  syncStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: Spacing.md,
+    paddingVertical: Spacing.md,
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.md,
+  },
+  syncStatItem: {
+    alignItems: 'center',
+  },
+  syncStatLabel: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textMuted,
+    marginBottom: Spacing.xs,
+  },
+  syncStatValue: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  syncButton: {
+    marginTop: Spacing.xs,
   },
   progressCard: {
     marginBottom: Spacing.xl,

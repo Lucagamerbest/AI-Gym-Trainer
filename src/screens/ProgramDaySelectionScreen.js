@@ -330,7 +330,7 @@ export default function ProgramDaySelectionScreen({ navigation, route }) {
 
   const confirmProgramSchedule = async () => {
     try {
-      const userId = user?.email || 'guest';
+      const userId = user?.uid || 'guest';
       const startDate = new Date();
 
       const result = await WorkoutStorageService.scheduleProgramWorkouts(

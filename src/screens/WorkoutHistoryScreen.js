@@ -78,7 +78,7 @@ export default function WorkoutHistoryScreen({ navigation }) {
 
   const loadWorkoutHistory = async () => {
     try {
-      const userId = user?.email || 'guest';
+      const userId = user?.uid || 'guest';
       const history = await WorkoutStorageService.getWorkoutHistory(userId);
       setWorkoutHistory(history);
       updateMarkedDates(history, plannedWorkouts);
@@ -88,7 +88,7 @@ export default function WorkoutHistoryScreen({ navigation }) {
 
   const loadPlannedWorkouts = async () => {
     try {
-      const userId = user?.email || 'guest';
+      const userId = user?.uid || 'guest';
       const plannedData = await WorkoutStorageService.getPlannedWorkouts(userId);
       setPlannedWorkouts(plannedData);
 
@@ -210,7 +210,7 @@ export default function WorkoutHistoryScreen({ navigation }) {
           style: 'destructive',
           onPress: async () => {
             try {
-              const userId = user?.email || 'guest';
+              const userId = user?.uid || 'guest';
 
               // Delete each selected planned workout
               for (const dateKey of selectedDatesToDelete) {
@@ -289,7 +289,7 @@ export default function WorkoutHistoryScreen({ navigation }) {
 
   const copyWorkoutToMultipleDates = async () => {
     try {
-      const userId = user?.email || 'guest';
+      const userId = user?.uid || 'guest';
       const targetDateKeys = selectedFutureDates.map(date => date.toISOString().split('T')[0]);
 
       // Create workout data to copy (without the original id and date)
@@ -319,7 +319,7 @@ export default function WorkoutHistoryScreen({ navigation }) {
 
   const addTestWorkoutData = async () => {
     try {
-      const userId = user?.email || 'guest';
+      const userId = user?.uid || 'guest';
 
       // Create comprehensive mock workouts with equipment variants for all muscle groups
       const workoutsToAdd = [
@@ -740,7 +740,7 @@ export default function WorkoutHistoryScreen({ navigation }) {
           style: 'destructive',
           onPress: async () => {
             try {
-              const userId = user?.email || 'guest';
+              const userId = user?.uid || 'guest';
               const result = await WorkoutStorageService.deleteWorkout(workoutId, userId);
 
               if (result.success) {
@@ -964,7 +964,7 @@ export default function WorkoutHistoryScreen({ navigation }) {
                     style: 'destructive',
                     onPress: async () => {
                       try {
-                        const userId = user?.email || 'guest';
+                        const userId = user?.uid || 'guest';
                         const result = await WorkoutStorageService.cleanupOrphanedProgressRecords(userId);
 
                         if (result.success) {

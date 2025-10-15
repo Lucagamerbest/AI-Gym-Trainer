@@ -1,9 +1,9 @@
 // Web version of foodDatabase - uses AsyncStorage instead of SQLite
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const FOODS_KEY = '@foods_db';
-const CONSUMPTION_KEY = '@daily_consumption';
-const FAVORITES_KEY = '@favorites';
+const FOODS_KEY = '@foods_db'; // Shared across all users
+const getConsumptionKey = (userId) => `@daily_consumption_${userId}`;
+const getFavoritesKey = (userId) => `@favorites_${userId}`;
 
 // Initialize database (no-op for web)
 export const initDatabase = async () => {
@@ -92,8 +92,10 @@ export const getFoodByBarcode = async (barcode) => {
 };
 
 // Add food to daily consumption
-export const addToDaily = async (foodId, quantity, mealType = 'snack') => {
+export const addToDaily = async (foodId, quantity, userId, mealType = 'snack') => {
   try {
+    if (!userId) throw new Error('User ID is required');
+
     const foods = await getFoods();
     const food = foods.find(f => f.id === foodId);
 
@@ -106,6 +108,7 @@ export const addToDaily = async (foodId, quantity, mealType = 'snack') => {
 
     const consumptionEntry = {
       id: Date.now(),
+      user_id: userId,
       food_id: foodId,
       date: today,
       meal_type: mealType,
@@ -119,14 +122,15 @@ export const addToDaily = async (foodId, quantity, mealType = 'snack') => {
       created_at: new Date().toISOString()
     };
 
-    const consumptionData = await AsyncStorage.getItem(CONSUMPTION_KEY);
+    const consumptionKey = getConsumptionKey(userId);
+    const consumptionData = await AsyncStorage.getItem(consumptionKey);
     const consumption = consumptionData ? JSON.parse(consumptionData) : [];
     consumption.push(consumptionEntry);
 
-    await AsyncStorage.setItem(CONSUMPTION_KEY, JSON.stringify(consumption));
+    await AsyncStorage.setItem(consumptionKey, JSON.stringify(consumption));
 
     // Update favorites
-    await updateFavoritesWeb(foodId);
+    await updateFavoritesWeb(foodId, userId);
 
     return consumptionEntry.id;
   } catch (error) {
@@ -135,9 +139,12 @@ export const addToDaily = async (foodId, quantity, mealType = 'snack') => {
 };
 
 // Update favorites (web version)
-const updateFavoritesWeb = async (foodId) => {
+const updateFavoritesWeb = async (foodId, userId) => {
   try {
-    const favoritesData = await AsyncStorage.getItem(FAVORITES_KEY);
+    if (!userId) return;
+
+    const favoritesKey = getFavoritesKey(userId);
+    const favoritesData = await AsyncStorage.getItem(favoritesKey);
     const favorites = favoritesData ? JSON.parse(favoritesData) : {};
 
     if (favorites[foodId]) {
@@ -151,16 +158,25 @@ const updateFavoritesWeb = async (foodId) => {
       };
     }
 
-    await AsyncStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
+    await AsyncStorage.setItem(favoritesKey, JSON.stringify(favorites));
   } catch (error) {
   }
 };
 
 // Get daily summary
-export const getDailySummary = async (date = null) => {
+export const getDailySummary = async (userId, date = null) => {
   try {
+    if (!userId) {
+      return {
+        date: date || new Date().toISOString().split('T')[0],
+        items: [],
+        totals: { calories: 0, protein: 0, carbs: 0, fat: 0 }
+      };
+    }
+
     const targetDate = date || new Date().toISOString().split('T')[0];
-    const consumptionData = await AsyncStorage.getItem(CONSUMPTION_KEY);
+    const consumptionKey = getConsumptionKey(userId);
+    const consumptionData = await AsyncStorage.getItem(consumptionKey);
     const consumption = consumptionData ? JSON.parse(consumptionData) : [];
 
     const todayItems = consumption.filter(item => item.date === targetDate);
@@ -197,10 +213,13 @@ export const getDailySummary = async (date = null) => {
 };
 
 // Get favorite foods
-export const getFavorites = async (limit = 10) => {
+export const getFavorites = async (userId, limit = 10) => {
   try {
+    if (!userId) return [];
+
     const foods = await getFoods();
-    const favoritesData = await AsyncStorage.getItem(FAVORITES_KEY);
+    const favoritesKey = getFavoritesKey(userId);
+    const favoritesData = await AsyncStorage.getItem(favoritesKey);
     const favorites = favoritesData ? JSON.parse(favoritesData) : {};
 
     const favoritesList = Object.entries(favorites)
@@ -219,9 +238,12 @@ export const getFavorites = async (limit = 10) => {
 };
 
 // Get recent foods
-export const getRecentFoods = async (limit = 10) => {
+export const getRecentFoods = async (userId, limit = 10) => {
   try {
-    const consumptionData = await AsyncStorage.getItem(CONSUMPTION_KEY);
+    if (!userId) return [];
+
+    const consumptionKey = getConsumptionKey(userId);
+    const consumptionData = await AsyncStorage.getItem(consumptionKey);
     const consumption = consumptionData ? JSON.parse(consumptionData) : [];
     const foods = await getFoods();
 
@@ -247,13 +269,16 @@ export const getRecentFoods = async (limit = 10) => {
 };
 
 // Remove from daily consumption
-export const removeFromDaily = async (consumptionId) => {
+export const removeFromDaily = async (consumptionId, userId) => {
   try {
-    const consumptionData = await AsyncStorage.getItem(CONSUMPTION_KEY);
+    if (!userId) return 0;
+
+    const consumptionKey = getConsumptionKey(userId);
+    const consumptionData = await AsyncStorage.getItem(consumptionKey);
     const consumption = consumptionData ? JSON.parse(consumptionData) : [];
 
     const updated = consumption.filter(item => item.id !== consumptionId);
-    await AsyncStorage.setItem(CONSUMPTION_KEY, JSON.stringify(updated));
+    await AsyncStorage.setItem(consumptionKey, JSON.stringify(updated));
 
     return 1; // Return rows affected
   } catch (error) {
@@ -262,9 +287,12 @@ export const removeFromDaily = async (consumptionId) => {
 };
 
 // Get weekly summary
-export const getWeeklySummary = async () => {
+export const getWeeklySummary = async (userId) => {
   try {
-    const consumptionData = await AsyncStorage.getItem(CONSUMPTION_KEY);
+    if (!userId) return [];
+
+    const consumptionKey = getConsumptionKey(userId);
+    const consumptionData = await AsyncStorage.getItem(consumptionKey);
     const consumption = consumptionData ? JSON.parse(consumptionData) : [];
 
     const endDate = new Date();

@@ -58,7 +58,7 @@ export default function PlanWorkoutScreen({ navigation, route }) {
 
   const savePlannedWorkout = async (workoutData) => {
     try {
-      const userId = user?.email || 'guest';
+      const userId = user?.uid || 'guest';
       const dateKey = new Date(selectedDate).toISOString().split('T')[0];
 
       const plannedWorkoutData = {

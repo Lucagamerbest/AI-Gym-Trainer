@@ -9,6 +9,7 @@ import BackendService from '../services/backend/BackendService';
 import WorkoutSyncService from '../services/backend/WorkoutSyncService';
 import { WorkoutStorageService } from '../services/workoutStorage';
 import { useAuth } from '../context/AuthContext';
+import { initializeGemini, AIService } from '../config/gemini';
 
 export default function DebugScreen({ navigation }) {
   const { user } = useAuth();
@@ -23,6 +24,11 @@ export default function DebugScreen({ navigation }) {
   const [syncStatus, setSyncStatus] = useState('');
   const [syncLoading, setSyncLoading] = useState(false);
   const [workoutCount, setWorkoutCount] = useState({ local: 0, cloud: 0 });
+
+  // AI testing state
+  const [aiStatus, setAiStatus] = useState('not-tested');
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiResponse, setAiResponse] = useState('');
 
   useEffect(() => {
     loadStoredData();
@@ -181,6 +187,36 @@ export default function DebugScreen({ navigation }) {
     }
   };
 
+  const testAIConnection = async () => {
+    setAiLoading(true);
+    setAiStatus('testing');
+    setAiResponse('');
+
+    try {
+      // Initialize Gemini if not already done
+      if (!AIService.isInitialized()) {
+        initializeGemini();
+      }
+
+      // Test the AI service
+      const result = await AIService.testConnection();
+
+      setAiStatus('success');
+      setAiResponse(result.response);
+
+      Alert.alert(
+        '✅ AI Connected!',
+        `Gemini is working! Response:\n\n"${result.response}"\n\nModel: ${result.model}`
+      );
+    } catch (error) {
+      setAiStatus('failed');
+      setAiResponse(`Error: ${error.message}`);
+      Alert.alert('❌ AI Test Failed', error.message);
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   return (
     <ScreenLayout
       title="Debug: User Storage"
@@ -224,6 +260,53 @@ export default function DebugScreen({ navigation }) {
                  backendStatus === 'failed' ? '❌ Connection Failed' :
                  '⏳ Testing...'}
               </Text>
+            )}
+          </View>
+        )}
+      </StyledCard>
+
+      <StyledCard variant="elevated" style={styles.infoCard}>
+        <Text style={styles.infoTitle}>🤖 Google Gemini AI (Phase 9)</Text>
+        <Text style={styles.infoText}>• Test connection to Google Gemini AI</Text>
+        <Text style={styles.infoText}>• Free tier: 1,500 requests/day</Text>
+        <Text style={styles.infoText}>• Model: gemini-1.5-flash</Text>
+
+        <StyledButton
+          title={aiLoading ? "Testing..." : "Test AI Connection"}
+          icon={aiLoading ? "" : "🤖"}
+          size="md"
+          variant="primary"
+          fullWidth
+          onPress={testAIConnection}
+          disabled={aiLoading}
+          style={styles.testButton}
+        />
+
+        {aiStatus !== 'not-tested' && (
+          <View style={[
+            styles.statusBox,
+            aiStatus === 'success' ? styles.successBox :
+            aiStatus === 'failed' ? styles.errorBox :
+            styles.testingBox
+          ]}>
+            {aiLoading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator color={Colors.primary} />
+                <Text style={styles.statusText}>Asking Gemini...</Text>
+              </View>
+            ) : (
+              <>
+                <Text style={styles.statusText}>
+                  {aiStatus === 'success' ? '✅ AI Connected!' :
+                   aiStatus === 'failed' ? '❌ Connection Failed' :
+                   '⏳ Testing...'}
+                </Text>
+                {aiResponse && (
+                  <Text style={styles.aiResponseText}>
+                    {aiResponse}
+                  </Text>
+                )}
+              </>
             )}
           </View>
         )}
@@ -524,5 +607,14 @@ const styles = StyleSheet.create({
   },
   refreshButton: {
     marginTop: Spacing.xs,
+  },
+  aiResponseText: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+    marginTop: Spacing.md,
+    padding: Spacing.sm,
+    backgroundColor: Colors.background,
+    borderRadius: 8,
+    lineHeight: 20,
   },
 });

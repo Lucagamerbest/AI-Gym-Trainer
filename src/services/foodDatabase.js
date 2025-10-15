@@ -48,6 +48,7 @@ export const initDatabase = () => {
       tx.executeSql(
         `CREATE TABLE IF NOT EXISTS daily_consumption (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id TEXT NOT NULL,
           food_id INTEGER NOT NULL,
           date DATE NOT NULL,
           meal_type TEXT DEFAULT 'snack',
@@ -68,9 +69,11 @@ export const initDatabase = () => {
       tx.executeSql(
         `CREATE TABLE IF NOT EXISTS user_favorites (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
-          food_id INTEGER NOT NULL UNIQUE,
+          user_id TEXT NOT NULL,
+          food_id INTEGER NOT NULL,
           last_used DATETIME DEFAULT CURRENT_TIMESTAMP,
           use_count INTEGER DEFAULT 1,
+          UNIQUE(user_id, food_id),
           FOREIGN KEY (food_id) REFERENCES foods (id)
         );`,
         [],
@@ -223,8 +226,9 @@ export const getFoodByBarcode = (barcode) => {
 };
 
 // Add food to daily consumption
-export const addToDaily = (foodId, quantity, mealType = 'snack') => {
+export const addToDaily = (foodId, quantity, userId, mealType = 'snack') => {
   if (!db) return Promise.reject(new Error('Database not available'));
+  if (!userId) return Promise.reject(new Error('User ID is required'));
 
   return new Promise((resolve, reject) => {
     const today = new Date().toISOString().split('T')[0];
@@ -252,16 +256,16 @@ export const addToDaily = (foodId, quantity, mealType = 'snack') => {
           // Insert into daily consumption
           tx.executeSql(
             `INSERT INTO daily_consumption
-              (food_id, date, meal_type, quantity_grams, calories_consumed,
+              (user_id, food_id, date, meal_type, quantity_grams, calories_consumed,
                protein_consumed, carbs_consumed, fat_consumed)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
-              foodId, today, mealType, quantity, caloriesConsumed,
+              userId, foodId, today, mealType, quantity, caloriesConsumed,
               proteinConsumed, carbsConsumed, fatConsumed
             ],
             (_, result) => {
               // Update favorites
-              updateFavorites(tx, foodId);
+              updateFavorites(tx, foodId, userId);
               resolve(result.insertId);
             },
             (_, error) => reject(error)
@@ -274,25 +278,26 @@ export const addToDaily = (foodId, quantity, mealType = 'snack') => {
 };
 
 // Update user favorites
-const updateFavorites = (tx, foodId) => {
+const updateFavorites = (tx, foodId, userId) => {
   tx.executeSql(
-    `INSERT INTO user_favorites (food_id, use_count)
-     VALUES (?, 1)
-     ON CONFLICT(food_id)
+    `INSERT INTO user_favorites (user_id, food_id, use_count)
+     VALUES (?, ?, 1)
+     ON CONFLICT(user_id, food_id)
      DO UPDATE SET
        use_count = use_count + 1,
        last_used = CURRENT_TIMESTAMP`,
-    [foodId],
+    [userId, foodId],
     () => {},
     (_, error) => {}
   );
 };
 
 // Get daily consumption summary
-export const getDailySummary = (date = null) => {
+export const getDailySummary = (userId, date = null) => {
   const targetDate = date || new Date().toISOString().split('T')[0];
 
   if (!db) return Promise.resolve({ date: targetDate, items: [], totals: { calories: 0, protein: 0, carbs: 0, fat: 0 } });
+  if (!userId) return Promise.resolve({ date: targetDate, items: [], totals: { calories: 0, protein: 0, carbs: 0, fat: 0 } });
 
   return new Promise((resolve, reject) => {
     db.transaction(tx => {
@@ -304,9 +309,9 @@ export const getDailySummary = (date = null) => {
            f.image_url
          FROM daily_consumption dc
          JOIN foods f ON dc.food_id = f.id
-         WHERE dc.date = ?
+         WHERE dc.user_id = ? AND dc.date = ?
          ORDER BY dc.created_at DESC`,
-        [targetDate],
+        [userId, targetDate],
         (_, { rows }) => {
           // Calculate totals
           let totalCalories = 0;
@@ -340,8 +345,9 @@ export const getDailySummary = (date = null) => {
 };
 
 // Get favorite foods
-export const getFavorites = (limit = 10) => {
+export const getFavorites = (userId, limit = 10) => {
   if (!db) return Promise.resolve([]);
+  if (!userId) return Promise.resolve([]);
 
   return new Promise((resolve, reject) => {
     db.transaction(tx => {
@@ -352,9 +358,10 @@ export const getFavorites = (limit = 10) => {
            uf.last_used
          FROM user_favorites uf
          JOIN foods f ON uf.food_id = f.id
+         WHERE uf.user_id = ?
          ORDER BY uf.use_count DESC, uf.last_used DESC
          LIMIT ?`,
-        [limit],
+        [userId, limit],
         (_, { rows }) => resolve(rows._array),
         (_, error) => reject(error)
       );
@@ -363,8 +370,9 @@ export const getFavorites = (limit = 10) => {
 };
 
 // Get recent foods
-export const getRecentFoods = (limit = 10) => {
+export const getRecentFoods = (userId, limit = 10) => {
   if (!db) return Promise.resolve([]);
+  if (!userId) return Promise.resolve([]);
 
   return new Promise((resolve, reject) => {
     db.transaction(tx => {
@@ -373,9 +381,10 @@ export const getRecentFoods = (limit = 10) => {
            f.*
          FROM daily_consumption dc
          JOIN foods f ON dc.food_id = f.id
+         WHERE dc.user_id = ?
          ORDER BY dc.created_at DESC
          LIMIT ?`,
-        [limit],
+        [userId, limit],
         (_, { rows }) => resolve(rows._array),
         (_, error) => reject(error)
       );
@@ -384,14 +393,15 @@ export const getRecentFoods = (limit = 10) => {
 };
 
 // Delete food from daily consumption
-export const removeFromDaily = (consumptionId) => {
+export const removeFromDaily = (consumptionId, userId) => {
   if (!db) return Promise.resolve(0);
+  if (!userId) return Promise.resolve(0);
 
   return new Promise((resolve, reject) => {
     db.transaction(tx => {
       tx.executeSql(
-        'DELETE FROM daily_consumption WHERE id = ?',
-        [consumptionId],
+        'DELETE FROM daily_consumption WHERE id = ? AND user_id = ?',
+        [consumptionId, userId],
         (_, result) => resolve(result.rowsAffected),
         (_, error) => reject(error)
       );
@@ -400,8 +410,9 @@ export const removeFromDaily = (consumptionId) => {
 };
 
 // Get weekly summary
-export const getWeeklySummary = () => {
+export const getWeeklySummary = (userId) => {
   if (!db) return Promise.resolve([]);
+  if (!userId) return Promise.resolve([]);
 
   return new Promise((resolve, reject) => {
     const endDate = new Date();
@@ -417,10 +428,11 @@ export const getWeeklySummary = () => {
            SUM(carbs_consumed) as total_carbs,
            SUM(fat_consumed) as total_fat
          FROM daily_consumption
-         WHERE date BETWEEN ? AND ?
+         WHERE user_id = ? AND date BETWEEN ? AND ?
          GROUP BY date
          ORDER BY date`,
         [
+          userId,
           startDate.toISOString().split('T')[0],
           endDate.toISOString().split('T')[0]
         ],

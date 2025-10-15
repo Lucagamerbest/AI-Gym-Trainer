@@ -20,18 +20,30 @@ import StyledCard from '../components/StyledCard';
 import StyledButton from '../components/StyledButton';
 import NutritionAchievementDetailModal from '../components/NutritionAchievementDetailModal';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
+import { useAuth } from '../context/AuthContext';
 import {
   getDailySummary,
   removeFromDaily,
   getWeeklySummary,
   initDatabase,
 } from '../services/foodDatabaseService';
+import { getNutritionGoals, updateNutritionGoals } from '../services/userProfileService';
+import { useAITracking } from '../components/AIScreenTracker';
 
 const MEAL_PLANS_KEY = '@meal_plans';
 
 export default function NutritionDashboard({ navigation }) {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'charts', 'goals', 'insights'
   const [dailySummary, setDailySummary] = useState(null);
+
+  // Track this screen for AI context
+  useAITracking('NutritionDashboard', {
+    caloriesConsumed: dailySummary?.calories || 0,
+    calorieGoal,
+    proteConsumed: dailySummary?.protein || 0,
+    mealsToday: dailySummary?.meals?.length || 0,
+  });
   const [weeklySummary, setWeeklySummary] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -88,9 +100,21 @@ export default function NutritionDashboard({ navigation }) {
     insights: [],
   });
 
+  // Load user's nutrition goals
+  const loadNutritionGoals = async () => {
+    try {
+      const userId = user?.uid || 'guest';
+      const goals = await getNutritionGoals(userId);
+      setCalorieGoal(goals.calories);
+    } catch (error) {
+      console.error('Error loading nutrition goals:', error);
+    }
+  };
+
   // Initialize database and load data when screen focuses
   useFocusEffect(
     useCallback(() => {
+      loadNutritionGoals();
       initDatabase().then(() => {
         loadDailySummary();
         loadWeeklySummary();
@@ -98,7 +122,7 @@ export default function NutritionDashboard({ navigation }) {
           loadMultiDayData(timeRange);
         }
       });
-    }, [selectedDate, activeTab, timeRange])
+    }, [selectedDate, activeTab, timeRange, user])
   );
 
   // Load chart data when Charts tab is activated or time range changes
@@ -938,7 +962,8 @@ export default function NutritionDashboard({ navigation }) {
           style: 'destructive',
           onPress: async () => {
             try {
-              await removeFromDaily(itemId);
+              const userId = user?.uid || 'guest';
+              await removeFromDaily(itemId, userId);
               loadDailySummary();
             } catch (error) {
               Alert.alert('Error', 'Failed to remove food');

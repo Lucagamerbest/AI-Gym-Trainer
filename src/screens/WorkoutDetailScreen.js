@@ -17,6 +17,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useWorkout } from '../context/WorkoutContext';
 import { WorkoutStorageService } from '../services/workoutStorage';
 import { useAuth } from '../context/AuthContext';
+import { useAITracking } from '../components/AIScreenTracker';
 
 const STANDALONE_WORKOUTS_KEY = '@standalone_workouts';
 
@@ -27,6 +28,13 @@ export default function WorkoutDetailScreen({ navigation, route }) {
   const [viewDetails, setViewDetails] = useState(false);
   const [showCalendarModal, setShowCalendarModal] = useState(false);
   const [selectedFutureDates, setSelectedFutureDates] = useState([]);
+
+  // Track this screen for AI context
+  useAITracking('WorkoutDetailScreen', {
+    workoutName: workout.name,
+    exerciseCount: workout.day?.exercises?.length || 0,
+    totalSets: getTotalSets(workout.day?.exercises || []),
+  });
 
   const handleStartWorkout = () => {
     const day = workout.day;
@@ -189,7 +197,7 @@ export default function WorkoutDetailScreen({ navigation, route }) {
 
   const handleAddToCalendar = async () => {
     try {
-      const userId = user?.email || 'guest';
+      const userId = user?.uid || 'guest';
       const targetDateKeys = selectedFutureDates.map(date => date.toISOString().split('T')[0]);
 
       // Create workout data to add

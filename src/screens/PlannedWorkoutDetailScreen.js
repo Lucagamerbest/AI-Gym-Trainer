@@ -38,7 +38,7 @@ export default function PlannedWorkoutDetailScreen({ navigation, route }) {
           style: 'destructive',
           onPress: async () => {
             try {
-              const userId = user?.email || 'guest';
+              const userId = user?.uid || 'guest';
               await WorkoutStorageService.deletePlannedWorkout(selectedDate, userId);
 
               Alert.alert(
@@ -87,7 +87,7 @@ export default function PlannedWorkoutDetailScreen({ navigation, route }) {
           text: 'Shift Forward',
           onPress: async () => {
             try {
-              const userId = user?.email || 'guest';
+              const userId = user?.uid || 'guest';
               const result = await WorkoutStorageService.shiftProgramScheduleForward(
                 plannedWorkout.programId,
                 selectedDate,

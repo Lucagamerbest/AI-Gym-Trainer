@@ -30,7 +30,7 @@ export default function ExerciseDetailScreen({ navigation, route }) {
 
     try {
       setLoading(true);
-      const userId = user?.email || 'guest';
+      const userId = user?.uid || 'guest';
       const progress = await WorkoutStorageService.getExerciseProgressByName(exercise.name, userId);
       setProgressData(progress);
     } catch (error) {

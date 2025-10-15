@@ -11,6 +11,7 @@ import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { WorkoutStorageService } from '../services/workoutStorage';
 import { useAuth } from '../context/AuthContext';
 import { getExercisesByMuscleGroup } from '../data/exerciseDatabase';
+import { useAITracking } from '../components/AIScreenTracker';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -18,6 +19,13 @@ export default function ProgressScreen({ navigation }) {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'charts', 'goals', 'achievements'
   const [userStats, setUserStats] = useState(null);
+
+  // Track this screen for AI context
+  useAITracking('ProgressScreen', {
+    totalWorkouts: userStats?.totalWorkouts || 0,
+    totalVolume: userStats?.totalVolume || 0,
+    activeGoals: goals?.length || 0,
+  });
   const [exerciseProgress, setExerciseProgress] = useState({});
   const [selectedExercise, setSelectedExercise] = useState(null);
   const [chartData, setChartData] = useState(null);
@@ -139,7 +147,7 @@ export default function ProgressScreen({ navigation }) {
   const loadProgressData = async () => {
     try {
       setLoading(true);
-      const userId = user?.email || 'guest';
+      const userId = user?.uid || 'guest';
 
       // Run migration to add workoutIds to existing exercise progress records
       await WorkoutStorageService.migrateExerciseProgressWithWorkoutIds(userId);
@@ -210,14 +218,14 @@ export default function ProgressScreen({ navigation }) {
   };
 
   const updateGoalsProgress = async () => {
-    const userId = user?.email || 'guest';
+    const userId = user?.uid || 'guest';
     await WorkoutStorageService.updateAllGoalProgress(userId);
     const updatedGoals = await WorkoutStorageService.getGoals(userId);
     setGoals(updatedGoals);
   };
 
   const checkAchievements = async () => {
-    const userId = user?.email || 'guest';
+    const userId = user?.uid || 'guest';
     const result = await WorkoutStorageService.checkAndUnlockAchievements(userId);
 
     // Show celebration for newly unlocked achievements
@@ -249,7 +257,7 @@ export default function ProgressScreen({ navigation }) {
   };
 
   const getAchievementBreakdown = async (achievement) => {
-    const userId = user?.email || 'guest';
+    const userId = user?.uid || 'guest';
     const history = await WorkoutStorageService.getWorkoutHistory(userId);
     const stats = await WorkoutStorageService.getUserStats(userId);
 
@@ -756,7 +764,7 @@ export default function ProgressScreen({ navigation }) {
           style: 'destructive',
           onPress: async () => {
             try {
-              const userId = user?.email || 'guest';
+              const userId = user?.uid || 'guest';
 
               // Clear all data
               await WorkoutStorageService.clearAllData(userId);
@@ -1546,7 +1554,7 @@ export default function ProgressScreen({ navigation }) {
   };
 
   const handleCreateGoal = async () => {
-    const userId = user?.email || 'guest';
+    const userId = user?.uid || 'guest';
 
     if (!newGoal.title || !newGoal.targetValue) {
       Alert.alert('Missing Information', 'Please fill in all required fields');
@@ -1682,7 +1690,7 @@ export default function ProgressScreen({ navigation }) {
   };
 
   const handleDeleteGoal = async (goalId) => {
-    const userId = user?.email || 'guest';
+    const userId = user?.uid || 'guest';
     Alert.alert(
       'Delete Goal',
       'Are you sure you want to delete this goal?',
