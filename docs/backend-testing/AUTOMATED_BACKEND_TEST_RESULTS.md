@@ -38,7 +38,7 @@ All backend implementation phases (1-8) have been verified through automated cod
 ```
 
 **Configuration Status:**
-- API Key: ✅ Configured (AIzaSyB5F0POrCO5GRgpXCDURgOBljF3NVnz2Ck)
+- API Key: ✅ Configured (from .env.local - not exposed)
 - Project ID: ✅ ai-gym-trainer-e35e6
 - Auth Domain: ✅ ai-gym-trainer-e35e6.firebaseapp.com
 - Storage Bucket: ✅ Configured
