@@ -155,59 +155,20 @@ class ContextManager {
         meals = await MealSyncService.getMealsByDate(userId, today);
         console.log(`🔥 Retrieved ${meals.length} meals from Firebase for today`);
       } catch (error) {
-        console.log('⚠️ Could not fetch meals from Firebase, will try AsyncStorage');
+        console.log('⚠️ Could not fetch meals from Firebase');
       }
 
-      // If Firebase has no meals, fallback to AsyncStorage (for backward compatibility)
-      if (meals.length === 0) {
-        console.log('📦 Fallback: Trying AsyncStorage for meal data...');
-        try {
-          // NutritionScreen uses @daily_nutrition key
-          const savedNutrition = await AsyncStorage.getItem('@daily_nutrition');
-          console.log('📦 Raw AsyncStorage data:', savedNutrition ? 'found' : 'not found');
-
-          if (savedNutrition) {
-            const nutritionData = JSON.parse(savedNutrition);
-            console.log('📦 Parsed nutrition data:', nutritionData);
-
-            // The structure is { consumed: number, consumedMacros: {...}, meals: {...} }
-            if (nutritionData.consumed !== undefined) {
-              totalCalories = nutritionData.consumed || 0;
-              totalProtein = nutritionData.consumedMacros?.proteinGrams || 0;
-              totalCarbs = nutritionData.consumedMacros?.carbsGrams || 0;
-              totalFat = nutritionData.consumedMacros?.fatGrams || 0;
-
-              // Convert meals object to array
-              const mealsObj = nutritionData.meals || {};
-              const allMeals = [
-                ...(mealsObj.breakfast || []),
-                ...(mealsObj.lunch || []),
-                ...(mealsObj.dinner || []),
-                ...(mealsObj.snacks || [])
-              ];
-              meals = allMeals;
-
-              console.log(`✅ Retrieved from AsyncStorage: ${totalCalories} cal, ${totalProtein}g protein, ${meals.length} meals`);
-            }
-          } else {
-            console.log('⚠️ No data found in @daily_nutrition key');
-          }
-        } catch (asyncError) {
-          console.log('⚠️ AsyncStorage fallback failed:', asyncError);
-        }
-      } else {
-        // Calculate totals from Firebase meals
-        meals.forEach(meal => {
-          totalCalories += meal.calories_consumed || meal.calories || 0;
-          totalProtein += meal.protein_consumed || meal.protein || 0;
-          totalCarbs += meal.carbs_consumed || meal.carbs || 0;
-          totalFat += meal.fat_consumed || meal.fat || 0;
-        });
-      }
+      // Calculate totals from Firebase meals (no AsyncStorage fallback)
+      meals.forEach(meal => {
+        totalCalories += meal.calories_consumed || meal.calories || 0;
+        totalProtein += meal.protein_consumed || meal.protein || 0;
+        totalCarbs += meal.carbs_consumed || meal.carbs || 0;
+        totalFat += meal.fat_consumed || meal.fat || 0;
+      });
 
       console.log(`🍽️ Parsed: ${totalCalories} cal, ${totalProtein}g protein, ${meals.length} meals`);
 
-      // Get nutrition goals from Firebase user profile
+      // Get nutrition goals from Firebase user profile (no AsyncStorage fallback)
       let goals = { calories: 2000, protein: 150, carbs: 200, fat: 65 };
       try {
         const userProfile = await BackendService.getUserProfile(userId);
@@ -222,30 +183,7 @@ class ContextManager {
       } catch (error) {
         console.log('⚠️ Could not fetch goals from Firebase, using defaults');
       }
-
-      // If we used AsyncStorage for meals, also check AsyncStorage for goals (to ensure consistency)
-      if (meals.length > 0 && totalCalories > 0) {
-        try {
-          const savedGoals = await AsyncStorage.getItem('@macro_goals');
-          if (savedGoals) {
-            const localGoals = JSON.parse(savedGoals);
-            console.log('📦 Found local goals in AsyncStorage:', localGoals);
-            // Override Firebase goals with local goals if they exist
-            if (localGoals.calories || localGoals.targetCalories) {
-              goals = {
-                calories: localGoals.calories || localGoals.targetCalories || 2000,
-                protein: localGoals.proteinGrams || 150,
-                carbs: localGoals.carbsGrams || 200,
-                fat: localGoals.fatGrams || 65,
-              };
-              console.log('✅ Using local AsyncStorage goals:', goals);
-            }
-          }
-        } catch (error) {
-          console.log('⚠️ Could not read local goals from AsyncStorage');
-        }
-      }
-      console.log('🎯 Final nutrition goals:', goals);
+      console.log('🎯 Nutrition goals from Firebase:', goals);
 
       // Note: goals structure is { calories, protein, carbs, fat } not { calorieGoal, proteinGoal, ... }
       const calorieGoal = goals?.calories || 2000;
