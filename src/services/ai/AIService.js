@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { detectIntent, executeAction } from './AIActions';
 
 class AIService {
   constructor() {
@@ -36,10 +37,41 @@ class AIService {
         throw new Error('AI Service not initialized. Call initialize() first.');
       }
 
+      // Step 1: Detect if user wants to DO something (intent detection)
+      const intentResult = detectIntent(userMessage, context.screen);
+      console.log(`🎯 Intent detected:`, intentResult);
+
+      // Step 2: Execute action if detected
+      let actionResult = null;
+      if (intentResult.intent !== 'ANSWER_QUESTION') {
+        actionResult = await executeAction(intentResult.intent, intentResult.parameters, context);
+        console.log(`✅ Action executed:`, actionResult);
+
+        // If action was successful, return the action message directly
+        if (actionResult && actionResult.success) {
+          return {
+            response: actionResult.message,
+            model: this.modelName,
+            action: actionResult.action,
+            actionData: actionResult.data,
+            estimatedTokens: 50, // Actions don't use AI tokens
+          };
+        }
+      }
+
+      // Step 3: If no action or action failed, use AI to answer
       const systemPrompt = this.buildSystemPrompt(context);
 
+      // Add response length instruction based on screen
+      let lengthInstruction = '';
+      if (context.screen === 'WorkoutScreen' || context.screen === 'StartWorkoutScreen') {
+        lengthInstruction = '\n\nIMPORTANT: User is in the gym working out. Keep response to 1-2 sentences MAX. Be ultra concise.';
+      } else if (context.screen === 'HomeScreen' || context.screen === 'Home') {
+        lengthInstruction = '\n\nKeep response to 2-4 sentences. Be helpful but concise.';
+      }
+
       // Combine system prompt and user message
-      const fullPrompt = `${systemPrompt}\n\nUser: ${userMessage}`;
+      const fullPrompt = `${systemPrompt}${lengthInstruction}\n\nUser: ${userMessage}`;
 
       // Log context size for optimization tracking
       const promptSize = fullPrompt.length;
