@@ -143,47 +143,49 @@ class ContextManager {
     try {
       console.log('🍽️ getNutritionContext received userId:', userId);
 
-      // Get today's meals from Firebase
-      const today = new Date().toISOString().split('T')[0];
+      // Read from AsyncStorage (same as UI for consistency)
+      const savedNutrition = await AsyncStorage.getItem('@daily_nutrition');
       let meals = [];
       let totalCalories = 0;
       let totalProtein = 0;
       let totalCarbs = 0;
       let totalFat = 0;
 
-      try {
-        meals = await MealSyncService.getMealsByDate(userId, today);
-        console.log(`🔥 Retrieved ${meals.length} meals from Firebase for today`);
-      } catch (error) {
-        console.log('⚠️ Could not fetch meals from Firebase');
+      if (savedNutrition) {
+        const nutritionData = JSON.parse(savedNutrition);
+
+        // Get totals
+        totalCalories = nutritionData.consumed || 0;
+        totalProtein = nutritionData.consumedMacros?.proteinGrams || 0;
+        totalCarbs = nutritionData.consumedMacros?.carbsGrams || 0;
+        totalFat = nutritionData.consumedMacros?.fatGrams || 0;
+
+        // Convert meals object to array
+        const mealsObj = nutritionData.meals || {};
+        const allMeals = [
+          ...(mealsObj.breakfast || []),
+          ...(mealsObj.lunch || []),
+          ...(mealsObj.dinner || []),
+          ...(mealsObj.snacks || [])
+        ];
+        meals = allMeals;
       }
 
-      // Calculate totals from Firebase meals (no AsyncStorage fallback)
-      meals.forEach(meal => {
-        totalCalories += meal.calories_consumed || meal.calories || 0;
-        totalProtein += meal.protein_consumed || meal.protein || 0;
-        totalCarbs += meal.carbs_consumed || meal.carbs || 0;
-        totalFat += meal.fat_consumed || meal.fat || 0;
-      });
+      console.log(`🍽️ Nutrition: ${totalCalories} cal, ${totalProtein}g protein, ${meals.length} meals`);
 
-      console.log(`🍽️ Parsed: ${totalCalories} cal, ${totalProtein}g protein, ${meals.length} meals`);
-
-      // Get nutrition goals from Firebase user profile (no AsyncStorage fallback)
+      // Get goals from AsyncStorage (same as UI)
       let goals = { calories: 2000, protein: 150, carbs: 200, fat: 65 };
-      try {
-        const userProfile = await BackendService.getUserProfile(userId);
-        if (userProfile && userProfile.goals) {
-          goals = {
-            calories: userProfile.goals.targetCalories || userProfile.goals.calories || 2000,
-            protein: userProfile.goals.proteinGrams || userProfile.goals.protein || 150,
-            carbs: userProfile.goals.carbsGrams || userProfile.goals.carbs || 200,
-            fat: userProfile.goals.fatGrams || userProfile.goals.fat || 65,
-          };
-        }
-      } catch (error) {
-        console.log('⚠️ Could not fetch goals from Firebase, using defaults');
+      const savedGoals = await AsyncStorage.getItem('@macro_goals');
+      if (savedGoals) {
+        const localGoals = JSON.parse(savedGoals);
+        goals = {
+          calories: localGoals.calories || 2000,
+          protein: localGoals.proteinGrams || 150,
+          carbs: localGoals.carbsGrams || 200,
+          fat: localGoals.fatGrams || 65,
+        };
       }
-      console.log('🎯 Nutrition goals from Firebase:', goals);
+      console.log('🎯 Goals:', goals);
 
       // Note: goals structure is { calories, protein, carbs, fat } not { calorieGoal, proteinGoal, ... }
       const calorieGoal = goals?.calories || 2000;
@@ -194,12 +196,11 @@ class ContextManager {
       const nutritionContext = {
         todaysMeals: meals.length,
         meals: meals.map(meal => ({
-          name: meal.food_name || 'Unknown',
-          calories: Math.round(meal.calories_consumed || meal.calories || 0),
-          protein: Math.round(meal.protein_consumed || meal.protein || 0),
-          carbs: Math.round(meal.carbs_consumed || meal.carbs || 0),
-          fat: Math.round(meal.fat_consumed || meal.fat || 0),
-          mealType: meal.meal_type || 'snack',
+          name: meal.name || 'Unknown',
+          calories: Math.round(meal.calories || 0),
+          protein: Math.round(meal.protein || 0),
+          carbs: Math.round(meal.carbs || 0),
+          fat: Math.round(meal.fat || 0),
         })),
         calories: {
           consumed: Math.round(totalCalories),
