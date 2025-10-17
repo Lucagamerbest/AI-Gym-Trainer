@@ -225,6 +225,70 @@ class MealSyncService {
       throw error;
     }
   }
+
+  // Migrate AsyncStorage meals to Firebase (one-time migration)
+  async migrateAsyncStorageMeals(userId) {
+    try {
+      if (!userId || userId === 'guest') {
+        console.log('Skipping migration for guest user');
+        return { migrated: 0, failed: 0 };
+      }
+
+      const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
+
+      console.log('🔄 Starting AsyncStorage to Firebase migration...');
+
+      // Get today's meals from AsyncStorage
+      const savedNutrition = await AsyncStorage.getItem('@daily_nutrition');
+      if (!savedNutrition) {
+        console.log('✅ No meals to migrate from AsyncStorage');
+        return { migrated: 0, failed: 0 };
+      }
+
+      const nutritionData = JSON.parse(savedNutrition);
+      const mealsObj = nutritionData.meals || {};
+      const today = new Date().toISOString().split('T')[0];
+
+      // Convert meals object to consumption entries
+      const mealTypes = ['breakfast', 'lunch', 'dinner', 'snacks'];
+      let migrated = 0;
+      let failed = 0;
+
+      for (const mealType of mealTypes) {
+        const mealItems = mealsObj[mealType] || [];
+
+        for (const foodItem of mealItems) {
+          try {
+            const consumptionEntry = {
+              date: today,
+              meal_type: mealType,
+              food_name: foodItem.name || 'Unknown food',
+              food_brand: foodItem.brand || '',
+              quantity_grams: foodItem.quantity || 100,
+              calories_consumed: foodItem.calories || 0,
+              protein_consumed: foodItem.protein || 0,
+              carbs_consumed: foodItem.carbs || 0,
+              fat_consumed: foodItem.fat || 0,
+              created_at: new Date().toISOString(),
+            };
+
+            await this.uploadDailyConsumption(userId, consumptionEntry);
+            migrated++;
+            console.log(`✅ Migrated: ${foodItem.name} (${foodItem.calories} cal)`);
+          } catch (error) {
+            console.error(`❌ Failed to migrate: ${foodItem.name}`, error);
+            failed++;
+          }
+        }
+      }
+
+      console.log(`🎉 Migration complete: ${migrated} meals migrated, ${failed} failed`);
+      return { migrated, failed };
+    } catch (error) {
+      console.error('Error during migration:', error);
+      throw error;
+    }
+  }
 }
 
 export default new MealSyncService();

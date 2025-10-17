@@ -61,6 +61,25 @@ export default function NutritionScreen({ navigation, route }) {
       await loadMacroGoals();
       await checkAndResetDaily();
       await loadDailyNutrition();
+
+      // One-time migration: Sync existing AsyncStorage meals to Firebase
+      if (user?.uid && user.uid !== 'guest') {
+        try {
+          const migrationKey = `@meals_migrated_${user.uid}`;
+          const alreadyMigrated = await AsyncStorage.getItem(migrationKey);
+
+          if (!alreadyMigrated) {
+            console.log('🔄 Starting one-time meal migration to Firebase...');
+            const result = await MealSyncService.migrateAsyncStorageMeals(user.uid);
+            console.log(`🎉 Migration result: ${result.migrated} migrated, ${result.failed} failed`);
+
+            // Mark migration as complete
+            await AsyncStorage.setItem(migrationKey, 'true');
+          }
+        } catch (error) {
+          console.log('⚠️ Migration error (will retry next time):', error);
+        }
+      }
     };
     initializeData();
   }, []);
