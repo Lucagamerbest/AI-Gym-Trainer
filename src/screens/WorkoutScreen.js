@@ -1276,6 +1276,7 @@ export default function WorkoutScreen({ navigation, route }) {
           navigation={navigation}
           showBack={true}
           style={styles.screenLayoutStyle}
+          screenName="WorkoutScreen"
         >
           <View style={styles.errorContainer}>
             <Text style={styles.errorText}>❌ No exercise data found</Text>
@@ -1339,6 +1340,7 @@ export default function WorkoutScreen({ navigation, route }) {
         showBack={true}
         scrollable={true}
         hideWorkoutIndicator={true}
+        screenName="WorkoutScreen"
       >
       {/* Rest Timer Card */}
       <View style={styles.restTimerCard}>

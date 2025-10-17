@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Dimensions } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 
 function SuggestionChip({ suggestion, onPress }) {
@@ -7,7 +8,7 @@ function SuggestionChip({ suggestion, onPress }) {
 
   const handlePressIn = () => {
     Animated.spring(scaleAnim, {
-      toValue: 0.95,
+      toValue: 0.97,
       useNativeDriver: true,
     }).start();
   };
@@ -21,22 +22,32 @@ function SuggestionChip({ suggestion, onPress }) {
   };
 
   return (
-    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+    <Animated.View style={[styles.chipWrapper, { transform: [{ scale: scaleAnim }] }]}>
       <TouchableOpacity
-        style={styles.suggestionChip}
         onPress={onPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         activeOpacity={0.9}
+        style={styles.chipTouchable}
       >
-        <Text style={styles.icon}>{suggestion.icon}</Text>
-        <Text style={styles.text}>{suggestion.text}</Text>
+        <LinearGradient
+          colors={[Colors.primary + '15', Colors.primary + '08']}
+          style={styles.suggestionChip}
+        >
+          <View style={styles.iconContainer}>
+            <Text style={styles.icon}>{suggestion.icon}</Text>
+          </View>
+          <Text style={styles.text} numberOfLines={2}>{suggestion.text}</Text>
+        </LinearGradient>
       </TouchableOpacity>
     </Animated.View>
   );
 }
 
 export default function QuickSuggestions({ screen, onSuggestionPress }) {
+  const [currentPage, setCurrentPage] = useState(0);
+  const scrollViewRef = React.useRef(null);
+
   const getSuggestions = () => {
     // Return suggestions based on current screen
     switch (screen) {
@@ -99,62 +110,135 @@ export default function QuickSuggestions({ screen, onSuggestionPress }) {
   };
 
   const suggestions = getSuggestions();
+  const CARDS_PER_PAGE = 4;
+  const totalPages = Math.ceil(suggestions.length / CARDS_PER_PAGE);
+
+  // Group suggestions into pages of 4
+  const pages = [];
+  for (let i = 0; i < suggestions.length; i += CARDS_PER_PAGE) {
+    pages.push(suggestions.slice(i, i + CARDS_PER_PAGE));
+  }
+
+  const handleScroll = (event) => {
+    const contentOffsetX = event.nativeEvent.contentOffset.x;
+    const pageWidth = event.nativeEvent.layoutMeasurement.width;
+    const page = Math.round(contentOffsetX / pageWidth);
+    setCurrentPage(page);
+  };
 
   return (
     <View style={styles.container}>
       <ScrollView
+        ref={scrollViewRef}
         horizontal
+        pagingEnabled
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
         decelerationRate="fast"
-        snapToInterval={150}
       >
-        {suggestions.map((suggestion, index) => (
-          <SuggestionChip
-            key={index}
-            suggestion={suggestion}
-            onPress={() => onSuggestionPress(suggestion.text)}
-          />
+        {pages.map((page, pageIndex) => (
+          <View key={pageIndex} style={styles.page}>
+            <View style={styles.gridContainer}>
+              {page.map((suggestion, index) => (
+                <SuggestionChip
+                  key={pageIndex * CARDS_PER_PAGE + index}
+                  suggestion={suggestion}
+                  onPress={() => onSuggestionPress(suggestion.text)}
+                />
+              ))}
+            </View>
+          </View>
         ))}
       </ScrollView>
+
+      {totalPages > 1 && (
+        <View style={styles.pagination}>
+          {pages.map((_, index) => (
+            <View
+              key={index}
+              style={[
+                styles.paginationDot,
+                currentPage === index && styles.paginationDotActive,
+              ]}
+            />
+          ))}
+        </View>
+      )}
     </View>
   );
 }
 
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: Spacing.sm,
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: Colors.border + '40',
     backgroundColor: Colors.surface,
   },
-  scrollContent: {
-    paddingHorizontal: Spacing.md,
-    gap: Spacing.sm,
+  page: {
+    width: SCREEN_WIDTH,
+    paddingHorizontal: Spacing.lg,
+  },
+  gridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    rowGap: Spacing.md,
+  },
+  chipWrapper: {
+    width: '48%', // 2 columns
+  },
+  chipTouchable: {
+    width: '100%',
   },
   suggestionChip: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    backgroundColor: Colors.background,
-    borderRadius: BorderRadius.full,
-    borderWidth: 1.5,
-    borderColor: Colors.primary,
-    gap: Spacing.sm,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 3,
-    minHeight: 44, // Better tap target
+    justifyContent: 'center',
+    paddingVertical: Spacing.lg,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.xl,
+    borderWidth: 1,
+    borderColor: Colors.primary + '40',
+    minHeight: 85,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  iconContainer: {
+    marginBottom: Spacing.sm,
   },
   icon: {
-    fontSize: 20,
+    fontSize: 28,
   },
   text: {
-    fontSize: Typography.fontSize.md,
+    fontSize: Typography.fontSize.sm,
     color: Colors.text,
     fontWeight: '600',
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  pagination: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: Spacing.md,
+    gap: Spacing.xs,
+  },
+  paginationDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Colors.border,
+  },
+  paginationDotActive: {
+    width: 20,
+    backgroundColor: Colors.primary,
   },
 });

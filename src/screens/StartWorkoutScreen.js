@@ -92,6 +92,7 @@ export default function StartWorkoutScreen({ navigation }) {
       subtitle="Choose your workout program"
       navigation={navigation}
       showBack={true}
+      screenName="StartWorkoutScreen"
     >
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         {/* Workout History Button */}

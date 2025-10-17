@@ -569,6 +569,7 @@ export default function MealsHistoryScreen({ navigation, route }) {
       showBack={true}
       showHome={true}
       scrollable={true}
+      screenName="MealsHistoryScreen"
     >
       <View style={styles.tabContainer}>
         <TouchableOpacity

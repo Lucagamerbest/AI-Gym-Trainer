@@ -4,6 +4,7 @@ import KeyboardScrollView from './KeyboardScrollView';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AnimatedBackground from './AnimatedBackground';
 import ActiveWorkoutIndicator from './ActiveWorkoutIndicator';
+import AIHeaderButton from './AIHeaderButton';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 
 export default function ScreenLayout({
@@ -17,7 +18,8 @@ export default function ScreenLayout({
   centerContent = false,
   style,
   onHomePress,
-  hideWorkoutIndicator = false
+  hideWorkoutIndicator = false,
+  screenName // Screen name for AI context
 }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
@@ -74,6 +76,7 @@ export default function ScreenLayout({
           ]}
         >
           <View style={styles.headerLeft}>
+            {screenName && <AIHeaderButton screenName={screenName} />}
             {showBack && navigation?.canGoBack() && (
               <TouchableOpacity
                 style={styles.navButton}
@@ -159,15 +162,18 @@ const styles = StyleSheet.create({
     minHeight: 56,
   },
   headerLeft: {
-    width: 60,
-    alignItems: 'flex-start',
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'flex-start',
   },
   headerCenter: {
-    flex: 1,
+    flex: 2,
     alignItems: 'center',
   },
   headerRight: {
-    width: 60,
+    flex: 1,
     alignItems: 'flex-end',
   },
   headerTitle: {

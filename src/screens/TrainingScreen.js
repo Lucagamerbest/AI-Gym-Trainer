@@ -20,6 +20,7 @@ export default function TrainingScreen({ navigation }) {
       subtitle="Choose your workout"
       navigation={navigation}
       showBack={true}
+      screenName="TrainingScreen"
     >
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
 

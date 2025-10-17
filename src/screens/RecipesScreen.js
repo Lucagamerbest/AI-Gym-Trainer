@@ -445,6 +445,7 @@ export default function RecipesScreen({ navigation, route }) {
       showBack={true}
       showHome={true}
       scrollable={true}
+      screenName="RecipesScreen"
     >
       <TouchableOpacity
         style={styles.createButton}

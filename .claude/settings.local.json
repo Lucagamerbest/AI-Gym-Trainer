@@ -65,7 +65,8 @@
       "Bash(del \"C:\\Users\\lucar\\AI-Gym-Trainer\\add-test-streak-data.js\")",
       "Bash(del:*)",
       "Bash(eas build:*)",
-      "WebFetch(domain:stackoverflow.com)"
+      "WebFetch(domain:stackoverflow.com)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

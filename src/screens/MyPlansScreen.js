@@ -95,6 +95,7 @@ export default function MyPlansScreen({ navigation }) {
       navigation={navigation}
       showBack={true}
       showHome={true}
+      screenName="MyPlansScreen"
     >
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
 

@@ -267,6 +267,7 @@ export default function CalorieBreakdownScreen({ route, navigation }) {
       navigation={navigation}
       showBack={true}
       scrollable={true}
+      screenName="CalorieBreakdownScreen"
     >
       {/* Total Summary */}
       <StyledCard style={styles.summaryCard}>

@@ -11,6 +11,7 @@ export default function ProgressHubScreen({ navigation }) {
       navigation={navigation}
       showBack={true}
       showHome={true}
+      screenName="ProgressHubScreen"
     >
       <View style={styles.container}>
         <Text style={styles.instructions}>

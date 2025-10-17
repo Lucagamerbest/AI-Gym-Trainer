@@ -664,6 +664,7 @@ export default function NutritionScreen({ navigation, route }) {
       navigation={navigation}
       showBack={!disableBack}  // Disable back when coming from recipe add
       showHome={true}
+      screenName="NutritionScreen"
     >
       <StyledCard style={styles.statsCard}>
         <View style={styles.statsHeader}>

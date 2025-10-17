@@ -845,6 +845,7 @@ export default function WorkoutHistoryScreen({ navigation }) {
       showBack={true}
       showHome={true}
       scrollable={true}
+      screenName="WorkoutHistoryScreen"
     >
       <View style={styles.container}>
         {/* Tab Navigation */}

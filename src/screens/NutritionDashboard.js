@@ -2320,6 +2320,7 @@ export default function NutritionDashboard({ navigation }) {
       subtitle="Track your daily calorie intake"
       navigation={navigation}
       showBack={true}
+      screenName="NutritionDashboard"
     >
       {/* Tab Navigation */}
       <View style={styles.tabContainer}>
