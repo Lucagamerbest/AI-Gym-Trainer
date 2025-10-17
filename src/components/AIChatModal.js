@@ -24,6 +24,7 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(true);
   const flatListRef = useRef(null);
   const hasProcessedInitialMessage = useRef(false);
 
@@ -159,6 +160,10 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
 
     const userMessage = messageToSend.trim();
 
+    // Start timing
+    const startTime = performance.now();
+    console.log(`⏱️ [${new Date().toLocaleTimeString()}] User message sent`);
+
     // Add user message
     addMessage({
       role: 'user',
@@ -171,45 +176,64 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
     try {
       // Get real user ID from AuthContext
       const userId = user?.uid || 'guest';
-      console.log(`🔑 Using user ID for AI context: ${userId}`);
+      console.log(`🔍 AIChatModal userId from AuthContext: ${userId}`);
+      console.log(`🔍 Full user object:`, user);
 
+      const contextStart = performance.now();
       const context = await ContextManager.getFullContext(userId);
+      const contextTime = performance.now() - contextStart;
+      console.log(`⏱️ Context gathered in ${contextTime.toFixed(0)}ms`);
 
       // Add screen-specific context
       let screenContext = {};
       const currentScreen = context.screen;
 
+      const screenContextStart = performance.now();
+      console.log(`🔍 About to call getNutritionContext with userId: ${userId}`);
       if (currentScreen?.includes('Workout')) {
         screenContext = await ContextManager.getWorkoutContext();
       } else if (currentScreen?.includes('Nutrition') || currentScreen?.includes('Food')) {
-        screenContext = await ContextManager.getNutritionContext();
+        screenContext = await ContextManager.getNutritionContext(userId);
       } else if (currentScreen?.includes('Progress')) {
         screenContext = await ContextManager.getProgressContext();
       }
+      const screenContextTime = performance.now() - screenContextStart;
+      console.log(`⏱️ Screen context in ${screenContextTime.toFixed(0)}ms`);
 
-      // Detect if user is asking about a specific exercise
-      const { exerciseName, isPRQuestion } = await detectExerciseName(userMessage);
+      // Only detect exercises if message contains exercise keywords (skip for general questions)
+      const exerciseDetectStart = performance.now();
+      const lowerMessage = userMessage.toLowerCase();
+      const hasExerciseKeywords = lowerMessage.includes('pr') || lowerMessage.includes('bench') ||
+                                   lowerMessage.includes('squat') || lowerMessage.includes('deadlift') ||
+                                   lowerMessage.includes('press') || lowerMessage.includes('weight');
+
       let exerciseContext = {};
 
-      if (exerciseName) {
-        console.log(`🎯 Detected exercise query: ${exerciseName}`);
+      if (hasExerciseKeywords) {
+        const { exerciseName, isPRQuestion } = await detectExerciseName(userMessage);
 
-        // Fetch exercise-specific data using real user ID
-        const [history, pr, progression] = await Promise.all([
-          ContextManager.getExerciseHistory(exerciseName, userId, 5),
-          ContextManager.getExercisePR(exerciseName, userId, 'weight'),
-          ContextManager.getExerciseProgression(exerciseName, userId, 30),
-        ]);
+        if (exerciseName) {
+          console.log(`🎯 Detected exercise query: ${exerciseName}`);
 
-        exerciseContext = {
-          exerciseName,
-          history,
-          pr,
-          progression,
-        };
+          // Fetch exercise-specific data using real user ID
+          const [history, pr, progression] = await Promise.all([
+            ContextManager.getExerciseHistory(exerciseName, userId, 5),
+            ContextManager.getExercisePR(exerciseName, userId, 'weight'),
+            ContextManager.getExerciseProgression(exerciseName, userId, 30),
+          ]);
 
-        console.log('📊 Exercise context:', exerciseContext);
+          exerciseContext = {
+            exerciseName,
+            history,
+            pr,
+            progression,
+          };
+
+          console.log('📊 Exercise context:', exerciseContext);
+        }
       }
+      const exerciseDetectTime = performance.now() - exerciseDetectStart;
+      console.log(`⏱️ Exercise detection in ${exerciseDetectTime.toFixed(0)}ms`);
 
       const fullContext = {
         ...context,
@@ -217,9 +241,16 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
         exerciseSpecific: exerciseContext,
       };
 
+      const aiCallStart = performance.now();
       const result = await AIService.sendMessage(userMessage, fullContext);
+      const aiCallTime = performance.now() - aiCallStart;
+      console.log(`⏱️ AI API call in ${aiCallTime.toFixed(0)}ms`);
 
       // Add AI response
+      const totalTime = performance.now() - startTime;
+      console.log(`⏱️ ✅ TOTAL TIME: ${totalTime.toFixed(0)}ms (${(totalTime/1000).toFixed(2)}s)`);
+      console.log(`⏱️ [${new Date().toLocaleTimeString()}] AI response received`);
+
       addMessage({
         role: 'assistant',
         content: result.response,
@@ -228,6 +259,9 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
       });
     } catch (error) {
       console.error('AI error:', error);
+      const totalTime = performance.now() - startTime;
+      console.log(`⏱️ ❌ FAILED after ${totalTime.toFixed(0)}ms`);
+
       addMessage({
         role: 'assistant',
         content: "Sorry, I'm having trouble responding right now. Please try again.",
@@ -287,6 +321,17 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
     // setTimeout(() => handleSend(), 100);
   };
 
+  const toggleSuggestions = () => {
+    setShowSuggestions(prev => !prev);
+  };
+
+  const handleScroll = () => {
+    // Auto-hide suggestions when user scrolls through messages
+    if (showSuggestions && messages.length > 2) {
+      setShowSuggestions(false);
+    }
+  };
+
   return (
     <Modal
       visible={visible}
@@ -304,6 +349,12 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
             </Text>
           </View>
           <View style={styles.headerRight}>
+            <TouchableOpacity
+              style={styles.headerButton}
+              onPress={toggleSuggestions}
+            >
+              <Text style={styles.headerButtonText}>{showSuggestions ? '💡' : '💬'}</Text>
+            </TouchableOpacity>
             <TouchableOpacity
               style={styles.headerButton}
               onPress={clearChat}
@@ -333,6 +384,8 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
             style={styles.messageList}
             contentContainerStyle={styles.messageListContent}
             onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+            onScroll={handleScroll}
+            scrollEventThrottle={400}
             keyboardShouldPersistTaps="handled"
           />
 
@@ -344,11 +397,13 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
             </View>
           )}
 
-          {/* Quick Suggestions */}
-          <QuickSuggestions
-            screen={ContextManager.currentScreen}
-            onSuggestionPress={handleSuggestionPress}
-          />
+          {/* Quick Suggestions - Only show when toggled on */}
+          {showSuggestions && (
+            <QuickSuggestions
+              screen={ContextManager.currentScreen}
+              onSuggestionPress={handleSuggestionPress}
+            />
+          )}
 
           {/* Input */}
           <View style={styles.inputContainer}>

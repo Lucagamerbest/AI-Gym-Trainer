@@ -1,6 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { WorkoutStorageService } from '../workoutStorage';
-import { foodDatabase } from '../foodDatabase';
+import WorkoutSyncService from '../backend/WorkoutSyncService';
+import MealSyncService from '../backend/MealSyncService';
+import BackendService from '../backend/BackendService';
+import ProgressSyncService from '../backend/ProgressSyncService';
 
 class ContextManager {
   constructor() {
@@ -23,51 +26,21 @@ class ContextManager {
     console.log(`🎯 Activity: ${activity}`);
   }
 
-  // Get full context for AI
+  // Get full context for AI (OPTIMIZED for speed)
   async getFullContext(userId = 'guest') {
     console.log(`👤 Current user ID: ${userId}`);
 
-    // Check all possible storage keys
-    try {
-      const allKeys = await AsyncStorage.getAllKeys();
-      const workoutKeys = allKeys.filter(key => key.includes('workout'));
-      console.log(`🔑 All workout-related keys:`, workoutKeys);
-
-      // Try to get data from each workout key
-      for (const key of workoutKeys) {
-        const data = await AsyncStorage.getItem(key);
-        if (data) {
-          const parsed = JSON.parse(data);
-          console.log(`📦 Data in ${key}:`, Array.isArray(parsed) ? `${parsed.length} items` : 'object');
-        }
-      }
-    } catch (error) {
-      console.log('Error checking storage keys:', error);
-    }
-
-    const allWorkoutHistory = await this.getAllWorkoutHistory(userId);
-    const allExerciseProgress = await this.getAllExerciseProgress(userId);
-
-    console.log(`📚 AI Context Summary:`);
-    console.log(`   - User ID: ${userId}`);
-    console.log(`   - Workouts: ${allWorkoutHistory.length}`);
-    console.log(`   - Exercises: ${Object.keys(allExerciseProgress).length}`);
-
-    if (Object.keys(allExerciseProgress).length > 0) {
-      console.log(`   - Exercise List:`, Object.keys(allExerciseProgress));
-    }
-
+    // Skip heavy data fetching for faster responses
     const context = {
       screen: this.currentScreen,
       activity: this.currentActivity,
       screenData: this.screenData,
-      userData: await this.getUserData(),
+      // userData: await this.getUserData(), // SKIP for speed
       recentActivity: await this.getRecentActivity(),
-      topExercises: await this.getTopExercisePRs(userId, 5), // Top 5 exercises by volume with PRs
-      allWorkoutHistory, // FULL workout history
-      allExerciseProgress, // ALL exercise records
+      topExercises: await this.getTopExercisePRs(userId, 2), // Top 2 only (SPEED)
     };
 
+    console.log(`📚 AI Context built (minimal for speed)`);
     return context;
   }
 
@@ -87,75 +60,41 @@ class ContextManager {
     }
   }
 
-  // Get recent user activity (last 7 days)
+  // Get recent user activity (last 7 days) - MINIMAL for speed
   async getRecentActivity() {
     try {
-      const now = new Date();
-      const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      // Get workouts from Firebase
+      let allWorkouts = [];
+      try {
+        allWorkouts = await WorkoutSyncService.getAllWorkouts(100);
+        console.log(`🔥 Retrieved ${allWorkouts.length} workouts from Firebase`);
+      } catch (error) {
+        console.log('⚠️ Could not fetch workouts from Firebase, using empty array');
+      }
 
-      // Get current user ID
-      const userStr = await AsyncStorage.getItem('user');
-      const user = userStr ? JSON.parse(userStr) : null;
-      const userId = user?.uid || 'guest';
+      const lastWorkout = allWorkouts.length > 0
+        ? allWorkouts.sort((a, b) => new Date(b.date) - new Date(a.date))[0]
+        : null;
 
-      // Get recent workouts
-      const allWorkouts = await WorkoutStorageService.getWorkoutHistory(userId);
-      const recentWorkouts = allWorkouts
-        .filter(w => new Date(w.date) >= sevenDaysAgo)
-        .sort((a, b) => new Date(b.date) - new Date(a.date))
-        .slice(0, 5);
+      const daysSince = lastWorkout
+        ? Math.floor((new Date() - new Date(lastWorkout.date)) / (1000 * 60 * 60 * 24))
+        : null;
 
-      // Get recent meals
-      const recentMeals = await this.getRecentMeals(7);
+      let lastWorkoutText = 'No workouts yet';
+      if (lastWorkout) {
+        if (daysSince === 0) lastWorkoutText = `Today - ${lastWorkout.workoutTitle}`;
+        else if (daysSince === 1) lastWorkoutText = `Yesterday - ${lastWorkout.workoutTitle}`;
+        else lastWorkoutText = `${daysSince}d ago - ${lastWorkout.workoutTitle}`;
+      }
 
-      // Calculate stats
-      const totalWorkouts = recentWorkouts.length;
-      const totalVolume = recentWorkouts.reduce((sum, w) => {
-        // Calculate volume from exercises if totalVolume isn't stored
-        const workoutVolume = w.totalVolume || w.exercises?.reduce((total, exercise) => {
-          return total + (exercise.sets || []).reduce((exerciseTotal, set) => {
-            if (set.weight && set.reps) {
-              return exerciseTotal + (parseFloat(set.weight) * parseInt(set.reps));
-            }
-            return exerciseTotal;
-          }, 0);
-        }, 0) || 0;
-        return sum + workoutVolume;
-      }, 0);
-
-      const avgCalories = recentMeals.length > 0
-        ? recentMeals.reduce((sum, m) => sum + (m.totalCalories || 0), 0) / recentMeals.length
-        : 0;
-
-      // Extract detailed workout information
-      const detailedWorkouts = recentWorkouts.map(workout => ({
-        date: workout.date,
-        title: workout.workoutTitle,
-        duration: workout.duration,
-        exerciseCount: workout.exercises?.length || 0,
-        exercises: workout.exercises?.map(ex => ({
-          name: ex.name,
-          sets: ex.sets?.length || 0,
-          maxWeight: ex.sets?.length > 0
-            ? Math.max(...ex.sets.map(s => parseFloat(s.weight) || 0))
-            : 0,
-        })) || [],
-        totalVolume: workout.exercises?.reduce((total, exercise) => {
-          return total + (exercise.sets || []).reduce((exerciseTotal, set) => {
-            if (set.weight && set.reps) {
-              return exerciseTotal + (parseFloat(set.weight) * parseInt(set.reps));
-            }
-            return exerciseTotal;
-          }, 0);
-        }, 0) || 0,
-      }));
+      // Simple count of recent workouts (last 7 days)
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+      const recentCount = allWorkouts.filter(w => new Date(w.date) >= sevenDaysAgo).length;
 
       return {
-        workouts: totalWorkouts,
-        totalVolume: Math.round(totalVolume),
-        avgCaloriesPerDay: Math.round(avgCalories),
-        lastWorkout: recentWorkouts[0] ? recentWorkouts[0].date : null,
-        detailedWorkouts, // Include detailed workout info for AI
+        workouts: recentCount,
+        totalVolume: 0, // Skip calculation for speed
+        lastWorkout: lastWorkoutText,
       };
     } catch (error) {
       console.error('Error getting recent activity:', error);
@@ -198,59 +137,171 @@ class ContextManager {
     };
   }
 
-  async getNutritionContext() {
+  async getNutritionContext(userId = 'guest') {
     if (!this.currentScreen?.includes('Nutrition') && !this.currentScreen?.includes('Food')) return {};
 
     try {
+      console.log('🍽️ getNutritionContext received userId:', userId);
+
+      // Get today's meals from Firebase
       const today = new Date().toISOString().split('T')[0];
+      let meals = [];
+      let totalCalories = 0;
+      let totalProtein = 0;
+      let totalCarbs = 0;
+      let totalFat = 0;
 
-      // Get today's meals from storage
-      const mealsStr = await AsyncStorage.getItem('meals');
-      const allMeals = mealsStr ? JSON.parse(mealsStr) : [];
-      const todaysMeals = allMeals.filter(m => m.date.startsWith(today));
+      try {
+        meals = await MealSyncService.getMealsByDate(userId, today);
+        console.log(`🔥 Retrieved ${meals.length} meals from Firebase for today`);
+      } catch (error) {
+        console.log('⚠️ Could not fetch meals from Firebase, will try AsyncStorage');
+      }
 
-      const totalCalories = todaysMeals.reduce((sum, m) => sum + (m.totalCalories || 0), 0);
-      const totalProtein = todaysMeals.reduce((sum, m) => sum + (m.totalProtein || 0), 0);
-      const totalCarbs = todaysMeals.reduce((sum, m) => sum + (m.totalCarbs || 0), 0);
-      const totalFat = todaysMeals.reduce((sum, m) => sum + (m.totalFat || 0), 0);
+      // If Firebase has no meals, fallback to AsyncStorage (for backward compatibility)
+      if (meals.length === 0) {
+        console.log('📦 Fallback: Trying AsyncStorage for meal data...');
+        try {
+          // NutritionScreen uses @daily_nutrition key
+          const savedNutrition = await AsyncStorage.getItem('@daily_nutrition');
+          console.log('📦 Raw AsyncStorage data:', savedNutrition ? 'found' : 'not found');
 
-      const goalsStr = await AsyncStorage.getItem('user_goals');
-      const goals = goalsStr ? JSON.parse(goalsStr) : {};
+          if (savedNutrition) {
+            const nutritionData = JSON.parse(savedNutrition);
+            console.log('📦 Parsed nutrition data:', nutritionData);
 
-      return {
-        todaysMeals: todaysMeals.length,
+            // The structure is { consumed: number, consumedMacros: {...}, meals: {...} }
+            if (nutritionData.consumed !== undefined) {
+              totalCalories = nutritionData.consumed || 0;
+              totalProtein = nutritionData.consumedMacros?.proteinGrams || 0;
+              totalCarbs = nutritionData.consumedMacros?.carbsGrams || 0;
+              totalFat = nutritionData.consumedMacros?.fatGrams || 0;
+
+              // Convert meals object to array
+              const mealsObj = nutritionData.meals || {};
+              const allMeals = [
+                ...(mealsObj.breakfast || []),
+                ...(mealsObj.lunch || []),
+                ...(mealsObj.dinner || []),
+                ...(mealsObj.snacks || [])
+              ];
+              meals = allMeals;
+
+              console.log(`✅ Retrieved from AsyncStorage: ${totalCalories} cal, ${totalProtein}g protein, ${meals.length} meals`);
+            }
+          } else {
+            console.log('⚠️ No data found in @daily_nutrition key');
+          }
+        } catch (asyncError) {
+          console.log('⚠️ AsyncStorage fallback failed:', asyncError);
+        }
+      } else {
+        // Calculate totals from Firebase meals
+        meals.forEach(meal => {
+          totalCalories += meal.calories_consumed || meal.calories || 0;
+          totalProtein += meal.protein_consumed || meal.protein || 0;
+          totalCarbs += meal.carbs_consumed || meal.carbs || 0;
+          totalFat += meal.fat_consumed || meal.fat || 0;
+        });
+      }
+
+      console.log(`🍽️ Parsed: ${totalCalories} cal, ${totalProtein}g protein, ${meals.length} meals`);
+
+      // Get nutrition goals from Firebase user profile
+      let goals = { calories: 2000, protein: 150, carbs: 200, fat: 65 };
+      try {
+        const userProfile = await BackendService.getUserProfile(userId);
+        if (userProfile && userProfile.goals) {
+          goals = {
+            calories: userProfile.goals.targetCalories || userProfile.goals.calories || 2000,
+            protein: userProfile.goals.proteinGrams || userProfile.goals.protein || 150,
+            carbs: userProfile.goals.carbsGrams || userProfile.goals.carbs || 200,
+            fat: userProfile.goals.fatGrams || userProfile.goals.fat || 65,
+          };
+        }
+      } catch (error) {
+        console.log('⚠️ Could not fetch goals from Firebase, using defaults');
+      }
+
+      // If we used AsyncStorage for meals, also check AsyncStorage for goals (to ensure consistency)
+      if (meals.length > 0 && totalCalories > 0) {
+        try {
+          const savedGoals = await AsyncStorage.getItem('@macro_goals');
+          if (savedGoals) {
+            const localGoals = JSON.parse(savedGoals);
+            console.log('📦 Found local goals in AsyncStorage:', localGoals);
+            // Override Firebase goals with local goals if they exist
+            if (localGoals.calories || localGoals.targetCalories) {
+              goals = {
+                calories: localGoals.calories || localGoals.targetCalories || 2000,
+                protein: localGoals.proteinGrams || 150,
+                carbs: localGoals.carbsGrams || 200,
+                fat: localGoals.fatGrams || 65,
+              };
+              console.log('✅ Using local AsyncStorage goals:', goals);
+            }
+          }
+        } catch (error) {
+          console.log('⚠️ Could not read local goals from AsyncStorage');
+        }
+      }
+      console.log('🎯 Final nutrition goals:', goals);
+
+      // Note: goals structure is { calories, protein, carbs, fat } not { calorieGoal, proteinGoal, ... }
+      const calorieGoal = goals?.calories || 2000;
+      const proteinGoal = goals?.protein || 150;
+      const carbsGoal = goals?.carbs || 200;
+      const fatGoal = goals?.fat || 65;
+
+      const nutritionContext = {
+        todaysMeals: meals.length,
         calories: {
           consumed: Math.round(totalCalories),
-          target: goals.targetCalories || 2000,
-          remaining: Math.round((goals.targetCalories || 2000) - totalCalories),
+          target: calorieGoal,
+          remaining: Math.round(calorieGoal - totalCalories),
+          percentage: Math.round((totalCalories / calorieGoal) * 100),
         },
         protein: {
           consumed: Math.round(totalProtein),
-          target: goals.proteinGrams || 150,
+          target: proteinGoal,
+          remaining: Math.round(proteinGoal - totalProtein),
+          percentage: Math.round((totalProtein / proteinGoal) * 100),
         },
         carbs: {
           consumed: Math.round(totalCarbs),
-          target: goals.carbsGrams || 200,
+          target: carbsGoal,
+          remaining: Math.round(carbsGoal - totalCarbs),
+          percentage: Math.round((totalCarbs / carbsGoal) * 100),
         },
         fat: {
           consumed: Math.round(totalFat),
-          target: goals.fatGrams || 65,
+          target: fatGoal,
+          remaining: Math.round(fatGoal - totalFat),
+          percentage: Math.round((totalFat / fatGoal) * 100),
         },
       };
+
+      console.log('✅ Nutrition context:', nutritionContext);
+      return nutritionContext;
     } catch (error) {
-      console.error('Error getting nutrition context:', error);
+      console.error('❌ Error getting nutrition context:', error);
       return {};
     }
   }
 
-  async getProgressContext() {
+  async getProgressContext(userId = 'guest') {
     if (!this.currentScreen?.includes('Progress')) return {};
 
     try {
-      const progressStr = await AsyncStorage.getItem('progress_entries');
-      if (!progressStr) return {};
+      // Get progress entries from Firebase
+      let entries = [];
+      try {
+        entries = await ProgressSyncService.getAllProgress(userId, 100);
+        console.log(`🔥 Retrieved ${entries.length} progress entries from Firebase`);
+      } catch (error) {
+        console.log('⚠️ Could not fetch progress from Firebase, falling back to empty data');
+      }
 
-      const entries = JSON.parse(progressStr);
       if (entries.length === 0) return {};
 
       // Sort by date
@@ -277,16 +328,22 @@ class ContextManager {
   // ========== FULL HISTORY METHODS (FOR AI CONTEXT) ==========
 
   // Get ALL workout history (not just recent) - OPTIMIZED for speed
-  async getAllWorkoutHistory(userId = 'guest', limit = 10) {
+  async getAllWorkoutHistory(userId = 'guest', limit = 3) {
     try {
       console.log(`🔍 Fetching workout history for userId: ${userId}`);
-      const allWorkouts = await WorkoutStorageService.getWorkoutHistory(userId);
+      let allWorkouts = [];
+      try {
+        allWorkouts = await WorkoutSyncService.getAllWorkouts(100);
+        console.log(`🔥 Retrieved ${allWorkouts.length} workouts from Firebase`);
+      } catch (error) {
+        console.log('⚠️ Could not fetch workouts from Firebase, using empty array');
+      }
       console.log(`📦 Raw workouts retrieved: ${allWorkouts.length}`, allWorkouts);
 
       // Format for AI consumption - LIMIT to recent workouts for speed
       return allWorkouts
         .sort((a, b) => new Date(b.date) - new Date(a.date))
-        .slice(0, limit) // Only send recent 10 workouts to AI for faster responses
+        .slice(0, limit) // Only send recent 3 workouts to AI for faster responses
         .map(workout => ({
           id: workout.id,
           date: workout.date,
@@ -321,7 +378,7 @@ class ContextManager {
   }
 
   // Get ALL exercise progress records - OPTIMIZED for speed
-  async getAllExerciseProgress(userId = 'guest', limit = 5) {
+  async getAllExerciseProgress(userId = 'guest', limit = 3) {
     try {
       const allProgress = await WorkoutStorageService.getExerciseProgress(userId);
 
@@ -348,7 +405,7 @@ class ContextManager {
             maxVolume: maxVolume,
             firstDate: records[0]?.date,
             lastDate: records[records.length - 1]?.date,
-            allRecords: records.slice(-limit), // Only send last 5 records per exercise (SPEED OPTIMIZATION)
+            allRecords: records.slice(-limit), // Only send last 3 records per exercise (SPEED OPTIMIZATION)
           };
         }
       }
@@ -365,7 +422,14 @@ class ContextManager {
   // Get exercise history (all workouts containing this exercise)
   async getExerciseHistory(exerciseName, userId = 'guest', limit = 10) {
     try {
-      const allWorkouts = await WorkoutStorageService.getWorkoutHistory(userId);
+      // Get workouts from Firebase
+      let allWorkouts = [];
+      try {
+        allWorkouts = await WorkoutSyncService.getAllWorkouts(100);
+        console.log(`🔥 Retrieved ${allWorkouts.length} workouts from Firebase for exercise history`);
+      } catch (error) {
+        console.log('⚠️ Could not fetch workouts from Firebase, using empty array');
+      }
       const searchName = exerciseName.toLowerCase();
 
       // Filter workouts that contain this exercise (flexible matching)
@@ -415,35 +479,35 @@ class ContextManager {
   // Calculate personal record for an exercise
   async getExercisePR(exerciseName, userId = 'guest', type = 'weight') {
     try {
-      // First try exact match
-      let progress = await WorkoutStorageService.getExerciseProgressByName(exerciseName, userId);
+      // Get exercise history from Firebase workouts
+      const history = await this.getExerciseHistory(exerciseName, userId, 100);
 
-      // If no exact match, try flexible matching
-      if (!progress || !progress.records || progress.records.length === 0) {
-        const allProgress = await WorkoutStorageService.getExerciseProgress(userId);
-        const searchName = exerciseName.toLowerCase();
-
-        // Find exercise by partial match
-        for (const [exerciseKey, exerciseData] of Object.entries(allProgress)) {
-          const exName = exerciseData.name.toLowerCase();
-          if (exName === searchName ||
-              exName.includes(searchName) ||
-              searchName.includes(exName)) {
-            console.log(`🔍 Found exercise by fuzzy match: ${exerciseData.name}`);
-            progress = exerciseData;
-            break;
-          }
-        }
-      }
-
-      if (!progress || !progress.records || progress.records.length === 0) {
+      if (!history || history.length === 0) {
         console.log(`❌ No records found for: ${exerciseName}`);
         return null;
       }
 
-      console.log(`✅ Found ${progress.records.length} records for: ${progress.name || exerciseName}`);
+      console.log(`✅ Found ${history.length} workouts for: ${exerciseName}`);
 
-      const records = progress.records;
+      // Extract all sets from all workouts into flat list of records
+      const records = [];
+      history.forEach(workout => {
+        workout.sets.forEach(set => {
+          if (set.weight && set.reps) {
+            records.push({
+              weight: parseFloat(set.weight),
+              reps: parseInt(set.reps),
+              volume: parseFloat(set.weight) * parseInt(set.reps),
+              date: workout.date,
+            });
+          }
+        });
+      });
+
+      if (records.length === 0) {
+        console.log(`❌ No valid sets found for: ${exerciseName}`);
+        return null;
+      }
 
       switch (type) {
         case 'weight':
@@ -516,27 +580,10 @@ class ContextManager {
   // Get exercise progression over time
   async getExerciseProgression(exerciseName, userId = 'guest', days = 30) {
     try {
-      // First try exact match
-      let progress = await WorkoutStorageService.getExerciseProgressByName(exerciseName, userId);
+      // Get exercise history from Firebase workouts
+      const history = await this.getExerciseHistory(exerciseName, userId, 100);
 
-      // If no exact match, try flexible matching
-      if (!progress || !progress.records || progress.records.length === 0) {
-        const allProgress = await WorkoutStorageService.getExerciseProgress(userId);
-        const searchName = exerciseName.toLowerCase();
-
-        // Find exercise by partial match
-        for (const [exerciseKey, exerciseData] of Object.entries(allProgress)) {
-          const exName = exerciseData.name.toLowerCase();
-          if (exName === searchName ||
-              exName.includes(searchName) ||
-              searchName.includes(exName)) {
-            progress = exerciseData;
-            break;
-          }
-        }
-      }
-
-      if (!progress || !progress.records || progress.records.length === 0) {
+      if (!history || history.length === 0) {
         return {
           exerciseName,
           totalSessions: 0,
@@ -548,9 +595,22 @@ class ContextManager {
       const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - days);
 
-      const recentRecords = progress.records
-        .filter(record => new Date(record.date) >= cutoffDate)
-        .sort((a, b) => new Date(a.date) - new Date(b.date));
+      // Extract all sets from recent workouts
+      const recentRecords = [];
+      history
+        .filter(workout => new Date(workout.date) >= cutoffDate)
+        .forEach(workout => {
+          workout.sets.forEach(set => {
+            if (set.weight && set.reps) {
+              recentRecords.push({
+                date: workout.date,
+                weight: parseFloat(set.weight),
+                reps: parseInt(set.reps),
+                volume: parseFloat(set.weight) * parseInt(set.reps),
+              });
+            }
+          });
+        });
 
       if (recentRecords.length === 0) {
         return {
@@ -560,6 +620,9 @@ class ContextManager {
           progression: [],
         };
       }
+
+      // Sort by date
+      recentRecords.sort((a, b) => new Date(a.date) - new Date(b.date));
 
       // Calculate trend (comparing first vs last)
       const firstRecord = recentRecords[0];
@@ -579,12 +642,7 @@ class ContextManager {
         lastWeight: lastRecord.weight,
         weightChange,
         volumeChange,
-        progression: recentRecords.map(record => ({
-          date: record.date,
-          weight: record.weight,
-          reps: record.reps,
-          volume: record.volume,
-        })),
+        progression: recentRecords,
       };
     } catch (error) {
       console.error('Error getting exercise progression:', error);
@@ -597,33 +655,60 @@ class ContextManager {
     }
   }
 
-  // Get all PRs for user (top 5 exercises by volume)
-  async getTopExercisePRs(userId = 'guest', limit = 5) {
+  // Get top exercises (simplified for speed)
+  async getTopExercisePRs(userId = 'guest', limit = 2) {
     try {
-      const allProgress = await WorkoutStorageService.getExerciseProgress(userId);
-
-      if (!allProgress || Object.keys(allProgress).length === 0) {
+      // Get all workouts from Firebase
+      let allWorkouts = [];
+      try {
+        allWorkouts = await WorkoutSyncService.getAllWorkouts(100);
+      } catch (error) {
+        console.log('⚠️ Could not fetch workouts from Firebase for top exercises');
         return [];
       }
 
-      // Calculate total volume for each exercise and get PR
-      const exercisesWithPRs = await Promise.all(
-        Object.entries(allProgress).map(async ([exerciseKey, exerciseData]) => {
-          const totalVolume = exerciseData.records.reduce((sum, record) => sum + record.volume, 0);
-          const pr = await this.getExercisePR(exerciseData.name, userId, 'weight');
+      if (allWorkouts.length === 0) {
+        return [];
+      }
 
-          return {
-            name: exerciseData.name,
-            equipment: exerciseData.equipment,
-            totalVolume,
-            totalSessions: exerciseData.records.length,
-            pr,
-          };
-        })
-      );
+      // Calculate exercise stats from workouts
+      const exerciseStats = {};
+
+      allWorkouts.forEach(workout => {
+        workout.exercises?.forEach(exercise => {
+          const exerciseName = exercise.name;
+          if (!exerciseStats[exerciseName]) {
+            exerciseStats[exerciseName] = {
+              name: exerciseName,
+              totalVolume: 0,
+              maxWeight: 0,
+              maxReps: 0,
+            };
+          }
+
+          exercise.sets?.forEach(set => {
+            if (set.weight && set.reps) {
+              const weight = parseFloat(set.weight);
+              const reps = parseInt(set.reps);
+              const volume = weight * reps;
+
+              exerciseStats[exerciseName].totalVolume += volume;
+              exerciseStats[exerciseName].maxWeight = Math.max(exerciseStats[exerciseName].maxWeight, weight);
+              exerciseStats[exerciseName].maxReps = Math.max(exerciseStats[exerciseName].maxReps, reps);
+            }
+          });
+        });
+      });
+
+      // Convert to array and add PR display
+      const exercises = Object.values(exerciseStats).map(ex => ({
+        name: ex.name,
+        pr: { display: `${ex.maxWeight} lbs × ${ex.maxReps} reps` },
+        totalVolume: ex.totalVolume,
+      }));
 
       // Sort by total volume and return top N
-      return exercisesWithPRs
+      return exercises
         .sort((a, b) => b.totalVolume - a.totalVolume)
         .slice(0, limit);
     } catch (error) {
@@ -633,19 +718,19 @@ class ContextManager {
   }
 
   // Build context for specific screen
-  async buildContextForScreen(screenName) {
+  async buildContextForScreen(screenName, userId = 'guest') {
     this.setScreen(screenName);
 
-    const baseContext = await this.getFullContext();
+    const baseContext = await this.getFullContext(userId);
 
     // Add screen-specific context
     let specificContext = {};
     if (screenName?.includes('Workout')) {
       specificContext = await this.getWorkoutContext();
     } else if (screenName?.includes('Nutrition') || screenName?.includes('Food')) {
-      specificContext = await this.getNutritionContext();
+      specificContext = await this.getNutritionContext(userId);
     } else if (screenName?.includes('Progress')) {
-      specificContext = await this.getProgressContext();
+      specificContext = await this.getProgressContext(userId);
     }
 
     return {

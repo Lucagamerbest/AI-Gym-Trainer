@@ -7,7 +7,7 @@ class AIService {
     this.apiKey = null;
     this.genAI = null;
     this.model = null;
-    // Using Gemini 2.5 Flash - fast, free, and stable
+    // Using Gemini 2.5 Flash (now optimized with smaller prompts for speed)
     this.modelName = 'gemini-2.5-flash';
   }
 
@@ -76,13 +76,22 @@ class AIService {
       // Log context size for optimization tracking
       const promptSize = fullPrompt.length;
       const estimatedTokens = Math.ceil(promptSize / 4);
-      console.log(`🤖 Sending to Gemini... (${promptSize} chars, ~${estimatedTokens} tokens)`);
+      console.log(`📤 Prompt: ${promptSize} chars (~${estimatedTokens} tokens)`);
+      console.log(`⏱️ Calling Gemini API...`);
 
-      const result = await this.model.generateContent(fullPrompt);
+      const apiStart = performance.now();
+      const result = await this.model.generateContent(fullPrompt, {
+        generationConfig: {
+          maxOutputTokens: 80, // Very short responses for speed (1-2 sentences)
+          temperature: 0.5, // Lower = faster, more deterministic
+          topP: 0.9,
+          topK: 20, // Lower = faster
+        },
+      });
+      const apiTime = performance.now() - apiStart;
+      console.log(`⏱️ Gemini API responded in ${apiTime.toFixed(0)}ms`);
       const response = result.response;
       const responseText = response.text();
-
-      console.log('✅ Gemini response received');
 
       return {
         response: responseText,
@@ -141,158 +150,99 @@ class AIService {
 
   // Get screen-specific coaching personality
   getScreenPersonality(screen) {
-    if (!screen) return '';
+    if (!screen) return 'Give brief, helpful advice.';
 
     if (screen.includes('Workout') || screen.includes('StartWorkout') || screen.includes('Training')) {
-      return `WORKOUT COACH MODE:
-- Focus on progressive overload (add weight/reps when ready)
-- Recommend specific weight increases (5-10 lbs typically)
-- Suggest optimal set/rep ranges based on their history
-- Warn about volume management (don't overtrain)
-- Emphasize proper form and recovery`;
+      return 'Focus on progressive overload. Suggest specific weights.';
     }
 
     if (screen.includes('Nutrition') || screen.includes('Food')) {
-      return `NUTRITION COACH MODE:
-- Calculate remaining macros precisely
-- Suggest specific meals/foods to hit targets
-- Warn if too far from goals (over/under eating)
-- Recommend meal timing around workouts
-- Focus on protein intake for muscle building`;
+      return 'Focus on hitting macro targets. When user asks "how much left" or "remaining", use the "Still need today" values. Suggest specific foods with quantities. Prioritize protein if low.';
     }
 
     if (screen.includes('Progress')) {
-      return `PROGRESS ANALYST MODE:
-- Identify specific strength gains with numbers
-- Point out plateaus and suggest solutions
-- Celebrate PRs and improvements
-- Recommend program adjustments if needed
-- Track consistency and suggest improvements`;
+      return 'Highlight PRs and improvements with numbers.';
     }
 
     if (screen.includes('Profile') || screen.includes('Home')) {
-      return `GENERAL COACH MODE:
-- Give overview of their fitness journey
-- Suggest next steps based on recent activity
-- Balance workout/nutrition/recovery advice
-- Set realistic short-term goals`;
+      return 'Give quick overview and next steps.';
     }
 
-    return '';
+    return 'Be concise and helpful.';
   }
 
   // Build system prompt based on context
   buildSystemPrompt(context) {
     const screenPersonality = this.getScreenPersonality(context.screen);
 
-    const basePrompt = `You are an expert fitness coach and nutritionist assistant for the AI Gym Trainer app.
+    const basePrompt = `You are a fitness coach. ${screenPersonality}
 
-${screenPersonality}
-
-Core Principles:
-- Give SPECIFIC, actionable advice (not generic)
-- Use NUMBERS from the user's data when available
-- Be encouraging but honest about their progress
-- Focus on progressive overload and consistency
-- Prioritize safety and proper form
-
-Response Style:
-- Keep responses concise (2-3 sentences unless asked for details)
-- Use simple, direct language
-- Include specific recommendations with numbers
-- Reference their actual data when possible
-- Be motivating but realistic`;
+Rules:
+- 2-3 sentences MAX
+- Use user's actual numbers
+- Be specific and actionable`;
 
 
-    // Add context-specific instructions
+    // Add context-specific instructions (MINIMAL for speed)
     let contextPrompt = '';
 
-    if (context.screen) {
-      contextPrompt += `\n\nCurrent Screen: ${context.screen}`;
-    }
-
-    if (context.userData) {
-      contextPrompt += `\n\nUser Profile:\n${JSON.stringify(context.userData, null, 2)}`;
-    }
-
+    // Recent activity summary
     if (context.recentActivity) {
-      const { workouts, totalVolume, detailedWorkouts, avgCaloriesPerDay, lastWorkout } = context.recentActivity;
+      const { workouts, totalVolume, lastWorkout } = context.recentActivity;
+      contextPrompt += `\nLast 7d: ${workouts} workouts, ${totalVolume} lbs. Last: ${lastWorkout}`;
+    }
 
-      contextPrompt += `\n\nRecent Activity (Last 7 Days):`;
-      contextPrompt += `\n- Total Workouts: ${workouts}`;
-      contextPrompt += `\n- Total Volume: ${totalVolume} lbs`;
-      contextPrompt += `\n- Avg Calories/Day: ${avgCaloriesPerDay}`;
+    // Top exercises (only if asking about exercises)
+    if (context.topExercises && context.topExercises.length > 0) {
+      contextPrompt += `\nTop lifts: `;
+      contextPrompt += context.topExercises.map(ex =>
+        `${ex.name} PR ${ex.pr?.display || 'N/A'}`
+      ).join(', ');
+    }
 
-      if (detailedWorkouts && detailedWorkouts.length > 0) {
-        contextPrompt += `\n\nRecent Workouts:`;
-        detailedWorkouts.forEach((workout, idx) => {
-          contextPrompt += `\n${idx + 1}. ${workout.title} (${new Date(workout.date).toLocaleDateString()})`;
-          contextPrompt += `\n   - ${workout.exerciseCount} exercises, ${Math.round(workout.totalVolume)} lbs volume`;
-          if (workout.exercises && workout.exercises.length > 0) {
-            contextPrompt += `\n   - Exercises: ${workout.exercises.map(ex =>
-              `${ex.name} (${ex.sets} sets, max ${ex.maxWeight} lbs)`
-            ).join(', ')}`;
-          }
-        });
+    // Screen-specific context (simplified)
+    if (context.screenSpecific && Object.keys(context.screenSpecific).length > 0) {
+      const ss = context.screenSpecific;
+
+      // Nutrition context
+      if (ss.calories) {
+        const calPercent = ss.calories.percentage || 0;
+        const proteinPercent = ss.protein?.percentage || 0;
+
+        // Show consumed amounts
+        contextPrompt += `\nEaten today: ${ss.calories.consumed} cal, ${ss.protein?.consumed || 0}g protein, ${ss.carbs?.consumed || 0}g carbs, ${ss.fat?.consumed || 0}g fat`;
+
+        // Show daily goals
+        contextPrompt += `\nDaily goals: ${ss.calories.target} cal, ${ss.protein?.target || 0}g protein, ${ss.carbs?.target || 0}g carbs, ${ss.fat?.target || 0}g fat`;
+
+        // Show remaining amounts (most important for AI advice)
+        const caloriesLeft = ss.calories.remaining || 0;
+        const proteinLeft = ss.protein?.remaining || 0;
+        const carbsLeft = ss.carbs?.remaining || 0;
+        const fatLeft = ss.fat?.remaining || 0;
+
+        if (caloriesLeft > 0) {
+          contextPrompt += `\nStill need today: ${caloriesLeft} cal, ${proteinLeft}g protein, ${carbsLeft}g carbs, ${fatLeft}g fat`;
+        } else {
+          contextPrompt += `\nOver by: ${Math.abs(caloriesLeft)} cal`;
+        }
       }
     }
 
-    if (context.topExercises && context.topExercises.length > 0) {
-      contextPrompt += `\n\nTop Exercises (by total volume):`;
-      context.topExercises.forEach((exercise, idx) => {
-        contextPrompt += `\n${idx + 1}. ${exercise.name}`;
-        contextPrompt += `\n   - Total Volume: ${Math.round(exercise.totalVolume)} lbs`;
-        contextPrompt += `\n   - Sessions: ${exercise.totalSessions}`;
-        if (exercise.pr) {
-          contextPrompt += `\n   - PR: ${exercise.pr.display}`;
-        }
-      });
+    // Exercise-specific (only if detected)
+    if (context.exerciseSpecific?.exerciseName) {
+      const ex = context.exerciseSpecific;
+      if (ex.pr) {
+        contextPrompt += `\n${ex.exerciseName} PR: ${ex.pr.display}`;
+      }
+      if (ex.history && ex.history.length > 0) {
+        const last = ex.history[0];
+        contextPrompt += `, Last: ${last.maxWeight} lbs`;
+      }
     }
 
-    if (context.screenSpecific) {
-      contextPrompt += `\n\nScreen-Specific Data:\n${JSON.stringify(context.screenSpecific, null, 2)}`;
-    }
-
-    if (context.exerciseSpecific) {
-      contextPrompt += `\n\nExercise-Specific Data:\n${JSON.stringify(context.exerciseSpecific, null, 2)}`;
-    }
-
-    // Add RECENT workout history (OPTIMIZED - less data = faster response)
-    if (context.allWorkoutHistory && context.allWorkoutHistory.length > 0) {
-      contextPrompt += `\n\n=== RECENT WORKOUT HISTORY (last ${context.allWorkoutHistory.length} workouts) ===`;
-
-      // Show workouts with SUMMARY only (not all sets) for speed
-      context.allWorkoutHistory.forEach((workout, idx) => {
-        contextPrompt += `\n\n${idx + 1}. ${workout.title} - ${new Date(workout.date).toLocaleDateString()}`;
-        contextPrompt += `\n   Volume: ${Math.round(workout.totalVolume)} lbs, ${workout.exercises?.length || 0} exercises`;
-
-        if (workout.exercises && workout.exercises.length > 0) {
-          // Only show exercise names and key stats (not all sets)
-          const exerciseSummary = workout.exercises.map(ex =>
-            `${ex.name} (${ex.sets} sets @ ${ex.maxWeight} lbs)`
-          ).join(', ');
-          contextPrompt += `\n   ${exerciseSummary}`;
-        }
-      });
-    }
-
-    // Add exercise progress (OPTIMIZED - less data = faster response)
-    if (context.allExerciseProgress && Object.keys(context.allExerciseProgress).length > 0) {
-      contextPrompt += `\n\n=== EXERCISE RECORDS (${Object.keys(context.allExerciseProgress).length} exercises) ===`;
-
-      Object.entries(context.allExerciseProgress).forEach(([exerciseName, data]) => {
-        contextPrompt += `\n\n${exerciseName}: ${data.totalSessions} sessions, Max ${data.maxWeight} lbs × ${data.maxReps} reps, Total ${data.totalVolume} lbs`;
-
-        // Show only last 3 records for speed
-        if (data.allRecords && data.allRecords.length > 0) {
-          const recentRecords = data.allRecords.slice(-3); // Last 3 records only
-          contextPrompt += `\n  Recent: `;
-          contextPrompt += recentRecords.map(r =>
-            `${new Date(r.date).toLocaleDateString()}: ${r.weight}×${r.reps}`
-          ).join(', ');
-        }
-      });
-    }
+    // All data is now in recentActivity and topExercises
+    // No need for additional workout history or exercise progress
 
     return basePrompt + contextPrompt;
   }

@@ -7,6 +7,8 @@
 
 import { WorkoutStorageService } from '../workoutStorage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import ContextManager from './ContextManager';
+import BackendService from '../backend/BackendService';
 
 /**
  * Detect intent from user message
@@ -88,13 +90,16 @@ export function detectIntent(message, screen) {
   // HOME SCREEN INTENTS
   if (screen === 'HomeScreen' || screen === 'Home') {
 
-    // GET_TODAY_SUMMARY - "how's my day" / "today's progress" / "summary"
-    if (msg.includes('today') || msg.includes('summary') ||
-        msg.includes("how's my day") || msg.includes('progress')) {
+    // CREATE_WORKOUT_PLAN - "create chest day" / "make a workout" / "workout to hit biceps"
+    if ((msg.includes('create') || msg.includes('make') || msg.includes('build') || msg.includes('generate') ||
+         msg.includes('i want') || msg.includes('need')) &&
+        (msg.includes('workout') || msg.includes('day') || msg.includes('plan'))) {
       return {
-        intent: 'GET_TODAY_SUMMARY',
-        confidence: 0.9,
-        parameters: {}
+        intent: 'CREATE_WORKOUT_PLAN',
+        confidence: 0.95,
+        parameters: {
+          muscleGroup: extractMuscleGroup(msg)
+        }
       };
     }
 
@@ -105,6 +110,17 @@ export function detectIntent(message, screen) {
       return {
         intent: 'PLAN_WORKOUT',
         confidence: 0.85,
+        parameters: {}
+      };
+    }
+
+    // GET_TODAY_SUMMARY - "how's my day" / "today's progress" / "summary" (but NOT if creating workout)
+    if ((msg.includes('summary') || msg.includes("how's my day") ||
+         (msg.includes('today') && (msg.includes('progress') || msg.includes('stats')))) &&
+        !msg.includes('create') && !msg.includes('make') && !msg.includes('build')) {
+      return {
+        intent: 'GET_TODAY_SUMMARY',
+        confidence: 0.9,
         parameters: {}
       };
     }
@@ -126,18 +142,6 @@ export function detectIntent(message, screen) {
         intent: 'GET_MOTIVATION',
         confidence: 0.9,
         parameters: {}
-      };
-    }
-
-    // CREATE_WORKOUT_PLAN - "create chest day" / "make a workout" / "build leg day"
-    if ((msg.includes('create') || msg.includes('make') || msg.includes('build')) &&
-        (msg.includes('workout') || msg.includes('day'))) {
-      return {
-        intent: 'CREATE_WORKOUT_PLAN',
-        confidence: 0.85,
-        parameters: {
-          muscleGroup: extractMuscleGroup(msg)
-        }
       };
     }
   }
@@ -203,30 +207,124 @@ export async function executeAction(intent, parameters, context) {
 // ============ WORKOUT SCREEN ACTIONS ============
 
 async function logSet(params, context) {
-  const { reps, weight, sets } = params;
+  try {
+    const { reps, weight, sets } = params;
 
-  // TODO: Integrate with actual workout logging
-  // For now, return mock success
-  return {
-    success: true,
-    action: 'LOG_SET',
-    data: { reps, weight, sets },
-    message: `✅ Logged: ${sets} set${sets > 1 ? 's' : ''} of ${reps} reps @ ${weight} lbs`
-  };
+    // Get the current exercise from context (if in workout)
+    const currentExercise = context.screenData?.currentExercise;
+
+    if (!currentExercise) {
+      return {
+        success: false,
+        message: 'Start a workout first to log sets. Go to Training → Start a workout.'
+      };
+    }
+
+    // Store the suggested set data for the workout screen to pick up
+    const loggedSet = {
+      exerciseName: currentExercise.name || 'Unknown Exercise',
+      reps: parseInt(reps) || 0,
+      weight: parseFloat(weight) || 0,
+      sets: parseInt(sets) || 1,
+      timestamp: new Date().toISOString(),
+    };
+
+    // Save to AsyncStorage for the workout screen to retrieve
+    await AsyncStorage.setItem('ai_logged_set', JSON.stringify(loggedSet));
+
+    return {
+      success: true,
+      action: 'LOG_SET',
+      data: loggedSet,
+      message: `✅ Logged ${sets || 1} set${(sets || 1) > 1 ? 's' : ''} of ${reps} reps @ ${weight} lbs for ${currentExercise.name}. Check your workout screen to confirm!`
+    };
+  } catch (error) {
+    console.error('Error logging set:', error);
+    return {
+      success: false,
+      error: error.message,
+      message: 'Unable to log set. Make sure you have an active workout.'
+    };
+  }
 }
 
 async function suggestWeight(params, context) {
-  // TODO: Get user's exercise history and suggest weight
-  // For now, return mock suggestion
-  const currentWeight = context.currentExercise?.lastWeight || 185;
-  const suggestedWeight = currentWeight + 5;
+  try {
+    // Get current exercise name from context
+    const currentExerciseName = context.screenData?.currentExercise?.name ||
+                                 context.exerciseSpecific?.exerciseName ||
+                                 'current exercise';
 
-  return {
-    success: true,
-    action: 'SUGGEST_WEIGHT',
-    data: { currentWeight, suggestedWeight },
-    message: `Try ${suggestedWeight} lbs. You crushed ${currentWeight} lbs last time.`
-  };
+    // Get user ID from Firebase Auth
+    const userId = BackendService.getCurrentUserId() || 'guest';
+
+    // Get exercise history
+    const history = await ContextManager.getExerciseHistory(currentExerciseName, userId, 5);
+
+    if (history && history.length > 0) {
+      // Get last workout's max weight
+      const lastWorkout = history[0];
+      const currentWeight = lastWorkout.maxWeight;
+
+      // Analyze trend
+      if (history.length >= 2) {
+        const previousWorkout = history[1];
+        const weightIncrease = currentWeight - previousWorkout.maxWeight;
+
+        // If they've been progressing, suggest similar increase
+        if (weightIncrease > 0) {
+          const suggestedWeight = currentWeight + weightIncrease;
+          return {
+            success: true,
+            action: 'SUGGEST_WEIGHT',
+            data: { currentWeight, suggestedWeight, lastIncrease: weightIncrease },
+            message: `Try ${suggestedWeight} lbs. You increased by ${weightIncrease} lbs last time (${previousWorkout.maxWeight} → ${currentWeight} lbs).`
+          };
+        }
+      }
+
+      // Standard 5 lb increase if stable
+      const suggestedWeight = currentWeight + 5;
+      return {
+        success: true,
+        action: 'SUGGEST_WEIGHT',
+        data: { currentWeight, suggestedWeight },
+        message: `Try ${suggestedWeight} lbs. You crushed ${currentWeight} lbs last time on ${new Date(lastWorkout.date).toLocaleDateString()}.`
+      };
+    }
+
+    // Fallback: No history found, suggest starting weight based on exercise type
+    const fallbackWeights = {
+      'bench': 135,
+      'squat': 185,
+      'deadlift': 225,
+      'press': 95,
+      'row': 135,
+      'curl': 65
+    };
+
+    let suggestedWeight = 100; // Default
+    for (const [key, weight] of Object.entries(fallbackWeights)) {
+      if (currentExerciseName.toLowerCase().includes(key)) {
+        suggestedWeight = weight;
+        break;
+      }
+    }
+
+    return {
+      success: true,
+      action: 'SUGGEST_WEIGHT',
+      data: { suggestedWeight, isFirstTime: true },
+      message: `No history for ${currentExerciseName}. Start with ${suggestedWeight} lbs and adjust based on how it feels.`
+    };
+  } catch (error) {
+    console.error('Error in suggestWeight:', error);
+    return {
+      success: false,
+      error: error.message,
+      message: 'Unable to suggest weight. Try a weight you are comfortable with.'
+    };
+  }
 }
 
 async function getFormTip(params, context) {
@@ -259,16 +357,51 @@ async function getFormTip(params, context) {
 }
 
 async function checkPR(params, context) {
-  const { exercise } = params;
+  try {
+    const { exercise } = params;
 
-  // TODO: Get actual PR from workout history
-  // For now, return mock PR
-  return {
-    success: true,
-    action: 'CHECK_PR',
-    data: { exercise, pr: '275 lbs × 5 reps' },
-    message: `Your ${exercise || 'current exercise'} PR: 275 lbs × 5 reps (Oct 10)`
-  };
+    // Get exercise name from params or context
+    const exerciseName = exercise ||
+                         context.screenData?.currentExercise?.name ||
+                         context.exerciseSpecific?.exerciseName ||
+                         'current exercise';
+
+    // Get user ID from Firebase Auth
+    const userId = BackendService.getCurrentUserId() || 'guest';
+
+    // Get PR data from ContextManager
+    const prData = await ContextManager.getExercisePR(exerciseName, userId, 'weight');
+
+    if (prData) {
+      return {
+        success: true,
+        action: 'CHECK_PR',
+        data: {
+          exercise: exerciseName,
+          pr: prData.display,
+          weight: prData.value,
+          reps: prData.reps,
+          date: prData.date
+        },
+        message: `Your ${exerciseName} PR: ${prData.display} on ${new Date(prData.date).toLocaleDateString()}`
+      };
+    }
+
+    // No PR found
+    return {
+      success: true,
+      action: 'CHECK_PR',
+      data: { exercise: exerciseName, noPR: true },
+      message: `No PR recorded yet for ${exerciseName}. Complete your first workout to set a baseline!`
+    };
+  } catch (error) {
+    console.error('Error in checkPR:', error);
+    return {
+      success: false,
+      error: error.message,
+      message: 'Unable to fetch PR data right now.'
+    };
+  }
 }
 
 async function addExercise(params, context) {
@@ -286,48 +419,264 @@ async function addExercise(params, context) {
 // ============ HOME SCREEN ACTIONS ============
 
 async function getTodaySummary(params, context) {
-  // TODO: Get real data from AsyncStorage
-  const mockData = {
-    calories: 1200,
-    caloriesGoal: 2000,
-    protein: 80,
-    proteinGoal: 180,
-    workoutsToday: 0,
-    lastWorkout: '2 days ago - Legs'
-  };
+  try {
+    const today = new Date().toISOString().split('T')[0];
 
-  return {
-    success: true,
-    action: 'GET_TODAY_SUMMARY',
-    data: mockData,
-    message: `Today: ${mockData.calories}/${mockData.caloriesGoal} cal, ${mockData.protein}/${mockData.proteinGoal}g protein. No workout yet. Last session: ${mockData.lastWorkout}.`
-  };
+    // Get user ID from Firebase Auth
+    const userId = BackendService.getCurrentUserId() || 'guest';
+
+    // Get nutrition data from Firebase using ContextManager
+    const nutritionContext = await ContextManager.getNutritionContext(userId);
+
+    const totalCalories = nutritionContext.calories?.consumed || 0;
+    const totalProtein = nutritionContext.protein?.consumed || 0;
+    const caloriesGoal = nutritionContext.calories?.target || 2000;
+    const proteinGoal = nutritionContext.protein?.target || 150;
+    const todaysMeals = nutritionContext.todaysMeals || 0;
+
+    // Get workout data from Firebase
+    const WorkoutSyncService = (await import('../backend/WorkoutSyncService')).default;
+    let allWorkouts = [];
+    try {
+      allWorkouts = await WorkoutSyncService.getAllWorkouts(100);
+    } catch (error) {
+      console.log('⚠️ Could not fetch workouts from Firebase');
+    }
+
+    const todaysWorkouts = allWorkouts.filter(w => w.date.startsWith(today));
+
+    // Get last workout
+    const recentWorkouts = allWorkouts
+      .sort((a, b) => new Date(b.date) - new Date(a.date))
+      .slice(0, 1);
+
+    let lastWorkoutText = 'No workouts yet';
+    if (recentWorkouts.length > 0) {
+      const lastWorkout = recentWorkouts[0];
+      const daysSince = Math.floor((new Date() - new Date(lastWorkout.date)) / (1000 * 60 * 60 * 24));
+      if (daysSince === 0) {
+        lastWorkoutText = `Today - ${lastWorkout.workoutTitle}`;
+      } else if (daysSince === 1) {
+        lastWorkoutText = `Yesterday - ${lastWorkout.workoutTitle}`;
+      } else {
+        lastWorkoutText = `${daysSince} days ago - ${lastWorkout.workoutTitle}`;
+      }
+    }
+
+    const data = {
+      calories: Math.round(totalCalories),
+      caloriesGoal,
+      protein: Math.round(totalProtein),
+      proteinGoal,
+      workoutsToday: todaysWorkouts.length,
+      lastWorkout: lastWorkoutText,
+      mealsToday: todaysMeals.length
+    };
+
+    // Build message
+    let message = `Today: ${data.calories}/${data.caloriesGoal} cal, ${data.protein}/${data.proteinGoal}g protein`;
+
+    if (data.workoutsToday > 0) {
+      message += `. ✅ Completed ${data.workoutsToday} workout${data.workoutsToday > 1 ? 's' : ''} today!`;
+    } else {
+      message += `. No workout yet. Last session: ${lastWorkoutText}.`;
+    }
+
+    return {
+      success: true,
+      action: 'GET_TODAY_SUMMARY',
+      data,
+      message
+    };
+  } catch (error) {
+    console.error('Error in getTodaySummary:', error);
+    return {
+      success: false,
+      error: error.message,
+      message: 'Unable to fetch today\'s summary. Try again later.'
+    };
+  }
 }
 
 async function planWorkout(params, context) {
-  // TODO: Smart workout planning based on history
-  return {
-    success: true,
-    action: 'PLAN_WORKOUT',
-    data: { recommendation: 'Upper Body Push' },
-    message: `You should train Upper Body Push today. Last workout was legs 2 days ago, you're recovered and due for chest/shoulders/triceps.`
-  };
+  try {
+    // Get user ID from Firebase Auth
+    const userId = BackendService.getCurrentUserId() || 'guest';
+
+    // Get recent workout history from Firebase
+    const WorkoutSyncService = (await import('../backend/WorkoutSyncService')).default;
+    let allWorkouts = [];
+    try {
+      allWorkouts = await WorkoutSyncService.getAllWorkouts(100);
+    } catch (error) {
+      console.log('⚠️ Could not fetch workouts from Firebase');
+    }
+
+    if (!allWorkouts || allWorkouts.length === 0) {
+      return {
+        success: true,
+        action: 'PLAN_WORKOUT',
+        data: { recommendation: 'Full Body', isFirstWorkout: true },
+        message: `Start with a Full Body workout! Focus on compound movements: Squats, Bench Press, Rows, and Shoulder Press.`
+      };
+    }
+
+    // Sort by date (most recent first)
+    const sortedWorkouts = allWorkouts.sort((a, b) => new Date(b.date) - new Date(a.date));
+    const lastWorkout = sortedWorkouts[0];
+    const daysSinceLastWorkout = Math.floor((new Date() - new Date(lastWorkout.date)) / (1000 * 60 * 60 * 24));
+
+    // Count workouts by muscle group in last 7 days
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const recentWorkouts = sortedWorkouts.filter(w => new Date(w.date) >= sevenDaysAgo);
+
+    // Categorize workouts by muscle group based on exercises
+    const muscleGroupCounts = {
+      chest: 0,
+      back: 0,
+      legs: 0,
+      shoulders: 0,
+      arms: 0
+    };
+
+    recentWorkouts.forEach(workout => {
+      const title = workout.workoutTitle?.toLowerCase() || '';
+      const exercises = workout.exercises || [];
+      const exerciseNames = exercises.map(e => e.name.toLowerCase()).join(' ');
+
+      if (title.includes('chest') || title.includes('push') || exerciseNames.includes('bench')) {
+        muscleGroupCounts.chest++;
+      }
+      if (title.includes('back') || title.includes('pull') || exerciseNames.includes('row') || exerciseNames.includes('pullup')) {
+        muscleGroupCounts.back++;
+      }
+      if (title.includes('leg') || exerciseNames.includes('squat') || exerciseNames.includes('leg press')) {
+        muscleGroupCounts.legs++;
+      }
+      if (title.includes('shoulder') || exerciseNames.includes('shoulder press') || exerciseNames.includes('lateral')) {
+        muscleGroupCounts.shoulders++;
+      }
+      if (title.includes('arm') || exerciseNames.includes('curl') || exerciseNames.includes('tricep')) {
+        muscleGroupCounts.arms++;
+      }
+    });
+
+    // Find least trained muscle group
+    let leastTrained = 'Full Body';
+    let minCount = Infinity;
+    for (const [group, count] of Object.entries(muscleGroupCounts)) {
+      if (count < minCount) {
+        minCount = count;
+        leastTrained = group.charAt(0).toUpperCase() + group.slice(1);
+      }
+    }
+
+    // Build recommendation
+    let recommendation = leastTrained;
+    let reason = '';
+
+    if (daysSinceLastWorkout === 0) {
+      reason = `You already worked out today (${lastWorkout.workoutTitle}). Rest or do light cardio.`;
+      recommendation = 'Rest Day';
+    } else if (daysSinceLastWorkout === 1) {
+      reason = `Last workout was yesterday (${lastWorkout.workoutTitle}). Train ${leastTrained} - you haven't hit it in ${minCount === 0 ? 'over a week' : `${minCount} session(s)`}.`;
+    } else {
+      reason = `Last workout was ${daysSinceLastWorkout} days ago (${lastWorkout.workoutTitle}). You're recovered and ready for ${leastTrained}.`;
+    }
+
+    return {
+      success: true,
+      action: 'PLAN_WORKOUT',
+      data: {
+        recommendation,
+        daysSinceLastWorkout,
+        lastWorkout: lastWorkout.workoutTitle,
+        muscleGroupCounts,
+        leastTrained
+      },
+      message: reason
+    };
+  } catch (error) {
+    console.error('Error in planWorkout:', error);
+    return {
+      success: false,
+      error: error.message,
+      message: 'Unable to plan workout. Try a balanced full body routine.'
+    };
+  }
 }
 
 async function checkNutrition(params, context) {
-  // TODO: Get real nutrition data
-  const mockData = {
-    protein: 80,
-    proteinGoal: 180,
-    proteinRemaining: 100
-  };
+  try {
+    const today = new Date().toISOString().split('T')[0];
 
-  return {
-    success: true,
-    action: 'CHECK_NUTRITION',
-    data: mockData,
-    message: `Protein: ${mockData.protein}g / ${mockData.proteinGoal}g. Need ${mockData.proteinRemaining}g more. Aim for 40g per meal.`
-  };
+    // Get user ID from Firebase Auth
+    const userId = BackendService.getCurrentUserId() || 'guest';
+    console.log('🔥 Using Firebase user ID:', userId);
+
+    // Use proper nutrition context from ContextManager (already uses Firebase)
+    const nutritionContext = await ContextManager.getNutritionContext(userId);
+
+    const totalCalories = nutritionContext.calories?.consumed || 0;
+    const totalProtein = nutritionContext.protein?.consumed || 0;
+    const totalCarbs = nutritionContext.carbs?.consumed || 0;
+    const totalFat = nutritionContext.fat?.consumed || 0;
+
+    const caloriesGoal = nutritionContext.calories?.target || 2000;
+    const proteinGoal = nutritionContext.protein?.target || 150;
+    const carbsGoal = nutritionContext.carbs?.target || 200;
+    const fatGoal = nutritionContext.fat?.target || 65;
+
+    const mealsToday = nutritionContext.todaysMeals || 0;
+
+    const data = {
+      calories: Math.round(totalCalories),
+      caloriesGoal,
+      caloriesRemaining: Math.round(caloriesGoal - totalCalories),
+      protein: Math.round(totalProtein),
+      proteinGoal,
+      proteinRemaining: Math.round(proteinGoal - totalProtein),
+      carbs: Math.round(totalCarbs),
+      carbsGoal,
+      carbsRemaining: Math.round(carbsGoal - totalCarbs),
+      fat: Math.round(totalFat),
+      fatGoal,
+      fatRemaining: Math.round(fatGoal - totalFat),
+      mealsToday: mealsToday
+    };
+
+    // Build message with focus on most important macro
+    let message = `Today's Nutrition:\n`;
+    message += `• Calories: ${data.calories}/${data.caloriesGoal} (${data.caloriesRemaining} left)\n`;
+    message += `• Protein: ${data.protein}/${data.proteinGoal}g (${data.proteinRemaining}g left)\n`;
+    message += `• Carbs: ${data.carbs}/${data.carbsGoal}g\n`;
+    message += `• Fat: ${data.fat}/${data.fatGoal}g`;
+
+    // Add suggestion if protein is low
+    if (data.proteinRemaining > 50) {
+      const mealsLeft = 3 - data.mealsToday;
+      if (mealsLeft > 0) {
+        const proteinPerMeal = Math.round(data.proteinRemaining / Math.max(mealsLeft, 1));
+        message += `\n\nTip: Aim for ${proteinPerMeal}g protein per remaining meal.`;
+      }
+    }
+
+    return {
+      success: true,
+      action: 'CHECK_NUTRITION',
+      data,
+      message
+    };
+  } catch (error) {
+    console.error('Error in checkNutrition:', error);
+    return {
+      success: false,
+      error: error.message,
+      message: 'Unable to fetch nutrition data. Try again later.'
+    };
+  }
 }
 
 async function getMotivation(params, context) {
@@ -350,23 +699,118 @@ async function getMotivation(params, context) {
 }
 
 async function createWorkoutPlan(params, context) {
-  const { muscleGroup } = params;
+  try {
+    const { muscleGroup } = params;
 
-  // TODO: Actually generate workout plan
-  return {
-    success: true,
-    action: 'CREATE_WORKOUT_PLAN',
-    data: {
-      name: `${muscleGroup || 'Full Body'} Workout`,
-      exercises: [
-        'Bench Press (4x8)',
-        'Incline DB Press (3x10)',
-        'Cable Flies (3x12)',
-        'Close-Grip Bench (3x10)'
-      ]
-    },
-    message: `✅ Created '${muscleGroup || 'Full Body'} Workout' with 4 exercises. Ready to start?`
-  };
+    // Get user ID from Firebase Auth
+    const userId = BackendService.getCurrentUserId() || 'guest';
+
+    // Import AIService to generate workout with AI
+    const AIService = (await import('./AIService')).default;
+
+    // Ask AI to generate a workout
+    const aiPrompt = `Generate a workout for ${muscleGroup || 'Full Body'}.
+
+IMPORTANT: Respond in this EXACT format (nothing else):
+EXERCISE: Exercise Name (Equipment) | Sets | Reps
+EXERCISE: Exercise Name (Equipment) | Sets | Reps
+(continue for 4-6 exercises)
+
+Example:
+EXERCISE: Bench Press (Barbell) | 4 | 8
+EXERCISE: Incline Dumbbell Press (Dumbbell) | 3 | 10
+
+Generate 4-6 exercises for ${muscleGroup || 'Full Body'}.`;
+
+    console.log('🤖 Asking AI to generate workout...');
+    const aiResponse = await AIService.sendMessage(aiPrompt, { screen: 'WorkoutGenerator' });
+    console.log('🤖 AI Response:', aiResponse.response);
+
+    // Parse AI response to extract exercises
+    const exercises = [];
+    const lines = aiResponse.response.split('\n');
+
+    for (const line of lines) {
+      if (line.trim().startsWith('EXERCISE:')) {
+        // Parse: "EXERCISE: Bench Press (Barbell) | 4 | 8"
+        const parts = line.replace('EXERCISE:', '').trim().split('|').map(p => p.trim());
+        if (parts.length >= 3) {
+          // Extract name and equipment
+          const nameWithEquipment = parts[0];
+          const equipmentMatch = nameWithEquipment.match(/\(([^)]+)\)/);
+          const equipment = equipmentMatch ? equipmentMatch[1] : 'Barbell';
+          const name = nameWithEquipment.replace(/\([^)]+\)/, '').trim();
+
+          exercises.push({
+            name: `${name} (${equipment})`,
+            equipment: equipment,
+            sets: parseInt(parts[1]) || 3,
+            reps: parseInt(parts[2]) || 10,
+          });
+        }
+      }
+    }
+
+    // Fallback if AI parsing failed
+    if (exercises.length === 0) {
+      console.log('⚠️ AI parsing failed, using fallback');
+      exercises.push(
+        { name: 'Compound Exercise 1', equipment: 'Barbell', sets: 4, reps: 8 },
+        { name: 'Isolation Exercise 1', equipment: 'Dumbbell', sets: 3, reps: 10 },
+        { name: 'Isolation Exercise 2', equipment: 'Cable', sets: 3, reps: 12 },
+        { name: 'Finishing Exercise', equipment: 'Dumbbell', sets: 3, reps: 12 },
+      );
+    }
+
+    console.log(`✅ Generated ${exercises.length} exercises:`, exercises);
+    const planName = `${muscleGroup || 'Full Body'} Day`;
+
+    // Format exercises for storage
+    const formattedExercises = exercises.map((ex, idx) => ({
+      id: `${Date.now()}_${idx}`,
+      name: ex.name,
+      equipment: ex.equipment,
+      sets: Array(ex.sets).fill(null).map((_, setIdx) => ({
+        id: `set_${idx}_${setIdx}`,
+        reps: ex.reps,
+        weight: null, // User will fill this in
+        completed: false,
+      })),
+      notes: '',
+    }));
+
+    // Save the workout plan
+    const workoutPlan = {
+      workoutTitle: planName,
+      exercises: formattedExercises,
+      notes: `AI-generated ${muscleGroup || 'Full Body'} workout`,
+    };
+
+    // Save to planned workouts for today
+    const today = new Date().toISOString().split('T')[0];
+    await WorkoutStorageService.savePlannedWorkout(today, workoutPlan, userId);
+
+    // Build detailed message
+    const exerciseList = exercises.map(ex => `• ${ex.name} (${ex.sets}×${ex.reps})`).join('\n');
+
+    return {
+      success: true,
+      action: 'CREATE_WORKOUT_PLAN',
+      data: {
+        name: planName,
+        exercises: exercises.map(ex => `${ex.name} (${ex.sets}×${ex.reps})`),
+        totalExercises: exercises.length,
+      },
+      message: `✅ Created '${planName}' for today!\n\n${exerciseList}\n\nGo to Training → Start Workout to begin!`
+    };
+  } catch (error) {
+    console.error('Error creating workout plan:', error);
+    return {
+      success: false,
+      error: error.message,
+      message: 'Unable to create workout plan. Try again later.'
+    };
+  }
 }
 
 // ============ HELPER FUNCTIONS ============
@@ -384,14 +828,30 @@ function extractExerciseName(message) {
 }
 
 function extractMuscleGroup(message) {
-  const muscleGroups = ['chest', 'back', 'legs', 'shoulders', 'arms', 'biceps',
-                        'triceps', 'abs', 'glutes', 'full body'];
+  const lowerMsg = message.toLowerCase();
 
-  for (const group of muscleGroups) {
-    if (message.toLowerCase().includes(group)) {
-      return group.charAt(0).toUpperCase() + group.slice(1);
-    }
-  }
+  // Check for specific muscle groups (order matters - check specific before general)
+  // Arms/Biceps/Triceps variations
+  if (lowerMsg.match(/bicep|tricep|arm|curl|pushdown/)) return 'Arms';
+
+  // Chest variations
+  if (lowerMsg.match(/chest|bench|press.*chest|pec/)) return 'Chest';
+
+  // Back variations
+  if (lowerMsg.match(/back|pull|row|lat|deadlift/)) return 'Back';
+
+  // Legs variations
+  if (lowerMsg.match(/leg|squat|quad|hamstring|calf|glute/)) return 'Legs';
+
+  // Shoulders variations
+  if (lowerMsg.match(/shoulder|delt|overhead press|lateral/)) return 'Shoulders';
+
+  // Core/Abs
+  if (lowerMsg.match(/abs|core|plank/)) return 'Arms'; // Use Arms template for now
+
+  // Full body
+  if (lowerMsg.match(/full body|total body|whole body/)) return 'Full Body';
+
   return 'Full Body';
 }
 

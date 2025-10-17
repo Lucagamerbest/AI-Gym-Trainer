@@ -1,5 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { WorkoutStorageService } from '../workoutStorage';
+import WorkoutSyncService from '../backend/WorkoutSyncService';
+import MealSyncService from '../backend/MealSyncService';
+import BackendService from '../backend/BackendService';
 
 /**
  * ProactiveAIService - Detects key moments and suggests when AI should offer help
@@ -21,7 +24,14 @@ class ProactiveAIService {
   // Check if workout was just completed (within last 2 minutes)
   async checkWorkoutCompletion(userId) {
     try {
-      const workouts = await WorkoutStorageService.getWorkoutHistory(userId);
+      // Get workouts from Firebase
+      let workouts = [];
+      try {
+        workouts = await WorkoutSyncService.getAllWorkouts(20);
+      } catch (error) {
+        console.log('⚠️ Could not fetch workouts from Firebase');
+        return null;
+      }
       if (!workouts || workouts.length === 0) return null;
 
       const latestWorkout = workouts[0];
@@ -51,7 +61,14 @@ class ProactiveAIService {
   // Check if user just hit a PR (within last 5 minutes)
   async checkPRDetection(userId) {
     try {
-      const workouts = await WorkoutStorageService.getWorkoutHistory(userId);
+      // Get workouts from Firebase
+      let workouts = [];
+      try {
+        workouts = await WorkoutSyncService.getAllWorkouts(100);
+      } catch (error) {
+        console.log('⚠️ Could not fetch workouts from Firebase');
+        return null;
+      }
       if (!workouts || workouts.length === 0) return null;
 
       const latestWorkout = workouts[0];
@@ -65,18 +82,29 @@ class ProactiveAIService {
       // Check each exercise for PRs
       if (latestWorkout.exercises) {
         for (const exercise of latestWorkout.exercises) {
-          const progress = await WorkoutStorageService.getExerciseProgress(userId);
-          const exerciseData = progress[exercise.name];
+          // Calculate historical max from all workouts (not using AsyncStorage)
+          let historicalMax = 0;
+          workouts.forEach(workout => {
+            workout.exercises?.forEach(ex => {
+              if (ex.name === exercise.name) {
+                ex.sets?.forEach(set => {
+                  if (set.weight) {
+                    historicalMax = Math.max(historicalMax, parseFloat(set.weight));
+                  }
+                });
+              }
+            });
+          });
 
-          if (exerciseData && exercise.sets && exercise.sets.length > 0) {
+          if (exercise.sets && exercise.sets.length > 0) {
             // Find max weight in this workout
-            const maxWeightInWorkout = Math.max(...exercise.sets.map(s => s.weight || 0));
+            const maxWeightInWorkout = Math.max(...exercise.sets.map(s => parseFloat(s.weight) || 0));
             const maxRepsAtMaxWeight = Math.max(
-              ...exercise.sets.filter(s => s.weight === maxWeightInWorkout).map(s => s.reps || 0)
+              ...exercise.sets.filter(s => parseFloat(s.weight) === maxWeightInWorkout).map(s => parseInt(s.reps) || 0)
             );
 
             // Compare to historical max
-            if (exerciseData.maxWeight && maxWeightInWorkout > exerciseData.maxWeight) {
+            if (historicalMax > 0 && maxWeightInWorkout > historicalMax) {
               const suggestionKey = `pr_${exercise.name}_${maxWeightInWorkout}`;
               if (!this.dismissedSuggestions.has(suggestionKey)) {
                 this.dismissedSuggestions.add(suggestionKey);
@@ -90,7 +118,7 @@ class ProactiveAIService {
                     exercise: exercise.name,
                     newPR: maxWeightInWorkout,
                     reps: maxRepsAtMaxWeight,
-                    oldPR: exerciseData.maxWeight,
+                    oldPR: historicalMax,
                   },
                   priority: 'high',
                 };
@@ -109,23 +137,43 @@ class ProactiveAIService {
   async checkNutritionAlerts(userId) {
     try {
       const today = new Date().toISOString().split('T')[0];
-      const nutritionKey = `nutrition_log_${userId}_${today}`;
-      const nutritionData = await AsyncStorage.getItem(nutritionKey);
-
-      if (!nutritionData) return null;
-
-      const data = JSON.parse(nutritionData);
       const currentHour = new Date().getHours();
 
-      // Get user goals
-      const userProfileKey = `user_profile_${userId}`;
-      const profileData = await AsyncStorage.getItem(userProfileKey);
-      const profile = profileData ? JSON.parse(profileData) : null;
+      // Get today's meals from Firebase
+      let meals = [];
+      try {
+        meals = await MealSyncService.getMealsByDate(userId, today);
+      } catch (error) {
+        console.log('⚠️ Could not fetch meals from Firebase');
+        return null;
+      }
 
-      if (!profile || !profile.nutritionGoals) return null;
+      if (!meals || meals.length === 0) return null;
 
-      const goals = profile.nutritionGoals;
-      const consumed = data.totals || { calories: 0, protein: 0, carbs: 0, fat: 0 };
+      // Calculate consumed totals
+      let totalCalories = 0;
+      let totalProtein = 0;
+      meals.forEach(meal => {
+        totalCalories += meal.calories_consumed || meal.calories || 0;
+        totalProtein += meal.protein_consumed || meal.protein || 0;
+      });
+
+      // Get user goals from Firebase
+      let goals = { calories: 2000, protein: 150 };
+      try {
+        const userProfile = await BackendService.getUserProfile(userId);
+        if (userProfile && userProfile.goals) {
+          goals = {
+            calories: userProfile.goals.targetCalories || userProfile.goals.calories || 2000,
+            protein: userProfile.goals.proteinGrams || userProfile.goals.protein || 150,
+          };
+        }
+      } catch (error) {
+        console.log('⚠️ Could not fetch goals from Firebase');
+        return null;
+      }
+
+      const consumed = { calories: totalCalories, protein: totalProtein };
 
       const remaining = {
         calories: goals.calories - consumed.calories,
@@ -163,7 +211,14 @@ class ProactiveAIService {
   // Check workout consistency (remind if haven't worked out in a while)
   async checkWorkoutConsistency(userId) {
     try {
-      const workouts = await WorkoutStorageService.getWorkoutHistory(userId);
+      // Get workouts from Firebase
+      let workouts = [];
+      try {
+        workouts = await WorkoutSyncService.getAllWorkouts(20);
+      } catch (error) {
+        console.log('⚠️ Could not fetch workouts from Firebase');
+        return null;
+      }
       if (!workouts || workouts.length === 0) return null;
 
       const latestWorkout = workouts[0];
