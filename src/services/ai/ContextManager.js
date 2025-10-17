@@ -193,6 +193,14 @@ class ContextManager {
 
       const nutritionContext = {
         todaysMeals: meals.length,
+        meals: meals.map(meal => ({
+          name: meal.food_name || 'Unknown',
+          calories: Math.round(meal.calories_consumed || meal.calories || 0),
+          protein: Math.round(meal.protein_consumed || meal.protein || 0),
+          carbs: Math.round(meal.carbs_consumed || meal.carbs || 0),
+          fat: Math.round(meal.fat_consumed || meal.fat || 0),
+          mealType: meal.meal_type || 'snack',
+        })),
         calories: {
           consumed: Math.round(totalCalories),
           target: calorieGoal,
