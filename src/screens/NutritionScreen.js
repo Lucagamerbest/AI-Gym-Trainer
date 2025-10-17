@@ -9,6 +9,7 @@ import MacroGoalsModal from '../components/MacroGoalsModal';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { useAuth } from '../context/AuthContext';
 import { getNutritionGoals, updateNutritionGoals } from '../services/userProfileService';
+import MealSyncService from '../services/backend/MealSyncService';
 
 const MACROS_KEY = '@macro_goals';
 const DAILY_NUTRITION_KEY = '@daily_nutrition';
@@ -187,6 +188,29 @@ export default function NutritionScreen({ navigation, route }) {
           carbsGrams: totals.carbs,
           fatGrams: totals.fat
         }, updatedMeals, mealType);
+
+        // Auto-sync new meal to Firebase
+        if (user?.uid && user.uid !== 'guest') {
+          try {
+            const today = new Date().toISOString().split('T')[0];
+            const consumptionEntry = {
+              date: today,
+              meal_type: mealType,
+              food_name: addedFood.name || 'Unknown food',
+              food_brand: addedFood.brand || '',
+              quantity_grams: addedFood.quantity || 100,
+              calories_consumed: addedFood.calories || 0,
+              protein_consumed: addedFood.protein || 0,
+              carbs_consumed: addedFood.carbs || 0,
+              fat_consumed: addedFood.fat || 0,
+              created_at: new Date().toISOString(),
+            };
+            await MealSyncService.uploadDailyConsumption(user.uid, consumptionEntry);
+            console.log('✅ New meal synced to Firebase');
+          } catch (error) {
+            console.log('Sync will retry later:', error);
+          }
+        }
       });
     }
   }, [route.params?.addedFood, route.params?.fromRecipeAdd, route.params?.deleteFood, route.params?.deleteMeal, route.params?.editFood, dataLoaded, meals]);
@@ -572,6 +596,29 @@ export default function NutritionScreen({ navigation, route }) {
         carbsGrams: totals.carbs,
         fatGrams: totals.fat
       }, updatedMeals, selectedMeal, updatedPlannedMeals, updatedConsumedPlanned);
+
+      // Auto-sync consumed planned meal to Firebase
+      if (user?.uid && user.uid !== 'guest') {
+        try {
+          const today = new Date().toISOString().split('T')[0];
+          const consumptionEntry = {
+            date: today,
+            meal_type: mealType,
+            food_name: plannedFood.name || 'Unknown food',
+            food_brand: plannedFood.brand || '',
+            quantity_grams: plannedFood.quantity || 100,
+            calories_consumed: plannedFood.calories || 0,
+            protein_consumed: plannedFood.protein || 0,
+            carbs_consumed: plannedFood.carbs || 0,
+            fat_consumed: plannedFood.fat || 0,
+            created_at: new Date().toISOString(),
+          };
+          await MealSyncService.uploadDailyConsumption(user.uid, consumptionEntry);
+          console.log('✅ Consumed planned meal synced to Firebase');
+        } catch (error) {
+          console.log('Sync will retry later:', error);
+        }
+      }
     } catch (error) {
     }
   };
