@@ -156,7 +156,7 @@ export default function NutritionScreen({ navigation, route }) {
       setSelectedMeal(mealType);
 
       // First, get the latest meals from AsyncStorage to ensure we have all existing data
-      AsyncStorage.getItem(DAILY_NUTRITION_KEY).then(saved => {
+      AsyncStorage.getItem(DAILY_NUTRITION_KEY).then(async saved => {
         let currentMeals = meals;
         if (saved) {
           const data = JSON.parse(saved);
