@@ -329,6 +329,7 @@ export default function WorkoutProgramScreen({ navigation, route }) {
       subtitle={isStandaloneWorkout ? "Design your workout" : "Design your workout program"}
       navigation={navigation}
       showBack={true}
+      screenName="WorkoutProgramScreen"
     >
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         <View style={styles.section}>

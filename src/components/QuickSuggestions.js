@@ -65,22 +65,42 @@ export default function QuickSuggestions({ screen, onSuggestionPress }) {
       case 'NutritionDashboard':
       case 'NutritionScreen':
       case 'FoodScanResultScreen':
+      case 'Nutrition':
         return [
           { icon: '🔥', text: 'How many calories left today?' },
           { icon: '🥩', text: 'Am I hitting my protein goal?' },
           { icon: '🍽️', text: 'What should I eat for dinner?' },
           { icon: '📈', text: 'Show my macro breakdown' },
-          { icon: '💧', text: 'How much water should I drink?' },
+          { icon: '⚡', text: 'Am I on track with nutrition?' },
+        ];
+
+      case 'RecipesScreen':
+      case 'Recipes':
+        return [
+          { icon: '🍽️', text: 'Find a high protein recipe' },
+          { icon: '💡', text: 'Suggest a recipe for me' },
+          { icon: '📖', text: 'Show my saved recipes' },
+          { icon: '🥗', text: 'What should I cook?' },
         ];
 
       case 'ProgressScreen':
       case 'ProgressHubScreen':
+      case 'Progress':
         return [
-          { icon: '📊', text: 'Am I making progress?' },
-          { icon: '💪', text: 'Show my strength trends' },
-          { icon: '🎯', text: 'What should I focus on?' },
-          { icon: '📉', text: 'Identify my plateaus' },
-          { icon: '🔥', text: 'How consistent am I?' },
+          { icon: '🎯', text: 'Show my goals' },
+          { icon: '🏆', text: 'What achievements have I earned?' },
+          { icon: '🔥', text: "What's my streak?" },
+          { icon: '📈', text: 'Show my squat progress' },
+          { icon: '💪', text: "What's my bench press PR?" },
+        ];
+
+      case 'ExerciseDetailScreen':
+      case 'ExerciseDetail':
+        return [
+          { icon: '📋', text: 'How to do this exercise' },
+          { icon: '📊', text: 'Show my history' },
+          { icon: '💪', text: "What's my PR?" },
+          { icon: '🔄', text: 'Alternative exercises' },
         ];
 
       case 'ProfileScreen':
@@ -89,6 +109,14 @@ export default function QuickSuggestions({ screen, onSuggestionPress }) {
           { icon: '📊', text: 'Show my overall stats' },
           { icon: '🏆', text: 'What are my PRs?' },
           { icon: '💡', text: 'Suggest program improvements' },
+        ];
+
+      case 'TodayWorkoutOptionsScreen':
+        return [
+          { icon: '🤔', text: 'Which workout should I do today?' },
+          { icon: '💪', text: 'What did I train last?' },
+          { icon: '✨', text: 'Create a workout for chest and triceps' },
+          { icon: '🎯', text: 'Suggest a workout for me' },
         ];
 
       case 'HomeScreen':

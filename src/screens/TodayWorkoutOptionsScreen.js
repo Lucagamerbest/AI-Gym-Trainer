@@ -118,6 +118,7 @@ export default function TodayWorkoutOptionsScreen({ navigation }) {
       navigation={navigation}
       showBack={true}
       showHome={true}
+      screenName="TodayWorkoutOptionsScreen"
     >
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
 

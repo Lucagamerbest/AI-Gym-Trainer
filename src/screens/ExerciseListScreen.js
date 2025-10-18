@@ -357,6 +357,7 @@ export default function ExerciseListScreen({ navigation, route }) {
       showBack={true}
       scrollable={false}
       style={{ paddingHorizontal: 0 }}
+      screenName="ExerciseListScreen"
     >
       {/* Static Search Bar and Filters */}
       <View style={styles.staticHeaderContainer}>

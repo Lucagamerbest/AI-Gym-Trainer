@@ -136,6 +136,7 @@ export default function ProfileScreen({ navigation }) {
       navigation={navigation}
       showBack={false}
       showHome={false}
+      screenName="ProfileScreen"
     >
       <View style={styles.profileHeader}>
         <View style={styles.avatarContainer}>
