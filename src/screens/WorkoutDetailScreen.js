@@ -238,6 +238,7 @@ export default function WorkoutDetailScreen({ navigation, route }) {
       subtitle="Workout Details"
       navigation={navigation}
       showBack={true}
+      screenName="WorkoutDetailScreen"
     >
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         {workout.description && (

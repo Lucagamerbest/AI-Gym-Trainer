@@ -204,6 +204,7 @@ export default function PlannedWorkoutDetailScreen({ navigation, route }) {
       navigation={navigation}
       showBack={true}
       showHome={true}
+      screenName="PlannedWorkoutDetailScreen"
     >
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         {/* Workout Info Card */}

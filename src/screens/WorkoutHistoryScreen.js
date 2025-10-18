@@ -846,6 +846,7 @@ export default function WorkoutHistoryScreen({ navigation }) {
       showHome={true}
       scrollable={true}
       screenName="WorkoutHistoryScreen"
+      onAIClose={loadPlannedWorkouts}
     >
       <View style={styles.container}>
         {/* Tab Navigation */}

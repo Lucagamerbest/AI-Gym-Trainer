@@ -143,47 +143,59 @@ class ContextManager {
     try {
       console.log('🍽️ getNutritionContext received userId:', userId);
 
-      // Read from AsyncStorage (same as UI for consistency)
-      const savedNutrition = await AsyncStorage.getItem('@daily_nutrition');
+      // Read meals from Firebase
+      const today = new Date().toISOString().split('T')[0];
       let meals = [];
       let totalCalories = 0;
       let totalProtein = 0;
       let totalCarbs = 0;
       let totalFat = 0;
 
-      if (savedNutrition) {
-        const nutritionData = JSON.parse(savedNutrition);
+      if (userId && userId !== 'guest') {
+        try {
+          const firebaseMeals = await MealSyncService.getMealsByDate(userId, today);
 
-        // Get totals
-        totalCalories = nutritionData.consumed || 0;
-        totalProtein = nutritionData.consumedMacros?.proteinGrams || 0;
-        totalCarbs = nutritionData.consumedMacros?.carbsGrams || 0;
-        totalFat = nutritionData.consumedMacros?.fatGrams || 0;
+          // Convert Firebase meals to array and calculate totals
+          meals = firebaseMeals.map(meal => ({
+            name: meal.food_name || 'Unknown',
+            calories: meal.calories_consumed || 0,
+            protein: meal.protein_consumed || 0,
+            carbs: meal.carbs_consumed || 0,
+            fat: meal.fat_consumed || 0,
+          }));
 
-        // Convert meals object to array
-        const mealsObj = nutritionData.meals || {};
-        const allMeals = [
-          ...(mealsObj.breakfast || []),
-          ...(mealsObj.lunch || []),
-          ...(mealsObj.dinner || []),
-          ...(mealsObj.snacks || [])
-        ];
-        meals = allMeals;
+          // Calculate totals
+          meals.forEach(meal => {
+            totalCalories += meal.calories;
+            totalProtein += meal.protein;
+            totalCarbs += meal.carbs;
+            totalFat += meal.fat;
+          });
+
+          console.log(`🍽️ Loaded ${firebaseMeals.length} meals from Firebase`);
+        } catch (error) {
+          console.log('⚠️ Could not load meals from Firebase:', error);
+        }
       }
 
       console.log(`🍽️ Nutrition: ${totalCalories} cal, ${totalProtein}g protein, ${meals.length} meals`);
 
-      // Get goals from AsyncStorage (same as UI)
+      // Get goals from Firebase
       let goals = { calories: 2000, protein: 150, carbs: 200, fat: 65 };
-      const savedGoals = await AsyncStorage.getItem('@macro_goals');
-      if (savedGoals) {
-        const localGoals = JSON.parse(savedGoals);
-        goals = {
-          calories: localGoals.calories || 2000,
-          protein: localGoals.proteinGrams || 150,
-          carbs: localGoals.carbsGrams || 200,
-          fat: localGoals.fatGrams || 65,
-        };
+      if (userId && userId !== 'guest') {
+        try {
+          const firebaseProfile = await BackendService.getUserProfile(userId);
+          if (firebaseProfile && firebaseProfile.goals) {
+            goals = {
+              calories: firebaseProfile.goals.targetCalories || firebaseProfile.goals.calories || 2000,
+              protein: firebaseProfile.goals.proteinGrams || firebaseProfile.goals.protein || 150,
+              carbs: firebaseProfile.goals.carbsGrams || firebaseProfile.goals.carbs || 200,
+              fat: firebaseProfile.goals.fatGrams || firebaseProfile.goals.fat || 65,
+            };
+          }
+        } catch (error) {
+          console.log('⚠️ Could not load goals from Firebase:', error);
+        }
       }
       console.log('🎯 Goals:', goals);
 
@@ -192,6 +204,10 @@ class ContextManager {
       const proteinGoal = goals?.protein || 150;
       const carbsGoal = goals?.carbs || 200;
       const fatGoal = goals?.fat || 65;
+
+      const caloriesConsumed = Math.round(totalCalories);
+      const caloriesTarget = calorieGoal;
+      const caloriesRemaining = Math.round(calorieGoal - totalCalories);
 
       const nutritionContext = {
         todaysMeals: meals.length,
@@ -203,9 +219,9 @@ class ContextManager {
           fat: Math.round(meal.fat || 0),
         })),
         calories: {
-          consumed: Math.round(totalCalories),
-          target: calorieGoal,
-          remaining: Math.round(calorieGoal - totalCalories),
+          consumed: caloriesConsumed,
+          target: caloriesTarget,
+          remaining: caloriesRemaining,
           percentage: Math.round((totalCalories / calorieGoal) * 100),
         },
         protein: {
@@ -228,7 +244,6 @@ class ContextManager {
         },
       };
 
-      console.log('✅ Nutrition context:', nutritionContext);
       return nutritionContext;
     } catch (error) {
       console.error('❌ Error getting nutrition context:', error);

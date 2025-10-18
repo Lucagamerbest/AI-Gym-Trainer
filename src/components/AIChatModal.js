@@ -75,9 +75,12 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
   const getWelcomeMessage = () => {
     const screen = ContextManager.currentScreen;
     const welcomes = {
+      StartWorkoutScreen: "Hey! Ready to create a workout? I can help you plan the perfect session!",
       WorkoutDetailScreen: "Hey! I'm here to help with your workout. How's it going?",
       NutritionDashboard: "Hi! Ready to talk about your nutrition goals?",
       ProgressScreen: "Hello! Let's review your progress together.",
+      WorkoutHistoryScreen: "Hi! Ready to plan your upcoming workouts or review your progress?",
+      PlannedWorkoutDetailScreen: "Hey! Let me help you optimize this planned workout.",
       default: "Hi! I'm your AI fitness coach. How can I help you today?",
     };
     return welcomes[screen] || welcomes.default;
@@ -556,6 +559,9 @@ const styles = StyleSheet.create({
     color: Colors.text,
     maxHeight: 100,
     fontSize: Typography.fontSize.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    minHeight: 44,
   },
   sendButton: {
     width: 44,

@@ -409,7 +409,7 @@ export default function EnhancedFoodSearchScreen({ navigation }) {
   };
 
   return (
-    <ScreenLayout>
+    <ScreenLayout screenName="EnhancedFoodSearchScreen">
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.container}

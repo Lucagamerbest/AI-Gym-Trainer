@@ -289,6 +289,60 @@ class MealSyncService {
       throw error;
     }
   }
+
+  // Delete a single meal entry from Firebase
+  async deleteMeal(userId, mealId) {
+    try {
+      if (!userId || userId === 'guest') {
+        console.log('Skipping delete for guest user');
+        return { success: true };
+      }
+
+      if (!mealId) {
+        throw new Error('Meal ID is required');
+      }
+
+      const { deleteDoc, doc } = await import('firebase/firestore');
+      const mealRef = doc(this.db, 'users', userId, 'meals', mealId);
+      await deleteDoc(mealRef);
+
+      console.log('✅ Meal deleted from Firebase:', mealId);
+      return { success: true };
+    } catch (error) {
+      console.error('Error deleting meal from Firebase:', error);
+      throw error;
+    }
+  }
+
+  // Update a single meal entry in Firebase
+  async updateMeal(userId, mealId, updatedData) {
+    try {
+      if (!userId || userId === 'guest') {
+        console.log('Skipping update for guest user');
+        return { success: true };
+      }
+
+      if (!mealId) {
+        throw new Error('Meal ID is required');
+      }
+
+      const { updateDoc, doc } = await import('firebase/firestore');
+      const mealRef = doc(this.db, 'users', userId, 'meals', mealId);
+
+      const updatePayload = {
+        ...updatedData,
+        syncedAt: new Date().toISOString(),
+      };
+
+      await updateDoc(mealRef, updatePayload);
+
+      console.log('✅ Meal updated in Firebase:', mealId);
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating meal in Firebase:', error);
+      throw error;
+    }
+  }
 }
 
 export default new MealSyncService();

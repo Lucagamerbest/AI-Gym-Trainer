@@ -10,7 +10,7 @@ import ContextManager from '../services/ai/ContextManager';
  * Displays a floating AI button that opens the context-aware chat modal.
  * Automatically sets the screen context when pressed.
  */
-export default function AIHeaderButton({ screenName }) {
+export default function AIHeaderButton({ screenName, onAIClose }) {
   const [modalVisible, setModalVisible] = useState(false);
 
   const handlePress = () => {
@@ -23,6 +23,10 @@ export default function AIHeaderButton({ screenName }) {
 
   const handleClose = () => {
     setModalVisible(false);
+    // Call the callback if provided (e.g., to reload data)
+    if (onAIClose) {
+      onAIClose();
+    }
   };
 
   return (

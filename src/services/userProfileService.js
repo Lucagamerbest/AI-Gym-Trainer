@@ -1,7 +1,5 @@
 // User Profile Service - Stores user-specific settings and goals
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const getUserProfileKey = (userId) => `@user_profile_${userId}`;
+import BackendService from './backend/BackendService';
 
 // Default profile
 const DEFAULT_PROFILE = {
@@ -20,36 +18,65 @@ const DEFAULT_PROFILE = {
   },
 };
 
-// Get user profile
+// Get user profile from Firebase
 export const getUserProfile = async (userId) => {
   try {
-    if (!userId) return DEFAULT_PROFILE;
+    if (!userId || userId === 'guest') return DEFAULT_PROFILE;
 
-    const profileKey = getUserProfileKey(userId);
-    const profileData = await AsyncStorage.getItem(profileKey);
+    const firebaseProfile = await BackendService.getUserProfile(userId);
 
-    if (profileData) {
-      return JSON.parse(profileData);
+    if (firebaseProfile) {
+      // Map Firebase format to local format
+      return {
+        nutritionGoals: {
+          calories: firebaseProfile.goals?.targetCalories || firebaseProfile.goals?.calories || 2000,
+          protein: firebaseProfile.goals?.proteinGrams || firebaseProfile.goals?.protein || 150,
+          carbs: firebaseProfile.goals?.carbsGrams || firebaseProfile.goals?.carbs || 250,
+          fat: firebaseProfile.goals?.fatGrams || firebaseProfile.goals?.fat || 65,
+        },
+        workoutGoals: {
+          weeklyWorkouts: firebaseProfile.workoutGoals?.weeklyWorkouts || 3,
+          weeklyMinutes: firebaseProfile.workoutGoals?.weeklyMinutes || 150,
+        },
+        preferences: {
+          units: firebaseProfile.settings?.units || 'metric',
+        },
+      };
     }
 
     // Return default profile if none exists
     return DEFAULT_PROFILE;
   } catch (error) {
-    console.error('Error loading user profile:', error);
+    console.error('Error loading user profile from Firebase:', error);
     return DEFAULT_PROFILE;
   }
 };
 
-// Save user profile
+// Save user profile to Firebase
 export const saveUserProfile = async (userId, profile) => {
   try {
-    if (!userId) throw new Error('User ID is required');
+    if (!userId || userId === 'guest') throw new Error('User ID is required');
 
-    const profileKey = getUserProfileKey(userId);
-    await AsyncStorage.setItem(profileKey, JSON.stringify(profile));
+    // Map local format to Firebase format and update goals
+    const firebaseGoals = {
+      targetCalories: profile.nutritionGoals?.calories || 2000,
+      proteinGrams: profile.nutritionGoals?.protein || 150,
+      carbsGrams: profile.nutritionGoals?.carbs || 250,
+      fatGrams: profile.nutritionGoals?.fat || 65,
+    };
+
+    await BackendService.updateUserGoals(userId, firebaseGoals);
+
+    // Update settings if preferences changed
+    if (profile.preferences) {
+      await BackendService.updateUserSettings(userId, {
+        units: profile.preferences.units || 'metric',
+      });
+    }
+
     return { success: true };
   } catch (error) {
-    console.error('Error saving user profile:', error);
+    console.error('Error saving user profile to Firebase:', error);
     return { success: false, error: error.message };
   }
 };
@@ -57,9 +84,19 @@ export const saveUserProfile = async (userId, profile) => {
 // Update nutrition goals only
 export const updateNutritionGoals = async (userId, goals) => {
   try {
-    const profile = await getUserProfile(userId);
-    profile.nutritionGoals = { ...profile.nutritionGoals, ...goals };
-    return await saveUserProfile(userId, profile);
+    if (!userId || userId === 'guest') throw new Error('User ID is required');
+
+    // Map local format to Firebase format
+    const firebaseGoals = {
+      targetCalories: goals.calories,
+      proteinGrams: goals.protein,
+      carbsGrams: goals.carbs,
+      fatGrams: goals.fat,
+    };
+
+    await BackendService.updateUserGoals(userId, firebaseGoals);
+    console.log('✅ Nutrition goals updated in Firebase');
+    return { success: true };
   } catch (error) {
     console.error('Error updating nutrition goals:', error);
     return { success: false, error: error.message };

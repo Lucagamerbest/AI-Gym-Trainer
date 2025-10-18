@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -6,6 +6,7 @@ import ScreenLayout from '../components/ScreenLayout';
 import StyledButton from '../components/StyledButton';
 import StyledCard from '../components/StyledCard';
 import MacroGoalsModal from '../components/MacroGoalsModal';
+import AIHeaderButton from '../components/AIHeaderButton';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { useAuth } from '../context/AuthContext';
 import { getNutritionGoals, updateNutritionGoals } from '../services/userProfileService';
@@ -18,7 +19,6 @@ const MEAL_PLANS_KEY = '@meal_plans';
 
 export default function NutritionScreen({ navigation, route }) {
   const { user } = useAuth();
-  const [consumed, setConsumed] = useState(0);
   const [burned] = useState(0); // Will be updated when exercise tracking is implemented
   const [showMacroModal, setShowMacroModal] = useState(false);
   const [selectedMeal, setSelectedMeal] = useState('breakfast');
@@ -31,11 +31,6 @@ export default function NutritionScreen({ navigation, route }) {
     proteinGrams: 150,
     carbsGrams: 250,
     fatGrams: 65,
-  });
-  const [consumedMacros, setConsumedMacros] = useState({
-    proteinGrams: 0,
-    carbsGrams: 0,
-    fatGrams: 0,
   });
   const [meals, setMeals] = useState({
     breakfast: [],
@@ -55,6 +50,35 @@ export default function NutritionScreen({ navigation, route }) {
     dinner: [],
     snacks: []
   });
+
+  // Calculate consumed calories and macros directly from meals state
+  // This ensures it's always in sync with Firebase data (same as AI/ContextManager)
+  const { consumed, consumedMacros } = useMemo(() => {
+    let totalCalories = 0;
+    let totalProtein = 0;
+    let totalCarbs = 0;
+    let totalFat = 0;
+
+    ['breakfast', 'lunch', 'dinner', 'snacks'].forEach(mealType => {
+      if (meals[mealType] && Array.isArray(meals[mealType])) {
+        meals[mealType].forEach(food => {
+          totalCalories += food.calories || 0;
+          totalProtein += food.protein || 0;
+          totalCarbs += food.carbs || 0;
+          totalFat += food.fat || 0;
+        });
+      }
+    });
+
+    return {
+      consumed: totalCalories,
+      consumedMacros: {
+        proteinGrams: totalProtein,
+        carbsGrams: totalCarbs,
+        fatGrams: totalFat
+      }
+    };
+  }, [meals]);
 
   useEffect(() => {
     const initializeData = async () => {
@@ -85,13 +109,13 @@ export default function NutritionScreen({ navigation, route }) {
   }, []);
 
   // Reload data when screen is focused (e.g., coming back from CalorieBreakdown)
-  // Skip reload if we're coming back with edit/delete params (handled by useEffect)
+  // Skip reload if we're coming back with edit/delete/add params (handled by useEffect)
   useFocusEffect(
     React.useCallback(() => {
       // Reset processed params when screen is focused
       processedParams.current = {};
 
-      if (!route.params?.deleteFood && !route.params?.deleteMeal && !route.params?.editFood) {
+      if (!route.params?.deleteFood && !route.params?.deleteMeal && !route.params?.editFood && !route.params?.addedFood) {
         loadDailyNutrition();
       }
     }, [route.params])
@@ -174,41 +198,8 @@ export default function NutritionScreen({ navigation, route }) {
       // Update selected meal to match the added food's meal type
       setSelectedMeal(mealType);
 
-      // First, get the latest meals from AsyncStorage to ensure we have all existing data
-      AsyncStorage.getItem(DAILY_NUTRITION_KEY).then(async saved => {
-        let currentMeals = meals;
-        if (saved) {
-          const data = JSON.parse(saved);
-          currentMeals = data.meals || meals;
-        }
-
-        // Now add the new food to the existing meals
-        const updatedMeals = {
-          ...currentMeals,
-          [mealType]: [...(currentMeals[mealType] || []), addedFood]
-        };
-
-
-        // Calculate totals from all meals
-        const totals = calculateTotalsFromMeals(updatedMeals);
-
-        // Update all state
-        setMeals(updatedMeals);
-        setConsumed(totals.calories);
-        setConsumedMacros({
-          proteinGrams: totals.protein,
-          carbsGrams: totals.carbs,
-          fatGrams: totals.fat
-        });
-
-        // Save to AsyncStorage with the updated values
-        saveDailyNutrition(totals.calories, {
-          proteinGrams: totals.protein,
-          carbsGrams: totals.carbs,
-          fatGrams: totals.fat
-        }, updatedMeals, mealType);
-
-        // Auto-sync new meal to Firebase
+      // Auto-sync new meal to Firebase first to get the Firebase ID
+      (async () => {
         if (user?.uid && user.uid !== 'guest') {
           try {
             const today = new Date().toISOString().split('T')[0];
@@ -224,13 +215,29 @@ export default function NutritionScreen({ navigation, route }) {
               fat_consumed: addedFood.fat || 0,
               created_at: new Date().toISOString(),
             };
-            await MealSyncService.uploadDailyConsumption(user.uid, consumptionEntry);
-            console.log('✅ New meal synced to Firebase');
+            const firebaseId = await MealSyncService.uploadDailyConsumption(user.uid, consumptionEntry);
+
+            // Store Firebase ID with the added food
+            addedFood.firebaseId = firebaseId;
+            console.log('✅ New meal synced to Firebase with ID:', firebaseId);
           } catch (error) {
-            console.log('Sync will retry later:', error);
+            console.log('⚠️ Failed to sync to Firebase:', error);
+            // Continue without firebaseId if sync fails
           }
         }
-      });
+      })();
+
+      // Use current meals state (already loaded from Firebase)
+      const updatedMeals = {
+        ...meals,
+        [mealType]: [...(meals[mealType] || []), addedFood]
+      };
+
+      // Update meals state (consumed will auto-calculate from useMemo)
+      setMeals(updatedMeals);
+
+      // Save UI state to AsyncStorage
+      saveDailyNutrition(updatedMeals, mealType);
     }
   }, [route.params?.addedFood, route.params?.fromRecipeAdd, route.params?.deleteFood, route.params?.deleteMeal, route.params?.editFood, dataLoaded, meals]);
 
@@ -291,13 +298,9 @@ export default function NutritionScreen({ navigation, route }) {
           // Load planned meals separately (don't count toward nutrition yet)
           setPlannedMeals(todayPlanned);
           setMeals({ breakfast: [], lunch: [], dinner: [], snacks: [] });
-          setConsumed(0);
-          setConsumedMacros({ proteinGrams: 0, carbsGrams: 0, fatGrams: 0 });
           setSelectedMeal('breakfast');
         } else {
           // No planned meals, start fresh
-          setConsumed(0);
-          setConsumedMacros({ proteinGrams: 0, carbsGrams: 0, fatGrams: 0 });
           setMeals({ breakfast: [], lunch: [], dinner: [], snacks: [] });
           setPlannedMeals({ breakfast: [], lunch: [], dinner: [], snacks: [] });
           setSelectedMeal('breakfast');
@@ -348,14 +351,52 @@ export default function NutritionScreen({ navigation, route }) {
 
   const loadDailyNutrition = async () => {
     try {
-      const saved = await AsyncStorage.getItem(DAILY_NUTRITION_KEY);
+      const userId = user?.uid || 'guest';
+      const today = new Date().toISOString().split('T')[0];
 
+      // Load consumed meals from Firebase
+      let loadedMeals = { breakfast: [], lunch: [], dinner: [], snacks: [] };
+
+      if (userId && userId !== 'guest') {
+        try {
+          const firebaseMeals = await MealSyncService.getMealsByDate(userId, today);
+
+          // Convert Firebase flat array to UI grouped object
+          firebaseMeals.forEach(meal => {
+            const mealType = meal.meal_type || 'snacks';
+            if (loadedMeals[mealType]) {
+              loadedMeals[mealType].push({
+                firebaseId: meal.id, // Store Firebase ID for deletes
+                name: meal.food_name || 'Unknown',
+                brand: meal.food_brand || '',
+                quantity: meal.quantity_grams || 100,
+                calories: meal.calories_consumed || 0,
+                protein: meal.protein_consumed || 0,
+                carbs: meal.carbs_consumed || 0,
+                fat: meal.fat_consumed || 0,
+                created_at: meal.created_at,
+              });
+            }
+          });
+
+          console.log('✅ Loaded meals from Firebase:', firebaseMeals.length);
+        } catch (error) {
+          console.log('⚠️ Could not load meals from Firebase:', error);
+          // Fall back to empty meals
+        }
+      }
+
+      // Load planned meals and other UI state from AsyncStorage
+      let loadedPlannedMeals = { breakfast: [], lunch: [], dinner: [], snacks: [] };
+      let loadedConsumedPlanned = { breakfast: [], lunch: [], dinner: [], snacks: [] };
+      let savedSelectedMeal = 'breakfast';
+
+      const saved = await AsyncStorage.getItem(DAILY_NUTRITION_KEY);
       if (saved) {
         const data = JSON.parse(saved);
-
-        let loadedMeals = data.meals || { breakfast: [], lunch: [], dinner: [], snacks: [] };
-        let loadedPlannedMeals = data.plannedMeals || { breakfast: [], lunch: [], dinner: [], snacks: [] };
-        let loadedConsumedPlanned = data.consumedPlannedMeals || { breakfast: [], lunch: [], dinner: [], snacks: [] };
+        loadedPlannedMeals = data.plannedMeals || { breakfast: [], lunch: [], dinner: [], snacks: [] };
+        loadedConsumedPlanned = data.consumedPlannedMeals || { breakfast: [], lunch: [], dinner: [], snacks: [] };
+        savedSelectedMeal = data.selectedMeal || 'breakfast';
 
         // MIGRATION: If plannedMeals doesn't exist in saved data, check if current meals came from today's plan
         if (!data.plannedMeals) {
@@ -366,57 +407,32 @@ export default function NutritionScreen({ navigation, route }) {
 
           // If there were planned meals for today that match current meals, move them to planned
           if (todayPlanned && Object.values(todayPlanned).some(meals => meals && meals.length > 0)) {
-            // Move current meals to planned meals
             loadedPlannedMeals = todayPlanned;
-            // Clear consumed meals (user will mark them as consumed)
-            loadedMeals = { breakfast: [], lunch: [], dinner: [], snacks: [] };
           }
         }
-
-        // Recalculate totals from consumed meals only
-        const totals = calculateTotalsFromMeals(loadedMeals);
-
-        setConsumed(totals.calories);
-        setConsumedMacros({
-          proteinGrams: totals.protein,
-          carbsGrams: totals.carbs,
-          fatGrams: totals.fat
-        });
-        setMeals(loadedMeals);
-        setPlannedMeals(loadedPlannedMeals);
-        setConsumedPlannedMeals(loadedConsumedPlanned);
-        setSelectedMeal(data.selectedMeal || 'breakfast');
-
-        // Save the migrated data
-        if (!data.plannedMeals && Object.values(loadedPlannedMeals).some(meals => meals.length > 0)) {
-          await saveDailyNutrition(totals.calories, {
-            proteinGrams: totals.protein,
-            carbsGrams: totals.carbs,
-            fatGrams: totals.fat
-          }, loadedMeals, data.selectedMeal || 'breakfast', loadedPlannedMeals, loadedConsumedPlanned);
-        }
-
-        // Migration: Save consumedPlannedMeals if it doesn't exist
-        if (!data.consumedPlannedMeals) {
-          await saveDailyNutrition(totals.calories, {
-            proteinGrams: totals.protein,
-            carbsGrams: totals.carbs,
-            fatGrams: totals.fat
-          }, loadedMeals, data.selectedMeal || 'breakfast', loadedPlannedMeals, loadedConsumedPlanned);
-        }
-
-        // Sync to calendar on load
-        await syncMealsToCalendar(loadedMeals);
       }
+
+      // Update meals state (consumed will auto-calculate from useMemo)
+      setMeals(loadedMeals);
+      setPlannedMeals(loadedPlannedMeals);
+      setConsumedPlannedMeals(loadedConsumedPlanned);
+      setSelectedMeal(savedSelectedMeal);
+
+      // Sync to calendar on load
+      await syncMealsToCalendar(loadedMeals);
+
       setDataLoaded(true); // Mark data as loaded
     } catch (error) {
+      console.error('Error loading nutrition:', error);
       setDataLoaded(true); // Mark as loaded even on error
     }
   };
 
-  const saveDailyNutrition = async (newConsumed, newMacros, newMeals, newSelectedMeal, newPlannedMeals = null, newConsumedPlanned = null) => {
+  const saveDailyNutrition = async (newMeals, newSelectedMeal, newPlannedMeals = null, newConsumedPlanned = null) => {
     try {
-      // Ensure we have valid objects
+      // NOTE: Consumed meals are now stored in Firebase, so we don't save them to AsyncStorage
+      // We only save plannedMeals, consumedPlannedMeals, and selectedMeal (UI state)
+
       const safeMeals = newMeals || { breakfast: [], lunch: [], dinner: [], snacks: [] };
       const safePlannedMeals = newPlannedMeals !== null
         ? (newPlannedMeals || { breakfast: [], lunch: [], dinner: [], snacks: [] })
@@ -425,10 +441,9 @@ export default function NutritionScreen({ navigation, route }) {
         ? (newConsumedPlanned || { breakfast: [], lunch: [], dinner: [], snacks: [] })
         : (consumedPlannedMeals || { breakfast: [], lunch: [], dinner: [], snacks: [] });
 
+      // Only save UI state and planned meals to AsyncStorage
+      // Consumed meals are in Firebase now
       const data = {
-        consumed: newConsumed || 0,
-        consumedMacros: newMacros || { proteinGrams: 0, carbsGrams: 0, fatGrams: 0 },
-        meals: safeMeals,
         plannedMeals: safePlannedMeals,
         consumedPlannedMeals: safeConsumedPlanned,
         selectedMeal: newSelectedMeal || 'breakfast',
@@ -437,7 +452,7 @@ export default function NutritionScreen({ navigation, route }) {
 
       await AsyncStorage.setItem(DAILY_NUTRITION_KEY, JSON.stringify(data));
 
-      // Also sync to calendar meal plans
+      // Also sync consumed meals to calendar for history
       await syncMealsToCalendar(safeMeals);
     } catch (error) {
     }
@@ -489,7 +504,8 @@ export default function NutritionScreen({ navigation, route }) {
     navigation.navigate('CalorieBreakdown', {
       meals: meals,
       plannedMeals: plannedMeals,
-      totalCalories: consumed
+      totalCalories: consumed,
+      userId: user?.uid || 'guest'
     });
   };
 
@@ -497,29 +513,29 @@ export default function NutritionScreen({ navigation, route }) {
     try {
       const updatedMeals = { ...meals };
       if (updatedMeals[mealType] && updatedMeals[mealType][foodIndex] !== undefined) {
+        // Get the food item to delete (to access firebaseId)
+        const foodToDelete = updatedMeals[mealType][foodIndex];
+
+        // Delete from Firebase first (if it has a Firebase ID)
+        if (user?.uid && user.uid !== 'guest' && foodToDelete.firebaseId) {
+          try {
+            await MealSyncService.deleteMeal(user.uid, foodToDelete.firebaseId);
+            console.log('✅ Meal deleted from Firebase');
+          } catch (error) {
+            console.log('⚠️ Failed to delete from Firebase:', error);
+            // Continue with local delete even if Firebase delete fails
+          }
+        }
+
+        // Delete from local state
         updatedMeals[mealType].splice(foodIndex, 1);
         setMeals(updatedMeals);
-
-        // Recalculate totals
-        const totals = calculateTotalsFromMeals(updatedMeals);
-
-        setConsumed(totals.calories);
-        setConsumedMacros({
-          proteinGrams: totals.protein,
-          carbsGrams: totals.carbs,
-          fatGrams: totals.fat
-        });
-
 
         // Ensure plannedMeals has a default value
         const currentPlannedMeals = plannedMeals || { breakfast: [], lunch: [], dinner: [], snacks: [] };
 
         // Save to storage with plannedMeals
-        await saveDailyNutrition(totals.calories, {
-          proteinGrams: totals.protein,
-          carbsGrams: totals.carbs,
-          fatGrams: totals.fat
-        }, updatedMeals, selectedMeal, currentPlannedMeals);
+        await saveDailyNutrition(updatedMeals, selectedMeal, currentPlannedMeals);
 
         // Also sync to calendar
         await syncMealsToCalendar(updatedMeals);
@@ -532,28 +548,42 @@ export default function NutritionScreen({ navigation, route }) {
     try {
       const updatedMeals = { ...meals };
       if (updatedMeals[mealType] && updatedMeals[mealType][foodIndex] !== undefined) {
+        // Get the old food item to access firebaseId
+        const oldFood = updatedMeals[mealType][foodIndex];
+
+        // Update in Firebase first (if it has a Firebase ID)
+        if (user?.uid && user.uid !== 'guest' && oldFood.firebaseId) {
+          try {
+            const today = new Date().toISOString().split('T')[0];
+            const firebaseUpdateData = {
+              food_name: updatedFood.name || 'Unknown food',
+              food_brand: updatedFood.brand || '',
+              quantity_grams: updatedFood.quantity || 100,
+              calories_consumed: updatedFood.calories || 0,
+              protein_consumed: updatedFood.protein || 0,
+              carbs_consumed: updatedFood.carbs || 0,
+              fat_consumed: updatedFood.fat || 0,
+            };
+            await MealSyncService.updateMeal(user.uid, oldFood.firebaseId, firebaseUpdateData);
+            console.log('✅ Meal updated in Firebase');
+
+            // Preserve firebaseId in updated food
+            updatedFood.firebaseId = oldFood.firebaseId;
+          } catch (error) {
+            console.log('⚠️ Failed to update in Firebase:', error);
+            // Continue with local update even if Firebase update fails
+          }
+        }
+
+        // Update local state
         updatedMeals[mealType][foodIndex] = updatedFood;
         setMeals(updatedMeals);
-
-        // Recalculate totals
-        const totals = calculateTotalsFromMeals(updatedMeals);
-
-        setConsumed(totals.calories);
-        setConsumedMacros({
-          proteinGrams: totals.protein,
-          carbsGrams: totals.carbs,
-          fatGrams: totals.fat
-        });
 
         // Ensure plannedMeals has a default value
         const currentPlannedMeals = plannedMeals || { breakfast: [], lunch: [], dinner: [], snacks: [] };
 
         // Save to storage with plannedMeals
-        await saveDailyNutrition(totals.calories, {
-          proteinGrams: totals.protein,
-          carbsGrams: totals.carbs,
-          fatGrams: totals.fat
-        }, updatedMeals, selectedMeal, currentPlannedMeals);
+        await saveDailyNutrition(updatedMeals, selectedMeal, currentPlannedMeals);
 
         // Also sync to calendar
         await syncMealsToCalendar(updatedMeals);
@@ -568,7 +598,7 @@ export default function NutritionScreen({ navigation, route }) {
       setPlannedMeals(emptyPlanned);
 
       // Save to storage
-      await saveDailyNutrition(consumed, consumedMacros, meals, selectedMeal, emptyPlanned);
+      await saveDailyNutrition(meals, selectedMeal, emptyPlanned);
 
       Alert.alert('Success', 'All planned meals have been cleared');
     } catch (error) {
@@ -578,7 +608,34 @@ export default function NutritionScreen({ navigation, route }) {
 
   const markPlannedAsConsumed = async (mealType, foodIndex) => {
     try {
-      const plannedFood = plannedMeals[mealType][foodIndex];
+      const plannedFood = { ...plannedMeals[mealType][foodIndex] };
+
+      // Auto-sync consumed planned meal to Firebase first to get Firebase ID
+      if (user?.uid && user.uid !== 'guest') {
+        try {
+          const today = new Date().toISOString().split('T')[0];
+          const consumptionEntry = {
+            date: today,
+            meal_type: mealType,
+            food_name: plannedFood.name || 'Unknown food',
+            food_brand: plannedFood.brand || '',
+            quantity_grams: plannedFood.quantity || 100,
+            calories_consumed: plannedFood.calories || 0,
+            protein_consumed: plannedFood.protein || 0,
+            carbs_consumed: plannedFood.carbs || 0,
+            fat_consumed: plannedFood.fat || 0,
+            created_at: new Date().toISOString(),
+          };
+          const firebaseId = await MealSyncService.uploadDailyConsumption(user.uid, consumptionEntry);
+
+          // Store Firebase ID with the planned food
+          plannedFood.firebaseId = firebaseId;
+          console.log('✅ Consumed planned meal synced to Firebase with ID:', firebaseId);
+        } catch (error) {
+          console.log('⚠️ Failed to sync to Firebase:', error);
+          // Continue without firebaseId if sync fails
+        }
+      }
 
       // Add to consumed meals
       const updatedMeals = {
@@ -595,49 +652,13 @@ export default function NutritionScreen({ navigation, route }) {
       const updatedConsumedPlanned = { ...consumedPlannedMeals };
       updatedConsumedPlanned[mealType] = [...consumedPlannedMeals[mealType], plannedFood];
 
-      // Recalculate totals
-      const totals = calculateTotalsFromMeals(updatedMeals);
-
       // Update state
       setMeals(updatedMeals);
       setPlannedMeals(updatedPlannedMeals);
       setConsumedPlannedMeals(updatedConsumedPlanned);
-      setConsumed(totals.calories);
-      setConsumedMacros({
-        proteinGrams: totals.protein,
-        carbsGrams: totals.carbs,
-        fatGrams: totals.fat
-      });
 
       // Save to storage (now includes consumed planned meals)
-      await saveDailyNutrition(totals.calories, {
-        proteinGrams: totals.protein,
-        carbsGrams: totals.carbs,
-        fatGrams: totals.fat
-      }, updatedMeals, selectedMeal, updatedPlannedMeals, updatedConsumedPlanned);
-
-      // Auto-sync consumed planned meal to Firebase
-      if (user?.uid && user.uid !== 'guest') {
-        try {
-          const today = new Date().toISOString().split('T')[0];
-          const consumptionEntry = {
-            date: today,
-            meal_type: mealType,
-            food_name: plannedFood.name || 'Unknown food',
-            food_brand: plannedFood.brand || '',
-            quantity_grams: plannedFood.quantity || 100,
-            calories_consumed: plannedFood.calories || 0,
-            protein_consumed: plannedFood.protein || 0,
-            carbs_consumed: plannedFood.carbs || 0,
-            fat_consumed: plannedFood.fat || 0,
-            created_at: new Date().toISOString(),
-          };
-          await MealSyncService.uploadDailyConsumption(user.uid, consumptionEntry);
-          console.log('✅ Consumed planned meal synced to Firebase');
-        } catch (error) {
-          console.log('Sync will retry later:', error);
-        }
-      }
+      await saveDailyNutrition(updatedMeals, selectedMeal, updatedPlannedMeals, updatedConsumedPlanned);
     } catch (error) {
     }
   };
@@ -651,7 +672,7 @@ export default function NutritionScreen({ navigation, route }) {
       setPlannedMeals(updatedPlannedMeals);
 
       // Save to storage
-      await saveDailyNutrition(consumed, consumedMacros, meals, selectedMeal, updatedPlannedMeals);
+      await saveDailyNutrition(meals, selectedMeal, updatedPlannedMeals);
     } catch (error) {
     }
   };
@@ -735,14 +756,17 @@ export default function NutritionScreen({ navigation, route }) {
       <StyledCard style={styles.statsCard}>
         <View style={styles.statsHeader}>
           <Text style={styles.statsTitle}>Daily Calories</Text>
-          <TouchableOpacity
-            style={styles.editIndicator}
-            onPress={() => setShowMacroModal(true)}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.editIcon}>✏️</Text>
-            <Text style={styles.editHint}>Edit</Text>
-          </TouchableOpacity>
+          <View style={styles.headerButtons}>
+            <AIHeaderButton screenName="NutritionScreen" />
+            <TouchableOpacity
+              style={styles.editIndicator}
+              onPress={() => setShowMacroModal(true)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.editIcon}>✏️</Text>
+              <Text style={styles.editHint}>Edit</Text>
+            </TouchableOpacity>
+          </View>
         </View>
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
@@ -808,7 +832,7 @@ export default function NutritionScreen({ navigation, route }) {
                   setSelectedMeal(mealType);
                   setExpandedMeal(null);
                   // Save the selected meal immediately so it persists across navigation
-                  saveDailyNutrition(consumed, consumedMacros, meals, mealType, plannedMeals);
+                  saveDailyNutrition(meals, mealType, plannedMeals);
                 }}
               >
                 <Text style={styles.mealOptionText}>
@@ -1175,6 +1199,11 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Colors.text,
     letterSpacing: 0.3,
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
   },
   editIndicator: {
     flexDirection: 'row',

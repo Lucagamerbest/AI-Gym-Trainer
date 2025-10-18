@@ -2,15 +2,13 @@ import React, { useMemo, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../context/AuthContext';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import Logo from '../components/Logo';
 import ActiveWorkoutIndicator from '../components/ActiveWorkoutIndicator';
 import AIHeaderButton from '../components/AIHeaderButton';
-
-const MACROS_KEY = '@macro_goals';
-const DAILY_NUTRITION_KEY = '@daily_nutrition';
+import { getNutritionGoals } from '../services/userProfileService';
+import MealSyncService from '../services/backend/MealSyncService';
 
 function HomeScreen({ navigation }) {
   const { user } = useAuth();
@@ -28,40 +26,38 @@ function HomeScreen({ navigation }) {
   useFocusEffect(
     React.useCallback(() => {
       loadNutritionData();
-    }, [])
+    }, [user])
   );
 
   const loadNutritionData = async () => {
     try {
-      // Load macro goals
-      const savedGoals = await AsyncStorage.getItem(MACROS_KEY);
-      let calorieGoal = 2000;
-      if (savedGoals) {
-        const goals = JSON.parse(savedGoals);
-        calorieGoal = goals.calories || 2000;
-      }
+      const userId = user?.uid || 'guest';
+      const today = new Date().toISOString().split('T')[0];
 
-      // Load daily nutrition
-      const savedNutrition = await AsyncStorage.getItem(DAILY_NUTRITION_KEY);
+      // Load macro goals from Firebase
+      const goals = await getNutritionGoals(userId);
+      const calorieGoal = goals.calories || 2000;
+
+      // Load consumed meals from Firebase
       let consumedCalories = 0;
-      if (savedNutrition) {
-        const nutritionData = JSON.parse(savedNutrition);
-        const meals = nutritionData.meals || {};
+      if (userId && userId !== 'guest') {
+        try {
+          const firebaseMeals = await MealSyncService.getMealsByDate(userId, today);
 
-        // Calculate total consumed calories
-        Object.values(meals).forEach(mealItems => {
-          if (Array.isArray(mealItems)) {
-            mealItems.forEach(item => {
-              consumedCalories += item.calories || 0;
-            });
-          }
-        });
+          // Calculate total consumed calories
+          firebaseMeals.forEach(meal => {
+            consumedCalories += meal.calories_consumed || 0;
+          });
+        } catch (error) {
+          console.log('⚠️ Could not load meals from Firebase:', error);
+        }
       }
 
-      // Calculate remaining calories
-      const remaining = Math.round(Math.max(0, calorieGoal - consumedCalories));
+      // Calculate remaining calories (same as deficit in NutritionScreen)
+      const remaining = Math.round(calorieGoal - consumedCalories);
       setRemainingCalories(remaining);
     } catch (error) {
+      console.error('Error loading nutrition data:', error);
     }
   };
 

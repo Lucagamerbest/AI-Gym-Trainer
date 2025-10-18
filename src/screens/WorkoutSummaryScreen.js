@@ -1,11 +1,15 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView as RNScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView as RNScrollView, ActivityIndicator } from 'react-native';
 import ScreenLayout from '../components/ScreenLayout';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { LinearGradient } from 'expo-linear-gradient';
+import { analyzeWorkoutInsights } from '../services/ai/AIActions';
+import BackendService from '../services/backend/BackendService';
 
 export default function WorkoutSummaryScreen({ navigation, route }) {
   const { workoutData, exerciseSets, saveResult } = route.params || {};
+  const [aiInsights, setAiInsights] = useState([]);
+  const [loadingInsights, setLoadingInsights] = useState(true);
 
   const {
     duration = '00:00',
@@ -45,6 +49,27 @@ export default function WorkoutSummaryScreen({ navigation, route }) {
 
   const { totalSets, completedSets, totalVolume } = calculateStats();
 
+  // Load AI insights on mount
+  useEffect(() => {
+    const loadInsights = async () => {
+      try {
+        setLoadingInsights(true);
+        const userId = BackendService.getCurrentUserId() || 'guest';
+        const result = await analyzeWorkoutInsights(workoutData, exerciseSets, userId);
+
+        if (result.success && result.insights) {
+          setAiInsights(result.insights);
+        }
+      } catch (error) {
+        console.error('Error loading workout insights:', error);
+      } finally {
+        setLoadingInsights(false);
+      }
+    };
+
+    loadInsights();
+  }, []);
+
   const handleFinish = () => {
     // Navigate back to the main app (Home)
     navigation.navigate('Main', { screen: 'Home' });
@@ -75,6 +100,7 @@ export default function WorkoutSummaryScreen({ navigation, route }) {
       showBack={false}
       showHome={false}
       scrollable={true}
+      screenName="WorkoutSummaryScreen"
     >
       {/* Workout Title & Photos */}
       {(photos.length > 0 || notes) && (
@@ -143,6 +169,29 @@ export default function WorkoutSummaryScreen({ navigation, route }) {
           </View>
         </LinearGradient>
       </View>
+
+      {/* AI Insights Section */}
+      {loadingInsights ? (
+        <View style={styles.insightsLoadingContainer}>
+          <ActivityIndicator size="small" color={Colors.primary} />
+          <Text style={styles.insightsLoadingText}>Analyzing your workout...</Text>
+        </View>
+      ) : aiInsights.length > 0 ? (
+        <View style={styles.section}>
+          <View style={styles.insightsTitleRow}>
+            <Text style={styles.sectionTitle}>🤖 AI Coach Insights</Text>
+          </View>
+          {aiInsights.map((insight, index) => (
+            <View key={index} style={styles.insightCard}>
+              <View style={styles.insightHeader}>
+                <Text style={styles.insightEmoji}>{insight.emoji}</Text>
+                <Text style={styles.insightTitle}>{insight.title}</Text>
+              </View>
+              <Text style={styles.insightMessage}>{insight.message}</Text>
+            </View>
+          ))}
+        </View>
+      ) : null}
 
       {/* Workout Details */}
       <View style={styles.section}>
@@ -499,5 +548,60 @@ const styles = StyleSheet.create({
     color: Colors.background,
     fontSize: Typography.fontSize.lg,
     fontWeight: 'bold',
+  },
+  insightsLoadingContainer: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: Spacing.lg,
+    marginBottom: Spacing.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.md,
+  },
+  insightsLoadingText: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.textSecondary,
+  },
+  insightsTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
+  insightCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.primary + '30',
+    padding: Spacing.md,
+    marginBottom: Spacing.sm,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  insightHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.xs,
+    gap: Spacing.sm,
+  },
+  insightEmoji: {
+    fontSize: Typography.fontSize.xl,
+  },
+  insightTitle: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: 'bold',
+    color: Colors.primary,
+    flex: 1,
+  },
+  insightMessage: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.text,
+    lineHeight: 20,
+    marginLeft: Typography.fontSize.xl + Spacing.sm,
   },
 });

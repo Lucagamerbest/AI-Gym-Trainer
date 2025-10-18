@@ -2223,6 +2223,7 @@ export default function ProgressScreen({ navigation }) {
       subtitle="Track your achievements"
       navigation={navigation}
       scrollable={true}
+      screenName="ProgressScreen"
     >
       <View style={styles.container}>
         {renderTabBar()}

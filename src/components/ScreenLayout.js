@@ -19,7 +19,8 @@ export default function ScreenLayout({
   style,
   onHomePress,
   hideWorkoutIndicator = false,
-  screenName // Screen name for AI context
+  screenName, // Screen name for AI context
+  onAIClose // Callback when AI modal closes (e.g., to reload data)
 }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
@@ -76,7 +77,7 @@ export default function ScreenLayout({
           ]}
         >
           <View style={styles.headerLeft}>
-            {screenName && <AIHeaderButton screenName={screenName} />}
+            {screenName && <AIHeaderButton screenName={screenName} onAIClose={onAIClose} />}
             {showBack && navigation?.canGoBack() && (
               <TouchableOpacity
                 style={styles.navButton}

@@ -1,15 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import ScreenLayout from '../components/ScreenLayout';
 import StyledCard from '../components/StyledCard';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
-
-const DAILY_NUTRITION_KEY = '@daily_nutrition';
+import MealSyncService from '../services/backend/MealSyncService';
 
 export default function CalorieBreakdownScreen({ route, navigation }) {
-  const { meals: initialMeals, totalCalories: initialTotal, plannedMeals: initialPlannedMeals } = route.params || {};
+  const { meals: initialMeals, totalCalories: initialTotal, plannedMeals: initialPlannedMeals, userId } = route.params || {};
 
   const [meals, setMeals] = useState(initialMeals || { breakfast: [], lunch: [], dinner: [], snacks: [] });
   const [plannedMeals, setPlannedMeals] = useState(initialPlannedMeals || { breakfast: [], lunch: [], dinner: [], snacks: [] });
@@ -24,31 +21,8 @@ export default function CalorieBreakdownScreen({ route, navigation }) {
     setTotalCalories(newTotal);
   }, [meals]);
 
-  // Auto-reload data when coming back from unlog
-  useFocusEffect(
-    React.useCallback(() => {
-      const loadLatestData = async () => {
-        try {
-          const saved = await AsyncStorage.getItem(DAILY_NUTRITION_KEY);
-          if (saved) {
-            const data = JSON.parse(saved);
-            if (data.meals) {
-              setMeals(data.meals);
-            }
-            if (data.plannedMeals) {
-              setPlannedMeals(data.plannedMeals);
-            }
-            if (data.consumed !== undefined) {
-              setTotalCalories(data.consumed);
-            }
-          }
-        } catch (error) {
-        }
-      };
-
-      loadLatestData();
-    }, [])
-  );
+  // NOTE: Removed AsyncStorage loading - we now use only Firebase data passed via route params
+  // The data comes from NutritionScreen which loads from Firebase
 
   // Un-log handler - moves logged meal to planned instantly (no confirmation)
   const handleUnlogFood = async (mealType, foodIndex, food) => {
@@ -58,6 +32,16 @@ export default function CalorieBreakdownScreen({ route, navigation }) {
 
       // Get the food item
       const foodItem = updatedMeals[mealType][foodIndex];
+
+      // Delete from Firebase if it has a firebaseId
+      if (userId && userId !== 'guest' && foodItem.firebaseId) {
+        try {
+          await MealSyncService.deleteMeal(userId, foodItem.firebaseId);
+          console.log('✅ Meal deleted from Firebase (unlogged)');
+        } catch (error) {
+          console.log('⚠️ Failed to delete from Firebase:', error);
+        }
+      }
 
       // Remove from logged meals
       updatedMeals[mealType].splice(foodIndex, 1);
@@ -78,33 +62,9 @@ export default function CalorieBreakdownScreen({ route, navigation }) {
       }, 0);
       setTotalCalories(newTotal);
 
-      // Update AsyncStorage
-      const saved = await AsyncStorage.getItem(DAILY_NUTRITION_KEY);
-      if (saved) {
-        const data = JSON.parse(saved);
-        data.meals = updatedMeals;
-        data.plannedMeals = updatedPlannedMeals;
-        data.consumed = newTotal;
-
-        // Recalculate macros
-        const totals = Object.values(updatedMeals).reduce((acc, mealItems) => {
-          mealItems.forEach(item => {
-            acc.protein += parseFloat(item.protein || 0);
-            acc.carbs += parseFloat(item.carbs || 0);
-            acc.fat += parseFloat(item.fat || 0);
-          });
-          return acc;
-        }, { protein: 0, carbs: 0, fat: 0 });
-
-        data.consumedMacros = {
-          proteinGrams: totals.protein,
-          carbsGrams: totals.carbs,
-          fatGrams: totals.fat
-        };
-
-        await AsyncStorage.setItem(DAILY_NUTRITION_KEY, JSON.stringify(data));
-      }
+      // Note: NutritionScreen will reload from Firebase when we navigate back
     } catch (error) {
+      console.error('Error unlogging food:', error);
     }
   };
 
@@ -119,6 +79,30 @@ export default function CalorieBreakdownScreen({ route, navigation }) {
 
       // Remove from planned meals
       updatedPlannedMeals[mealType].splice(foodIndex, 1);
+
+      // Add to Firebase (re-logging)
+      if (userId && userId !== 'guest') {
+        try {
+          const today = new Date().toISOString().split('T')[0];
+          const consumptionEntry = {
+            date: today,
+            meal_type: mealType,
+            food_name: foodItem.name || 'Unknown food',
+            food_brand: foodItem.brand || '',
+            quantity_grams: foodItem.quantity || 100,
+            calories_consumed: foodItem.calories || 0,
+            protein_consumed: foodItem.protein || 0,
+            carbs_consumed: foodItem.carbs || 0,
+            fat_consumed: foodItem.fat || 0,
+            created_at: new Date().toISOString(),
+          };
+          const firebaseId = await MealSyncService.uploadDailyConsumption(userId, consumptionEntry);
+          foodItem.firebaseId = firebaseId;
+          console.log('✅ Meal re-logged to Firebase with ID:', firebaseId);
+        } catch (error) {
+          console.log('⚠️ Failed to sync to Firebase:', error);
+        }
+      }
 
       // Add to logged meals
       if (!updatedMeals[mealType]) {
@@ -136,33 +120,9 @@ export default function CalorieBreakdownScreen({ route, navigation }) {
       }, 0);
       setTotalCalories(newTotal);
 
-      // Update AsyncStorage
-      const saved = await AsyncStorage.getItem(DAILY_NUTRITION_KEY);
-      if (saved) {
-        const data = JSON.parse(saved);
-        data.meals = updatedMeals;
-        data.plannedMeals = updatedPlannedMeals;
-        data.consumed = newTotal;
-
-        // Recalculate macros
-        const totals = Object.values(updatedMeals).reduce((acc, mealItems) => {
-          mealItems.forEach(item => {
-            acc.protein += parseFloat(item.protein || 0);
-            acc.carbs += parseFloat(item.carbs || 0);
-            acc.fat += parseFloat(item.fat || 0);
-          });
-          return acc;
-        }, { protein: 0, carbs: 0, fat: 0 });
-
-        data.consumedMacros = {
-          proteinGrams: totals.protein,
-          carbsGrams: totals.carbs,
-          fatGrams: totals.fat
-        };
-
-        await AsyncStorage.setItem(DAILY_NUTRITION_KEY, JSON.stringify(data));
-      }
+      // Note: NutritionScreen will reload from Firebase when we navigate back
     } catch (error) {
+      console.error('Error relogging food:', error);
     }
   };
 

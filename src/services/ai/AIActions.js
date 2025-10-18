@@ -17,6 +17,10 @@ import BackendService from '../backend/BackendService';
 export function detectIntent(message, screen) {
   const msg = message.toLowerCase().trim();
 
+  console.log('🔍 detectIntent called');
+  console.log('📝 Message:', message);
+  console.log('📱 Screen:', screen);
+
   // WORKOUT SCREEN INTENTS
   if (screen === 'WorkoutScreen' || screen === 'StartWorkoutScreen') {
 
@@ -39,10 +43,21 @@ export function detectIntent(message, screen) {
       }
     }
 
-    // SUGGEST_WEIGHT - "should I add weight?" / "what weight?" / "go heavier?"
-    if (msg.includes('add weight') || msg.includes('what weight') ||
-        msg.includes('go heavier') || msg.includes('increase weight') ||
-        msg.includes('should i add')) {
+    // ANALYZE_PROGRESSION - "should I progress?" / "ready to increase?" / "am I ready to go heavier?"
+    if ((msg.includes('should i') || msg.includes('am i ready') || msg.includes('ready to')) &&
+        (msg.includes('progress') || msg.includes('increase') || msg.includes('add') || msg.includes('go heavier') || msg.includes('move up'))) {
+      return {
+        intent: 'ANALYZE_PROGRESSION',
+        confidence: 0.95,
+        parameters: {
+          exercise: extractExerciseName(msg)
+        }
+      };
+    }
+
+    // SUGGEST_WEIGHT - "what weight should I use?" / "go heavier?"
+    if (msg.includes('what weight') || msg.includes('go heavier') ||
+        msg.includes('increase weight')) {
       return {
         intent: 'SUGGEST_WEIGHT',
         confidence: 0.9,
@@ -269,6 +284,18 @@ export function detectIntent(message, screen) {
   // EXERCISE DETAIL SCREEN INTENTS
   if (screen === 'ExerciseDetailScreen' || screen === 'ExerciseDetail') {
 
+    // ANALYZE_PROGRESSION - "should I progress?" / "ready to increase?" / "am I ready for more weight?"
+    if ((msg.includes('should i') || msg.includes('am i ready') || msg.includes('ready to') || msg.includes('ready for')) &&
+        (msg.includes('progress') || msg.includes('increase') || msg.includes('add') || msg.includes('go heavier') || msg.includes('move up') || msg.includes('more weight'))) {
+      return {
+        intent: 'ANALYZE_PROGRESSION',
+        confidence: 0.95,
+        parameters: {
+          exercise: context.exerciseSpecific?.exerciseName || null
+        }
+      };
+    }
+
     // GET_EXERCISE_FORM - "how to do this exercise" / "form tips" / "technique"
     if (msg.includes('how to') || msg.includes('form') ||
         msg.includes('technique') || msg.includes('tips') ||
@@ -320,6 +347,40 @@ export function detectIntent(message, screen) {
     }
   }
 
+  // START WORKOUT SCREEN INTENTS
+  if (screen === 'StartWorkoutScreen') {
+
+    // CREATE_WORKOUT - "create a workout" / "create a workout for chest" / "plan a workout"
+    if ((msg.includes('create') || msg.includes('make') || msg.includes('build') || msg.includes('generate') || msg.includes('plan')) &&
+        (msg.includes('workout') || msg.includes('session'))) {
+
+      // Try to extract date from message
+      const extractedDate = extractDateFromMessage(msg);
+
+      return {
+        intent: 'CREATE_WORKOUT',
+        confidence: 0.95,
+        parameters: {
+          muscleGroups: extractMuscleGroups(msg),
+          autoScheduleDate: extractedDate, // Will be null if no date found
+          context: 'startWorkout'
+        }
+      };
+    }
+
+    // SUGGEST_WORKOUT - "what should I train" / "suggest exercises"
+    if ((msg.includes('what') && (msg.includes('train') || msg.includes('workout'))) ||
+        (msg.includes('suggest') && (msg.includes('exercise') || msg.includes('workout')))) {
+      return {
+        intent: 'PLAN_WORKOUT',
+        confidence: 0.85,
+        parameters: {
+          muscleGroups: extractMuscleGroups(msg)
+        }
+      };
+    }
+  }
+
   // TODAY WORKOUT OPTIONS SCREEN INTENTS
   if (screen === 'TodayWorkoutOptionsScreen' || screen === 'TodayWorkoutOptions') {
 
@@ -338,6 +399,103 @@ export function detectIntent(message, screen) {
           autoScheduleDate: extractedDate, // Will be null if no date found
           context: 'todayWorkout'
         }
+      };
+    }
+  }
+
+  // WORKOUT HISTORY SCREEN INTENTS
+  if (screen === 'WorkoutHistoryScreen') {
+
+    // CREATE_PROGRAM - "create a program" / "make a 4 day program" / "build a push pull legs program"
+    if ((msg.includes('create') || msg.includes('make') || msg.includes('build') || msg.includes('generate')) &&
+        (msg.includes('program') || msg.includes('split') || (msg.includes('day') && (msg.includes('4') || msg.includes('3') || msg.includes('5') || msg.includes('6'))))) {
+
+      // Extract number of days if mentioned
+      const daysMatch = msg.match(/(\d+)\s*day/i);
+      const numDays = daysMatch ? parseInt(daysMatch[1]) : null;
+
+      // Check for specific program types
+      let programType = null;
+      if (msg.includes('push pull legs') || msg.includes('ppl')) {
+        programType = 'push_pull_legs';
+      } else if (msg.includes('upper lower') || msg.includes('upper/lower')) {
+        programType = 'upper_lower';
+      } else if (msg.includes('bro split') || msg.includes('body part split')) {
+        programType = 'bro_split';
+      } else if (msg.includes('full body')) {
+        programType = 'full_body';
+      }
+
+      return {
+        intent: 'CREATE_PROGRAM',
+        confidence: 0.95,
+        parameters: {
+          numDays: numDays,
+          programType: programType,
+          muscleGroups: extractMuscleGroups(msg)
+        }
+      };
+    }
+
+    // Also detect when user just mentions a program type (for follow-up responses)
+    // More flexible detection: check for keywords without exact spacing
+    const isPPL = msg.includes('push') && msg.includes('pull') && msg.includes('leg');
+    const isUpperLower = (msg.includes('upper') && msg.includes('lower')) || msg.includes('upper/lower');
+    const isBroSplit = msg.includes('bro') || (msg.includes('body') && msg.includes('part'));
+    const isFullBody = msg.includes('full') && msg.includes('body');
+
+    if (msg.includes('ppl') || isPPL || isUpperLower || isBroSplit || isFullBody) {
+      console.log('🎯 Detected program type mention on WorkoutHistoryScreen');
+
+      let programType = null;
+      if (msg.includes('ppl') || isPPL) {
+        programType = 'push_pull_legs';
+      } else if (isUpperLower) {
+        programType = 'upper_lower';
+      } else if (isBroSplit) {
+        programType = 'bro_split';
+      } else if (isFullBody) {
+        programType = 'full_body';
+      }
+
+      console.log(`🎯 Program type identified: ${programType}`);
+
+      return {
+        intent: 'CREATE_PROGRAM',
+        confidence: 0.9,
+        parameters: {
+          numDays: null,
+          programType: programType,
+          muscleGroups: extractMuscleGroups(msg)
+        }
+      };
+    }
+
+    // PLAN_WORKOUT_FOR_DATE - "plan a workout for tuesday" / "schedule leg day for october 31st"
+    if ((msg.includes('plan') || msg.includes('schedule') || msg.includes('create') || msg.includes('make')) &&
+        (msg.includes('workout') || msg.includes('day')) && !msg.includes('program')) {
+
+      const extractedDate = extractDateFromMessage(msg);
+      const muscleGroups = extractMuscleGroups(msg);
+
+      return {
+        intent: 'PLAN_WORKOUT_FOR_DATE',
+        confidence: 0.95,
+        parameters: {
+          dateInfo: extractedDate,
+          muscleGroups: muscleGroups,
+          source: 'WorkoutHistoryScreen'
+        }
+      };
+    }
+
+    // SHOW_WORKOUT_FREQUENCY - "what did I train this week" / "show my workout frequency"
+    if ((msg.includes('what') && (msg.includes('train') || msg.includes('workout')) && msg.includes('week')) ||
+        msg.includes('frequency') || msg.includes('how often')) {
+      return {
+        intent: 'SHOW_WORKOUT_FREQUENCY',
+        confidence: 0.9,
+        parameters: {}
       };
     }
   }
@@ -488,6 +646,15 @@ export async function executeAction(intent, parameters, context) {
       case 'CREATE_WORKOUT':
         return await createWorkout(parameters, context);
 
+      case 'PLAN_WORKOUT_FOR_DATE':
+        return await planWorkoutForDate(parameters, context);
+
+      case 'SHOW_WORKOUT_FREQUENCY':
+        return await showWorkoutFrequency(parameters, context);
+
+      case 'CREATE_PROGRAM':
+        return await createProgram(parameters, context);
+
       case 'ADD_FOOD':
         return await addFood(parameters, context);
 
@@ -547,6 +714,9 @@ export async function executeAction(intent, parameters, context) {
 
       case 'SCHEDULE_WORKOUT':
         return await scheduleWorkout(parameters, context);
+
+      case 'ANALYZE_PROGRESSION':
+        return await analyzeProgression(parameters, context);
 
       default:
         return null; // No action to execute, just answer the question
@@ -1459,6 +1629,440 @@ async function scheduleWorkout(params, context) {
   }
 }
 
+async function planWorkoutForDate(params, context) {
+  try {
+    const { dateInfo, muscleGroups } = params;
+    const muscleGroupList = muscleGroups && muscleGroups.length > 0 ? muscleGroups : null;
+
+    // Get user ID from Firebase Auth
+    const userId = BackendService.getCurrentUserId() || 'guest';
+
+    // If no date specified, ask for it
+    if (!dateInfo) {
+      return {
+        success: true,
+        action: 'PLAN_WORKOUT_FOR_DATE_NO_DATE',
+        message: 'Sure! Which date would you like to plan a workout for? You can say:\n\n• "Tuesday"\n• "October 31st"\n• "Tomorrow"\n• "In 3 days"\n\nOr specify muscle groups like "chest and triceps for Friday"'
+      };
+    }
+
+    // If we have muscle groups, create the workout
+    if (muscleGroupList && muscleGroupList.length > 0) {
+      // Import AIService to generate workout with AI
+      const AIService = (await import('./AIService')).default;
+
+      // Build the muscle group string
+      const muscleGroupStr = muscleGroupList.join(' & ');
+
+      // Ask AI to generate a workout
+      const aiPrompt = `Generate a workout for ${muscleGroupStr}.
+
+IMPORTANT: Respond in this EXACT format (nothing else):
+EXERCISE: Exercise Name (Equipment) | Sets | Reps
+EXERCISE: Exercise Name (Equipment) | Sets | Reps
+(continue for 4-6 exercises)
+
+Example:
+EXERCISE: Bench Press (Barbell) | 4 | 8
+EXERCISE: Incline Dumbbell Press (Dumbbell) | 3 | 10
+
+Generate 4-6 exercises for ${muscleGroupStr}.`;
+
+      console.log('🤖 Asking AI to generate workout for:', muscleGroupStr);
+      const aiResponse = await AIService.sendMessage(aiPrompt, { screen: 'WorkoutGenerator' });
+      console.log('🤖 AI Response:', aiResponse.response);
+
+      // Parse AI response to extract exercises
+      const exercises = [];
+      const lines = aiResponse.response.split('\n');
+
+      for (const line of lines) {
+        if (line.trim().startsWith('EXERCISE:')) {
+          // Parse: "EXERCISE: Bench Press (Barbell) | 4 | 8"
+          const parts = line.replace('EXERCISE:', '').trim().split('|').map(p => p.trim());
+          if (parts.length >= 3) {
+            // Extract name and equipment
+            const nameWithEquipment = parts[0];
+            const equipmentMatch = nameWithEquipment.match(/\(([^)]+)\)/);
+            const equipment = equipmentMatch ? equipmentMatch[1] : 'Barbell';
+            const name = nameWithEquipment.replace(/\([^)]+\)/, '').trim();
+
+            exercises.push({
+              name: `${name} (${equipment})`,
+              equipment: equipment,
+              sets: parseInt(parts[1]) || 3,
+              reps: parseInt(parts[2]) || 10,
+            });
+          }
+        }
+      }
+
+      // Fallback if AI parsing failed
+      if (exercises.length === 0) {
+        console.log('⚠️ AI parsing failed, using fallback');
+        exercises.push(
+          { name: 'Compound Exercise 1', equipment: 'Barbell', sets: 4, reps: 8 },
+          { name: 'Isolation Exercise 1', equipment: 'Dumbbell', sets: 3, reps: 10 },
+          { name: 'Isolation Exercise 2', equipment: 'Cable', sets: 3, reps: 12 },
+        );
+      }
+
+      console.log(`✅ Generated ${exercises.length} exercises:`, exercises);
+      const workoutTitle = `${muscleGroupStr} Workout`;
+
+      // Format exercises for storage
+      const formattedExercises = exercises.map((ex, idx) => ({
+        id: `${Date.now()}_${idx}`,
+        name: ex.name,
+        equipment: ex.equipment,
+        sets: Array(ex.sets).fill(null).map((_, setIdx) => ({
+          id: `set_${idx}_${setIdx}`,
+          reps: ex.reps,
+          weight: null, // User will fill this in
+          completed: false,
+        })),
+        notes: '',
+      }));
+
+      // Create the workout plan object
+      const workoutPlan = {
+        workoutTitle: workoutTitle,
+        exercises: formattedExercises,
+        notes: `AI-generated ${muscleGroupStr} workout`,
+      };
+
+      // Save to planned workout for target date
+      await WorkoutStorageService.savePlannedWorkout(dateInfo.dateString, workoutPlan, userId);
+
+      const exerciseList = exercises.map(ex => `• ${ex.name} (${ex.sets}×${ex.reps})`).join('\n');
+
+      return {
+        success: true,
+        action: 'PLAN_WORKOUT_FOR_DATE',
+        data: {
+          name: workoutTitle,
+          muscleGroups: muscleGroupList,
+          exercises: exercises.map(ex => `${ex.name} (${ex.sets}×${ex.reps})`),
+          totalExercises: exercises.length,
+          scheduledDate: dateInfo.dateString,
+          displayDate: dateInfo.displayText,
+        },
+        message: `✅ Created '${workoutTitle}' and scheduled for ${dateInfo.displayText}!\n\n${exerciseList}\n\nYou'll see it in your calendar! 📅`
+      };
+    } else {
+      // No muscle groups specified - ask for them
+      return {
+        success: true,
+        action: 'PLAN_WORKOUT_FOR_DATE_NO_MUSCLES',
+        message: `Got it! I'll plan a workout for ${dateInfo.displayText}. Which muscle groups would you like to train?\n\nExamples:\n• "Chest and triceps"\n• "Back and biceps"\n• "Legs"\n• "Full body"`
+      };
+    }
+  } catch (error) {
+    console.error('Error planning workout for date:', error);
+    return {
+      success: false,
+      error: error.message,
+      message: 'Unable to plan workout. Try again later.'
+    };
+  }
+}
+
+async function showWorkoutFrequency(params, context) {
+  try {
+    // Get user ID from Firebase Auth
+    const userId = BackendService.getCurrentUserId() || 'guest';
+
+    // Get recent workout history from Firebase
+    const WorkoutSyncService = (await import('../backend/WorkoutSyncService')).default;
+    let allWorkouts = [];
+    try {
+      allWorkouts = await WorkoutSyncService.getAllWorkouts(100);
+    } catch (error) {
+      console.log('⚠️ Could not fetch workouts from Firebase');
+    }
+
+    if (!allWorkouts || allWorkouts.length === 0) {
+      return {
+        success: true,
+        action: 'SHOW_WORKOUT_FREQUENCY',
+        data: { noWorkouts: true },
+        message: 'No workouts logged yet! Start your first workout to track your training frequency. 💪'
+      };
+    }
+
+    // Get workouts from last 7 days
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const recentWorkouts = allWorkouts.filter(w => new Date(w.date) >= sevenDaysAgo);
+
+    // Get workouts from last 30 days
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const monthWorkouts = allWorkouts.filter(w => new Date(w.date) >= thirtyDaysAgo);
+
+    // Count muscle groups trained this week
+    const muscleGroupsThisWeek = {};
+    recentWorkouts.forEach(workout => {
+      workout.exercises?.forEach(exercise => {
+        const muscle = exercise.primaryMuscle || 'Unknown';
+        muscleGroupsThisWeek[muscle] = (muscleGroupsThisWeek[muscle] || 0) + 1;
+      });
+    });
+
+    const muscleGroupSummary = Object.entries(muscleGroupsThisWeek)
+      .map(([muscle, count]) => `• ${muscle}: ${count}x`)
+      .join('\n') || '• No workouts this week';
+
+    const weeklyAverage = Math.round((monthWorkouts.length / 4) * 10) / 10;
+
+    return {
+      success: true,
+      action: 'SHOW_WORKOUT_FREQUENCY',
+      data: {
+        lastWeek: recentWorkouts.length,
+        lastMonth: monthWorkouts.length,
+        weeklyAverage,
+        muscleGroups: muscleGroupsThisWeek
+      },
+      message: `📊 Your Workout Frequency:\n\n🗓️ Last 7 days: ${recentWorkouts.length} workouts\n📅 Last 30 days: ${monthWorkouts.length} workouts\n📈 Weekly average: ${weeklyAverage} workouts\n\n💪 Muscle groups this week:\n${muscleGroupSummary}`
+    };
+  } catch (error) {
+    console.error('Error showing workout frequency:', error);
+    return {
+      success: false,
+      error: error.message,
+      message: 'Unable to fetch workout frequency. Try again later.'
+    };
+  }
+}
+
+async function createProgram(params, context) {
+  try {
+    console.log('🏋️ CREATE_PROGRAM action called!');
+    console.log('📋 Parameters:', params);
+    console.log('📋 Context:', context);
+
+    const { numDays, programType, muscleGroups } = params;
+    const userId = BackendService.getCurrentUserId() || 'guest';
+
+    // If no program type specified, ask for it
+    if (!programType && !numDays) {
+      console.log('⚠️ No program type or numDays specified, asking user...');
+      return {
+        success: true,
+        action: 'CREATE_PROGRAM_ASK_TYPE',
+        message: `I can create a workout program for you! What type of split would you like?\n\n• Push/Pull/Legs (6 days)\n• Upper/Lower (4 days)\n• Bro Split (5 days)\n• Full Body (3 days)\n\nOr specify the number of days you want to train per week.`
+      };
+    }
+
+    // Determine program structure based on type or days
+    let programDays = [];
+    let programName = '';
+
+    if (programType === 'push_pull_legs' || (numDays === 6 && !programType)) {
+      programName = 'Push/Pull/Legs Program';
+      programDays = [
+        { name: 'Push Day', muscles: ['Chest', 'Shoulders', 'Triceps'] },
+        { name: 'Pull Day', muscles: ['Back', 'Biceps'] },
+        { name: 'Leg Day', muscles: ['Quads', 'Hamstrings', 'Glutes', 'Calves'] },
+        { name: 'Push Day', muscles: ['Chest', 'Shoulders', 'Triceps'] },
+        { name: 'Pull Day', muscles: ['Back', 'Biceps'] },
+        { name: 'Leg Day', muscles: ['Quads', 'Hamstrings', 'Glutes', 'Calves'] },
+      ];
+    } else if (programType === 'upper_lower' || (numDays === 4 && !programType)) {
+      programName = 'Upper/Lower Program';
+      programDays = [
+        { name: 'Upper Body', muscles: ['Chest', 'Back', 'Shoulders', 'Arms'] },
+        { name: 'Lower Body', muscles: ['Quads', 'Hamstrings', 'Glutes', 'Calves'] },
+        { name: 'Upper Body', muscles: ['Chest', 'Back', 'Shoulders', 'Arms'] },
+        { name: 'Lower Body', muscles: ['Quads', 'Hamstrings', 'Glutes', 'Calves'] },
+      ];
+    } else if (programType === 'bro_split' || (numDays === 5 && !programType)) {
+      programName = 'Bro Split Program';
+      programDays = [
+        { name: 'Chest Day', muscles: ['Chest'] },
+        { name: 'Back Day', muscles: ['Back'] },
+        { name: 'Shoulder Day', muscles: ['Shoulders'] },
+        { name: 'Leg Day', muscles: ['Quads', 'Hamstrings', 'Glutes'] },
+        { name: 'Arm Day', muscles: ['Biceps', 'Triceps'] },
+      ];
+    } else if (programType === 'full_body' || (numDays === 3 && !programType)) {
+      programName = 'Full Body Program';
+      programDays = [
+        { name: 'Full Body A', muscles: ['Chest', 'Back', 'Quads', 'Shoulders'] },
+        { name: 'Full Body B', muscles: ['Back', 'Chest', 'Hamstrings', 'Arms'] },
+        { name: 'Full Body C', muscles: ['Quads', 'Chest', 'Back', 'Shoulders'] },
+      ];
+    } else if (numDays && !programType) {
+      // Custom number of days without specific type
+      return {
+        success: true,
+        action: 'CREATE_PROGRAM_CUSTOM_DAYS',
+        message: `Got it, ${numDays} days per week! What type of split would you like?\n\n• Push/Pull/Legs\n• Upper/Lower\n• Bro Split (body part split)\n• Full Body\n• Or let me know which muscles you want to train each day`
+      };
+    } else {
+      return {
+        success: true,
+        action: 'CREATE_PROGRAM_UNCLEAR',
+        message: `I can create programs with these splits:\n\n• Push/Pull/Legs (6 days)\n• Upper/Lower (4 days)\n• Bro Split (5 days)\n• Full Body (3 days)\n\nWhich would you like?`
+      };
+    }
+
+    console.log(`🏋️ Creating ${programName} with ${programDays.length} days`);
+
+    // Get next Monday as starting point
+    const today = new Date();
+    const nextMonday = new Date(today);
+    const daysUntilMonday = (8 - today.getDay()) % 7 || 7;
+    nextMonday.setDate(today.getDate() + daysUntilMonday);
+
+    // Create program structure for MyPlansScreen
+    const programId = `program_${Date.now()}`;
+    const programDaysData = [];
+
+    // Generate and save each workout day
+    const createdWorkouts = [];
+    for (let i = 0; i < programDays.length; i++) {
+      const day = programDays[i];
+      const workoutDate = new Date(nextMonday);
+      workoutDate.setDate(nextMonday.getDate() + i);
+      const dateString = workoutDate.toISOString().split('T')[0];
+
+      console.log(`📅 Generating ${day.name} for ${dateString}`);
+
+      // Use AI to generate exercises for this day
+      const muscleGroupStr = day.muscles.join(', ');
+      const prompt = `Create a workout for ${muscleGroupStr}. Return ONLY a JSON array of exercises with this exact format:
+[{"name": "Exercise Name", "equipment": "Barbell/Dumbbell/Cable/Machine/Bodyweight", "sets": 3-4, "reps": 6-12}]
+
+Requirements:
+- Include 4-6 exercises
+- Start with compound movements
+- Include variety in equipment
+- Progressive rep ranges (lower for compounds, higher for isolation)
+- No explanations, ONLY the JSON array`;
+
+      let exercises = [];
+      try {
+        const aiResponse = await aiService.generateText(prompt);
+        const jsonMatch = aiResponse.match(/\[[\s\S]*\]/);
+        if (jsonMatch) {
+          exercises = JSON.parse(jsonMatch[0]);
+        }
+      } catch (error) {
+        console.log(`⚠️ AI generation failed for ${day.name}, using fallback`);
+      }
+
+      // Fallback exercises if AI fails
+      if (exercises.length === 0) {
+        exercises = [
+          { name: 'Compound Exercise 1', equipment: 'Barbell', sets: 4, reps: 8 },
+          { name: 'Compound Exercise 2', equipment: 'Dumbbell', sets: 3, reps: 10 },
+          { name: 'Isolation Exercise 1', equipment: 'Cable', sets: 3, reps: 12 },
+          { name: 'Isolation Exercise 2', equipment: 'Machine', sets: 3, reps: 12 },
+        ];
+      }
+
+      // Format exercises for storage
+      const formattedExercises = exercises.map((ex, idx) => ({
+        id: `${Date.now()}_${i}_${idx}`,
+        name: ex.name,
+        equipment: ex.equipment,
+        sets: Array(ex.sets).fill(null).map((_, setIdx) => ({
+          id: `set_${i}_${idx}_${setIdx}`,
+          reps: ex.reps,
+          weight: null,
+          completed: false,
+        })),
+        notes: '',
+      }));
+
+      // Create workout plan
+      const workoutPlan = {
+        workoutTitle: day.name,
+        exercises: formattedExercises,
+        notes: `Part of ${programName}`,
+      };
+
+      // Save to planned workouts (for calendar)
+      await WorkoutStorageService.savePlannedWorkout(dateString, workoutPlan, userId);
+
+      // Add to program days data (for My Plans screen)
+      programDaysData.push({
+        id: `day_${i}`,
+        name: day.name,
+        exercises: formattedExercises,
+        muscleGroups: day.muscles,
+      });
+
+      createdWorkouts.push({
+        name: day.name,
+        date: dateString,
+        muscles: day.muscles,
+        exerciseCount: exercises.length,
+      });
+
+      console.log(`✅ Created ${day.name} with ${exercises.length} exercises`);
+    }
+
+    // Save the complete program to AsyncStorage for My Plans screen
+    try {
+      const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
+      const WORKOUT_PROGRAMS_KEY = '@workout_programs';
+
+      // Get existing programs
+      const existingProgramsStr = await AsyncStorage.getItem(WORKOUT_PROGRAMS_KEY);
+      const existingPrograms = existingProgramsStr ? JSON.parse(existingProgramsStr) : [];
+
+      // Create new program object
+      const newProgram = {
+        id: programId,
+        name: programName,
+        description: `AI-generated ${programName}`,
+        days: programDaysData,
+        createdAt: new Date().toISOString(),
+      };
+
+      // Add to programs array
+      existingPrograms.push(newProgram);
+
+      // Save back to AsyncStorage
+      await AsyncStorage.setItem(WORKOUT_PROGRAMS_KEY, JSON.stringify(existingPrograms));
+
+      console.log(`💾 Saved program to My Plans: ${programName}`);
+    } catch (error) {
+      console.error('Error saving program to My Plans:', error);
+    }
+
+    // Format summary message
+    const workoutSummary = createdWorkouts.map((w, idx) => {
+      const date = new Date(w.date);
+      const dayName = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+      return `Day ${idx + 1} (${dayName}): ${w.name}\n  • ${w.muscles.join(', ')}\n  • ${w.exerciseCount} exercises`;
+    }).join('\n\n');
+
+    return {
+      success: true,
+      action: 'CREATE_PROGRAM',
+      data: {
+        programName,
+        numDays: programDays.length,
+        startDate: nextMonday.toISOString().split('T')[0],
+        workouts: createdWorkouts,
+      },
+      message: `✅ Created your ${programName}!\n\nStarting next Monday, here's your schedule:\n\n${workoutSummary}\n\n💾 Saved to My Plans - check the Programs section!\n📅 Also added to your calendar for easy scheduling! 💪`
+    };
+
+  } catch (error) {
+    console.error('Error creating program:', error);
+    return {
+      success: false,
+      error: error.message,
+      message: 'Unable to create program. Try again later.'
+    };
+  }
+}
+
 // ============ NUTRITION SCREEN ACTIONS ============
 
 async function addFood(params, context) {
@@ -1960,6 +2564,588 @@ async function checkExerciseProgress(params, context) {
       success: false,
       error: error.message,
       message: 'Unable to fetch exercise progress. Try viewing the Charts tab on the Progress screen.'
+    };
+  }
+}
+
+async function analyzeProgression(params, context) {
+  try {
+    // Get exercise name from params or context
+    const exerciseName = params.exercise ||
+                         context.screenData?.currentExercise?.name ||
+                         context.exerciseSpecific?.exerciseName;
+
+    if (!exerciseName) {
+      return {
+        success: false,
+        message: 'Please specify an exercise (e.g., "should I progress on bench press?" or "am I ready to increase weight on squats?")'
+      };
+    }
+
+    // Get user ID from Firebase Auth
+    const userId = BackendService.getCurrentUserId() || 'guest';
+
+    // Get last 8 workouts for the exercise to analyze trend
+    const history = await ContextManager.getExerciseHistory(exerciseName, userId, 8);
+
+    if (!history || history.length === 0) {
+      return {
+        success: true,
+        action: 'ANALYZE_PROGRESSION',
+        data: { noHistory: true, exercise: exerciseName },
+        message: `No workout history found for ${exerciseName}. Complete at least 3 workouts with this exercise to get progression recommendations.`
+      };
+    }
+
+    if (history.length < 3) {
+      return {
+        success: true,
+        action: 'ANALYZE_PROGRESSION',
+        data: { insufficientData: true, exercise: exerciseName, workoutCount: history.length },
+        message: `You've completed ${history.length} workout${history.length > 1 ? 's' : ''} with ${exerciseName}. Complete ${3 - history.length} more to get accurate progression recommendations.`
+      };
+    }
+
+    // Analyze last 3 workouts for progression readiness
+    const last3Workouts = history.slice(0, 3);
+    const latestWorkout = last3Workouts[0];
+    const currentWeight = latestWorkout.maxWeight;
+
+    // Check if weight has been consistent across last 3 workouts
+    const weights = last3Workouts.map(w => w.maxWeight);
+    const isWeightConsistent = weights.every(w => w === currentWeight);
+
+    // Check if reps have been hitting targets consistently
+    const avgReps = last3Workouts.reduce((sum, w) => sum + w.maxReps, 0) / 3;
+    const targetReps = 8; // Standard hypertrophy rep range target
+    const isHittingReps = avgReps >= targetReps;
+
+    // Check volume trend
+    const recentVolume = last3Workouts.reduce((sum, w) => sum + w.totalVolume, 0) / 3;
+    let olderVolume = recentVolume;
+    if (history.length >= 6) {
+      const older3Workouts = history.slice(3, 6);
+      olderVolume = older3Workouts.reduce((sum, w) => sum + w.totalVolume, 0) / 3;
+    }
+    const volumeIncreasing = recentVolume > olderVolume * 1.05;
+
+    // Check for regression (weight decreasing)
+    let isRegressing = false;
+    if (history.length >= 5) {
+      const previous2Workouts = history.slice(3, 5);
+      const previousAvgWeight = previous2Workouts.reduce((sum, w) => sum + w.maxWeight, 0) / 2;
+      isRegressing = currentWeight < previousAvgWeight * 0.95;
+    }
+
+    // Decision logic for progression recommendation
+    let recommendation;
+    let readyToProgress = false;
+    let suggestedWeight = currentWeight;
+    let emoji = '💪';
+
+    if (isRegressing) {
+      // User is regressing - suggest deload or maintenance
+      emoji = '⚠️';
+      recommendation = `Your weight has decreased recently on ${exerciseName}. Consider:\n\n`;
+      recommendation += `• Take a deload week (50-60% of current weight)\n`;
+      recommendation += `• Check recovery (sleep, nutrition, stress)\n`;
+      recommendation += `• Focus on form over weight\n\n`;
+      recommendation += `Current: ${currentWeight} lbs × ${Math.round(avgReps)} reps`;
+    } else if (isWeightConsistent && isHittingReps) {
+      // Ready to progress!
+      readyToProgress = true;
+      emoji = '🚀';
+
+      // Calculate suggested progression (5-10 lbs depending on exercise)
+      const isCompound = ['squat', 'deadlift', 'bench', 'press'].some(e =>
+        exerciseName.toLowerCase().includes(e)
+      );
+      const increment = isCompound ? 10 : 5;
+      suggestedWeight = currentWeight + increment;
+
+      recommendation = `${emoji} Yes! You're ready to progress on ${exerciseName}!\n\n`;
+      recommendation += `You've hit ${Math.round(avgReps)} reps consistently at ${currentWeight} lbs for 3 workouts.\n\n`;
+      recommendation += `💡 Recommended: Increase to ${suggestedWeight} lbs (+${increment} lbs)\n\n`;
+      recommendation += `Aim for ${targetReps}+ reps on your first set. If you can't hit ${targetReps} reps, stay at ${currentWeight} lbs for 1-2 more sessions.`;
+    } else if (isWeightConsistent && !isHittingReps) {
+      // Not hitting rep targets yet
+      emoji = '⏳';
+      recommendation = `Not quite yet! Stay at ${currentWeight} lbs for now.\n\n`;
+      recommendation += `Your reps are averaging ${Math.round(avgReps)} across last 3 sessions. Push for ${targetReps}+ reps consistently before adding weight.\n\n`;
+      recommendation += `💡 Tips:\n`;
+      recommendation += `• Focus on hitting ${targetReps}-12 reps per set\n`;
+      recommendation += `• Ensure proper form and full ROM\n`;
+      recommendation += `• Consider adding 1 more set to build volume`;
+    } else {
+      // Weight is varying - encourage consistency
+      emoji = '📊';
+      recommendation = `Focus on consistency first.\n\n`;
+      recommendation += `Your weight has varied recently (${Math.min(...weights)}-${Math.max(...weights)} lbs). Pick a weight and stick with it for 3 sessions before progressing.\n\n`;
+      recommendation += `💡 Suggested: Use ${currentWeight} lbs for your next 2-3 sessions and aim for ${targetReps}+ reps.`;
+    }
+
+    return {
+      success: true,
+      action: 'ANALYZE_PROGRESSION',
+      data: {
+        exercise: exerciseName,
+        currentWeight,
+        suggestedWeight,
+        readyToProgress,
+        avgReps: Math.round(avgReps),
+        workoutCount: history.length,
+        isWeightConsistent,
+        isHittingReps,
+        volumeIncreasing,
+        isRegressing
+      },
+      message: recommendation
+    };
+  } catch (error) {
+    console.error('Error analyzing progression:', error);
+    return {
+      success: false,
+      error: error.message,
+      message: 'Unable to analyze progression. Make sure you have workout history for this exercise.'
+    };
+  }
+}
+
+// ============ POST-WORKOUT ANALYSIS ============
+
+// Map exercises to primary muscle groups
+function getMuscleGroupsFromExercise(exerciseName) {
+  const name = exerciseName.toLowerCase();
+  const muscleGroups = [];
+
+  // Chest
+  if (name.includes('bench') || name.includes('chest') || name.includes('fly') ||
+      name.includes('press') && (name.includes('chest') || name.includes('incline') || name.includes('decline'))) {
+    muscleGroups.push('chest');
+  }
+
+  // Back
+  if (name.includes('row') || name.includes('pull') || name.includes('lat') ||
+      name.includes('back') || name.includes('deadlift')) {
+    muscleGroups.push('back');
+  }
+
+  // Legs
+  if (name.includes('squat') || name.includes('leg') || name.includes('lunge') ||
+      name.includes('quad') || name.includes('hamstring') || name.includes('calf')) {
+    muscleGroups.push('legs');
+  }
+
+  // Shoulders
+  if (name.includes('shoulder') || name.includes('lateral') || name.includes('rear delt') ||
+      (name.includes('press') && (name.includes('shoulder') || name.includes('overhead') || name.includes('military')))) {
+    muscleGroups.push('shoulders');
+  }
+
+  // Arms
+  if (name.includes('curl') || name.includes('tricep') || name.includes('bicep') ||
+      name.includes('arm') || name.includes('extension')) {
+    muscleGroups.push('arms');
+  }
+
+  // Core
+  if (name.includes('ab') || name.includes('plank') || name.includes('crunch') ||
+      name.includes('core') || name.includes('oblique')) {
+    muscleGroups.push('core');
+  }
+
+  // If no match, try to categorize by equipment or movement
+  if (muscleGroups.length === 0) {
+    if (name.includes('push')) muscleGroups.push('chest');
+    else if (name.includes('pull')) muscleGroups.push('back');
+    else muscleGroups.push('other');
+  }
+
+  return muscleGroups;
+}
+
+// Get weekly volume for muscle groups
+async function getWeeklyMuscleGroupVolume(userId, weeksBack = 4) {
+  try {
+    const WorkoutStorageService = (await import('../services/WorkoutStorageService')).default;
+
+    // Get workouts from the last X weeks
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - (weeksBack * 7));
+
+    const allWorkouts = await WorkoutStorageService.getWorkoutHistory();
+
+    // Filter workouts within date range
+    const recentWorkouts = allWorkouts.filter(w => {
+      const workoutDate = new Date(w.date || w.endTime);
+      return workoutDate >= startDate && workoutDate <= endDate;
+    });
+
+    // Calculate volume per muscle group per week
+    const weeklyData = {};
+
+    recentWorkouts.forEach(workout => {
+      const workoutDate = new Date(workout.date || workout.endTime);
+      const weekNumber = Math.floor((endDate - workoutDate) / (7 * 24 * 60 * 60 * 1000));
+
+      if (!weeklyData[weekNumber]) {
+        weeklyData[weekNumber] = {
+          chest: 0,
+          back: 0,
+          legs: 0,
+          shoulders: 0,
+          arms: 0,
+          core: 0,
+          other: 0,
+          total: 0
+        };
+      }
+
+      // Sum up volume by exercise
+      const exercises = workout.exercises || [];
+      exercises.forEach((exercise, index) => {
+        const sets = workout.exerciseSets?.[index] || workout.exerciseSets?.[index.toString()] || [];
+        const muscleGroups = getMuscleGroupsFromExercise(exercise.name);
+
+        sets.forEach(set => {
+          if (set.weight && set.reps) {
+            const volume = parseFloat(set.weight) * parseInt(set.reps);
+            muscleGroups.forEach(group => {
+              weeklyData[weekNumber][group] += volume;
+              weeklyData[weekNumber].total += volume;
+            });
+          }
+        });
+      });
+    });
+
+    return weeklyData;
+  } catch (error) {
+    console.error('Error calculating weekly volume:', error);
+    return {};
+  }
+}
+
+export async function analyzeWorkoutInsights(workoutData, exerciseSets, userId) {
+  try {
+    const insights = [];
+    const { exercises = [], duration, workoutTitle } = workoutData || {};
+
+    // Calculate workout stats
+    let totalVolume = 0;
+    let totalSets = 0;
+    const exerciseStats = [];
+
+    exercises.forEach((exercise, index) => {
+      const sets = exerciseSets?.[index] || exerciseSets?.[index.toString()] || [];
+      if (sets.length === 0) return;
+
+      const completedSets = sets.filter(s => s.weight && s.reps);
+      const maxWeight = Math.max(...completedSets.map(s => parseFloat(s.weight) || 0));
+      const maxReps = Math.max(...completedSets.map(s => parseInt(s.reps) || 0));
+      const exerciseVolume = completedSets.reduce((sum, set) =>
+        sum + (parseFloat(set.weight) || 0) * (parseInt(set.reps) || 0), 0
+      );
+
+      totalVolume += exerciseVolume;
+      totalSets += completedSets.length;
+
+      exerciseStats.push({
+        name: exercise.name,
+        sets: completedSets,
+        maxWeight,
+        maxReps,
+        volume: exerciseVolume,
+        bestSet: completedSets.reduce((best, set) => {
+          const currentVolume = (parseFloat(set.weight) || 0) * (parseInt(set.reps) || 0);
+          const bestVolume = (parseFloat(best?.weight) || 0) * (parseInt(best?.reps) || 0);
+          return currentVolume > bestVolume ? set : best;
+        }, null)
+      });
+    });
+
+    // Get historical data for comparison (if available)
+    const historicalComparisons = await Promise.all(
+      exerciseStats.map(async (stat) => {
+        try {
+          const history = await ContextManager.getExerciseHistory(stat.name, userId, 5);
+          if (!history || history.length === 0) {
+            return {
+              exerciseName: stat.name,
+              isFirstTime: true
+            };
+          }
+
+          const lastWorkout = history[0];
+          const prData = await ContextManager.getExercisePR(stat.name, userId, 'weight');
+
+          return {
+            exerciseName: stat.name,
+            isFirstTime: false,
+            lastMaxWeight: lastWorkout.maxWeight,
+            lastVolume: lastWorkout.totalVolume,
+            lastMaxReps: lastWorkout.maxReps,
+            currentPR: prData?.value || 0,
+            weightImprovement: stat.maxWeight - lastWorkout.maxWeight,
+            volumeImprovement: stat.volume - lastWorkout.totalVolume,
+            repsImprovement: stat.maxReps - lastWorkout.maxReps,
+            isNewWeightPR: stat.maxWeight > (prData?.value || 0),
+            history
+          };
+        } catch (error) {
+          console.error(`Error getting history for ${stat.name}:`, error);
+          return {
+            exerciseName: stat.name,
+            isFirstTime: true
+          };
+        }
+      })
+    );
+
+    // Generate insights based on comparisons
+    historicalComparisons.forEach((comparison, index) => {
+      const stat = exerciseStats[index];
+
+      // New PR Detection
+      if (comparison.isNewWeightPR) {
+        insights.push({
+          type: 'pr',
+          emoji: '🏆',
+          title: 'New Personal Record!',
+          message: `${stat.name}: ${stat.maxWeight} lbs × ${stat.maxReps} reps - That's a new PR! Previous best: ${comparison.currentPR} lbs`,
+          priority: 10
+        });
+      }
+
+      // Volume PR Detection
+      if (!comparison.isFirstTime && comparison.volumeImprovement > 500) {
+        insights.push({
+          type: 'volume_pr',
+          emoji: '🔥',
+          title: 'Volume Increase!',
+          message: `${stat.name}: +${Math.round(comparison.volumeImprovement)} lbs total volume vs last session. You're crushing it!`,
+          priority: 8
+        });
+      }
+
+      // Weight Progression
+      if (!comparison.isFirstTime && comparison.weightImprovement > 0) {
+        insights.push({
+          type: 'progression',
+          emoji: '📈',
+          title: 'Progressive Overload Working!',
+          message: `${stat.name}: You increased weight by ${comparison.weightImprovement} lbs since last time (${comparison.lastMaxWeight} → ${stat.maxWeight} lbs)`,
+          priority: 7
+        });
+      }
+
+      // Rep Improvement
+      if (!comparison.isFirstTime && comparison.repsImprovement >= 2 && comparison.weightImprovement === 0) {
+        insights.push({
+          type: 'reps',
+          emoji: '💪',
+          title: 'Rep Gains!',
+          message: `${stat.name}: +${comparison.repsImprovement} more reps at ${stat.maxWeight} lbs. Ready to increase weight next time!`,
+          priority: 6
+        });
+      }
+
+      // First Time Exercise
+      if (comparison.isFirstTime) {
+        insights.push({
+          type: 'first_time',
+          emoji: '✨',
+          title: 'New Exercise Unlocked!',
+          message: `${stat.name}: Great job trying something new! Baseline set: ${stat.bestSet?.weight} lbs × ${stat.bestSet?.reps} reps`,
+          priority: 5
+        });
+      }
+
+      // Regression Warning
+      if (!comparison.isFirstTime && comparison.weightImprovement < -10) {
+        insights.push({
+          type: 'warning',
+          emoji: '⚠️',
+          title: 'Strength Drop Detected',
+          message: `${stat.name}: Weight dropped by ${Math.abs(comparison.weightImprovement)} lbs. Consider extra rest or check your recovery.`,
+          priority: 9
+        });
+      }
+    });
+
+    // Overall Workout Insights
+    if (totalVolume > 10000) {
+      insights.push({
+        type: 'overall',
+        emoji: '💥',
+        title: 'Epic Volume Session!',
+        message: `You moved ${Math.round(totalVolume).toLocaleString()} lbs total today! That's serious work!`,
+        priority: 8
+      });
+    }
+
+    if (totalSets >= 20) {
+      insights.push({
+        type: 'overall',
+        emoji: '🎯',
+        title: 'High Volume Completed',
+        message: `${totalSets} sets completed! Your work capacity is impressive.`,
+        priority: 6
+      });
+    }
+
+    // Duration-based insights
+    const durationMinutes = parseInt(duration?.split(':')[0] || 0) * 60 + parseInt(duration?.split(':')[1] || 0);
+    if (durationMinutes > 90) {
+      insights.push({
+        type: 'duration',
+        emoji: '⏱️',
+        title: 'Long Session',
+        message: `${Math.round(durationMinutes)} minute workout. Consider if this duration is sustainable for recovery.`,
+        priority: 4
+      });
+    } else if (durationMinutes < 30 && totalSets >= 15) {
+      insights.push({
+        type: 'duration',
+        emoji: '⚡',
+        title: 'Efficient Workout!',
+        message: `${totalSets} sets in ${Math.round(durationMinutes)} minutes. You're training efficiently!`,
+        priority: 7
+      });
+    }
+
+    // Volume Tracking & Overtraining Detection
+    try {
+      // Calculate current workout volume by muscle group
+      const currentMuscleVolume = {
+        chest: 0, back: 0, legs: 0, shoulders: 0, arms: 0, core: 0, other: 0
+      };
+
+      exerciseStats.forEach(stat => {
+        const muscleGroups = getMuscleGroupsFromExercise(stat.name);
+        muscleGroups.forEach(group => {
+          currentMuscleVolume[group] += stat.volume;
+        });
+      });
+
+      // Get historical weekly volume data
+      const weeklyData = await getWeeklyMuscleGroupVolume(userId, 4);
+
+      // Calculate baseline (average of weeks 1-3, excluding current week 0)
+      const baseline = {
+        chest: 0, back: 0, legs: 0, shoulders: 0, arms: 0, core: 0, other: 0
+      };
+
+      let weekCount = 0;
+      for (let week = 1; week <= 3; week++) {
+        if (weeklyData[week]) {
+          weekCount++;
+          Object.keys(baseline).forEach(group => {
+            baseline[group] += weeklyData[week][group] || 0;
+          });
+        }
+      }
+
+      // Average the baseline
+      if (weekCount > 0) {
+        Object.keys(baseline).forEach(group => {
+          baseline[group] = baseline[group] / weekCount;
+        });
+      }
+
+      // Add current workout to this week's total
+      const thisWeekTotal = { ...currentMuscleVolume };
+      if (weeklyData[0]) {
+        Object.keys(thisWeekTotal).forEach(group => {
+          thisWeekTotal[group] += weeklyData[0][group] || 0;
+        });
+      }
+
+      // Detect volume spikes (>50% increase from baseline)
+      const warnings = [];
+      Object.keys(thisWeekTotal).forEach(group => {
+        if (group === 'other') return; // Skip "other" category
+
+        const thisWeek = thisWeekTotal[group];
+        const avg = baseline[group];
+
+        if (avg > 0 && thisWeek > avg * 1.5) {
+          const percentIncrease = Math.round(((thisWeek - avg) / avg) * 100);
+          warnings.push({
+            group,
+            percentIncrease,
+            thisWeek: Math.round(thisWeek),
+            baseline: Math.round(avg)
+          });
+        }
+      });
+
+      // Add warnings to insights (highest priority)
+      warnings.forEach(warning => {
+        const groupName = warning.group.charAt(0).toUpperCase() + warning.group.slice(1);
+        insights.push({
+          type: 'volume_warning',
+          emoji: '⚠️',
+          title: 'High Volume Alert!',
+          message: `${groupName} volume is ${warning.percentIncrease}% higher than your average this week (${warning.thisWeek.toLocaleString()} vs ${warning.baseline.toLocaleString()} lbs). Risk of overtraining - consider extra rest or lighter session.`,
+          priority: 11 // Higher than PR priority
+        });
+      });
+
+      // Deload suggestion if multiple muscle groups are high volume
+      if (warnings.length >= 2) {
+        insights.push({
+          type: 'deload_suggestion',
+          emoji: '🔄',
+          title: 'Consider a Deload Week',
+          message: `Multiple muscle groups showing high volume this week. Your body might benefit from a deload (50-60% normal volume) to recover and prevent injury.`,
+          priority: 11
+        });
+      }
+
+      // Positive feedback for consistent volume
+      if (warnings.length === 0 && weekCount >= 2) {
+        const totalThisWeek = Object.values(thisWeekTotal).reduce((sum, v) => sum + v, 0);
+        const totalBaseline = Object.values(baseline).reduce((sum, v) => sum + v, 0);
+
+        if (totalThisWeek >= totalBaseline * 0.8 && totalThisWeek <= totalBaseline * 1.3) {
+          insights.push({
+            type: 'volume_consistent',
+            emoji: '✅',
+            title: 'Consistent Training Volume',
+            message: `Your weekly volume is on track (${Math.round(totalThisWeek).toLocaleString()} lbs). Great consistency for sustainable progress!`,
+            priority: 5
+          });
+        }
+      }
+
+    } catch (volumeError) {
+      console.error('Error in volume tracking:', volumeError);
+      // Don't fail the entire analysis if volume tracking fails
+    }
+
+    // Sort insights by priority (highest first)
+    insights.sort((a, b) => b.priority - a.priority);
+
+    // Return top 5 insights
+    return {
+      success: true,
+      insights: insights.slice(0, 5),
+      stats: {
+        totalVolume: Math.round(totalVolume),
+        totalSets,
+        exerciseCount: exercises.length,
+        duration
+      }
+    };
+
+  } catch (error) {
+    console.error('Error analyzing workout insights:', error);
+    return {
+      success: false,
+      insights: [],
+      error: error.message
     };
   }
 }

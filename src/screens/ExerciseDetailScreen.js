@@ -6,6 +6,7 @@ import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { WorkoutStorageService } from '../services/workoutStorage';
 import { CustomExerciseStorage } from '../services/customExerciseStorage';
 import { useAuth } from '../context/AuthContext';
+import AIHeaderButton from '../components/AIHeaderButton';
 
 // Get screen dimensions for responsive design
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -151,6 +152,7 @@ export default function ExerciseDetailScreen({ navigation, route }) {
         backgroundColor: Colors.surface,
         minHeight: getResponsiveSize(60, 70, 80),
       }}>
+        <AIHeaderButton screenName="ExerciseDetailScreen" />
         <TouchableOpacity
           onPress={() => {
             navigation.goBack();
