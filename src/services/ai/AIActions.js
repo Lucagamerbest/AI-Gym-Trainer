@@ -3770,9 +3770,40 @@ function extractMuscleGroups(message) {
   const lowerMsg = message.toLowerCase();
   const muscleGroups = [];
 
+  // Check for workout split types FIRST (before individual muscle groups)
+  // Push workout = Chest + Shoulders + Triceps
+  if (lowerMsg.match(/\bpush\b/)) {
+    return ['Chest', 'Shoulders', 'Triceps'];
+  }
+
+  // Pull workout = Back + Biceps
+  if (lowerMsg.match(/\bpull\b/) && !lowerMsg.match(/\bpush\b/)) {
+    return ['Back', 'Biceps'];
+  }
+
+  // Leg workout
+  if (lowerMsg.match(/\bleg day\b|\blegs?\b/) && !lowerMsg.match(/push|pull/)) {
+    return ['Legs'];
+  }
+
+  // Full body
+  if (lowerMsg.match(/full body|total body|whole body/)) {
+    return ['Full Body'];
+  }
+
+  // Upper body
+  if (lowerMsg.match(/upper body/)) {
+    return ['Chest', 'Back', 'Shoulders', 'Arms'];
+  }
+
+  // Lower body
+  if (lowerMsg.match(/lower body/)) {
+    return ['Legs'];
+  }
+
   // Check for each muscle group and add to array (order matters - specific before general)
   if (lowerMsg.match(/chest|bench|press.*chest|pec/)) muscleGroups.push('Chest');
-  if (lowerMsg.match(/back|pull|row|lat/)) muscleGroups.push('Back');
+  if (lowerMsg.match(/back|row|lat/)) muscleGroups.push('Back');
   if (lowerMsg.match(/leg|squat|quad|hamstring|calf|glute/)) muscleGroups.push('Legs');
   if (lowerMsg.match(/shoulder|delt|overhead press|lateral/)) muscleGroups.push('Shoulders');
 
@@ -3787,8 +3818,8 @@ function extractMuscleGroups(message) {
 
   if (lowerMsg.match(/abs|core|plank/)) muscleGroups.push('Core');
 
-  // If full body is mentioned or no specific groups found
-  if (lowerMsg.match(/full body|total body|whole body/) || muscleGroups.length === 0) {
+  // If no specific groups found, default to Full Body
+  if (muscleGroups.length === 0) {
     return ['Full Body'];
   }
 

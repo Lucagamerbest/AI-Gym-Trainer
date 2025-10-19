@@ -3,6 +3,8 @@ import { WorkoutStorageService } from '../workoutStorage';
 import WorkoutSyncService from '../backend/WorkoutSyncService';
 import MealSyncService from '../backend/MealSyncService';
 import BackendService from '../backend/BackendService';
+import ProgressiveOverloadService from './ProgressiveOverloadService';
+import VolumeTrackingService from './VolumeTrackingService';
 
 /**
  * ProactiveAIService - Detects key moments and suggests when AI should offer help
@@ -248,6 +250,77 @@ class ProactiveAIService {
     return null;
   }
 
+  // Check progressive overload opportunities
+  async checkProgressiveOverload(userId) {
+    try {
+      const readyToProgress = await ProgressiveOverloadService.findReadyToProgress(userId);
+
+      if (readyToProgress && readyToProgress.length > 0) {
+        // Take the top recommendation (highest confidence)
+        const top = readyToProgress[0];
+        const suggestionKey = `overload_${top.exerciseName}_${top.suggestedWeight}`;
+
+        if (!this.dismissedSuggestions.has(suggestionKey)) {
+          this.dismissedSuggestions.add(suggestionKey);
+
+          return {
+            type: 'progressive_overload',
+            title: '📈 Ready to Progress!',
+            message: `${top.exerciseName}: ${top.reason}. Try ${top.suggestedWeight} lbs next session!`,
+            action: 'suggest_progression',
+            data: {
+              exercise: top.exerciseName,
+              currentWeight: top.currentWeight,
+              suggestedWeight: top.suggestedWeight,
+              increase: top.increase,
+              confidence: top.confidence,
+              allRecommendations: readyToProgress,
+            },
+            priority: 'high',
+          };
+        }
+      }
+    } catch (error) {
+      console.log('Error checking progressive overload:', error);
+    }
+    return null;
+  }
+
+  // Check volume imbalances
+  async checkVolumeBalance(userId) {
+    try {
+      const imbalances = await VolumeTrackingService.detectImbalances(userId);
+
+      if (imbalances && imbalances.length > 0) {
+        // Take the highest severity imbalance
+        const top = imbalances[0];
+        const suggestionKey = `volume_${top.type}_${new Date().toISOString().split('T')[0]}`;
+
+        if (!this.dismissedSuggestions.has(suggestionKey)) {
+          this.dismissedSuggestions.add(suggestionKey);
+
+          return {
+            type: 'volume_imbalance',
+            title: '⚖️ Volume Imbalance',
+            message: `${top.message}. ${top.recommendation}`,
+            action: 'fix_volume',
+            data: {
+              imbalanceType: top.type,
+              severity: top.severity,
+              musclesAffected: top.musclesAffected,
+              recommendation: top.recommendation,
+              allImbalances: imbalances,
+            },
+            priority: top.severity === 'HIGH' ? 'high' : 'medium',
+          };
+        }
+      }
+    } catch (error) {
+      console.log('Error checking volume balance:', error);
+    }
+    return null;
+  }
+
   // Get all active suggestions
   async getAllSuggestions(userId) {
     try {
@@ -256,6 +329,8 @@ class ProactiveAIService {
         this.checkPRDetection(userId),
         this.checkNutritionAlerts(userId),
         this.checkWorkoutConsistency(userId),
+        this.checkProgressiveOverload(userId),
+        this.checkVolumeBalance(userId),
       ]);
 
       // Filter out nulls and sort by priority
@@ -296,6 +371,12 @@ class ProactiveAIService {
 
       case 'plan_workout':
         return `It's been ${suggestion.data.daysAgo} days since my last workout. Can you help me plan my next session?`;
+
+      case 'suggest_progression':
+        return `I'm ready to progress on ${suggestion.data.exercise}! Currently doing ${suggestion.data.currentWeight} lbs. Should I jump to ${suggestion.data.suggestedWeight} lbs? What rep scheme should I use?`;
+
+      case 'fix_volume':
+        return `${suggestion.data.recommendation}. What exercises should I add and how many sets?`;
 
       default:
         return suggestion.message;

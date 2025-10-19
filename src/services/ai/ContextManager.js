@@ -4,6 +4,7 @@ import WorkoutSyncService from '../backend/WorkoutSyncService';
 import MealSyncService from '../backend/MealSyncService';
 import BackendService from '../backend/BackendService';
 import ProgressSyncService from '../backend/ProgressSyncService';
+import { getUserProfileSummary } from '../userProfileAssessment';
 
 class ContextManager {
   constructor() {
@@ -30,17 +31,21 @@ class ContextManager {
   async getFullContext(userId = 'guest') {
     console.log(`👤 Current user ID: ${userId}`);
 
+    // Get user profile summary (lightweight, critical for personalization)
+    const userProfile = await getUserProfileSummary();
+
     // Skip heavy data fetching for faster responses
     const context = {
       screen: this.currentScreen,
       activity: this.currentActivity,
       screenData: this.screenData,
+      userProfile: userProfile, // PERSONALIZATION: AI coach knows the user
       // userData: await this.getUserData(), // SKIP for speed
       recentActivity: await this.getRecentActivity(),
       topExercises: await this.getTopExercisePRs(userId, 2), // Top 2 only (SPEED)
     };
 
-    console.log(`📚 AI Context built (minimal for speed)`);
+    console.log(`📚 AI Context built (minimal for speed)`, userProfile ? '✅ With user profile' : '⚠️ No profile');
     return context;
   }
 

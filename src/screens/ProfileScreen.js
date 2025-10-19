@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import ScreenLayout from '../components/ScreenLayout';
 import StyledCard from '../components/StyledCard';
 import StyledButton from '../components/StyledButton';
@@ -7,6 +8,7 @@ import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { useAuth } from '../context/AuthContext';
 import { WorkoutStorageService } from '../services/workoutStorage';
 import SyncManager from '../services/backend/SyncManager';
+import { loadUserProfile } from '../services/userProfileAssessment';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 
@@ -19,12 +21,23 @@ export default function ProfileScreen({ navigation }) {
   const [syncStatus, setSyncStatus] = useState({ isOnline: true, isSyncing: false, pendingOperations: 0 });
   const [lastSyncTime, setLastSyncTime] = useState(null);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [userProfile, setUserProfile] = useState(null);
 
   // Load user stats when component mounts or user changes
   useEffect(() => {
     loadUserStats();
     loadSyncStatus();
+    loadProfile();
   }, [user]);
+
+  const loadProfile = async () => {
+    try {
+      const profile = await loadUserProfile();
+      setUserProfile(profile);
+    } catch (error) {
+      console.error('Error loading user profile:', error);
+    }
+  };
 
   const loadUserStats = async () => {
     try {
@@ -143,18 +156,23 @@ export default function ProfileScreen({ navigation }) {
           {user?.photoURL ? (
             <Image source={{ uri: user.photoURL }} style={styles.avatarImage} />
           ) : (
-            <Text style={styles.avatarIcon}>👤</Text>
+            <Ionicons name="person" size={50} color={Colors.primary} />
           )}
         </View>
         <Text style={styles.userName}>{user?.displayName || 'Guest User'}</Text>
         <Text style={styles.userEmail}>{user?.email || 'Not signed in'}</Text>
-        <Text style={styles.userStatus}>
-          {user?.provider === 'google.com' ? '✓ Google Account' :
-           user?.provider === 'apple.com' ? '✓ Apple Account' :
-           user?.provider === 'password' ? '✓ Regular Account' :
-           user?.subscriptionType === 'premium' ? '✓ Premium Account' :
-           'Guest Account'}
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          {(user?.provider === 'google.com' || user?.provider === 'apple.com' || user?.provider === 'password' || user?.subscriptionType === 'premium') && (
+            <Ionicons name="checkmark-circle" size={16} color={Colors.primary} style={{ marginRight: 4 }} />
+          )}
+          <Text style={styles.userStatus}>
+            {user?.provider === 'google.com' ? 'Google Account' :
+             user?.provider === 'apple.com' ? 'Apple Account' :
+             user?.provider === 'password' ? 'Regular Account' :
+             user?.subscriptionType === 'premium' ? 'Premium Account' :
+             'Guest Account'}
+          </Text>
+        </View>
       </View>
 
       {!user || user.provider === 'guest' ? (
@@ -195,7 +213,7 @@ export default function ProfileScreen({ navigation }) {
             )}
             {user.provider === 'password' && (
               <View style={styles.providerBadge}>
-                <Text style={styles.providerIcon}>📧</Text>
+                <Ionicons name="mail" size={16} color={Colors.primary} style={{ marginRight: 6 }} />
                 <Text style={styles.providerText}>Regular Account</Text>
               </View>
             )}
@@ -205,34 +223,78 @@ export default function ProfileScreen({ navigation }) {
 
       <StyledCard variant="elevated" style={styles.aiStatusCard}>
         <View style={styles.statusContent}>
-          <Text style={styles.statusLabel}>AI Profile Status</Text>
-          <Text style={styles.statusValue}>
-            {user && user.provider !== 'guest' ? 'Ready to personalize' : 'Sign in to enable'}
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+            <Ionicons name="hardware-chip" size={20} color={Colors.primary} style={{ marginRight: 8 }} />
+            <Text style={styles.statusLabel}>AI Coach Profile</Text>
+          </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+            {user && user.provider !== 'guest' && userProfile?.assessmentCompleted && (
+              <Ionicons name="checkmark-circle" size={20} color={Colors.success} style={{ marginRight: 6 }} />
+            )}
+            <Text style={styles.statusValue}>
+              {user && user.provider !== 'guest'
+                ? (userProfile?.assessmentCompleted
+                  ? 'Profile Complete'
+                  : 'Profile Incomplete')
+                : 'Sign in to enable'}
+            </Text>
+          </View>
           <Text style={styles.statusHint}>
-            {user && user.provider !== 'guest' 
-              ? 'Your AI profile will adapt to your preferences'
+            {user && user.provider !== 'guest'
+              ? (userProfile?.assessmentCompleted
+                ? 'Your AI coach knows your goals, preferences, and limitations'
+                : 'Complete your profile to get highly personalized coaching and recommendations')
               : 'Sign in to get personalized recommendations'}
           </Text>
+
+          {user && user.provider !== 'guest' && (
+            <View style={styles.profileButtonsContainer}>
+              {!userProfile?.assessmentCompleted ? (
+                <StyledButton
+                  title="Complete Profile Assessment"
+                  icon="clipboard"
+                  size="md"
+                  variant="primary"
+                  fullWidth
+                  onPress={() => navigation.navigate('AICoachAssessment')}
+                  style={styles.assessmentButton}
+                />
+              ) : (
+                <View style={styles.profileActionsRow}>
+                  <View style={styles.viewProfileButton}>
+                    <StyledButton
+                      title="View Profile"
+                      icon="person"
+                      size="md"
+                      variant="secondary"
+                      fullWidth
+                      onPress={() => navigation.navigate('UserProfile')}
+                    />
+                  </View>
+                  <View style={styles.updateProfileButton}>
+                    <StyledButton
+                      title="Update"
+                      icon="create"
+                      size="md"
+                      variant="secondary"
+                      fullWidth
+                      onPress={() => navigation.navigate('AICoachAssessment')}
+                    />
+                  </View>
+                </View>
+              )}
+            </View>
+          )}
         </View>
       </StyledCard>
 
       {user && user.provider !== 'guest' && (
-        <StyledButton
-          title="Get Started with AI"
-          icon="🤖"
-          size="lg"
-          variant="primary"
-          fullWidth
-          onPress={() => navigation.navigate('AIAssistant')}
-          style={styles.aiButton}
-        />
-      )}
-
-      {user && user.provider !== 'guest' && (
         <StyledCard variant="elevated" style={styles.syncCard}>
           <View style={styles.syncHeader}>
-            <Text style={styles.syncTitle}>📡 Cloud Sync</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Ionicons name="cloud" size={20} color={Colors.primary} style={{ marginRight: 8 }} />
+              <Text style={styles.syncTitle}>Cloud Sync</Text>
+            </View>
             <View style={[styles.statusBadge, { backgroundColor: syncStatus.isOnline ? Colors.success + '20' : Colors.error + '20' }]}>
               <Text style={[styles.statusText, { color: syncStatus.isOnline ? Colors.success : Colors.error }]}>
                 {syncStatus.isOnline ? 'Online' : 'Offline'}
@@ -253,7 +315,7 @@ export default function ProfileScreen({ navigation }) {
 
           <StyledButton
             title={isSyncing ? "Syncing..." : "Sync Now"}
-            icon="🔄"
+            icon="sync"
             size="md"
             variant="secondary"
             fullWidth
@@ -265,7 +327,7 @@ export default function ProfileScreen({ navigation }) {
       )}
 
       <StyledCard
-        icon="📊"
+        icon="stats-chart"
         title="Progress & Goals"
         subtitle="Track your achievements and set new goals"
         onPress={() => navigation.navigate('ProgressHub')}
@@ -274,7 +336,7 @@ export default function ProfileScreen({ navigation }) {
 
       <View style={styles.menuSection}>
         <StyledCard
-          icon="⚙️"
+          icon="settings"
           title="Settings"
           subtitle="Preferences & account"
           onPress={() => navigation.navigate('Settings')}
@@ -282,24 +344,24 @@ export default function ProfileScreen({ navigation }) {
         />
 
         <StyledCard
-          icon="📚"
+          icon="help-circle"
           title="Help & Support"
           subtitle="FAQs and contact"
           onPress={() => {}}
           style={styles.menuItem}
         />
-        
+
         <StyledCard
-          icon="🔧"
+          icon="construct"
           title="Debug: View Stored Users"
           subtitle="See where user data is stored"
           onPress={() => navigation.navigate('Debug')}
           style={styles.menuItem}
         />
-        
+
         {user && user.provider !== 'guest' && (
           <StyledCard
-            icon="🚪"
+            icon="log-out"
             title="Sign Out"
             subtitle={`Signed in as ${user.email}`}
             onPress={async () => {
@@ -330,9 +392,6 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: Colors.primary,
     overflow: 'hidden',
-  },
-  avatarIcon: {
-    fontSize: 50,
   },
   avatarImage: {
     width: '100%',
@@ -424,6 +483,26 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.sm,
     textAlign: 'center',
     paddingHorizontal: Spacing.md,
+    lineHeight: 20,
+  },
+  profileButtonsContainer: {
+    width: '100%',
+    marginTop: Spacing.md,
+  },
+  assessmentButton: {
+    marginTop: Spacing.sm,
+  },
+  profileActionsRow: {
+    flexDirection: 'row',
+    marginTop: Spacing.sm,
+  },
+  viewProfileButton: {
+    flex: 1,
+    marginRight: Spacing.xs,
+  },
+  updateProfileButton: {
+    flex: 1,
+    marginLeft: Spacing.xs,
   },
   aiButton: {
     marginBottom: Spacing.xl,

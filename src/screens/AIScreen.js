@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import ScreenLayout from '../components/ScreenLayout';
 import AIChatModal from '../components/AIChatModal';
 import ProactiveSuggestionCard from '../components/ProactiveSuggestionCard';
@@ -77,7 +78,10 @@ export default function AIScreen({ navigation }) {
           {/* Proactive Suggestions */}
           {suggestions.length > 0 && (
             <View style={styles.suggestionsSection}>
-              <Text style={styles.sectionTitle}>💡 AI Suggestions</Text>
+              <View style={styles.sectionTitleRow}>
+                <Ionicons name="bulb" size={24} color={Colors.primary} style={{ marginRight: 8 }} />
+                <Text style={styles.sectionTitle}>AI Suggestions</Text>
+              </View>
               <Text style={styles.sectionSubtitle}>
                 I noticed something you might want to know
               </Text>
@@ -95,7 +99,7 @@ export default function AIScreen({ navigation }) {
 
           {/* Main AI Interface */}
           <View style={styles.mainSection}>
-            <Text style={styles.aiIcon}>🤖</Text>
+            <Ionicons name="hardware-chip" size={80} color={Colors.primary} style={{ marginBottom: 20 }} />
             <Text style={styles.mainText}>AI Fitness Coach</Text>
             <Text style={styles.subText}>
               {suggestions.length > 0
@@ -110,7 +114,10 @@ export default function AIScreen({ navigation }) {
                 setChatVisible(true);
               }}
             >
-              <Text style={styles.chatButtonText}>💬 Start Chat</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Ionicons name="chatbubble" size={20} color="#fff" style={{ marginRight: 8 }} />
+                <Text style={styles.chatButtonText}>Start Chat</Text>
+              </View>
             </TouchableOpacity>
 
             <View style={styles.infoBox}>
@@ -144,11 +151,15 @@ const styles = StyleSheet.create({
     marginTop: Spacing.lg,
     marginBottom: Spacing.xl,
   },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.xs,
+  },
   sectionTitle: {
     fontSize: Typography.fontSize.xl,
     fontWeight: 'bold',
     color: Colors.text,
-    marginBottom: Spacing.xs,
   },
   sectionSubtitle: {
     fontSize: Typography.fontSize.md,
@@ -159,10 +170,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: Spacing.xl,
-  },
-  aiIcon: {
-    fontSize: 80,
-    marginBottom: Spacing.xl,
   },
   mainText: {
     fontSize: Typography.fontSize.xxl,

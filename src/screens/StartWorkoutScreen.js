@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons } from '@expo/vector-icons';
 import ScreenLayout from '../components/ScreenLayout';
 import StyledCard from '../components/StyledCard';
 import StyledButton from '../components/StyledButton';
@@ -105,12 +106,12 @@ export default function StartWorkoutScreen({ navigation }) {
             colors={[Colors.primary + '20', Colors.primary + '10']}
             style={styles.historyGradient}
           >
-            <Text style={styles.historyIcon}>📅</Text>
+            <Ionicons name="calendar" size={28} color={Colors.primary} style={{ marginRight: 12 }} />
             <View style={styles.historyTextContainer}>
               <Text style={styles.historyTitle}>Workout History</Text>
               <Text style={styles.historySubtitle}>View past workouts & track progress</Text>
             </View>
-            <Text style={styles.historyArrow}>›</Text>
+            <Ionicons name="chevron-forward" size={24} color={Colors.primary} />
           </LinearGradient>
         </TouchableOpacity>
 
@@ -129,7 +130,7 @@ export default function StartWorkoutScreen({ navigation }) {
                 navigation.navigate('MuscleGroupSelection');
               }
             }}
-            icon={isWorkoutActive() ? "⚡" : "🏃"}
+            icon={isWorkoutActive() ? "flash" : "walk"}
             style={styles.quickStartButton}
           />
           <StyledButton
@@ -155,7 +156,7 @@ export default function StartWorkoutScreen({ navigation }) {
                 });
               }
             }}
-            icon={isWorkoutActive() ? "➕" : "📚"}
+            icon={isWorkoutActive() ? "add-circle" : "library"}
             style={styles.quickStartButton}
           />
         </View>
@@ -167,7 +168,7 @@ export default function StartWorkoutScreen({ navigation }) {
             onPress={() => navigation.navigate('MyPlans')}
             activeOpacity={0.8}
           >
-            <Text style={styles.myPlansIcon}>📋</Text>
+            <Ionicons name="clipboard" size={24} color={Colors.primary} style={{ marginRight: 12 }} />
             <View style={styles.myPlansTextContainer}>
               <Text style={styles.myPlansTitle}>My Plans</Text>
               <Text style={styles.myPlansSubtitle}>
@@ -196,7 +197,7 @@ export default function StartWorkoutScreen({ navigation }) {
             <>
               {recentWorkouts.length === 0 ? (
                 <View style={styles.emptyState}>
-                  <Text style={styles.emptyStateIcon}>🏋️</Text>
+                  <Ionicons name="barbell" size={48} color={Colors.textMuted} />
                   <Text style={styles.emptyStateText}>No recent workouts yet</Text>
                   <Text style={styles.emptyStateSubtext}>
                     Start your first workout or create a program!
@@ -218,14 +219,23 @@ export default function StartWorkoutScreen({ navigation }) {
                         <View style={styles.programInfo}>
                           <Text style={styles.programName}>{item.name}</Text>
                           {item.type === 'completed' && item.duration && (
-                            <Text style={styles.programDuration}>⏱️ {item.duration}</Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+                              <Ionicons name="timer" size={14} color={Colors.textSecondary} style={{ marginRight: 4 }} />
+                              <Text style={styles.programDuration}>{item.duration}</Text>
+                            </View>
                           )}
                           {item.type === 'program' && item.dayName && (
-                            <Text style={styles.programDuration}>📋 {item.dayName}</Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+                              <Ionicons name="clipboard" size={14} color={Colors.textSecondary} style={{ marginRight: 4 }} />
+                              <Text style={styles.programDuration}>{item.dayName}</Text>
+                            </View>
                           )}
-                          <Text style={styles.programFocus}>
-                            💪 {item.exercises?.length || 0} exercises
-                          </Text>
+                          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <Ionicons name="barbell" size={14} color={Colors.primary} style={{ marginRight: 4 }} />
+                            <Text style={styles.programFocus}>
+                              {item.exercises?.length || 0} exercises
+                            </Text>
+                          </View>
                         </View>
                         <View style={styles.startButton}>
                           <Text style={styles.startButtonText}>START</Text>
@@ -261,10 +271,6 @@ const styles = StyleSheet.create({
     borderColor: Colors.primary + '30',
     borderRadius: BorderRadius.lg,
   },
-  historyIcon: {
-    fontSize: 28,
-    marginRight: Spacing.md,
-  },
   historyTextContainer: {
     flex: 1,
   },
@@ -277,11 +283,6 @@ const styles = StyleSheet.create({
   historySubtitle: {
     fontSize: Typography.fontSize.sm,
     color: Colors.textSecondary,
-  },
-  historyArrow: {
-    fontSize: 24,
-    color: Colors.primary,
-    fontWeight: 'bold',
   },
   section: {
     marginBottom: Spacing.xxl,
@@ -371,10 +372,6 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
     minHeight: 56,
   },
-  myPlansIcon: {
-    fontSize: Typography.fontSize.xl,
-    marginRight: Spacing.sm,
-  },
   myPlansTextContainer: {
     flex: 1,
   },
@@ -409,10 +406,6 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
     borderColor: Colors.border,
-  },
-  emptyStateIcon: {
-    fontSize: 48,
-    marginBottom: Spacing.md,
   },
   emptyStateText: {
     fontSize: Typography.fontSize.lg,

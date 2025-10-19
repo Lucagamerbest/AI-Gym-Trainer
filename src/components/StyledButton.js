@@ -1,5 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, View, ActivityIndicator } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, Typography, BorderRadius, Shadows } from '../constants/theme';
 
 export default function StyledButton({ 
@@ -117,18 +118,28 @@ export default function StyledButton({
       {...props}
     >
       {loading ? (
-        <ActivityIndicator 
-          color={variant === 'primary' ? Colors.background : Colors.primary} 
+        <ActivityIndicator
+          color={variant === 'primary' ? Colors.background : Colors.primary}
           size={size === 'sm' ? 'small' : 'small'}
         />
       ) : (
         <View style={styles.content}>
           {icon && iconPosition === 'left' && (
-            <Text style={[size === 'xl' ? styles.xlIcon : styles.icon, { marginRight: Spacing.sm }]}>{icon}</Text>
+            <Ionicons
+              name={icon}
+              size={size === 'xl' ? 24 : 20}
+              color={variant === 'primary' ? Colors.background : Colors.text}
+              style={{ marginRight: Spacing.sm }}
+            />
           )}
           <Text style={getTextStyles()}>{title}</Text>
           {icon && iconPosition === 'right' && (
-            <Text style={[size === 'xl' ? styles.xlIcon : styles.icon, { marginLeft: Spacing.sm }]}>{icon}</Text>
+            <Ionicons
+              name={icon}
+              size={size === 'xl' ? 24 : 20}
+              color={variant === 'primary' ? Colors.background : Colors.text}
+              style={{ marginLeft: Spacing.sm }}
+            />
           )}
         </View>
       )}

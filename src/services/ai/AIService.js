@@ -65,9 +65,9 @@ class AIService {
       // Add response length instruction based on screen
       let lengthInstruction = '';
       if (context.screen === 'WorkoutScreen' || context.screen === 'StartWorkoutScreen') {
-        lengthInstruction = '\n\nIMPORTANT: User is in the gym working out. Keep response to 1-2 sentences MAX. Be ultra concise.';
-      } else if (context.screen === 'HomeScreen' || context.screen === 'Home') {
-        lengthInstruction = '\n\nKeep response to 2-4 sentences. Be helpful but concise.';
+        lengthInstruction = '\n\nIMPORTANT: User is in the gym. Keep it short but include specific numbers/weights.';
+      } else {
+        lengthInstruction = '\n\nGive 3-4 sentences with SPECIFIC examples and numbers. No fluff, all actionable info.';
       }
 
       // Combine system prompt and user message
@@ -82,7 +82,7 @@ class AIService {
       const apiStart = performance.now();
       const result = await this.model.generateContent(fullPrompt, {
         generationConfig: {
-          maxOutputTokens: 80, // Very short responses for speed (1-2 sentences)
+          maxOutputTokens: 200, // Allow detailed responses with specific examples and numbers
           temperature: 0.5, // Lower = faster, more deterministic
           topP: 0.9,
           topK: 20, // Lower = faster
@@ -123,14 +123,15 @@ class AIService {
           parts: [{ text: msg.content }],
         })),
         generationConfig: {
-          maxOutputTokens: 1024,
-          temperature: 0.7,
+          maxOutputTokens: 300, // Allow detailed responses with specific examples
+          temperature: 0.5, // More deterministic for specific advice
         },
       });
 
       // Add system context to the latest message
       const lastMessage = messages[messages.length - 1];
-      const messageWithContext = `${systemPrompt}\n\n${lastMessage.content}`;
+      const specificInstruction = '\n\nRemember: Give SPECIFIC examples with EXACT numbers and quantities. NO generic advice.';
+      const messageWithContext = `${systemPrompt}${specificInstruction}\n\n${lastMessage.content}`;
 
       const result = await chat.sendMessage(messageWithContext);
       const response = result.response;
@@ -150,37 +151,40 @@ class AIService {
 
   // Get screen-specific coaching personality
   getScreenPersonality(screen) {
-    if (!screen) return 'Give brief, helpful advice.';
+    if (!screen) return 'Give specific, actionable advice with exact numbers and examples.';
 
     if (screen.includes('Workout') || screen.includes('StartWorkout') || screen.includes('Training')) {
-      return 'Focus on progressive overload. Suggest specific weights.';
+      return 'Give SPECIFIC weight recommendations. Example: "Try 185 lbs for 3x5" NOT "increase weight a bit". Use actual numbers based on their PRs and last session.';
     }
 
     if (screen.includes('Nutrition') || screen.includes('Food')) {
-      return 'Focus on hitting macro targets. When user asks "how much left" or "remaining", use the "Still need today" values. Suggest specific foods with quantities. Prioritize protein if low.';
+      return 'Give SPECIFIC food examples with EXACT quantities. Example: "8oz chicken breast (56g protein), 1 cup Greek yogurt (20g protein), 2 scoops whey (50g protein)" NOT generic advice like "eat lean protein". Always list 3-4 specific food options with quantities and macro breakdown.';
     }
 
     if (screen.includes('Progress')) {
-      return 'Highlight PRs and improvements with numbers.';
+      return 'Show EXACT numbers. Example: "Bench went from 185x5 to 205x5, that\'s a 20 lb increase" NOT "you\'re getting stronger". Use actual weights, reps, and dates.';
     }
 
     if (screen.includes('Profile') || screen.includes('Home')) {
-      return 'Give quick overview and next steps.';
+      return 'Give specific next steps with numbers. Example: "Hit chest 2x this week, aim for 225 lb bench PR" NOT "keep up the good work".';
     }
 
-    return 'Be concise and helpful.';
+    return 'Be ultra specific with numbers and examples. No generic advice.';
   }
 
   // Build system prompt based on context
   buildSystemPrompt(context) {
     const screenPersonality = this.getScreenPersonality(context.screen);
 
-    const basePrompt = `You are a fitness coach. ${screenPersonality}
+    const basePrompt = `You are a direct, no-BS fitness coach for gym bros. ${screenPersonality}
 
-Rules:
-- 2-3 sentences MAX
-- Use user's actual numbers
-- Be specific and actionable`;
+STRICT RULES:
+- ALWAYS include specific numbers, quantities, and examples
+- NO generic advice like "eat protein" - give EXACT foods with amounts
+- NO vague terms like "a bit more" - use precise numbers
+- List 3-4 specific options when suggesting foods/exercises
+- Keep it short (3-4 sentences) but PACKED with specifics
+- Talk like a gym bro - direct, practical, actionable`;
 
 
     // Add context-specific instructions (MINIMAL for speed)

@@ -405,6 +405,7 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
             <QuickSuggestions
               screen={ContextManager.currentScreen}
               onSuggestionPress={handleSuggestionPress}
+              userId={user?.uid || 'guest'}
             />
           )}
 

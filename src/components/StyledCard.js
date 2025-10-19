@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, Typography, BorderRadius, Shadows } from '../constants/theme';
 
 export default function StyledCard({ 
@@ -40,12 +41,26 @@ export default function StyledCard({
     <CardWrapper style={getCardStyles()} {...cardProps} {...props}>
       {(icon || title || subtitle) && (
         <View style={styles.header}>
-          {icon && <Text style={styles.icon}>{icon}</Text>}
+          {icon && (
+            <Ionicons
+              name={icon}
+              size={28}
+              color={variant === 'primary' ? Colors.background : Colors.primary}
+              style={{ marginRight: Spacing.md }}
+            />
+          )}
           <View style={styles.headerText}>
             {title && <Text style={[styles.title, variant === 'primary' && styles.primaryText]}>{title}</Text>}
             {subtitle && <Text style={[styles.subtitle, variant === 'primary' && styles.primarySubtext]}>{subtitle}</Text>}
           </View>
-          {onPress && <Text style={[styles.arrow, variant === 'primary' && styles.primaryText]}>→</Text>}
+          {onPress && (
+            <Ionicons
+              name="chevron-forward"
+              size={20}
+              color={variant === 'primary' ? Colors.background : Colors.textMuted}
+              style={{ marginLeft: Spacing.sm }}
+            />
+          )}
         </View>
       )}
       {children}
