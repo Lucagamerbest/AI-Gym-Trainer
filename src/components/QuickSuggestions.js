@@ -112,6 +112,14 @@ export default function QuickSuggestions({ screen, onSuggestionPress, userId = '
         }
       }
 
+      // Check workout frequency for rest day or consistency suggestions
+      if (recentWorkouts.length > 0) {
+        const frequencySuggestion = analyzeWorkoutFrequency(recentWorkouts);
+        if (frequencySuggestion) {
+          suggestions.push(frequencySuggestion);
+        }
+      }
+
       setSmartSuggestions(suggestions);
     } catch (error) {
       console.error('Error loading smart suggestions:', error);
@@ -226,6 +234,62 @@ export default function QuickSuggestions({ screen, onSuggestionPress, userId = '
         text: 'You hit a PR!',
         priority: true
       };
+    }
+
+    return null;
+  };
+
+  // Analyze workout frequency to suggest rest days or encourage consistency
+  const analyzeWorkoutFrequency = (recentWorkouts) => {
+    if (recentWorkouts.length === 0) return null;
+
+    // Get workouts from last 7 days
+    const today = new Date();
+    const sevenDaysAgo = new Date(today);
+    sevenDaysAgo.setDate(today.getDate() - 7);
+
+    const recentSevenDays = recentWorkouts.filter(w => {
+      const workoutDate = new Date(w.date);
+      return workoutDate >= sevenDaysAgo;
+    });
+
+    // If trained 5+ days in last 7 days, suggest rest
+    if (recentSevenDays.length >= 5) {
+      return {
+        icon: 'bed',
+        text: 'Consider rest day',
+        priority: true
+      };
+    }
+
+    // If trained less than 2 days in last 7 days, encourage consistency
+    if (recentSevenDays.length <= 1) {
+      return {
+        icon: 'flame',
+        text: 'Build workout streak',
+        priority: true
+      };
+    }
+
+    // Check consecutive workout days for overtraining warning
+    const last3Workouts = recentWorkouts.slice(0, 3);
+    if (last3Workouts.length === 3) {
+      const dates = last3Workouts.map(w => new Date(w.date).toDateString());
+      const isConsecutive = dates.every((date, i) => {
+        if (i === 0) return true;
+        const prevDate = new Date(dates[i - 1]);
+        const currDate = new Date(date);
+        const diffDays = Math.abs((prevDate - currDate) / (1000 * 60 * 60 * 24));
+        return diffDays <= 1;
+      });
+
+      if (isConsecutive) {
+        return {
+          icon: 'bed',
+          text: 'Rest day?',
+          priority: true
+        };
+      }
     }
 
     return null;
