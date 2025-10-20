@@ -159,11 +159,11 @@ export default function QuickSuggestions({ screen, onSuggestionPress, userId = '
 
     // Map to workout suggestions
     const muscleToWorkout = {
-      chest: { icon: 'barbell', text: '🎯 Create a push workout (chest needs love!)' },
-      back: { icon: 'return-down-back', text: '🎯 Create a pull workout (back needs attention!)' },
-      legs: { icon: 'walk', text: '🎯 Create a leg workout (leg day incoming!)' },
-      shoulders: { icon: 'barbell', text: '🎯 Create a shoulder workout (delts need work!)' },
-      arms: { icon: 'barbell', text: '🎯 Create an arm workout (guns need pumping!)' },
+      chest: { icon: 'barbell', text: 'Create push workout' },
+      back: { icon: 'return-down-back', text: 'Create pull workout' },
+      legs: { icon: 'walk', text: 'Create leg workout' },
+      shoulders: { icon: 'barbell', text: 'Create shoulder workout' },
+      arms: { icon: 'barbell', text: 'Create arm workout' },
     };
 
     const suggestion = muscleToWorkout[leastTrainedMuscle];
@@ -182,7 +182,7 @@ export default function QuickSuggestions({ screen, onSuggestionPress, userId = '
     if (protein && protein.percentage < 50 && protein.remaining) {
       return {
         icon: 'restaurant',
-        text: `🎯 Need ${protein.remaining}g protein - get meal ideas!`,
+        text: `Need ${protein.remaining}g protein`,
         priority: true
       };
     }
@@ -192,7 +192,7 @@ export default function QuickSuggestions({ screen, onSuggestionPress, userId = '
     if (calories && calories.percentage < 40 && calories.consumed !== undefined && hour >= 12) {
       return {
         icon: 'flame',
-        text: `🎯 Only ${calories.consumed} calories today - what should I eat?`,
+        text: `Low calories today`,
         priority: true
       };
     }
@@ -223,7 +223,7 @@ export default function QuickSuggestions({ screen, onSuggestionPress, userId = '
     if (foundPR) {
       return {
         icon: 'trophy',
-        text: '🎯 You hit a PR! Analyze your progress',
+        text: 'You hit a PR!',
         priority: true
       };
     }
@@ -246,9 +246,9 @@ export default function QuickSuggestions({ screen, onSuggestionPress, userId = '
               { icon: 'return-down-back', text: 'Create a pull workout' },
               { icon: 'walk', text: 'Create a leg workout' },
               { icon: 'fitness', text: 'Create a full body workout' },
-              { icon: 'barbell', text: 'Create chest & triceps workout' },
-              { icon: 'return-down-back', text: 'Create back & biceps workout' },
-              { icon: 'barbell', text: 'Create shoulders & arms workout' },
+              { icon: 'barbell', text: 'Chest & triceps' },
+              { icon: 'return-down-back', text: 'Back & biceps' },
+              { icon: 'barbell', text: 'Shoulders & arms' },
             ]
           },
           {
@@ -256,9 +256,9 @@ export default function QuickSuggestions({ screen, onSuggestionPress, userId = '
             text: 'Plan a program',
             hasSubsections: true,
             subsections: [
-              { icon: 'trending-up', text: 'Create a 6-day PPL program' },
-              { icon: 'barbell', text: 'Create a 4-day Upper/Lower program' },
-              { icon: 'sparkles', text: 'Create a 5-day Bro Split program' },
+              { icon: 'trending-up', text: '6-day PPL' },
+              { icon: 'barbell', text: '4-day Upper/Lower' },
+              { icon: 'sparkles', text: '5-day Bro Split' },
             ]
           },
           {
@@ -266,12 +266,12 @@ export default function QuickSuggestions({ screen, onSuggestionPress, userId = '
             text: 'Suggest exercises',
             hasSubsections: true,
             subsections: [
-              { icon: 'barbell', text: 'Suggest chest exercises' },
-              { icon: 'return-down-back', text: 'Suggest back exercises' },
-              { icon: 'walk', text: 'Suggest leg exercises' },
-              { icon: 'barbell', text: 'Suggest shoulder exercises' },
-              { icon: 'barbell', text: 'Suggest arm exercises' },
-              { icon: 'fitness', text: 'Suggest core exercises' },
+              { icon: 'barbell', text: 'Chest exercises' },
+              { icon: 'return-down-back', text: 'Back exercises' },
+              { icon: 'walk', text: 'Leg exercises' },
+              { icon: 'barbell', text: 'Shoulder exercises' },
+              { icon: 'barbell', text: 'Arm exercises' },
+              { icon: 'fitness', text: 'Core exercises' },
             ]
           },
           {
@@ -280,35 +280,35 @@ export default function QuickSuggestions({ screen, onSuggestionPress, userId = '
             hasSubsections: true,
             subsections: [
               { icon: 'rocket', text: 'Should I progress?' },
-              { icon: 'bulb', text: 'Should I increase weight?' },
+              { icon: 'bulb', text: 'Increase weight?' },
               { icon: 'stats-chart', text: "What's my PR?" },
               { icon: 'trending-up', text: 'Show my progress' },
             ]
           },
 
           // PAGE 2+: Quick Questions (no subsections)
-          { icon: 'fitness', text: 'What should I train today?' },
-          { icon: 'barbell', text: 'What did I train last?' },
-          { icon: 'add-circle', text: 'What exercise should I add?' },
+          { icon: 'fitness', text: 'Train today?' },
+          { icon: 'barbell', text: 'Train last?' },
+          { icon: 'add-circle', text: 'Add exercise?' },
           { icon: 'list', text: 'How to do exercises' },
 
           { icon: 'fitness', text: 'Alternative exercises' },
-          { icon: 'calculator', text: 'How many sets should I do?' },
-          { icon: 'timer', text: 'How long should I rest?' },
+          { icon: 'calculator', text: 'How many sets?' },
+          { icon: 'timer', text: 'Rest time?' },
           { icon: 'bar-chart', text: "How's my volume?" },
 
-          { icon: 'ribbon', text: 'What should I focus on?' },
+          { icon: 'ribbon', text: 'Focus on?' },
         ];
 
       case 'WorkoutDetailScreen':
       case 'WorkoutScreen':
         return [
           { icon: 'rocket', text: 'Should I progress?' },
-          { icon: 'barbell', text: 'Should I increase weight?' },
-          { icon: 'calculator', text: 'How many sets should I do?' },
-          { icon: 'timer', text: 'How long should I rest?' },
-          { icon: 'bar-chart', text: "How's my volume today?" },
-          { icon: 'add-circle', text: 'What exercise should I add?' },
+          { icon: 'barbell', text: 'Increase weight?' },
+          { icon: 'calculator', text: 'How many sets?' },
+          { icon: 'timer', text: 'Rest time?' },
+          { icon: 'bar-chart', text: 'Volume today?' },
+          { icon: 'add-circle', text: 'Add exercise?' },
         ];
 
       case 'NutritionDashboard':
@@ -316,20 +316,20 @@ export default function QuickSuggestions({ screen, onSuggestionPress, userId = '
       case 'FoodScanResultScreen':
       case 'Nutrition':
         return [
-          { icon: 'flame', text: 'How many calories left today?' },
-          { icon: 'restaurant', text: 'Am I hitting my protein goal?' },
-          { icon: 'restaurant', text: 'What should I eat for dinner?' },
-          { icon: 'trending-up', text: 'Show my macro breakdown' },
-          { icon: 'flash', text: 'Am I on track with nutrition?' },
+          { icon: 'flame', text: 'Calories left?' },
+          { icon: 'restaurant', text: 'Protein goal?' },
+          { icon: 'restaurant', text: 'Eat for dinner?' },
+          { icon: 'trending-up', text: 'Macro breakdown' },
+          { icon: 'flash', text: 'Nutrition on track?' },
         ];
 
       case 'RecipesScreen':
       case 'Recipes':
         return [
-          { icon: 'restaurant', text: 'Find a high protein recipe' },
-          { icon: 'bulb', text: 'Suggest a recipe for me' },
-          { icon: 'book', text: 'Show my saved recipes' },
-          { icon: 'leaf', text: 'What should I cook?' },
+          { icon: 'restaurant', text: 'High protein recipe' },
+          { icon: 'bulb', text: 'Suggest recipe' },
+          { icon: 'book', text: 'Saved recipes' },
+          { icon: 'leaf', text: 'What to cook?' },
         ];
 
       case 'ProgressScreen':
@@ -337,28 +337,28 @@ export default function QuickSuggestions({ screen, onSuggestionPress, userId = '
       case 'Progress':
         return [
           { icon: 'fitness', text: 'Show my goals' },
-          { icon: 'trophy', text: 'What achievements have I earned?' },
+          { icon: 'trophy', text: 'My achievements?' },
           { icon: 'flame', text: "What's my streak?" },
-          { icon: 'trending-up', text: 'Show my squat progress' },
-          { icon: 'barbell', text: "What's my bench press PR?" },
+          { icon: 'trending-up', text: 'Squat progress' },
+          { icon: 'barbell', text: 'Bench press PR?' },
         ];
 
       case 'ExerciseDetailScreen':
       case 'ExerciseDetail':
         return [
           { icon: 'rocket', text: 'Should I progress?' },
-          { icon: 'list', text: 'How to do this exercise' },
-          { icon: 'bar-chart', text: 'Show my history' },
+          { icon: 'list', text: 'How to do this' },
+          { icon: 'bar-chart', text: 'Show history' },
           { icon: 'barbell', text: "What's my PR?" },
           { icon: 'sync', text: 'Alternative exercises' },
         ];
 
       case 'ProfileScreen':
         return [
-          { icon: 'fitness', text: 'Review my goals' },
-          { icon: 'stats-chart', text: 'Show my overall stats' },
+          { icon: 'fitness', text: 'Review goals' },
+          { icon: 'stats-chart', text: 'Overall stats' },
           { icon: 'trophy', text: 'What are my PRs?' },
-          { icon: 'bulb', text: 'Suggest program improvements' },
+          { icon: 'bulb', text: 'Program improvements' },
         ];
 
       case 'TodayWorkoutOptionsScreen':
@@ -369,27 +369,27 @@ export default function QuickSuggestions({ screen, onSuggestionPress, userId = '
             text: 'Create a workout',
             hasSubsections: true,
             subsections: [
-              { icon: 'barbell', text: 'Create a push workout' },
-              { icon: 'return-down-back', text: 'Create a pull workout' },
-              { icon: 'walk', text: 'Create a leg workout' },
-              { icon: 'fitness', text: 'Create a full body workout' },
-              { icon: 'barbell', text: 'Create chest & triceps workout' },
-              { icon: 'return-down-back', text: 'Create back & biceps workout' },
+              { icon: 'barbell', text: 'Push workout' },
+              { icon: 'return-down-back', text: 'Pull workout' },
+              { icon: 'walk', text: 'Leg workout' },
+              { icon: 'fitness', text: 'Full body workout' },
+              { icon: 'barbell', text: 'Chest & triceps' },
+              { icon: 'return-down-back', text: 'Back & biceps' },
             ]
           },
           // Quick questions after
-          { icon: 'help-circle', text: 'Which workout should I do today?' },
-          { icon: 'barbell', text: 'What did I train last?' },
-          { icon: 'fitness', text: 'Suggest a workout for me' },
+          { icon: 'help-circle', text: 'Workout today?' },
+          { icon: 'barbell', text: 'Train last?' },
+          { icon: 'fitness', text: 'Suggest workout' },
         ];
 
       case 'PlannedWorkoutDetailScreen':
         return [
-          { icon: 'bulb', text: 'Is this workout good for me?' },
-          { icon: 'sync', text: 'Should I modify this workout?' },
-          { icon: 'fitness', text: 'What muscles does this target?' },
-          { icon: 'timer', text: 'How long will this take?' },
-          { icon: 'barbell', text: 'What should I focus on today?' },
+          { icon: 'bulb', text: 'Good workout?' },
+          { icon: 'sync', text: 'Modify workout?' },
+          { icon: 'fitness', text: 'Muscles targeted?' },
+          { icon: 'timer', text: 'How long?' },
+          { icon: 'barbell', text: 'Focus today?' },
         ];
 
       case 'WorkoutHistoryScreen':
@@ -400,10 +400,10 @@ export default function QuickSuggestions({ screen, onSuggestionPress, userId = '
             text: 'Plan a workout',
             hasSubsections: true,
             subsections: [
-              { icon: 'barbell', text: 'Plan a push workout for tomorrow' },
-              { icon: 'return-down-back', text: 'Plan a pull workout for tomorrow' },
-              { icon: 'walk', text: 'Plan a leg workout for tomorrow' },
-              { icon: 'fitness', text: 'Plan a full body workout' },
+              { icon: 'barbell', text: 'Push tomorrow' },
+              { icon: 'return-down-back', text: 'Pull tomorrow' },
+              { icon: 'walk', text: 'Leg tomorrow' },
+              { icon: 'fitness', text: 'Full body' },
             ]
           },
           {
@@ -411,40 +411,40 @@ export default function QuickSuggestions({ screen, onSuggestionPress, userId = '
             text: 'Create a program',
             hasSubsections: true,
             subsections: [
-              { icon: 'trending-up', text: 'Create a 6-day PPL program' },
-              { icon: 'barbell', text: 'Create a 4-day Upper/Lower program' },
-              { icon: 'sparkles', text: 'Create a 5-day Bro Split program' },
+              { icon: 'trending-up', text: '6-day PPL' },
+              { icon: 'barbell', text: '4-day Upper/Lower' },
+              { icon: 'sparkles', text: '5-day Bro Split' },
             ]
           },
           // Quick questions after
-          { icon: 'bar-chart', text: 'What did I train this week?' },
-          { icon: 'barbell', text: 'Show my workout frequency' },
+          { icon: 'bar-chart', text: 'Train this week?' },
+          { icon: 'barbell', text: 'Workout frequency' },
         ];
 
       case 'HomeScreen':
         return [
-          { icon: 'fitness', text: "What's my workout today?" },
-          { icon: 'restaurant', text: "What should I eat?" },
-          { icon: 'stats-chart', text: 'How am I doing overall?' },
-          { icon: 'barbell', text: 'Any new PRs lately?' },
+          { icon: 'fitness', text: 'Workout today?' },
+          { icon: 'restaurant', text: 'What to eat?' },
+          { icon: 'stats-chart', text: 'Doing overall?' },
+          { icon: 'barbell', text: 'New PRs?' },
         ];
 
       case 'AIScreen':
         return [
-          { icon: 'fitness', text: "What's my workout today?" },
-          { icon: 'restaurant', text: 'What should I eat?' },
-          { icon: 'stats-chart', text: 'How am I doing overall?' },
-          { icon: 'barbell', text: 'Analyze my recent progress' },
-          { icon: 'bulb', text: 'Give me personalized advice' },
+          { icon: 'fitness', text: 'Workout today?' },
+          { icon: 'restaurant', text: 'What to eat?' },
+          { icon: 'stats-chart', text: 'Doing overall?' },
+          { icon: 'barbell', text: 'Recent progress' },
+          { icon: 'bulb', text: 'Personalized advice' },
           { icon: 'trophy', text: 'What are my PRs?' },
         ];
 
       default:
         return [
-          { icon: 'bulb', text: 'Give me workout advice' },
-          { icon: 'restaurant', text: 'Help with my nutrition' },
-          { icon: 'bar-chart', text: 'Analyze my progress' },
-          { icon: 'fitness', text: 'Review my goals' },
+          { icon: 'bulb', text: 'Workout advice' },
+          { icon: 'restaurant', text: 'Help nutrition' },
+          { icon: 'bar-chart', text: 'Analyze progress' },
+          { icon: 'fitness', text: 'Review goals' },
         ];
     }
   };
