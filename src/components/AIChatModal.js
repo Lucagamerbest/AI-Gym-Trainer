@@ -54,23 +54,36 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
     }
   }, [visible, initialMessage]);
 
-  // Auto-scroll when keyboard appears
+  // Auto-scroll when keyboard appears and hide suggestions
   useEffect(() => {
     if (Platform.OS !== 'web') {
       const keyboardDidShowListener = Keyboard.addListener(
         'keyboardDidShow',
         () => {
+          // Hide suggestions when keyboard opens
+          setShowSuggestions(false);
           setTimeout(() => {
             flatListRef.current?.scrollToEnd({ animated: true });
           }, 100);
         }
       );
 
+      const keyboardDidHideListener = Keyboard.addListener(
+        'keyboardDidHide',
+        () => {
+          // Show suggestions again when keyboard closes (if messages are few)
+          if (messages.length <= 2) {
+            setShowSuggestions(true);
+          }
+        }
+      );
+
       return () => {
         keyboardDidShowListener.remove();
+        keyboardDidHideListener.remove();
       };
     }
-  }, []);
+  }, [messages.length]);
 
   const getWelcomeMessage = () => {
     const screen = ContextManager.currentScreen;
@@ -268,8 +281,43 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
     await handleSendMessage(userMessage);
   };
 
+  // Parse markdown **bold** syntax
+  const parseMarkdown = (text) => {
+    const parts = [];
+    const regex = /\*\*(.+?)\*\*/g;
+    let lastIndex = 0;
+    let match;
+
+    while ((match = regex.exec(text)) !== null) {
+      // Add text before the match
+      if (match.index > lastIndex) {
+        parts.push({
+          text: text.substring(lastIndex, match.index),
+          bold: false,
+        });
+      }
+      // Add the bold text
+      parts.push({
+        text: match[1],
+        bold: true,
+      });
+      lastIndex = regex.lastIndex;
+    }
+
+    // Add remaining text
+    if (lastIndex < text.length) {
+      parts.push({
+        text: text.substring(lastIndex),
+        bold: false,
+      });
+    }
+
+    return parts.length > 0 ? parts : [{ text, bold: false }];
+  };
+
   const renderMessage = ({ item }) => {
     const isUser = item.role === 'user';
+    const parsedContent = parseMarkdown(item.content);
 
     return (
       <View style={[
@@ -280,7 +328,14 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
           styles.messageText,
           isUser ? styles.userText : styles.aiText
         ]}>
-          {item.content}
+          {parsedContent.map((part, index) => (
+            <Text
+              key={index}
+              style={part.bold ? styles.boldText : null}
+            >
+              {part.text}
+            </Text>
+          ))}
         </Text>
         {item.model && (
           <Text style={styles.modelText}>
@@ -357,8 +412,8 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
 
         <KeyboardAvoidingView
           style={styles.keyboardAvoidingContainer}
-          behavior={Platform.OS === 'ios' ? 'padding' : Platform.OS === 'web' ? 'height' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={0}
         >
           {/* Messages */}
           <FlatList
@@ -372,6 +427,7 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
             onScroll={handleScroll}
             scrollEventThrottle={400}
             keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="interactive"
           />
 
           {/* Loading indicator */}
@@ -409,6 +465,10 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
                 setTimeout(() => {
                   flatListRef.current?.scrollToEnd({ animated: true });
                 }, 300);
+              }}
+              onContentSizeChange={() => {
+                // Scroll messages to bottom when input expands
+                flatListRef.current?.scrollToEnd({ animated: true });
               }}
             />
             <TouchableOpacity
@@ -506,6 +566,12 @@ const styles = StyleSheet.create({
   aiText: {
     color: Colors.text,
   },
+  boldText: {
+    fontWeight: '900', // Extra bold (heaviest weight)
+    fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif-black',
+    fontSize: Typography.fontSize.md + 1, // Slightly larger
+    color: Colors.primary, // Use primary color for emphasis
+  },
   modelText: {
     fontSize: Typography.fontSize.xs,
     color: Colors.textMuted,
@@ -525,12 +591,11 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     padding: Spacing.md,
-    paddingBottom: Platform.OS === 'ios' ? Spacing.xl : Spacing.md,
+    paddingBottom: Spacing.md, // Reduced padding for tighter keyboard spacing
     backgroundColor: Colors.surface,
     borderTopWidth: 1,
     borderTopColor: Colors.border,
     alignItems: 'flex-end',
-    minHeight: 60,
   },
   input: {
     flex: 1,
@@ -544,7 +609,7 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.md,
     borderWidth: 1,
     borderColor: Colors.border,
-    minHeight: 44,
+    minHeight: 40, // Reduced for tighter spacing
   },
   sendButton: {
     width: 44,

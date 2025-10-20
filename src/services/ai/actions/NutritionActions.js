@@ -185,27 +185,8 @@ export async function checkNutritionProgress(params, context) {
     const caloriesPercent = Math.round((caloriesConsumed / caloriesTarget) * 100);
     const proteinPercent = Math.round((proteinConsumed / proteinTarget) * 100);
 
-    let status = '';
-    if (caloriesPercent < 70) {
-      status = 'You have room for more meals today! ';
-    } else if (caloriesPercent < 100) {
-      status = 'Almost at your goal! ';
-    } else if (caloriesPercent < 110) {
-      status = 'Right on target! ';
-    } else {
-      status = 'Over your calorie goal. ';
-    }
-
-    if (proteinPercent < 80) {
-      status += 'Focus on protein-rich foods for remaining meals.';
-    } else if (proteinPercent >= 100) {
-      status += 'Great job hitting your protein goal! 💪';
-    }
-
-    const message = `Nutrition Progress:\n\n` +
-                   `Calories: ${Math.round(caloriesConsumed)}/${caloriesTarget} (${caloriesLeft} left)\n` +
-                   `Protein: ${Math.round(proteinConsumed)}/${proteinTarget}g (${proteinLeft}g left)\n\n` +
-                   `${status}`;
+    // Ultra-concise progress message
+    const message = `**${Math.round(caloriesConsumed)}/${caloriesTarget} cal** (**${caloriesLeft}** left) | **${Math.round(proteinConsumed)}/${proteinTarget}g P** (**${proteinLeft}g** left)`;
 
     return {
       success: true,
@@ -274,20 +255,12 @@ export async function checkNutrition(params, context) {
       mealsToday: mealsToday
     };
 
-    // Build message with focus on most important macro
-    let message = `Today's Nutrition:\n`;
-    message += `• Calories: ${data.calories}/${data.caloriesGoal} (${data.caloriesRemaining} left)\n`;
-    message += `• Protein: ${data.protein}/${data.proteinGoal}g (${data.proteinRemaining}g left)\n`;
-    message += `• Carbs: ${data.carbs}/${data.carbsGoal}g\n`;
-    message += `• Fat: ${data.fat}/${data.fatGoal}g`;
+    // Ultra-concise message
+    let message = `**${data.calories}/${data.caloriesGoal} cal** | **${data.protein}/${data.proteinGoal}g P** | **${data.carbs}/${data.carbsGoal}g C** | **${data.fat}/${data.fatGoal}g F**`;
 
-    // Add suggestion if protein is low
-    if (data.proteinRemaining > 50) {
-      const mealsLeft = 3 - data.mealsToday;
-      if (mealsLeft > 0) {
-        const proteinPerMeal = Math.round(data.proteinRemaining / Math.max(mealsLeft, 1));
-        message += `\n\nTip: Aim for ${proteinPerMeal}g protein per remaining meal.`;
-      }
+    // Add ONE suggestion if needed
+    if (data.proteinRemaining > 30) {
+      message += `\n**${data.proteinRemaining}g P** needed.`;
     }
 
     return {

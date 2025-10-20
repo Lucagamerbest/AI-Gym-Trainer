@@ -86,7 +86,7 @@ export async function suggestWeight(params, context) {
             success: true,
             action: 'SUGGEST_WEIGHT',
             data: { currentWeight, suggestedWeight, lastIncrease: weightIncrease },
-            message: `Try ${suggestedWeight} lbs. You increased by ${weightIncrease} lbs last time (${previousWorkout.maxWeight} → ${currentWeight} lbs).`
+            message: `Try **${suggestedWeight} lbs**.`
           };
         }
       }
@@ -97,7 +97,7 @@ export async function suggestWeight(params, context) {
         success: true,
         action: 'SUGGEST_WEIGHT',
         data: { currentWeight, suggestedWeight },
-        message: `Try ${suggestedWeight} lbs. You crushed ${currentWeight} lbs last time on ${new Date(lastWorkout.date).toLocaleDateString()}.`
+        message: `Try **${suggestedWeight} lbs**.`
       };
     }
 
@@ -123,7 +123,7 @@ export async function suggestWeight(params, context) {
       success: true,
       action: 'SUGGEST_WEIGHT',
       data: { suggestedWeight, isFirstTime: true },
-      message: `No history for ${currentExerciseName}. Start with ${suggestedWeight} lbs and adjust based on how it feels.`
+      message: `Start with **${suggestedWeight} lbs**.`
     };
   } catch (error) {
     console.error('Error in suggestWeight:', error);
