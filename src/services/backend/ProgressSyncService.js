@@ -25,7 +25,7 @@ class ProgressSyncService {
   async uploadProgressEntry(userId, progressEntry) {
     try {
       if (!userId || userId === 'guest') {
-        console.log('Skipping progress sync for guest user');
+
         return null;
       }
 
@@ -43,7 +43,7 @@ class ProgressSyncService {
 
       await setDoc(progressRef, progressData);
 
-      console.log('✅ Progress entry saved to cloud:', progressRef.id);
+
       return progressRef.id;
     } catch (error) {
       console.error('Error uploading progress entry:', error);
@@ -92,7 +92,7 @@ class ProgressSyncService {
         progressEntries.push({ id: doc.id, ...doc.data() });
       });
 
-      console.log(`✅ Retrieved ${progressEntries.length} progress entries from cloud`);
+
       return progressEntries;
     } catch (error) {
       console.error('Error getting progress entries:', error);
@@ -104,7 +104,7 @@ class ProgressSyncService {
   async downloadProgress(userId) {
     try {
       if (!userId || userId === 'guest') {
-        console.log('Skipping progress download for guest user');
+
         return [];
       }
 
@@ -132,7 +132,7 @@ class ProgressSyncService {
       // Save merged data locally
       await AsyncStorage.setItem(PROGRESS_ENTRIES_KEY, JSON.stringify(mergedProgress));
 
-      console.log(`✅ Downloaded and merged ${cloudProgress.length} progress entries`);
+
       return mergedProgress;
     } catch (error) {
       console.error('Error downloading progress:', error);
@@ -144,14 +144,14 @@ class ProgressSyncService {
   async uploadLocalProgress(userId) {
     try {
       if (!userId || userId === 'guest') {
-        console.log('Skipping progress upload for guest user');
+
         return { uploaded: 0, failed: 0 };
       }
 
       // Get local progress entries
       const localProgressJSON = await AsyncStorage.getItem(PROGRESS_ENTRIES_KEY);
       if (!localProgressJSON) {
-        console.log('✅ No local progress to sync');
+
         return { uploaded: 0, failed: 0 };
       }
 
@@ -159,11 +159,11 @@ class ProgressSyncService {
       const unsyncedProgress = localProgress.filter(entry => !entry.synced);
 
       if (unsyncedProgress.length === 0) {
-        console.log('✅ All progress entries already synced');
+
         return { uploaded: 0, failed: 0 };
       }
 
-      console.log(`📤 Uploading ${unsyncedProgress.length} progress entries to Firebase...`);
+
 
       const batch = writeBatch(this.db);
       let uploadedCount = 0;
@@ -198,7 +198,7 @@ class ProgressSyncService {
       // Update local storage with synced status
       await AsyncStorage.setItem(PROGRESS_ENTRIES_KEY, JSON.stringify(localProgress));
 
-      console.log(`✅ Uploaded ${uploadedCount} progress entries to Firebase`);
+
       return { uploaded: uploadedCount, failed: unsyncedProgress.length - uploadedCount };
     } catch (error) {
       console.error('Error uploading local progress:', error);
@@ -210,14 +210,14 @@ class ProgressSyncService {
   async deleteProgressEntry(userId, entryId) {
     try {
       if (!userId || userId === 'guest') {
-        console.log('Skipping delete for guest user');
+
         return;
       }
 
       const progressRef = doc(this.db, 'users', userId, 'progress', entryId);
       await deleteDoc(progressRef);
 
-      console.log('✅ Progress entry deleted from cloud:', entryId);
+
     } catch (error) {
       console.error('Error deleting progress entry:', error);
       throw error;
@@ -228,13 +228,13 @@ class ProgressSyncService {
   async syncProgressEntry(userId, progressEntry) {
     try {
       if (!userId || userId === 'guest') {
-        console.log('Skipping sync for guest user');
+
         return null;
       }
 
       const cloudId = await this.uploadProgressEntry(userId, progressEntry);
 
-      console.log('✅ Progress entry synced immediately');
+
       return cloudId;
     } catch (error) {
       console.error('Error syncing progress entry:', error);

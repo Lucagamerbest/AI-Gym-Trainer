@@ -17,9 +17,9 @@ import BackendService from '../backend/BackendService';
 export function detectIntent(message, screen) {
   const msg = message.toLowerCase().trim();
 
-  console.log('🔍 detectIntent called');
-  console.log('📝 Message:', message);
-  console.log('📱 Screen:', screen);
+
+
+
 
   // WORKOUT SCREEN INTENTS
   if (screen === 'WorkoutScreen' || screen === 'StartWorkoutScreen') {
@@ -79,13 +79,51 @@ export function detectIntent(message, screen) {
     }
 
     // CHECK_PR - "what's my PR" / "personal record" / "best lift"
-    if (msg.includes('pr') || msg.includes('personal record') ||
-        msg.includes('best') || msg.includes('max')) {
+    // BUT NOT "program" or "personalized"
+    const hasPRKeyword = (msg.includes('personal record') ||
+                          msg.includes(" pr") || msg.includes("pr ") ||
+                          msg.includes('my pr') || msg.includes("what's my"));
+    const notProgramRelated = !msg.includes('program') && !msg.includes('personalized');
+
+    if ((hasPRKeyword || msg.includes('best') || msg.includes('max')) && notProgramRelated) {
       return {
         intent: 'CHECK_PR',
         confidence: 0.9,
         parameters: {
           exercise: extractExerciseName(msg)
+        }
+      };
+    }
+
+    // CREATE_PROGRAM - "create a program" / "create a 6-day PPL program" / "personalized program"
+    if ((msg.includes('create') || msg.includes('make') || msg.includes('build') || msg.includes('generate')) &&
+        (msg.includes('program') || msg.includes('split'))) {
+
+      // Extract number of days if mentioned
+      const daysMatch = msg.match(/(\d+)\s*day/i);
+      const numDays = daysMatch ? parseInt(daysMatch[1]) : null;
+
+      // Check for specific program types
+      let programType = null;
+      if (msg.includes('push pull legs') || msg.includes('ppl')) {
+        programType = 'push_pull_legs';
+      } else if (msg.includes('upper lower') || msg.includes('upper/lower')) {
+        programType = 'upper_lower';
+      } else if (msg.includes('bro split') || msg.includes('body part split')) {
+        programType = 'bro_split';
+      } else if (msg.includes('full body')) {
+        programType = 'full_body';
+      } else if (msg.includes('personalized') || msg.includes('for my goals')) {
+        programType = 'personalized';
+      }
+
+      return {
+        intent: 'CREATE_PROGRAM',
+        confidence: 0.95,
+        parameters: {
+          numDays: numDays,
+          programType: programType,
+          muscleGroups: extractMuscleGroups(msg)
         }
       };
     }
@@ -445,7 +483,7 @@ export function detectIntent(message, screen) {
     const isFullBody = msg.includes('full') && msg.includes('body');
 
     if (msg.includes('ppl') || isPPL || isUpperLower || isBroSplit || isFullBody) {
-      console.log('🎯 Detected program type mention on WorkoutHistoryScreen');
+
 
       let programType = null;
       if (msg.includes('ppl') || isPPL) {
@@ -458,7 +496,7 @@ export function detectIntent(message, screen) {
         programType = 'full_body';
       }
 
-      console.log(`🎯 Program type identified: ${programType}`);
+
 
       return {
         intent: 'CREATE_PROGRAM',
@@ -609,7 +647,7 @@ export function detectIntent(message, screen) {
  * Execute an action based on detected intent
  */
 export async function executeAction(intent, parameters, context) {
-  console.log(`🎯 Executing action: ${intent}`, parameters);
+
 
   try {
     switch (intent) {
@@ -966,7 +1004,7 @@ async function getTodaySummary(params, context) {
     try {
       allWorkouts = await WorkoutSyncService.getAllWorkouts(100);
     } catch (error) {
-      console.log('⚠️ Could not fetch workouts from Firebase');
+
     }
 
     const todaysWorkouts = allWorkouts.filter(w => w.date.startsWith(today));
@@ -1035,7 +1073,7 @@ async function planWorkout(params, context) {
     try {
       allWorkouts = await WorkoutSyncService.getAllWorkouts(100);
     } catch (error) {
-      console.log('⚠️ Could not fetch workouts from Firebase');
+
     }
 
     if (!allWorkouts || allWorkouts.length === 0) {
@@ -1140,7 +1178,7 @@ async function checkNutrition(params, context) {
 
     // Get user ID from Firebase Auth
     const userId = BackendService.getCurrentUserId() || 'guest';
-    console.log('🔥 Using Firebase user ID:', userId);
+
 
     // Use proper nutrition context from ContextManager (already uses Firebase)
     const nutritionContext = await ContextManager.getNutritionContext(userId);
@@ -1248,9 +1286,9 @@ EXERCISE: Incline Dumbbell Press (Dumbbell) | 3 | 10
 
 Generate 4-6 exercises for ${muscleGroup || 'Full Body'}.`;
 
-    console.log('🤖 Asking AI to generate workout...');
+
     const aiResponse = await AIService.sendMessage(aiPrompt, { screen: 'WorkoutGenerator' });
-    console.log('🤖 AI Response:', aiResponse.response);
+
 
     // Parse AI response to extract exercises
     const exercises = [];
@@ -1279,7 +1317,7 @@ Generate 4-6 exercises for ${muscleGroup || 'Full Body'}.`;
 
     // Fallback if AI parsing failed
     if (exercises.length === 0) {
-      console.log('⚠️ AI parsing failed, using fallback');
+
       exercises.push(
         { name: 'Compound Exercise 1', equipment: 'Barbell', sets: 4, reps: 8 },
         { name: 'Isolation Exercise 1', equipment: 'Dumbbell', sets: 3, reps: 10 },
@@ -1288,7 +1326,7 @@ Generate 4-6 exercises for ${muscleGroup || 'Full Body'}.`;
       );
     }
 
-    console.log(`✅ Generated ${exercises.length} exercises:`, exercises);
+
     const planName = `${muscleGroup || 'Full Body'} Day`;
 
     // Format exercises for storage
@@ -1367,9 +1405,9 @@ EXERCISE: Incline Dumbbell Press (Dumbbell) | 3 | 10
 
 Generate 4-6 exercises for ${muscleGroupStr}.`;
 
-    console.log('🤖 Asking AI to generate workout for:', muscleGroupStr);
+
     const aiResponse = await AIService.sendMessage(aiPrompt, { screen: 'WorkoutGenerator' });
-    console.log('🤖 AI Response:', aiResponse.response);
+
 
     // Parse AI response to extract exercises
     const exercises = [];
@@ -1398,7 +1436,7 @@ Generate 4-6 exercises for ${muscleGroupStr}.`;
 
     // Fallback if AI parsing failed
     if (exercises.length === 0) {
-      console.log('⚠️ AI parsing failed, using fallback');
+
       exercises.push(
         { name: 'Compound Exercise 1', equipment: 'Barbell', sets: 4, reps: 8 },
         { name: 'Isolation Exercise 1', equipment: 'Dumbbell', sets: 3, reps: 10 },
@@ -1407,7 +1445,7 @@ Generate 4-6 exercises for ${muscleGroupStr}.`;
       );
     }
 
-    console.log(`✅ Generated ${exercises.length} exercises:`, exercises);
+
     const workoutTitle = `${muscleGroupStr} Workout`;
 
     // Format exercises for storage
@@ -1668,9 +1706,9 @@ EXERCISE: Incline Dumbbell Press (Dumbbell) | 3 | 10
 
 Generate 4-6 exercises for ${muscleGroupStr}.`;
 
-      console.log('🤖 Asking AI to generate workout for:', muscleGroupStr);
+
       const aiResponse = await AIService.sendMessage(aiPrompt, { screen: 'WorkoutGenerator' });
-      console.log('🤖 AI Response:', aiResponse.response);
+
 
       // Parse AI response to extract exercises
       const exercises = [];
@@ -1699,7 +1737,7 @@ Generate 4-6 exercises for ${muscleGroupStr}.`;
 
       // Fallback if AI parsing failed
       if (exercises.length === 0) {
-        console.log('⚠️ AI parsing failed, using fallback');
+
         exercises.push(
           { name: 'Compound Exercise 1', equipment: 'Barbell', sets: 4, reps: 8 },
           { name: 'Isolation Exercise 1', equipment: 'Dumbbell', sets: 3, reps: 10 },
@@ -1707,7 +1745,7 @@ Generate 4-6 exercises for ${muscleGroupStr}.`;
         );
       }
 
-      console.log(`✅ Generated ${exercises.length} exercises:`, exercises);
+
       const workoutTitle = `${muscleGroupStr} Workout`;
 
       // Format exercises for storage
@@ -1778,7 +1816,7 @@ async function showWorkoutFrequency(params, context) {
     try {
       allWorkouts = await WorkoutSyncService.getAllWorkouts(100);
     } catch (error) {
-      console.log('⚠️ Could not fetch workouts from Firebase');
+
     }
 
     if (!allWorkouts || allWorkouts.length === 0) {
@@ -1838,16 +1876,16 @@ async function showWorkoutFrequency(params, context) {
 
 async function createProgram(params, context) {
   try {
-    console.log('🏋️ CREATE_PROGRAM action called!');
-    console.log('📋 Parameters:', params);
-    console.log('📋 Context:', context);
+
+
+
 
     const { numDays, programType, muscleGroups } = params;
     const userId = BackendService.getCurrentUserId() || 'guest';
 
     // If no program type specified, ask for it
     if (!programType && !numDays) {
-      console.log('⚠️ No program type or numDays specified, asking user...');
+
       return {
         success: true,
         action: 'CREATE_PROGRAM_ASK_TYPE',
@@ -1893,6 +1931,13 @@ async function createProgram(params, context) {
         { name: 'Full Body B', muscles: ['Back', 'Chest', 'Hamstrings', 'Arms'] },
         { name: 'Full Body C', muscles: ['Quads', 'Chest', 'Back', 'Shoulders'] },
       ];
+    } else if (programType === 'personalized') {
+      // For personalized programs, ask the user about their goals and preferences
+      return {
+        success: true,
+        action: 'CREATE_PROGRAM_PERSONALIZED',
+        message: `I'll create a personalized program for you! To make it perfect for your goals, tell me:\n\n1. How many days per week can you train? (3-6 days)\n2. What are your main goals? (strength, muscle growth, fat loss, general fitness)\n3. Any muscle groups you want to prioritize?\n\nOr just tell me the number of days and I'll design the optimal split for you!`
+      };
     } else if (numDays && !programType) {
       // Custom number of days without specific type
       return {
@@ -1908,7 +1953,7 @@ async function createProgram(params, context) {
       };
     }
 
-    console.log(`🏋️ Creating ${programName} with ${programDays.length} days`);
+
 
     // Get next Monday as starting point
     const today = new Date();
@@ -1928,7 +1973,7 @@ async function createProgram(params, context) {
       workoutDate.setDate(nextMonday.getDate() + i);
       const dateString = workoutDate.toISOString().split('T')[0];
 
-      console.log(`📅 Generating ${day.name} for ${dateString}`);
+
 
       // Use AI to generate exercises for this day
       const muscleGroupStr = day.muscles.join(', ');
@@ -1950,7 +1995,7 @@ Requirements:
           exercises = JSON.parse(jsonMatch[0]);
         }
       } catch (error) {
-        console.log(`⚠️ AI generation failed for ${day.name}, using fallback`);
+
       }
 
       // Fallback exercises if AI fails
@@ -2002,7 +2047,7 @@ Requirements:
         exerciseCount: exercises.length,
       });
 
-      console.log(`✅ Created ${day.name} with ${exercises.length} exercises`);
+
     }
 
     // Save the complete program to AsyncStorage for My Plans screen
@@ -2029,7 +2074,7 @@ Requirements:
       // Save back to AsyncStorage
       await AsyncStorage.setItem(WORKOUT_PROGRAMS_KEY, JSON.stringify(existingPrograms));
 
-      console.log(`💾 Saved program to My Plans: ${programName}`);
+
     } catch (error) {
       console.error('Error saving program to My Plans:', error);
     }

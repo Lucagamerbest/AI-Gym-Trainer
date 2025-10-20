@@ -23,7 +23,7 @@ class MealSyncService {
   async uploadDailyConsumption(userId, consumptionData) {
     try {
       if (!userId || userId === 'guest') {
-        console.log('Skipping meal sync for guest user');
+
         return null;
       }
 
@@ -41,7 +41,7 @@ class MealSyncService {
 
       await setDoc(consumptionRef, mealData);
 
-      console.log('✅ Meal entry saved to cloud:', consumptionRef.id);
+
       return consumptionRef.id;
     } catch (error) {
       console.error('Error uploading meal:', error);
@@ -106,7 +106,7 @@ class MealSyncService {
         meals.push({ id: doc.id, ...doc.data() });
       });
 
-      console.log(`✅ Retrieved ${meals.length} meals from cloud`);
+
       return meals;
     } catch (error) {
       console.error('Error getting meals:', error);
@@ -118,13 +118,13 @@ class MealSyncService {
   async downloadMeals(userId) {
     try {
       if (!userId || userId === 'guest') {
-        console.log('Skipping meal download for guest user');
+
         return [];
       }
 
       const cloudMeals = await this.getAllMeals(userId);
 
-      console.log(`✅ Downloaded ${cloudMeals.length} meals from Firebase`);
+
       return cloudMeals;
     } catch (error) {
       console.error('Error downloading meals:', error);
@@ -136,16 +136,16 @@ class MealSyncService {
   async uploadLocalMeals(userId, dailySummary) {
     try {
       if (!userId || userId === 'guest') {
-        console.log('Skipping meal upload for guest user');
+
         return { uploaded: 0, failed: 0 };
       }
 
       if (!dailySummary || dailySummary.length === 0) {
-        console.log('✅ No meals to sync');
+
         return { uploaded: 0, failed: 0 };
       }
 
-      console.log(`📤 Uploading ${dailySummary.length} meal entries to Firebase...`);
+
 
       const batch = writeBatch(this.db);
       let uploadedCount = 0;
@@ -173,7 +173,7 @@ class MealSyncService {
 
       await batch.commit();
 
-      console.log(`✅ Uploaded ${uploadedCount} meals to Firebase`);
+
       return { uploaded: uploadedCount, failed: dailySummary.length - uploadedCount };
     } catch (error) {
       console.error('Error uploading local meals:', error);
@@ -185,7 +185,7 @@ class MealSyncService {
   async syncTodaysMeals(userId) {
     try {
       if (!userId || userId === 'guest') {
-        console.log('Skipping sync for guest user');
+
         return { uploaded: 0, failed: 0 };
       }
 
@@ -193,14 +193,14 @@ class MealSyncService {
       const todaySummary = await getDailySummary(userId);
 
       if (!todaySummary || todaySummary.length === 0) {
-        console.log('✅ No meals to sync today');
+
         return { uploaded: 0, failed: 0 };
       }
 
       // Upload to Firebase
       const result = await this.uploadLocalMeals(userId, todaySummary);
 
-      console.log(`✅ Synced today's meals: ${result.uploaded} uploaded, ${result.failed} failed`);
+
       return result;
     } catch (error) {
       console.error('Error syncing today\'s meals:', error);
@@ -212,13 +212,13 @@ class MealSyncService {
   async syncMealEntry(userId, mealEntry) {
     try {
       if (!userId || userId === 'guest') {
-        console.log('Skipping sync for guest user');
+
         return null;
       }
 
       const cloudId = await this.uploadDailyConsumption(userId, mealEntry);
 
-      console.log('✅ Meal entry synced immediately');
+
       return cloudId;
     } catch (error) {
       console.error('Error syncing meal entry:', error);
@@ -230,18 +230,18 @@ class MealSyncService {
   async migrateAsyncStorageMeals(userId) {
     try {
       if (!userId || userId === 'guest') {
-        console.log('Skipping migration for guest user');
+
         return { migrated: 0, failed: 0 };
       }
 
       const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
 
-      console.log('🔄 Starting AsyncStorage to Firebase migration...');
+
 
       // Get today's meals from AsyncStorage
       const savedNutrition = await AsyncStorage.getItem('@daily_nutrition');
       if (!savedNutrition) {
-        console.log('✅ No meals to migrate from AsyncStorage');
+
         return { migrated: 0, failed: 0 };
       }
 
@@ -274,7 +274,7 @@ class MealSyncService {
 
             await this.uploadDailyConsumption(userId, consumptionEntry);
             migrated++;
-            console.log(`✅ Migrated: ${foodItem.name} (${foodItem.calories} cal)`);
+
           } catch (error) {
             console.error(`❌ Failed to migrate: ${foodItem.name}`, error);
             failed++;
@@ -282,7 +282,7 @@ class MealSyncService {
         }
       }
 
-      console.log(`🎉 Migration complete: ${migrated} meals migrated, ${failed} failed`);
+
       return { migrated, failed };
     } catch (error) {
       console.error('Error during migration:', error);
@@ -294,7 +294,7 @@ class MealSyncService {
   async deleteMeal(userId, mealId) {
     try {
       if (!userId || userId === 'guest') {
-        console.log('Skipping delete for guest user');
+
         return { success: true };
       }
 
@@ -306,7 +306,7 @@ class MealSyncService {
       const mealRef = doc(this.db, 'users', userId, 'meals', mealId);
       await deleteDoc(mealRef);
 
-      console.log('✅ Meal deleted from Firebase:', mealId);
+
       return { success: true };
     } catch (error) {
       console.error('Error deleting meal from Firebase:', error);
@@ -318,7 +318,7 @@ class MealSyncService {
   async updateMeal(userId, mealId, updatedData) {
     try {
       if (!userId || userId === 'guest') {
-        console.log('Skipping update for guest user');
+
         return { success: true };
       }
 
@@ -336,7 +336,7 @@ class MealSyncService {
 
       await updateDoc(mealRef, updatePayload);
 
-      console.log('✅ Meal updated in Firebase:', mealId);
+
       return { success: true };
     } catch (error) {
       console.error('Error updating meal in Firebase:', error);

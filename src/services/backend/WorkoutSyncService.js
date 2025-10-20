@@ -53,7 +53,7 @@ class WorkoutSyncService {
       // Save to Firestore
       await setDoc(workoutRef, workoutData);
 
-      console.log('✅ Workout saved to cloud:', workoutRef.id);
+
       return workoutRef.id;
     } catch (error) {
       console.error('❌ Error saving workout to cloud:', error);
@@ -81,11 +81,11 @@ class WorkoutSyncService {
       const workoutDoc = await getDoc(workoutRef);
 
       if (workoutDoc.exists()) {
-        console.log('✅ Workout retrieved from cloud:', workoutId);
+
         return { id: workoutDoc.id, ...workoutDoc.data() };
       }
 
-      console.log('⚠️ Workout not found in cloud:', workoutId);
+
       return null;
     } catch (error) {
       console.error('❌ Error getting workout from cloud:', error);
@@ -123,7 +123,7 @@ class WorkoutSyncService {
         workouts.push({ id: doc.id, ...doc.data() });
       });
 
-      console.log(`✅ Retrieved ${workouts.length} workouts from cloud`);
+
       return workouts;
     } catch (error) {
       console.error('❌ Error getting workouts from cloud:', error);
@@ -163,7 +163,7 @@ class WorkoutSyncService {
         workouts.push({ id: doc.id, ...doc.data() });
       });
 
-      console.log(`✅ Retrieved ${workouts.length} workouts for date range`);
+
       return workouts;
     } catch (error) {
       console.error('❌ Error getting workouts by date:', error);
@@ -188,13 +188,13 @@ class WorkoutSyncService {
         throw new Error('User not authenticated');
       }
 
-      console.log('📤 Starting local workouts sync...');
+
 
       // Get all local workouts from AsyncStorage
       const localWorkouts = await WorkoutStorageService.getWorkoutHistory(userId);
 
       if (!localWorkouts || localWorkouts.length === 0) {
-        console.log('✅ No local workouts to sync');
+
         return { synced: 0, failed: 0 };
       }
 
@@ -202,11 +202,11 @@ class WorkoutSyncService {
       const unsyncedWorkouts = localWorkouts.filter(w => !w.synced);
 
       if (unsyncedWorkouts.length === 0) {
-        console.log('✅ All workouts already synced');
+
         return { synced: 0, failed: 0 };
       }
 
-      console.log(`📤 Syncing ${unsyncedWorkouts.length} local workouts to cloud...`);
+
 
       // Use Firebase batch for efficient writes (can handle up to 500 operations)
       const batch = writeBatch(this.db);
@@ -244,25 +244,25 @@ class WorkoutSyncService {
 
           syncedCount++;
 
-          console.log(`✅ Prepared workout ${i + 1}/${unsyncedWorkouts.length} for sync`);
+
         } catch (error) {
           console.error(`❌ Error preparing workout ${workout.id} for sync:`, error);
         }
       }
 
       // Commit the batch write to Firebase
-      console.log('💾 Committing batch write to Firebase...');
+
       await batch.commit();
 
       // Update local storage with sync status
-      console.log('💾 Updating local storage with sync status...');
+
       await WorkoutStorageService.saveWorkouts(updatedWorkouts, userId);
 
       const failedCount = unsyncedWorkouts.length - syncedCount;
-      console.log(`✅ Successfully synced ${syncedCount} workouts to cloud`);
+
 
       if (failedCount > 0) {
-        console.log(`⚠️ Failed to sync ${failedCount} workouts`);
+
       }
 
       return { synced: syncedCount, failed: failedCount };
@@ -289,7 +289,7 @@ class WorkoutSyncService {
         throw new Error('User not authenticated');
       }
 
-      console.log('📥 Downloading workouts from cloud...');
+
 
       // Get all workouts from cloud
       const cloudWorkouts = await this.getAllWorkouts();
@@ -297,7 +297,7 @@ class WorkoutSyncService {
       // Get local workouts
       const localWorkouts = await WorkoutStorageService.getWorkoutHistory(userId);
 
-      console.log(`📊 Found ${cloudWorkouts.length} cloud workouts and ${localWorkouts.length} local workouts`);
+
 
       // Merge strategy: Create a map with cloud ID as key
       // Cloud data takes precedence
@@ -325,11 +325,11 @@ class WorkoutSyncService {
       mergedWorkouts.sort((a, b) => new Date(b.date) - new Date(a.date));
 
       // Save merged workouts to local storage
-      console.log('💾 Saving merged workouts to local storage...');
+
       await WorkoutStorageService.saveWorkouts(mergedWorkouts, userId);
 
-      console.log(`✅ Downloaded and merged ${cloudWorkouts.length} cloud workouts`);
-      console.log(`📊 Total workouts after merge: ${mergedWorkouts.length}`);
+
+
 
       return mergedWorkouts;
     } catch (error) {

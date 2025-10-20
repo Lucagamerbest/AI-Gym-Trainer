@@ -95,7 +95,7 @@ export const updateNutritionGoals = async (userId, goals) => {
     };
 
     await BackendService.updateUserGoals(userId, firebaseGoals);
-    console.log('✅ Nutrition goals updated in Firebase');
+
     return { success: true };
   } catch (error) {
     console.error('Error updating nutrition goals:', error);

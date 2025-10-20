@@ -67,7 +67,8 @@
       "Bash(eas build:*)",
       "WebFetch(domain:stackoverflow.com)",
       "Bash(cat:*)",
-      "Bash(git show:*)"
+      "Bash(git show:*)",
+      "Bash(test -f \"C:\\Users\\lucar\\AI-Gym-Trainer\\src\\services\\ai\\actions\\index.js\")"
     ],
     "deny": [],
     "ask": []

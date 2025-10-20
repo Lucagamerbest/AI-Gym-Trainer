@@ -16,10 +16,12 @@ export default function AIScreen({ navigation }) {
   const [refreshing, setRefreshing] = useState(false);
   const [initialMessage, setInitialMessage] = useState('');
 
-  // Load suggestions when screen is focused
+  // Auto-open chat when screen is focused (only if user navigated to AI tab directly)
   useFocusEffect(
     React.useCallback(() => {
       loadSuggestions();
+      // Automatically open chat modal when user accesses AI screen
+      setChatVisible(true);
     }, [user?.uid])
   );
 
@@ -29,9 +31,9 @@ export default function AIScreen({ navigation }) {
     try {
       const activeSuggestions = await ProactiveAIService.getAllSuggestions(user.uid);
       setSuggestions(activeSuggestions);
-      console.log(`📊 Found ${activeSuggestions.length} AI suggestions`);
+
     } catch (error) {
-      console.log('Error loading suggestions:', error);
+
     }
   };
 
@@ -131,7 +133,12 @@ export default function AIScreen({ navigation }) {
 
       <AIChatModal
         visible={chatVisible}
-        onClose={() => setChatVisible(false)}
+        onClose={() => {
+          setChatVisible(false);
+          setInitialMessage('');
+          // Navigate to Home tab when closing chat from AI screen
+          navigation.navigate('Home');
+        }}
         initialMessage={initialMessage}
       />
     </>

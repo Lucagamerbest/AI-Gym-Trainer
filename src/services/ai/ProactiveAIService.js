@@ -31,7 +31,7 @@ class ProactiveAIService {
       try {
         workouts = await WorkoutSyncService.getAllWorkouts(20);
       } catch (error) {
-        console.log('⚠️ Could not fetch workouts from Firebase');
+
         return null;
       }
       if (!workouts || workouts.length === 0) return null;
@@ -55,7 +55,7 @@ class ProactiveAIService {
         };
       }
     } catch (error) {
-      console.log('Error checking workout completion:', error);
+
     }
     return null;
   }
@@ -68,7 +68,7 @@ class ProactiveAIService {
       try {
         workouts = await WorkoutSyncService.getAllWorkouts(100);
       } catch (error) {
-        console.log('⚠️ Could not fetch workouts from Firebase');
+
         return null;
       }
       if (!workouts || workouts.length === 0) return null;
@@ -130,7 +130,7 @@ class ProactiveAIService {
         }
       }
     } catch (error) {
-      console.log('Error checking PR:', error);
+
     }
     return null;
   }
@@ -146,7 +146,7 @@ class ProactiveAIService {
       try {
         meals = await MealSyncService.getMealsByDate(userId, today);
       } catch (error) {
-        console.log('⚠️ Could not fetch meals from Firebase');
+
         return null;
       }
 
@@ -171,7 +171,7 @@ class ProactiveAIService {
           };
         }
       } catch (error) {
-        console.log('⚠️ Could not fetch goals from Firebase');
+
         return null;
       }
 
@@ -205,7 +205,7 @@ class ProactiveAIService {
         }
       }
     } catch (error) {
-      console.log('Error checking nutrition:', error);
+
     }
     return null;
   }
@@ -218,7 +218,7 @@ class ProactiveAIService {
       try {
         workouts = await WorkoutSyncService.getAllWorkouts(20);
       } catch (error) {
-        console.log('⚠️ Could not fetch workouts from Firebase');
+
         return null;
       }
       if (!workouts || workouts.length === 0) return null;
@@ -245,7 +245,7 @@ class ProactiveAIService {
         }
       }
     } catch (error) {
-      console.log('Error checking consistency:', error);
+
     }
     return null;
   }
@@ -281,7 +281,7 @@ class ProactiveAIService {
         }
       }
     } catch (error) {
-      console.log('Error checking progressive overload:', error);
+
     }
     return null;
   }
@@ -316,7 +316,7 @@ class ProactiveAIService {
         }
       }
     } catch (error) {
-      console.log('Error checking volume balance:', error);
+
     }
     return null;
   }
@@ -341,7 +341,7 @@ class ProactiveAIService {
 
       return activeSuggestions;
     } catch (error) {
-      console.log('Error getting suggestions:', error);
+
       return [];
     }
   }

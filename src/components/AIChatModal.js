@@ -145,13 +145,12 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
           // Check both ways: message contains exercise name OR exercise name contains message keywords
           if (lowerMessage.includes(exerciseName) ||
               exerciseName.split(' ').some(word => word.length > 3 && lowerMessage.includes(word))) {
-            console.log(`🎯 Fuzzy matched user exercise: ${exerciseData.name}`);
             return { exerciseName: exerciseData.name, isPRQuestion };
           }
         }
       }
     } catch (error) {
-      console.log('Could not fuzzy match exercises:', error);
+      // Fuzzy match failed
     }
 
     // If PR question but no specific exercise found, might be asking about current workout
@@ -165,7 +164,6 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
 
     // Start timing
     const startTime = performance.now();
-    console.log(`⏱️ [${new Date().toLocaleTimeString()}] User message sent`);
 
     // Add user message
     addMessage({
@@ -177,22 +175,20 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
     // Get AI response
     setLoading(true);
     try {
+      // Log user question
+      console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('👤 USER:', userMessage);
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
       // Get real user ID from AuthContext
       const userId = user?.uid || 'guest';
-      console.log(`🔍 AIChatModal userId from AuthContext: ${userId}`);
-      console.log(`🔍 Full user object:`, user);
 
-      const contextStart = performance.now();
       const context = await ContextManager.getFullContext(userId);
-      const contextTime = performance.now() - contextStart;
-      console.log(`⏱️ Context gathered in ${contextTime.toFixed(0)}ms`);
 
       // Add screen-specific context
       let screenContext = {};
       const currentScreen = context.screen;
 
-      const screenContextStart = performance.now();
-      console.log(`🔍 About to call getNutritionContext with userId: ${userId}`);
       if (currentScreen?.includes('Workout')) {
         screenContext = await ContextManager.getWorkoutContext();
       } else if (currentScreen?.includes('Nutrition') || currentScreen?.includes('Food')) {
@@ -200,11 +196,8 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
       } else if (currentScreen?.includes('Progress')) {
         screenContext = await ContextManager.getProgressContext();
       }
-      const screenContextTime = performance.now() - screenContextStart;
-      console.log(`⏱️ Screen context in ${screenContextTime.toFixed(0)}ms`);
 
       // Only detect exercises if message contains exercise keywords (skip for general questions)
-      const exerciseDetectStart = performance.now();
       const lowerMessage = userMessage.toLowerCase();
       const hasExerciseKeywords = lowerMessage.includes('pr') || lowerMessage.includes('bench') ||
                                    lowerMessage.includes('squat') || lowerMessage.includes('deadlift') ||
@@ -216,8 +209,6 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
         const { exerciseName, isPRQuestion } = await detectExerciseName(userMessage);
 
         if (exerciseName) {
-          console.log(`🎯 Detected exercise query: ${exerciseName}`);
-
           // Fetch exercise-specific data using real user ID
           const [history, pr, progression] = await Promise.all([
             ContextManager.getExerciseHistory(exerciseName, userId, 5),
@@ -231,12 +222,8 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
             pr,
             progression,
           };
-
-          console.log('📊 Exercise context:', exerciseContext);
         }
       }
-      const exerciseDetectTime = performance.now() - exerciseDetectStart;
-      console.log(`⏱️ Exercise detection in ${exerciseDetectTime.toFixed(0)}ms`);
 
       const fullContext = {
         ...context,
@@ -244,15 +231,12 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
         exerciseSpecific: exerciseContext,
       };
 
-      const aiCallStart = performance.now();
       const result = await AIService.sendMessage(userMessage, fullContext);
-      const aiCallTime = performance.now() - aiCallStart;
-      console.log(`⏱️ AI API call in ${aiCallTime.toFixed(0)}ms`);
 
-      // Add AI response
-      const totalTime = performance.now() - startTime;
-      console.log(`⏱️ ✅ TOTAL TIME: ${totalTime.toFixed(0)}ms (${(totalTime/1000).toFixed(2)}s)`);
-      console.log(`⏱️ [${new Date().toLocaleTimeString()}] AI response received`);
+      // Log AI response
+      console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('🤖 AI:', result.response);
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
       addMessage({
         role: 'assistant',
@@ -262,8 +246,6 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
       });
     } catch (error) {
       console.error('AI error:', error);
-      const totalTime = performance.now() - startTime;
-      console.log(`⏱️ ❌ FAILED after ${totalTime.toFixed(0)}ms`);
 
       addMessage({
         role: 'assistant',

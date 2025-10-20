@@ -9,7 +9,7 @@ let isInitialized = false;
 
 export const initializeGemini = () => {
   if (isInitialized) {
-    console.log('✅ Gemini already initialized');
+
     return;
   }
 
@@ -21,7 +21,7 @@ export const initializeGemini = () => {
   try {
     AIService.initialize(GOOGLE_GEMINI_API_KEY);
     isInitialized = true;
-    console.log('✅ Gemini AI initialized successfully');
+
   } catch (error) {
     console.error('❌ Failed to initialize Gemini:', error);
     throw error;

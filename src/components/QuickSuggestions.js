@@ -56,7 +56,7 @@ function SuggestionChip({ suggestion, onPress }) {
             <Text style={[
               styles.text,
               isBackButton && styles.backButtonText
-            ]} numberOfLines={2}>
+            ]} numberOfLines={3}>
               {suggestion.text}
             </Text>
             {hasSubsections && (
@@ -166,7 +166,10 @@ export default function QuickSuggestions({ screen, onSuggestionPress, userId = '
       arms: { icon: 'barbell', text: '🎯 Create an arm workout (guns need pumping!)' },
     };
 
-    return { ...muscleToWorkout[leastTrainedMuscle], priority: true };
+    const suggestion = muscleToWorkout[leastTrainedMuscle];
+    if (!suggestion || !suggestion.text) return null;
+
+    return { ...suggestion, priority: true };
   };
 
   // Analyze nutrition to suggest protein-rich meals
@@ -176,7 +179,7 @@ export default function QuickSuggestions({ screen, onSuggestionPress, userId = '
     const { protein, calories } = nutritionContext;
 
     // If protein is below 50% of goal, suggest high-protein meal
-    if (protein.percentage < 50) {
+    if (protein && protein.percentage < 50 && protein.remaining) {
       return {
         icon: 'restaurant',
         text: `🎯 Need ${protein.remaining}g protein - get meal ideas!`,
@@ -186,7 +189,7 @@ export default function QuickSuggestions({ screen, onSuggestionPress, userId = '
 
     // If calories are low and it's past noon
     const hour = new Date().getHours();
-    if (calories.percentage < 40 && hour >= 12) {
+    if (calories && calories.percentage < 40 && calories.consumed !== undefined && hour >= 12) {
       return {
         icon: 'flame',
         text: `🎯 Only ${calories.consumed} calories today - what should I eat?`,
@@ -253,11 +256,9 @@ export default function QuickSuggestions({ screen, onSuggestionPress, userId = '
             text: 'Plan a program',
             hasSubsections: true,
             subsections: [
-              { icon: 'clipboard', text: 'Create a 3-day full body split' },
-              { icon: 'clipboard', text: 'Create a 4-day upper/lower split' },
-              { icon: 'clipboard', text: 'Create a 5-day bro split' },
-              { icon: 'clipboard', text: 'Create a 6-day PPL program' },
-              { icon: 'clipboard', text: 'Create a custom split' },
+              { icon: 'trending-up', text: 'Create a 6-day PPL program' },
+              { icon: 'barbell', text: 'Create a 4-day Upper/Lower program' },
+              { icon: 'sparkles', text: 'Create a 5-day Bro Split program' },
             ]
           },
           {
@@ -410,10 +411,9 @@ export default function QuickSuggestions({ screen, onSuggestionPress, userId = '
             text: 'Create a program',
             hasSubsections: true,
             subsections: [
-              { icon: 'clipboard', text: 'Create a 3-day full body split' },
-              { icon: 'clipboard', text: 'Create a 4-day upper/lower split' },
-              { icon: 'clipboard', text: 'Create a 5-day bro split' },
-              { icon: 'clipboard', text: 'Create a 6-day PPL program' },
+              { icon: 'trending-up', text: 'Create a 6-day PPL program' },
+              { icon: 'barbell', text: 'Create a 4-day Upper/Lower program' },
+              { icon: 'sparkles', text: 'Create a 5-day Bro Split program' },
             ]
           },
           // Quick questions after
@@ -470,10 +470,13 @@ export default function QuickSuggestions({ screen, onSuggestionPress, userId = '
   const suggestions = getCurrentSuggestions();
   const CARDS_PER_PAGE = 4;
 
+  // Filter out any suggestions with empty or undefined text
+  const validSuggestions = suggestions.filter(s => s && s.text && s.text.trim().length > 0);
+
   // Add back button if we're in a subsection
   const displaySuggestions = navigationPath.length > 0
-    ? [{ icon: 'arrow-back', text: 'Back', isBackButton: true }, ...suggestions]
-    : suggestions;
+    ? [{ icon: 'arrow-back', text: 'Back', isBackButton: true }, ...validSuggestions]
+    : validSuggestions;
 
   const totalPages = Math.ceil(displaySuggestions.length / CARDS_PER_PAGE);
 
@@ -503,8 +506,17 @@ export default function QuickSuggestions({ screen, onSuggestionPress, userId = '
 
     // Handle navigation to subsection
     if (suggestion.hasSubsections) {
-      // Calculate the actual index in the original array (accounting for back button)
-      const actualIndex = navigationPath.length > 0 ? index - 1 : index;
+      // Calculate the actual index in the original array
+      let actualIndex = index;
+
+      if (navigationPath.length > 0) {
+        // We're in a subsection, account for back button
+        actualIndex = index - 1;
+      } else {
+        // We're on main page, account for smart suggestions
+        actualIndex = index - smartSuggestions.length;
+      }
+
       setNavigationPath([...navigationPath, actualIndex]);
       setCurrentPage(0);
       if (scrollViewRef.current) {
@@ -598,7 +610,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.xl,
     borderWidth: 1,
     borderColor: Colors.primary + '40',
-    minHeight: 85,
+    minHeight: 95,
     shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.2,
@@ -615,11 +627,12 @@ const styles = StyleSheet.create({
     gap: Spacing.xs,
   },
   text: {
-    fontSize: Typography.fontSize.sm,
+    fontSize: Typography.fontSize.xs,
     color: Colors.text,
     fontWeight: '600',
     textAlign: 'center',
-    lineHeight: 18,
+    lineHeight: 16,
+    flexWrap: 'wrap',
   },
   backButtonChip: {
     borderColor: Colors.border,

@@ -25,15 +25,8 @@ class SyncManager {
       const wasOffline = !this.isOnline;
       this.isOnline = state.isConnected && state.isInternetReachable !== false;
 
-      console.log('Network state changed:', {
-        isConnected: state.isConnected,
-        isInternetReachable: state.isInternetReachable,
-        isOnline: this.isOnline
-      });
-
       // If we just came back online, sync pending operations
       if (wasOffline && this.isOnline) {
-        console.log('Device came back online, triggering sync...');
         this.syncPendingOperations();
       }
 
@@ -107,7 +100,7 @@ class SyncManager {
       const saved = await AsyncStorage.getItem(PENDING_SYNC_KEY);
       if (saved) {
         this.syncQueue = JSON.parse(saved);
-        console.log(`Loaded ${this.syncQueue.length} pending sync operations`);
+
       }
     } catch (error) {
       console.error('Error loading pending operations:', error);
@@ -126,7 +119,7 @@ class SyncManager {
   // Sync all pending operations
   async syncPendingOperations() {
     if (this.isSyncing || !this.isOnline) {
-      console.log('Skipping sync:', { isSyncing: this.isSyncing, isOnline: this.isOnline });
+
       return { success: false, reason: this.isSyncing ? 'Already syncing' : 'Offline' };
     }
 
@@ -142,7 +135,7 @@ class SyncManager {
         errors: []
       };
 
-      console.log(`Starting sync of ${operations.length} operations...`);
+
 
       for (let i = 0; i < operations.length; i++) {
         const operation = operations[i];
@@ -171,7 +164,7 @@ class SyncManager {
       // Update last sync time
       await AsyncStorage.setItem(LAST_SYNC_KEY, new Date().toISOString());
 
-      console.log('Sync completed:', results);
+
 
       this.notifyListeners({
         syncCompleted: true,
@@ -231,7 +224,7 @@ class SyncManager {
       throw new Error('User ID is required for sync');
     }
 
-    console.log('Manual sync triggered for user:', userId);
+
 
     // Check network first
     const isOnline = await this.checkNetworkStatus();
@@ -301,7 +294,7 @@ class SyncManager {
     if (this.isOnline) {
       await this.syncPendingOperations();
     } else {
-      console.log('Workout queued for sync when online');
+
     }
   }
 
@@ -324,7 +317,7 @@ class SyncManager {
     if (this.isOnline) {
       await this.syncPendingOperations();
     } else {
-      console.log('Meal queued for sync when online');
+
     }
   }
 
@@ -346,7 +339,7 @@ class SyncManager {
     if (this.isOnline) {
       await this.syncPendingOperations();
     } else {
-      console.log('Today\'s meals queued for sync when online');
+
     }
   }
 
@@ -369,7 +362,7 @@ class SyncManager {
     if (this.isOnline) {
       await this.syncPendingOperations();
     } else {
-      console.log('Progress entry queued for sync when online');
+
     }
   }
 
@@ -391,7 +384,7 @@ class SyncManager {
     if (this.isOnline) {
       await this.syncPendingOperations();
     } else {
-      console.log('Progress entries queued for sync when online');
+
     }
   }
 }

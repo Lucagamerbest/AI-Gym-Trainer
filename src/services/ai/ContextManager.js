@@ -11,25 +11,25 @@ class ContextManager {
     this.currentScreen = null;
     this.currentActivity = null;
     this.screenData = {};
-    console.log('📍 ContextManager initialized');
+
   }
 
   // Set current screen context
   setScreen(screenName, data = {}) {
     this.currentScreen = screenName;
     this.screenData = data;
-    console.log(`📍 Context: Now on ${screenName}`, data);
+
   }
 
   // Set current activity
   setActivity(activity) {
     this.currentActivity = activity;
-    console.log(`🎯 Activity: ${activity}`);
+
   }
 
   // Get full context for AI (OPTIMIZED for speed)
   async getFullContext(userId = 'guest') {
-    console.log(`👤 Current user ID: ${userId}`);
+
 
     // Get user profile summary (lightweight, critical for personalization)
     const userProfile = await getUserProfileSummary();
@@ -45,7 +45,7 @@ class ContextManager {
       topExercises: await this.getTopExercisePRs(userId, 2), // Top 2 only (SPEED)
     };
 
-    console.log(`📚 AI Context built (minimal for speed)`, userProfile ? '✅ With user profile' : '⚠️ No profile');
+
     return context;
   }
 
@@ -72,9 +72,9 @@ class ContextManager {
       let allWorkouts = [];
       try {
         allWorkouts = await WorkoutSyncService.getAllWorkouts(100);
-        console.log(`🔥 Retrieved ${allWorkouts.length} workouts from Firebase`);
+
       } catch (error) {
-        console.log('⚠️ Could not fetch workouts from Firebase, using empty array');
+
       }
 
       const lastWorkout = allWorkouts.length > 0
@@ -146,7 +146,7 @@ class ContextManager {
     if (!this.currentScreen?.includes('Nutrition') && !this.currentScreen?.includes('Food')) return {};
 
     try {
-      console.log('🍽️ getNutritionContext received userId:', userId);
+
 
       // Read meals from Firebase
       const today = new Date().toISOString().split('T')[0];
@@ -177,13 +177,13 @@ class ContextManager {
             totalFat += meal.fat;
           });
 
-          console.log(`🍽️ Loaded ${firebaseMeals.length} meals from Firebase`);
+
         } catch (error) {
-          console.log('⚠️ Could not load meals from Firebase:', error);
+
         }
       }
 
-      console.log(`🍽️ Nutrition: ${totalCalories} cal, ${totalProtein}g protein, ${meals.length} meals`);
+
 
       // Get goals from Firebase
       let goals = { calories: 2000, protein: 150, carbs: 200, fat: 65 };
@@ -199,10 +199,10 @@ class ContextManager {
             };
           }
         } catch (error) {
-          console.log('⚠️ Could not load goals from Firebase:', error);
+
         }
       }
-      console.log('🎯 Goals:', goals);
+
 
       // Note: goals structure is { calories, protein, carbs, fat } not { calorieGoal, proteinGoal, ... }
       const calorieGoal = goals?.calories || 2000;
@@ -264,9 +264,9 @@ class ContextManager {
       let entries = [];
       try {
         entries = await ProgressSyncService.getAllProgress(userId, 100);
-        console.log(`🔥 Retrieved ${entries.length} progress entries from Firebase`);
+
       } catch (error) {
-        console.log('⚠️ Could not fetch progress from Firebase, falling back to empty data');
+
       }
 
       if (entries.length === 0) return {};
@@ -297,15 +297,15 @@ class ContextManager {
   // Get ALL workout history (not just recent) - OPTIMIZED for speed
   async getAllWorkoutHistory(userId = 'guest', limit = 3) {
     try {
-      console.log(`🔍 Fetching workout history for userId: ${userId}`);
+
       let allWorkouts = [];
       try {
         allWorkouts = await WorkoutSyncService.getAllWorkouts(100);
-        console.log(`🔥 Retrieved ${allWorkouts.length} workouts from Firebase`);
+
       } catch (error) {
-        console.log('⚠️ Could not fetch workouts from Firebase, using empty array');
+
       }
-      console.log(`📦 Raw workouts retrieved: ${allWorkouts.length}`, allWorkouts);
+
 
       // Format for AI consumption - LIMIT to recent workouts for speed
       return allWorkouts
@@ -393,9 +393,9 @@ class ContextManager {
       let allWorkouts = [];
       try {
         allWorkouts = await WorkoutSyncService.getAllWorkouts(100);
-        console.log(`🔥 Retrieved ${allWorkouts.length} workouts from Firebase for exercise history`);
+
       } catch (error) {
-        console.log('⚠️ Could not fetch workouts from Firebase, using empty array');
+
       }
       const searchName = exerciseName.toLowerCase();
 
@@ -450,11 +450,11 @@ class ContextManager {
       const history = await this.getExerciseHistory(exerciseName, userId, 100);
 
       if (!history || history.length === 0) {
-        console.log(`❌ No records found for: ${exerciseName}`);
+
         return null;
       }
 
-      console.log(`✅ Found ${history.length} workouts for: ${exerciseName}`);
+
 
       // Extract all sets from all workouts into flat list of records
       const records = [];
@@ -472,7 +472,7 @@ class ContextManager {
       });
 
       if (records.length === 0) {
-        console.log(`❌ No valid sets found for: ${exerciseName}`);
+
         return null;
       }
 
@@ -630,7 +630,7 @@ class ContextManager {
       try {
         allWorkouts = await WorkoutSyncService.getAllWorkouts(100);
       } catch (error) {
-        console.log('⚠️ Could not fetch workouts from Firebase for top exercises');
+
         return [];
       }
 
