@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { Colors, Spacing } from '../constants/theme';
-import AIChatModal from './AIChatModal';
+import AIButtonModal from './AIButtonModal';
 import ContextManager from '../services/ai/ContextManager';
 
 /**
  * AIHeaderButton - Universal AI assistant button for all screens
  *
- * Displays a floating AI button that opens the context-aware chat modal.
+ * Displays a floating AI button that opens the button-based AI modal.
  * Automatically sets the screen context when pressed.
  */
 export default function AIHeaderButton({ screenName, onAIClose }) {
@@ -39,9 +39,10 @@ export default function AIHeaderButton({ screenName, onAIClose }) {
         <Text style={styles.icon}>🤖</Text>
       </TouchableOpacity>
 
-      <AIChatModal
+      <AIButtonModal
         visible={modalVisible}
         onClose={handleClose}
+        screenName={screenName}
       />
     </>
   );
