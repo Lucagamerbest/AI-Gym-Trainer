@@ -514,6 +514,14 @@ AFTER GENERATING WORKOUT:
 - Wait for user to choose where to save
 - Then call the appropriate save tool
 
+AFTER SAVING WORKOUT:
+- Confirm the save with one of these phrases:
+  - "Added to Today's Plan!" (if saved to today)
+  - "Saved to My Plans!" (if saved to workout library)
+  - "Workout saved successfully!"
+- The modal will auto-close after 2 seconds
+- Keep the confirmation message SHORT (1 sentence)
+
 EXAMPLE 1 - User says "Calculate my macros for cutting":
 ✅ CORRECT: Call calculateMacros with profile data:
 {

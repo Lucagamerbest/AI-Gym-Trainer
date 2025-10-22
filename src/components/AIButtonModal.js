@@ -40,6 +40,29 @@ export default function AIButtonModal({
     }
   }, [visible]);
 
+  // Auto-close modal after successful save
+  useEffect(() => {
+    if (!lastResponse) return;
+
+    const lowerResponse = lastResponse.toLowerCase();
+    const saveSuccessKeywords = [
+      'added to today',
+      'saved to my plans',
+      'workout saved',
+      'added workout to',
+      'saved workout to',
+    ];
+
+    const isSaveSuccess = saveSuccessKeywords.some(keyword => lowerResponse.includes(keyword));
+
+    if (isSaveSuccess) {
+      // Close modal after 2 seconds to let user see the success message
+      setTimeout(() => {
+        onClose();
+      }, 2000);
+    }
+  }, [lastResponse, onClose]);
+
   /**
    * Detect if AI response is asking a question
    */
@@ -65,6 +88,25 @@ export default function AIButtonModal({
 
     const lowerResponse = response.toLowerCase();
     return questionKeywords.some(keyword => lowerResponse.includes(keyword));
+  };
+
+  /**
+   * Detect if AI is asking about save location (Today vs My Plans)
+   */
+  const detectSaveLocationQuestion = (response) => {
+    if (!response) return false;
+
+    const lowerResponse = response.toLowerCase();
+    const saveKeywords = [
+      'save this workout',
+      'add it to today',
+      'today\'s plan',
+      'my plans',
+      'save it to',
+      'add to today',
+    ];
+
+    return saveKeywords.some(keyword => lowerResponse.includes(keyword));
   };
 
   /**
@@ -203,6 +245,7 @@ export default function AIButtonModal({
 
   // Detect if AI is asking a question
   const isQuestion = detectQuestion(lastResponse);
+  const isSaveLocationQuestion = detectSaveLocationQuestion(lastResponse);
 
   return (
     <Modal
@@ -273,32 +316,59 @@ export default function AIButtonModal({
                   {/* Quick Reply Buttons - Show when AI asks a question */}
                   {isQuestion && (
                     <View style={styles.quickReplyContainer}>
-                      <Text style={styles.quickReplyLabel}>Quick Reply:</Text>
+                      <Text style={styles.quickReplyLabel}>
+                        {isSaveLocationQuestion ? 'Save to:' : 'Quick Reply:'}
+                      </Text>
                       <View style={styles.quickReplyButtons}>
-                        <TouchableOpacity
-                          style={styles.quickReplyButton}
-                          onPress={() => handleQuickReply('Yes')}
-                          disabled={loadingButton !== null}
-                          activeOpacity={0.7}
-                        >
-                          <Text style={styles.quickReplyText}>✓ Yes</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          style={styles.quickReplyButton}
-                          onPress={() => handleQuickReply('No')}
-                          disabled={loadingButton !== null}
-                          activeOpacity={0.7}
-                        >
-                          <Text style={styles.quickReplyText}>✕ No</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          style={styles.quickReplyButton}
-                          onPress={() => handleQuickReply('Not sure, can you explain more?')}
-                          disabled={loadingButton !== null}
-                          activeOpacity={0.7}
-                        >
-                          <Text style={styles.quickReplyText}>? Not sure</Text>
-                        </TouchableOpacity>
+                        {isSaveLocationQuestion ? (
+                          <>
+                            {/* Save Location Buttons */}
+                            <TouchableOpacity
+                              style={[styles.quickReplyButton, styles.saveLocationButton]}
+                              onPress={() => handleQuickReply('Add to today\'s plan')}
+                              disabled={loadingButton !== null}
+                              activeOpacity={0.7}
+                            >
+                              <Text style={styles.quickReplyText}>📅 Today's Workout</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              style={[styles.quickReplyButton, styles.saveLocationButton]}
+                              onPress={() => handleQuickReply('Save to my plans')}
+                              disabled={loadingButton !== null}
+                              activeOpacity={0.7}
+                            >
+                              <Text style={styles.quickReplyText}>💾 Save to My Plans</Text>
+                            </TouchableOpacity>
+                          </>
+                        ) : (
+                          <>
+                            {/* Regular Yes/No/Not Sure Buttons */}
+                            <TouchableOpacity
+                              style={styles.quickReplyButton}
+                              onPress={() => handleQuickReply('Yes')}
+                              disabled={loadingButton !== null}
+                              activeOpacity={0.7}
+                            >
+                              <Text style={styles.quickReplyText}>✓ Yes</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              style={styles.quickReplyButton}
+                              onPress={() => handleQuickReply('No')}
+                              disabled={loadingButton !== null}
+                              activeOpacity={0.7}
+                            >
+                              <Text style={styles.quickReplyText}>✕ No</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              style={styles.quickReplyButton}
+                              onPress={() => handleQuickReply('Not sure, can you explain more?')}
+                              disabled={loadingButton !== null}
+                              activeOpacity={0.7}
+                            >
+                              <Text style={styles.quickReplyText}>? Not sure</Text>
+                            </TouchableOpacity>
+                          </>
+                        )}
                       </View>
                     </View>
                   )}
@@ -487,6 +557,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.primary + '30',
     alignItems: 'center',
+  },
+  saveLocationButton: {
+    minWidth: 140,
+    paddingVertical: Spacing.md,
+    backgroundColor: Colors.primary + '20',
+    borderColor: Colors.primary + '50',
+    borderWidth: 2,
   },
   quickReplyText: {
     fontSize: Typography.fontSize.sm,
