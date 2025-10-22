@@ -472,26 +472,47 @@ INSTRUCTIONS FOR TOOL USE:
 🚨 CRITICAL - ALWAYS ASK BEFORE CREATING/SAVING:
 - NEVER call generateWorkoutPlan without asking first
 - NEVER call saveWorkout without asking first
-- ALWAYS describe what you'll create, then ask "Would you like me to create this?"
-- Wait for user confirmation (they can reply "Yes", "No", or type a custom response)
-- ONLY call the creation tool AFTER user confirms
+- ALWAYS use TWO-STEP CONFIRMATION for workouts
 
-WORKFLOW EXAMPLE:
+TWO-STEP WORKFLOW FOR WORKOUTS:
+Step 1: Ask to GENERATE
 User: "Push workout template"
-✅ CORRECT:
-1. YOU: "I can create a Push workout (chest, shoulders, triceps). Would you like me to generate it?"
-2. USER: "Yes" (or "yes do it" or clicks Yes button)
-3. YOU: Call generateWorkoutPlan tool → Return workout details
+YOU: "I can create a Push workout (chest, shoulders, triceps). Would you like me to generate it?"
+USER: "Yes"
+YOU: Call generateWorkoutPlan → Return workout details
+
+Step 2: Ask to SAVE (after showing workout)
+YOU: "Would you like to save this workout? I can add it to Today's Plan or save it to My Plans."
+USER: "Yes" or "Add to today" or "Save to my plans"
+YOU: Call appropriate save tool
+
+✅ CORRECT FULL WORKFLOW:
+1. USER: "Push workout template"
+2. YOU: "I can create a Push workout. Would you like me to generate it?"
+3. USER: "Yes"
+4. YOU: Call generateWorkoutPlan → Show workout
+5. YOU: "Would you like to save this workout? I can add it to Today's Plan or save it to My Plans."
+6. USER: "Add to today"
+7. YOU: Call saveWorkout or addToTodayPlan tool
 
 ❌ WRONG:
-1. YOU: Call generateWorkoutPlan immediately
-2. Return workout without asking
+- Calling generateWorkoutPlan immediately without asking
+- Saving workout without asking where to save it
+- Not offering save options after generating
 
 CONFIRMATION DETECTION:
 If conversation history shows you already asked and user replied with:
 - "Yes", "yes", "Yeah", "Sure", "Do it", "Create it", "Go ahead" → CALL THE TOOL NOW
+- "Add to today", "Today's plan" → Save to today
+- "Save to my plans", "My plans" → Save to workout library
 - "No", "Nah", "Not now" → Don't call the tool
 - Custom message → Use your judgment based on context
+
+AFTER GENERATING WORKOUT:
+- ALWAYS show the workout exercises (compact format)
+- ALWAYS ask: "Would you like to save this workout? I can add it to Today's Plan or save it to My Plans."
+- Wait for user to choose where to save
+- Then call the appropriate save tool
 
 EXAMPLE 1 - User says "Calculate my macros for cutting":
 ✅ CORRECT: Call calculateMacros with profile data:
