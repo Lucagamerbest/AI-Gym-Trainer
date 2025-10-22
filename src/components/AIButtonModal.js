@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView, Platform } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import AIButtonSection from './AIButtonSection';
 import { getAISectionsForScreen, hasAISections } from '../config/aiSectionConfig';
@@ -19,11 +20,50 @@ export default function AIButtonModal({
   screenName,
 }) {
   const { user } = useAuth();
+  const scrollViewRef = useRef(null);
+  const responseRef = useRef(null);
+
   const [loadingButton, setLoadingButton] = useState(null);
   const [lastResponse, setLastResponse] = useState(null);
+  const [expandedSections, setExpandedSections] = useState({});
+  const [conversationHistory, setConversationHistory] = useState([]);
 
   // Get sections for this screen
   const sections = getAISectionsForScreen(screenName);
+
+  // Initialize first section as expanded
+  useEffect(() => {
+    if (visible && sections.length > 0) {
+      setExpandedSections({ 0: true });
+    }
+  }, [visible]);
+
+  /**
+   * Detect if AI response is asking a question
+   */
+  const detectQuestion = (response) => {
+    if (!response) return false;
+
+    // Check for question mark
+    if (response.includes('?')) return true;
+
+    // Check for question keywords
+    const questionKeywords = [
+      'would you like',
+      'do you want',
+      'should i',
+      'shall i',
+      'can i help',
+      'need help',
+      'prefer',
+      'which one',
+      'what would',
+      'how about',
+    ];
+
+    const lowerResponse = response.toLowerCase();
+    return questionKeywords.some(keyword => lowerResponse.includes(keyword));
+  };
 
   /**
    * Handle button press
@@ -34,6 +74,9 @@ export default function AIButtonModal({
       setLoadingButton(button.text);
       setLastResponse(null);
 
+      // Collapse all sections
+      setExpandedSections({});
+
       // Build context for this screen
       const context = await ContextManager.buildContextForScreen(screenName, user?.uid);
 
@@ -43,6 +86,17 @@ export default function AIButtonModal({
       // Store response
       setLastResponse(result.response);
 
+      // Add to conversation history
+      setConversationHistory(prev => [
+        ...prev,
+        { userMessage: button.text, aiResponse: result.response }
+      ]);
+
+      // Auto-scroll to response after a short delay
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+
     } catch (error) {
       console.error('AI button error:', error);
       setLastResponse("Sorry, I couldn't process that request. Please try again.");
@@ -51,8 +105,61 @@ export default function AIButtonModal({
     }
   };
 
+  /**
+   * Handle quick reply button press
+   */
+  const handleQuickReply = async (reply) => {
+    try {
+      setLoadingButton(reply);
+      const previousResponse = lastResponse;
+      setLastResponse(null);
+
+      // Build context with conversation history
+      const context = await ContextManager.buildContextForScreen(screenName, user?.uid);
+
+      // Add conversation history to context
+      context.conversationHistory = conversationHistory;
+
+      // Send reply to AI
+      const result = await AIService.sendMessageWithTools(reply, context);
+
+      // Store response
+      setLastResponse(result.response);
+
+      // Add to conversation history
+      setConversationHistory(prev => [
+        ...prev,
+        { userMessage: reply, aiResponse: result.response }
+      ]);
+
+      // Auto-scroll to response
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+
+    } catch (error) {
+      console.error('Quick reply error:', error);
+      setLastResponse("Sorry, I couldn't process that response. Please try again.");
+    } finally {
+      setLoadingButton(null);
+    }
+  };
+
+  /**
+   * Toggle section expanded state
+   */
+  const toggleSection = (index) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [index]: !prev[index],
+    }));
+  };
+
   // If no sections, show message
   const noSections = !hasAISections(screenName);
+
+  // Detect if AI is asking a question
+  const isQuestion = detectQuestion(lastResponse);
 
   return (
     <Modal
@@ -84,6 +191,7 @@ export default function AIButtonModal({
 
         {/* Content */}
         <ScrollView
+          ref={scrollViewRef}
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
@@ -104,7 +212,8 @@ export default function AIButtonModal({
                   icon={section.icon}
                   buttons={section.buttons}
                   onButtonPress={handleButtonPress}
-                  defaultExpanded={index === 0}
+                  expanded={expandedSections[index] || false}
+                  onToggle={() => toggleSection(index)}
                   loading={loadingButton !== null}
                 />
               ))}
@@ -117,6 +226,39 @@ export default function AIButtonModal({
                     <Text style={styles.responseTitle}>AI Response</Text>
                   </View>
                   <Text style={styles.responseText}>{lastResponse}</Text>
+
+                  {/* Quick Reply Buttons - Show when AI asks a question */}
+                  {isQuestion && (
+                    <View style={styles.quickReplyContainer}>
+                      <Text style={styles.quickReplyLabel}>Quick Reply:</Text>
+                      <View style={styles.quickReplyButtons}>
+                        <TouchableOpacity
+                          style={styles.quickReplyButton}
+                          onPress={() => handleQuickReply('Yes')}
+                          disabled={loadingButton !== null}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={styles.quickReplyText}>✓ Yes</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={styles.quickReplyButton}
+                          onPress={() => handleQuickReply('No')}
+                          disabled={loadingButton !== null}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={styles.quickReplyText}>✕ No</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={styles.quickReplyButton}
+                          onPress={() => handleQuickReply('Not sure, can you explain more?')}
+                          disabled={loadingButton !== null}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={styles.quickReplyText}>? Not sure</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  )}
                 </View>
               )}
 
@@ -242,5 +384,38 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.md,
     color: Colors.textSecondary,
     textAlign: 'center',
+  },
+  quickReplyContainer: {
+    marginTop: Spacing.md,
+    paddingTop: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  quickReplyLabel: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+    marginBottom: Spacing.sm,
+  },
+  quickReplyButtons: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    flexWrap: 'wrap',
+  },
+  quickReplyButton: {
+    flex: 1,
+    minWidth: 90,
+    backgroundColor: Colors.primary + '15',
+    borderRadius: BorderRadius.md,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.primary + '30',
+    alignItems: 'center',
+  },
+  quickReplyText: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
+    color: Colors.primary,
   },
 });

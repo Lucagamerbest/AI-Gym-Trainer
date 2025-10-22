@@ -14,6 +14,10 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
  *
  * Collapsible accordion section containing AI action buttons
  * Based on the design document structure
+ *
+ * Supports both controlled and uncontrolled modes:
+ * - Controlled: pass `expanded` and `onToggle` props
+ * - Uncontrolled: pass `defaultExpanded` only
  */
 export default function AIButtonSection({
   title,
@@ -21,25 +25,47 @@ export default function AIButtonSection({
   buttons = [],
   onButtonPress,
   defaultExpanded = false,
+  expanded: controlledExpanded, // Controlled state from parent
+  onToggle, // Callback for controlled state
   loading = false,
   emptyMessage = 'No actions available',
 }) {
-  const [expanded, setExpanded] = useState(defaultExpanded);
+  // Use controlled state if provided, otherwise use internal state
+  const [internalExpanded, setInternalExpanded] = useState(defaultExpanded);
+  const isControlled = controlledExpanded !== undefined;
+  const expanded = isControlled ? controlledExpanded : internalExpanded;
+
   const [rotateAnim] = useState(new Animated.Value(defaultExpanded ? 1 : 0));
 
-  const toggleExpanded = () => {
-    const newExpanded = !expanded;
-
-    // Animate chevron rotation
+  // Update animation when expanded state changes (for controlled mode)
+  React.useEffect(() => {
     Animated.spring(rotateAnim, {
-      toValue: newExpanded ? 1 : 0,
+      toValue: expanded ? 1 : 0,
       useNativeDriver: true,
       friction: 8,
     }).start();
+  }, [expanded]);
 
-    // Animate content expand/collapse
+  const toggleExpanded = () => {
+    // Animate content expand/collapse for both modes
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setExpanded(newExpanded);
+
+    if (isControlled) {
+      // Controlled mode - call parent callback
+      onToggle?.();
+    } else {
+      // Uncontrolled mode - manage internal state
+      const newExpanded = !expanded;
+
+      // Animate chevron rotation
+      Animated.spring(rotateAnim, {
+        toValue: newExpanded ? 1 : 0,
+        useNativeDriver: true,
+        friction: 8,
+      }).start();
+
+      setInternalExpanded(newExpanded);
+    }
   };
 
   const chevronRotation = rotateAnim.interpolate({
