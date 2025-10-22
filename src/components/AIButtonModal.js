@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView, Platform } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView, Platform, TextInput, Keyboard } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import AIButtonSection from './AIButtonSection';
 import { getAISectionsForScreen, hasAISections } from '../config/aiSectionConfig';
@@ -27,6 +28,7 @@ export default function AIButtonModal({
   const [lastResponse, setLastResponse] = useState(null);
   const [expandedSections, setExpandedSections] = useState({});
   const [conversationHistory, setConversationHistory] = useState([]);
+  const [replyText, setReplyText] = useState('');
 
   // Get sections for this screen
   const sections = getAISectionsForScreen(screenName);
@@ -146,6 +148,47 @@ export default function AIButtonModal({
   };
 
   /**
+   * Handle custom text reply
+   */
+  const handleSendReply = async () => {
+    if (!replyText.trim()) return;
+
+    try {
+      setLoadingButton('Sending...');
+      const messageToSend = replyText;
+      setReplyText(''); // Clear input immediately
+      Keyboard.dismiss();
+
+      // Build context with conversation history
+      const context = await ContextManager.buildContextForScreen(screenName, user?.uid);
+      context.conversationHistory = conversationHistory;
+
+      // Send reply to AI
+      const result = await AIService.sendMessageWithTools(messageToSend, context);
+
+      // Store response
+      setLastResponse(result.response);
+
+      // Add to conversation history
+      setConversationHistory(prev => [
+        ...prev,
+        { userMessage: messageToSend, aiResponse: result.response }
+      ]);
+
+      // Auto-scroll to response
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+
+    } catch (error) {
+      console.error('Send reply error:', error);
+      setLastResponse("Sorry, I couldn't process that message. Please try again.");
+    } finally {
+      setLoadingButton(null);
+    }
+  };
+
+  /**
    * Toggle section expanded state
    */
   const toggleSection = (index) => {
@@ -259,6 +302,38 @@ export default function AIButtonModal({
                       </View>
                     </View>
                   )}
+
+                  {/* Text Input - Always show for custom replies */}
+                  <View style={styles.replyInputContainer}>
+                    <Text style={styles.replyInputLabel}>Continue conversation:</Text>
+                    <View style={styles.replyInputRow}>
+                      <TextInput
+                        style={styles.replyInput}
+                        placeholder="Type your reply..."
+                        placeholderTextColor={Colors.textMuted}
+                        value={replyText}
+                        onChangeText={setReplyText}
+                        multiline
+                        maxLength={500}
+                        editable={loadingButton === null}
+                      />
+                      <TouchableOpacity
+                        style={[
+                          styles.sendButton,
+                          (!replyText.trim() || loadingButton !== null) && styles.sendButtonDisabled
+                        ]}
+                        onPress={handleSendReply}
+                        disabled={!replyText.trim() || loadingButton !== null}
+                        activeOpacity={0.7}
+                      >
+                        <Ionicons
+                          name="send"
+                          size={20}
+                          color={replyText.trim() && loadingButton === null ? Colors.white : Colors.textMuted}
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
                 </View>
               )}
 
@@ -417,5 +492,53 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.sm,
     fontWeight: '600',
     color: Colors.primary,
+  },
+  replyInputContainer: {
+    marginTop: Spacing.md,
+    paddingTop: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  replyInputLabel: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+    marginBottom: Spacing.sm,
+  },
+  replyInputRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: Spacing.sm,
+  },
+  replyInput: {
+    flex: 1,
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    fontSize: Typography.fontSize.md,
+    color: Colors.text,
+    maxHeight: 100,
+    minHeight: 40,
+  },
+  sendButton: {
+    backgroundColor: Colors.primary,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 2,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  sendButtonDisabled: {
+    backgroundColor: Colors.border,
+    elevation: 0,
+    shadowOpacity: 0,
   },
 });
