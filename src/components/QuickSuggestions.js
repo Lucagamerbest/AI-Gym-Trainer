@@ -472,9 +472,25 @@ export default function QuickSuggestions({ screen, onSuggestionPress, userId = '
           },
           {
             icon: 'sparkles',
-            text: 'Create a program',
+            text: 'Create new program',
             hasSubsections: true,
             subsections: [
+              // Step 1: Select number of days
+              {
+                icon: 'calendar',
+                text: 'How many days?',
+                hasSubsections: true,
+                subsections: [
+                  { icon: 'calendar-number', text: '1 day/week' },
+                  { icon: 'calendar-number', text: '2 days/week' },
+                  { icon: 'calendar-number', text: '3 days/week' },
+                  { icon: 'calendar-number', text: '4 days/week' },
+                  { icon: 'calendar-number', text: '5 days/week' },
+                  { icon: 'calendar-number', text: '6 days/week' },
+                  { icon: 'calendar-number', text: '7 days/week' },
+                ]
+              },
+              // Or quick templates
               { icon: 'trending-up', text: '6-day PPL' },
               { icon: 'barbell', text: '4-day Upper/Lower' },
               { icon: 'sparkles', text: '5-day Bro Split' },
@@ -503,8 +519,64 @@ export default function QuickSuggestions({ screen, onSuggestionPress, userId = '
           { icon: 'trophy', text: 'What are my PRs?' },
         ];
 
+      case 'MyPlansScreen':
+        return [
+          // Main category - Program creation with multi-step flow
+          {
+            icon: 'sparkles',
+            text: 'Create new program',
+            hasSubsections: true,
+            subsections: [
+              // Step 1: Select number of days
+              {
+                icon: 'calendar',
+                text: 'How many days?',
+                hasSubsections: true,
+                subsections: [
+                  { icon: 'calendar-number', text: '1 day/week' },
+                  { icon: 'calendar-number', text: '2 days/week' },
+                  { icon: 'calendar-number', text: '3 days/week' },
+                  { icon: 'calendar-number', text: '4 days/week' },
+                  { icon: 'calendar-number', text: '5 days/week' },
+                  { icon: 'calendar-number', text: '6 days/week' },
+                  { icon: 'calendar-number', text: '7 days/week' },
+                ]
+              },
+              // Or quick templates
+              { icon: 'trending-up', text: '6-day PPL' },
+              { icon: 'barbell', text: '4-day Upper/Lower' },
+              { icon: 'sparkles', text: '5-day Bro Split' },
+            ]
+          },
+          {
+            icon: 'sparkles',
+            text: 'Create a workout',
+            hasSubsections: true,
+            subsections: [
+              { icon: 'barbell', text: 'Push workout' },
+              { icon: 'return-down-back', text: 'Pull workout' },
+              { icon: 'walk', text: 'Leg workout' },
+              { icon: 'fitness', text: 'Full body workout' },
+              { icon: 'barbell', text: 'Chest & triceps' },
+              { icon: 'return-down-back', text: 'Back & biceps' },
+            ]
+          },
+          { icon: 'bulb', text: 'Workout advice' },
+          { icon: 'bar-chart', text: 'Analyze my plans' },
+        ];
+
       default:
         return [
+          {
+            icon: 'sparkles',
+            text: 'Create new program',
+            hasSubsections: true,
+            subsections: [
+              { icon: 'trending-up', text: '6-day PPL' },
+              { icon: 'barbell', text: '4-day Upper/Lower' },
+              { icon: 'sparkles', text: '5-day Bro Split' },
+            ]
+          },
           { icon: 'bulb', text: 'Workout advice' },
           { icon: 'restaurant', text: 'Help nutrition' },
           { icon: 'bar-chart', text: 'Analyze progress' },

@@ -272,6 +272,17 @@ export const getUserProfileSummary = async () => {
 
     // Build a concise summary for AI context
     const summary = {
+      // RAW DATA for AI tool use (macro calculators, etc.)
+      age: profile.age,
+      gender: profile.gender,
+      currentWeight: profile.currentWeight,
+      height: profile.height,
+      experienceLevel: profile.experienceLevel,
+      primaryGoal: profile.primaryGoal,
+      occupation: profile.occupation,
+      equipmentAccess: profile.equipmentAccess,
+
+      // FORMATTED DATA for AI understanding
       experience: `${profile.experienceLevel || 'unknown'} (${profile.yearsTraining || 0} years)`,
       goals: {
         primary: profile.primaryGoal,

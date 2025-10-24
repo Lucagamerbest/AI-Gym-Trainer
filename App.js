@@ -66,6 +66,10 @@ import ImageViewerScreen from './src/screens/ImageViewerScreen';
 import AICoachAssessmentScreen from './src/screens/AICoachAssessmentScreen';
 import UserProfileScreen from './src/screens/UserProfileScreen';
 
+// Automated Testing (Dev only)
+import AutomatedTestRunner from './src/components/AutomatedTestRunner';
+import AIDebugViewer from './src/components/AIDebugViewer';
+
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -265,6 +269,22 @@ function AppNavigator() {
             <Stack.Screen name="Debug" component={DebugScreen} />
             <Stack.Screen name="AICoachAssessment" component={AICoachAssessmentScreen} />
             <Stack.Screen name="UserProfile" component={UserProfileScreen} />
+
+            {/* Automated Testing & Debugging (Dev Only) */}
+            {__DEV__ && (
+              <>
+                <Stack.Screen
+                  name="TestRunner"
+                  component={AutomatedTestRunner}
+                  options={{ headerShown: true, title: '🧪 AI Stress Test' }}
+                />
+                <Stack.Screen
+                  name="DebugConsole"
+                  component={AIDebugViewer}
+                  options={{ headerShown: true, title: '🐛 Debug Console' }}
+                />
+              </>
+            )}
           </>
         )}
       </Stack.Navigator>

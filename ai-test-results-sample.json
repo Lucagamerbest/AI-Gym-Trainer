@@ -1,0 +1,12 @@
+{
+  "summary": {
+    "total": 120,
+    "successful": 0,
+    "failed": 0,
+    "successRate": "0%",
+    "duration": "0s",
+    "avgResponseTime": "0ms"
+  },
+  "note": "Run tests in the app to generate real results",
+  "instructions": "Use AutomatedTestRunner component in your React Native app"
+}

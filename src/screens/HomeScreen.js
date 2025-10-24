@@ -6,7 +6,6 @@ import { useAuth } from '../context/AuthContext';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import Logo from '../components/Logo';
 import ActiveWorkoutIndicator from '../components/ActiveWorkoutIndicator';
-import AIHeaderButton from '../components/AIHeaderButton';
 import { getNutritionGoals } from '../services/userProfileService';
 import MealSyncService from '../services/backend/MealSyncService';
 
@@ -95,11 +94,6 @@ function HomeScreen({ navigation }) {
           end={{ x: 1, y: 1 }}
           style={styles.headerGradient}
         >
-          {/* AI Button - Top Left */}
-          <View style={styles.aiButtonContainer}>
-            <AIHeaderButton screenName="HomeScreen" />
-          </View>
-
           <View style={styles.headerContent}>
             <Logo size="large" showText={true} />
           </View>
@@ -273,12 +267,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
-  },
-  aiButtonContainer: {
-    position: 'absolute',
-    top: 60,
-    left: Spacing.lg,
-    zIndex: 10,
   },
   headerContent: {
     alignItems: 'center',

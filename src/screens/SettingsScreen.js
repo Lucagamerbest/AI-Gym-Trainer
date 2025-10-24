@@ -64,6 +64,53 @@ export default function SettingsScreen({ navigation }) {
         <Text style={styles.sectionSubtitle}>Customize your app experience</Text>
         {/* Add more preference settings here */}
       </StyledCard>
+
+      {/* Developer Tools (Dev Only) */}
+      {__DEV__ && (
+        <>
+          <View style={styles.devSectionHeader}>
+            <Text style={styles.devSectionTitle}>🛠️ Developer Tools</Text>
+          </View>
+
+          {/* AI Stress Test */}
+          <TouchableOpacity
+            onPress={() => navigation.navigate('TestRunner')}
+            activeOpacity={0.7}
+          >
+            <StyledCard variant="elevated" style={[styles.settingCard, styles.devCard]}>
+              <View style={styles.settingRow}>
+                <View style={styles.settingIcon}>
+                  <Text style={styles.settingEmoji}>🧪</Text>
+                </View>
+                <View style={styles.settingContent}>
+                  <Text style={styles.settingTitle}>AI Stress Test</Text>
+                  <Text style={styles.settingDescription}>Test AI with 120 automated questions</Text>
+                </View>
+                <Text style={styles.chevron}>›</Text>
+              </View>
+            </StyledCard>
+          </TouchableOpacity>
+
+          {/* Debug Console */}
+          <TouchableOpacity
+            onPress={() => navigation.navigate('DebugConsole')}
+            activeOpacity={0.7}
+          >
+            <StyledCard variant="elevated" style={[styles.settingCard, styles.devCard]}>
+              <View style={styles.settingRow}>
+                <View style={styles.settingIcon}>
+                  <Text style={styles.settingEmoji}>🐛</Text>
+                </View>
+                <View style={styles.settingContent}>
+                  <Text style={styles.settingTitle}>Debug Console</Text>
+                  <Text style={styles.settingDescription}>View AI logs & export bug reports</Text>
+                </View>
+                <Text style={styles.chevron}>›</Text>
+              </View>
+            </StyledCard>
+          </TouchableOpacity>
+        </>
+      )}
     </ScreenLayout>
   );
 }
@@ -121,5 +168,21 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.sm,
     color: Colors.textSecondary,
     marginBottom: Spacing.lg,
+  },
+  devSectionHeader: {
+    marginTop: Spacing.xl,
+    marginBottom: Spacing.md,
+    paddingTop: Spacing.lg,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  devSectionTitle: {
+    fontSize: Typography.fontSize.xl,
+    fontWeight: 'bold',
+    color: Colors.primary,
+  },
+  devCard: {
+    borderLeftWidth: 4,
+    borderLeftColor: Colors.primary,
   },
 });

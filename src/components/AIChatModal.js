@@ -7,17 +7,20 @@ import {
   TextInput,
   TouchableOpacity,
   FlatList,
+  ScrollView,
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
   Keyboard,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import AIService from '../services/ai/AIService';
 import ContextManager from '../services/ai/ContextManager';
 import { useAuth } from '../context/AuthContext';
 import QuickSuggestions from './QuickSuggestions';
+import QuickAITests from './QuickAITests';
 
 export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
   const { user } = useAuth(); // Get real user from AuthContext
@@ -25,8 +28,10 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(true);
+  const [contextualButtons, setContextualButtons] = useState(null); // For muscle focus, days, etc.
   const flatListRef = useRef(null);
   const hasProcessedInitialMessage = useRef(false);
+  const lastGeneratedWorkout = useRef(null); // Store last generated workout for saving
 
   useEffect(() => {
     if (visible && messages.length === 0) {
@@ -242,13 +247,88 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
         ...context,
         screenSpecific: screenContext,
         exerciseSpecific: exerciseContext,
+        lastGeneratedWorkout: lastGeneratedWorkout.current, // Pass last generated workout
       };
 
-      const result = await AIService.sendMessage(userMessage, fullContext);
+      // Detect if this is a complex query that needs tools
+      const needsTools = userMessage.toLowerCase().includes('plan') ||
+                         userMessage.toLowerCase().includes('create') ||
+                         userMessage.toLowerCase().includes('generate') ||
+                         userMessage.toLowerCase().includes('workout for') ||
+                         userMessage.toLowerCase().includes('calculate') ||
+                         userMessage.toLowerCase().includes('search') ||
+                         userMessage.toLowerCase().includes('find') ||
+                         userMessage.toLowerCase().includes('recommend') ||
+                         userMessage.toLowerCase().includes('suggest') ||
+                         userMessage.toLowerCase().includes('analyze') ||
+                         userMessage.toLowerCase().includes('show me') ||
+                         userMessage.toLowerCase().includes('what exercises') ||
+                         userMessage.toLowerCase().includes('meal') ||
+                         userMessage.toLowerCase().includes('save');
+
+      // Use tool-enabled AI for complex queries, regular AI for simple questions
+      console.log('🔧 needsTools:', needsTools, 'for message:', userMessage.substring(0, 50));
+
+      const result = needsTools
+        ? await AIService.sendMessageWithTools(userMessage, fullContext)
+        : await AIService.sendMessage(userMessage, fullContext);
+
+      console.log('📦 AI Result:', { hasResponse: !!result.response, hasToolResults: !!result.toolResults });
+      console.log('📦 Full response text:', result.response);
+
+      // Store generated workout if one was created
+      if (result.toolResults) {
+        const workoutGenerated = result.toolResults.find(t => t.name === 'generateWorkoutPlan');
+        if (workoutGenerated && workoutGenerated.result?.success) {
+          lastGeneratedWorkout.current = workoutGenerated.result.workout;
+          console.log('💾 Stored workout for saving:', lastGeneratedWorkout.current.title);
+        }
+      }
+
+      // Detect if AI is asking for muscle focus or program creation
+      const responseText = result.response.toLowerCase();
+
+      console.log('🔍 Checking for contextual buttons...');
+      console.log('   Response snippet:', responseText.substring(0, 100));
+
+      const isAskingMuscleGroup =
+        responseText.includes('muscle group') ||
+        responseText.includes('which muscles') ||
+        responseText.includes('focus on') ||
+        (responseText.includes('program') && (responseText.includes('create') || responseText.includes('new'))) ||
+        responseText.includes('what.*goal') ||
+        responseText.includes('hypertrophy') ||
+        responseText.includes('strength');
+
+      console.log('   Triggers: muscle group?', responseText.includes('muscle group'));
+      console.log('   Triggers: focus on?', responseText.includes('focus on'));
+      console.log('   Triggers: program+create?', responseText.includes('program') && responseText.includes('create'));
+      console.log('   Final decision:', isAskingMuscleGroup ? 'SHOW BUTTONS' : 'NO BUTTONS');
+
+      if (isAskingMuscleGroup) {
+        console.log('🎯 SHOWING MUSCLE FOCUS BUTTONS');
+        setContextualButtons({
+          type: 'muscle_focus',
+          options: [
+            { icon: 'fitness', text: 'All Balanced', value: 'balanced' },
+            { icon: 'body', text: 'Chest', value: 'chest' },
+            { icon: 'body', text: 'Back', value: 'back' },
+            { icon: 'walk', text: 'Legs', value: 'legs' },
+            { icon: 'barbell', text: 'Arms', value: 'arms' },
+            { icon: 'barbell', text: 'Shoulders', value: 'shoulders' },
+          ]
+        });
+      } else {
+        console.log('❌ Not showing buttons');
+        setContextualButtons(null);
+      }
 
       // Log AI response
       console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       console.log('🤖 AI:', result.response);
+      if (result.toolsUsed) {
+        console.log(`🔧 Tools used: ${result.toolsUsed}`);
+      }
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
       addMessage({
@@ -256,7 +336,11 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
         content: result.response,
         timestamp: new Date().toISOString(),
         model: result.model,
+        toolsUsed: result.toolsUsed,
       });
+
+      // Debug: Log contextual buttons state
+      console.log('📊 Contextual Buttons State:', contextualButtons);
     } catch (error) {
       console.error('AI error:', error);
 
@@ -355,10 +439,24 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
   };
 
   const handleSuggestionPress = (suggestionText) => {
-    // Auto-fill the input with the suggestion
+    console.log('💬 Quick suggestion pressed:', suggestionText);
+    // Auto-fill and send the suggestion
     setInputText(suggestionText);
-    // Optionally, auto-send the message
-    // setTimeout(() => handleSend(), 100);
+    setShowSuggestions(false); // Hide suggestions after selection
+    // Auto-send the message
+    setTimeout(() => {
+      console.log('📤 Auto-sending suggestion...');
+      handleSendMessage(suggestionText);
+    }, 100);
+  };
+
+  const handleQuickTest = (query) => {
+    setInputText(query);
+    setShowSuggestions(false);
+    // Auto-send the test query
+    setTimeout(() => {
+      handleSendMessage(query);
+    }, 100);
   };
 
   const toggleSuggestions = () => {
@@ -370,6 +468,11 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
     if (showSuggestions && messages.length > 2) {
       setShowSuggestions(false);
     }
+  };
+
+  const handleContextualButtonPress = (option) => {
+    setContextualButtons(null); // Hide buttons after selection
+    handleSendMessage(option.text); // Send the selection as a message
   };
 
   return (
@@ -430,12 +533,19 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
             keyboardDismissMode="interactive"
           />
 
-          {/* Loading indicator */}
+          {/* Loading indicator - Enhanced visibility */}
           {loading && (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator color={Colors.primary} />
-              <Text style={styles.loadingText}>Thinking...</Text>
+              <View style={styles.loadingBubble}>
+                <ActivityIndicator size="small" color={Colors.primary} />
+                <Text style={styles.loadingText}>Thinking...</Text>
+              </View>
             </View>
+          )}
+
+          {/* Quick Test Buttons - DEVELOPMENT ONLY */}
+          {__DEV__ && (
+            <QuickAITests onTestQuery={handleQuickTest} />
           )}
 
           {/* Quick Suggestions - Only show when toggled on */}
@@ -446,6 +556,36 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
               userId={user?.uid || 'guest'}
             />
           )}
+
+          {/* Contextual Quick Reply Buttons (Muscle Focus, etc.) */}
+          {contextualButtons && (
+            <View style={styles.contextualButtonsContainer}>
+              <Text style={styles.contextualButtonsTitle}>Quick Replies:</Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.contextualButtonsScroll}
+              >
+                {contextualButtons.options.map((option, index) => {
+                  console.log(`🔘 Rendering button ${index}:`, option.text);
+                  return (
+                    <TouchableOpacity
+                      key={index}
+                      style={styles.contextualButton}
+                      onPress={() => {
+                        console.log('🔘 Button pressed:', option.text);
+                        handleContextualButtonPress(option);
+                      }}
+                    >
+                      <Ionicons name={option.icon} size={18} color={Colors.primary} />
+                      <Text style={styles.contextualButtonText}>{option.text}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </View>
+          )}
+          {!contextualButtons && console.log('❌ Contextual buttons is NULL/undefined')}
 
           {/* Input */}
           <View style={styles.inputContainer}>
@@ -578,15 +718,30 @@ const styles = StyleSheet.create({
     marginTop: Spacing.xs,
   },
   loadingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     padding: Spacing.md,
     paddingLeft: Spacing.lg,
   },
+  loadingBubble: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
   loadingText: {
     marginLeft: Spacing.sm,
-    color: Colors.textSecondary,
-    fontSize: Typography.fontSize.sm,
+    color: Colors.primary,
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
   },
   inputContainer: {
     flexDirection: 'row',
@@ -625,5 +780,39 @@ const styles = StyleSheet.create({
   sendButtonText: {
     fontSize: 20,
     color: '#fff',
+  },
+  contextualButtonsContainer: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.md,
+    backgroundColor: Colors.surface,
+    borderTopWidth: 2,
+    borderTopColor: Colors.primary + '40',
+  },
+  contextualButtonsTitle: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+    marginBottom: Spacing.xs,
+  },
+  contextualButtonsScroll: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    paddingRight: Spacing.md,
+  },
+  contextualButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    backgroundColor: Colors.primary + '15',
+    borderRadius: BorderRadius.lg,
+    borderWidth: 2,
+    borderColor: Colors.primary,
+  },
+  contextualButtonText: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
+    color: Colors.text,
   },
 });

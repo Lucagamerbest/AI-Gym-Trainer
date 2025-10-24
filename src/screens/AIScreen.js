@@ -99,35 +99,18 @@ export default function AIScreen({ navigation }) {
             </View>
           )}
 
-          {/* Main AI Interface */}
-          <View style={styles.mainSection}>
-            <Ionicons name="hardware-chip" size={80} color={Colors.primary} style={{ marginBottom: 20 }} />
-            <Text style={styles.mainText}>AI Fitness Coach</Text>
-            <Text style={styles.subText}>
-              {suggestions.length > 0
-                ? 'Tap a suggestion above or start a new chat'
-                : 'Ask me anything about fitness'}
-            </Text>
-
-            <TouchableOpacity
-              style={styles.chatButton}
-              onPress={() => {
-                setInitialMessage('');
-                setChatVisible(true);
-              }}
-            >
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Ionicons name="chatbubble" size={20} color="#fff" style={{ marginRight: 8 }} />
-                <Text style={styles.chatButtonText}>Start Chat</Text>
-              </View>
-            </TouchableOpacity>
-
-            <View style={styles.infoBox}>
-              <Text style={styles.infoText}>
-                I can help you with workouts, nutrition, progress tracking, and personalized fitness advice based on your current activity.
+          {/* Main AI Interface - Chat auto-opens, this is just background */}
+          {!chatVisible && (
+            <View style={styles.mainSection}>
+              <Ionicons name="hardware-chip" size={80} color={Colors.primary} style={{ marginBottom: 20 }} />
+              <Text style={styles.mainText}>AI Fitness Coach</Text>
+              <Text style={styles.subText}>
+                {suggestions.length > 0
+                  ? 'Tap a suggestion above'
+                  : 'Chat is loading...'}
               </Text>
             </View>
-          </View>
+          )}
         </ScrollView>
       </ScreenLayout>
 

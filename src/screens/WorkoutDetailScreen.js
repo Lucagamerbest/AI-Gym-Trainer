@@ -29,6 +29,15 @@ export default function WorkoutDetailScreen({ navigation, route }) {
   const [showCalendarModal, setShowCalendarModal] = useState(false);
   const [selectedFutureDates, setSelectedFutureDates] = useState([]);
 
+  // Helper function to calculate total sets - defined before use
+  const getTotalSets = (exercises) => {
+    if (!exercises || exercises.length === 0) return 0;
+    return exercises.reduce((total, exercise) => {
+      const setCount = exercise.sets ? exercise.sets.length : 3;
+      return total + setCount;
+    }, 0);
+  };
+
   // Track this screen for AI context
   useAITracking('WorkoutDetailScreen', {
     workoutName: workout.name,
@@ -99,13 +108,6 @@ export default function WorkoutDetailScreen({ navigation, route }) {
       }
     });
     return sets;
-  };
-
-  const getTotalSets = (exercises) => {
-    return exercises.reduce((total, exercise) => {
-      const setCount = exercise.sets ? exercise.sets.length : 3;
-      return total + setCount;
-    }, 0);
   };
 
   const handleEditWorkout = async () => {

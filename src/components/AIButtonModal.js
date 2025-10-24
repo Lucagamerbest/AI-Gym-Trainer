@@ -91,6 +91,43 @@ export default function AIButtonModal({
   };
 
   /**
+   * Detect if AI is asking about number of days
+   */
+  const detectDaysQuestion = (response) => {
+    if (!response) return false;
+
+    const lowerResponse = response.toLowerCase();
+    const daysKeywords = [
+      'how many days',
+      'days per week',
+      'days a week',
+      'train per week',
+      'workout per week',
+    ];
+
+    return daysKeywords.some(keyword => lowerResponse.includes(keyword));
+  };
+
+  /**
+   * Detect if AI is asking about muscle groups/focus
+   */
+  const detectMuscleGroupQuestion = (response) => {
+    if (!response) return false;
+
+    const lowerResponse = response.toLowerCase();
+    const muscleKeywords = [
+      'muscle group',
+      'which muscles',
+      'focus on',
+      'what.*focus',
+      'program.*create',
+      'workout.*focus',
+    ];
+
+    return muscleKeywords.some(keyword => lowerResponse.includes(keyword));
+  };
+
+  /**
    * Detect if AI is asking about save location (Today vs My Plans)
    */
   const detectSaveLocationQuestion = (response) => {
@@ -245,7 +282,9 @@ export default function AIButtonModal({
 
   // Detect if AI is asking a question
   const isQuestion = detectQuestion(lastResponse);
+  const isDaysQuestion = detectDaysQuestion(lastResponse);
   const isSaveLocationQuestion = detectSaveLocationQuestion(lastResponse);
+  const isMuscleGroupQuestion = detectMuscleGroupQuestion(lastResponse);
 
   return (
     <Modal
@@ -317,10 +356,77 @@ export default function AIButtonModal({
                   {isQuestion && (
                     <View style={styles.quickReplyContainer}>
                       <Text style={styles.quickReplyLabel}>
-                        {isSaveLocationQuestion ? 'Save to:' : 'Quick Reply:'}
+                        {isDaysQuestion ? 'Days per week:' : isSaveLocationQuestion ? 'Save to:' : isMuscleGroupQuestion ? 'Focus on:' : 'Quick Reply:'}
                       </Text>
                       <View style={styles.quickReplyButtons}>
-                        {isSaveLocationQuestion ? (
+                        {isDaysQuestion ? (
+                          <>
+                            {/* Days Selection Buttons */}
+                            {[1, 2, 3, 4, 5, 6, 7].map(days => (
+                              <TouchableOpacity
+                                key={days}
+                                style={[styles.quickReplyButton, styles.daysButton]}
+                                onPress={() => handleQuickReply(`${days} days per week`)}
+                                disabled={loadingButton !== null}
+                                activeOpacity={0.7}
+                              >
+                                <Text style={styles.quickReplyText}>📅 {days}</Text>
+                              </TouchableOpacity>
+                            ))}
+                          </>
+                        ) : isMuscleGroupQuestion ? (
+                          <>
+                            {/* Muscle Group Selection Buttons */}
+                            <TouchableOpacity
+                              style={[styles.quickReplyButton, styles.muscleGroupButton]}
+                              onPress={() => handleQuickReply('All Balanced')}
+                              disabled={loadingButton !== null}
+                              activeOpacity={0.7}
+                            >
+                              <Text style={styles.quickReplyText}>🏋️ All Balanced</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              style={[styles.quickReplyButton, styles.muscleGroupButton]}
+                              onPress={() => handleQuickReply('Chest')}
+                              disabled={loadingButton !== null}
+                              activeOpacity={0.7}
+                            >
+                              <Text style={styles.quickReplyText}>💪 Chest</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              style={[styles.quickReplyButton, styles.muscleGroupButton]}
+                              onPress={() => handleQuickReply('Back')}
+                              disabled={loadingButton !== null}
+                              activeOpacity={0.7}
+                            >
+                              <Text style={styles.quickReplyText}>🔙 Back</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              style={[styles.quickReplyButton, styles.muscleGroupButton]}
+                              onPress={() => handleQuickReply('Legs')}
+                              disabled={loadingButton !== null}
+                              activeOpacity={0.7}
+                            >
+                              <Text style={styles.quickReplyText}>🦵 Legs</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              style={[styles.quickReplyButton, styles.muscleGroupButton]}
+                              onPress={() => handleQuickReply('Arms')}
+                              disabled={loadingButton !== null}
+                              activeOpacity={0.7}
+                            >
+                              <Text style={styles.quickReplyText}>💪 Arms</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              style={[styles.quickReplyButton, styles.muscleGroupButton]}
+                              onPress={() => handleQuickReply('Shoulders')}
+                              disabled={loadingButton !== null}
+                              activeOpacity={0.7}
+                            >
+                              <Text style={styles.quickReplyText}>💪 Shoulders</Text>
+                            </TouchableOpacity>
+                          </>
+                        ) : isSaveLocationQuestion ? (
                           <>
                             {/* Save Location Buttons */}
                             <TouchableOpacity
@@ -551,24 +657,61 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 90,
     backgroundColor: Colors.primary + '15',
-    borderRadius: BorderRadius.md,
-    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.lg,
+    paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.md,
-    borderWidth: 1,
-    borderColor: Colors.primary + '30',
+    borderWidth: 2,
+    borderColor: Colors.primary + '40',
     alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  daysButton: {
+    minWidth: 60,
+    maxWidth: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: Colors.primary + '08',
+    borderColor: Colors.primary + '50',
+    borderWidth: 2.5,
+    marginHorizontal: 5,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 4,
+  },
+  muscleGroupButton: {
+    minWidth: 115,
+    paddingVertical: Spacing.lg,
+    paddingHorizontal: Spacing.xl,
+    backgroundColor: Colors.primary + '08',
+    borderColor: Colors.primary + '50',
+    borderWidth: 2.5,
+    borderRadius: 16,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 4,
   },
   saveLocationButton: {
     minWidth: 140,
     paddingVertical: Spacing.md,
     backgroundColor: Colors.primary + '20',
-    borderColor: Colors.primary + '50',
+    borderColor: Colors.primary,
     borderWidth: 2,
   },
   quickReplyText: {
-    fontSize: Typography.fontSize.sm,
-    fontWeight: '600',
-    color: Colors.primary,
+    fontSize: Typography.fontSize.lg,
+    fontWeight: '800',
+    color: Colors.text,
+    textAlign: 'center',
+    letterSpacing: 0.3,
   },
   replyInputContainer: {
     marginTop: Spacing.md,
