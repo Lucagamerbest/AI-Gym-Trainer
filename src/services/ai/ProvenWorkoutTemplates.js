@@ -237,6 +237,73 @@ export const UPPER_LOWER_4DAY = {
 };
 
 /**
+ * 10 WEEK MASS BUILDING PROGRAM (4-day)
+ * From MuscleAndStrength.com - Proven program for muscle mass
+ * Uses progressive overload with decreasing reps
+ */
+export const TEN_WEEK_MASS = {
+  name: '10 Week Mass Building',
+  description: 'Advanced 4-day split focusing on mass gain. Uses progressive overload (10, 8, 8, 6 reps).',
+  frequency: '4 days/week',
+  goal: 'Build maximum muscle mass',
+  source: 'MuscleAndStrength.com',
+
+  CHEST_TRICEPS: {
+    day: 'Monday',
+    exercises: [
+      { name: 'Barbell Bench Press', sets: 4, reps: '10, 8, 8, 6', notes: 'Add weight each set' },
+      { name: 'Incline Bench Press', sets: 3, reps: '8, 8, 6', notes: 'Progressive overload' },
+      { name: 'Decline Bench Press', sets: 3, reps: '8, 8, 6', notes: 'Progressive overload' },
+      { name: 'Dumbbell Flys', sets: 2, reps: '10', notes: 'Chest stretch' },
+      { name: 'Dumbbell Pullover', sets: 2, reps: '8', notes: 'Chest/lat stretch' },
+      { name: 'Tricep Extension', sets: 4, reps: '10, 8, 8, 6', notes: 'Add weight each set' },
+      { name: 'Tricep Dip', sets: 3, reps: '10', notes: 'Bodyweight or weighted' },
+      { name: 'Tricep Bench Dip', sets: 3, reps: '8', notes: 'Bodyweight' }
+    ]
+  },
+
+  BACK_BICEPS: {
+    day: 'Tuesday',
+    exercises: [
+      { name: 'Deadlift', sets: 5, reps: '10, 8, 8, 6, 4', notes: 'Heavy progressive overload' },
+      { name: 'Chin Up', sets: 2, reps: '8', notes: 'Weighted if possible' },
+      { name: 'One Arm Dumbbell Row', sets: 3, reps: '8', notes: 'Per arm' },
+      { name: 'Seated Row', sets: 2, reps: '8', notes: 'Cable or machine' },
+      { name: 'Close Grip Lat Pull Down', sets: 3, reps: '10, 10, 8', notes: 'Focus on lats' },
+      { name: 'Standing Barbell Curl', sets: 3, reps: '8, 8, 6', notes: 'Progressive overload' },
+      { name: 'Close Grip Preacher Curl', sets: 3, reps: '8, 8, 6', notes: 'Isolation focus' },
+      { name: 'Incline Dumbbell Curl', sets: 2, reps: '12-14', notes: 'Stretch position' },
+      { name: 'Concentration Curl', sets: 2, reps: '10', notes: 'Peak contraction' }
+    ]
+  },
+
+  SHOULDERS_FOREARMS: {
+    day: 'Thursday',
+    exercises: [
+      { name: 'Machine Shoulder Press', sets: 3, reps: '10', notes: 'Warm-up first' },
+      { name: 'Dumbbell Reverse Fly', sets: 3, reps: '8-10', notes: 'Rear delts' },
+      { name: 'Military Press', sets: 4, reps: '10', notes: 'Standing or seated' },
+      { name: 'Dumbbell Lateral Raise', sets: 2, reps: '10', notes: 'Side delts' },
+      { name: 'Dumbbell Shrugs', sets: 2, reps: '10', notes: 'Can superset with upright row' },
+      { name: 'Upright Row', sets: 2, reps: '10', notes: 'Can superset with shrugs' },
+      { name: 'Standing Wrist Curl', sets: 4, reps: '10', notes: 'Forearms' },
+      { name: 'Barbell Wrist Curl', sets: 4, reps: '10', notes: 'Forearms' }
+    ]
+  },
+
+  LEGS: {
+    day: 'Friday',
+    exercises: [
+      { name: 'Squat', sets: 5, reps: '10, 8, 8, 6, 4', notes: 'Heavy progressive overload' },
+      { name: 'Leg Extension', sets: 3, reps: '12', notes: 'Quad isolation' },
+      { name: 'Leg Curl', sets: 3, reps: '12', notes: 'Hamstring isolation' },
+      { name: 'Standing Calf Raise', sets: 4, reps: '12', notes: 'Calf development' },
+      { name: 'Seated Calf Raise', sets: 2, reps: '12', notes: 'Soleus focus' }
+    ]
+  }
+};
+
+/**
  * BRO SPLIT (5-day) - For advanced lifters
  * Each muscle gets one day per week
  */
@@ -427,6 +494,7 @@ export default {
   CLASSIC_PPL,
   BEGINNER_FULLBODY,
   UPPER_LOWER_4DAY,
+  TEN_WEEK_MASS,
   BRO_SPLIT_5DAY,
   SELECTION_RULES,
   getOptimalExercises,

@@ -547,8 +547,25 @@ EXAMPLE: OPTIMAL LEG DAY (Hypertrophy)
 5. Leg Extension - 3×12-15 (Tier B isolation)
 6. Calf Raise - 4×15-20 (Tier B isolation)
 
-🎯 KEY PRINCIPLE: Always start with Tier S compounds, then add Tier A accessories, finish with Tier B isolations.
-This ensures the workout includes proven, effective exercises in the correct order.
+EXAMPLE: 10 WEEK MASS BUILDING (Chest & Triceps)
+This is a PROVEN program from MuscleAndStrength.com:
+1. Barbell Bench Press - 4 sets: 10, 8, 8, 6 reps (add weight each set)
+2. Incline Bench Press - 3 sets: 8, 8, 6 reps (progressive overload)
+3. Decline Bench Press - 3 sets: 8, 8, 6 reps
+4. Dumbbell Flys - 2×10
+5. Dumbbell Pullover - 2×8
+6. Tricep Extension - 4 sets: 10, 8, 8, 6 reps (add weight each set)
+7. Tricep Dip - 3×10
+8. Tricep Bench Dip - 3×8
+
+Note the REP PROGRESSION: "10, 8, 8, 6" means each set gets heavier weight as reps decrease.
+This is PROGRESSIVE OVERLOAD - one of the most effective training methods.
+
+🎯 KEY PRINCIPLES:
+1. Start with Tier S compounds, then Tier A accessories, finish with Tier B isolations
+2. Use progressive overload (decreasing reps = increasing weight)
+3. 4-8 exercises per workout for optimal volume
+4. Always include the proven essentials (Bench, Squat, Deadlift, OHP, Rows, Pull-ups)
 
 INSTRUCTIONS FOR TOOL USE:
 1. **ALWAYS use profile data when calling tools** - Don't ask the user for info they already provided!
