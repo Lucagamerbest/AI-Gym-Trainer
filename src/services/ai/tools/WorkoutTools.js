@@ -4,6 +4,7 @@
 
 import WorkoutSyncService from '../../backend/WorkoutSyncService';
 import { getAllExercises } from '../../../data/exerciseDatabase';
+import FitnessKnowledge from '../FitnessKnowledge';
 
 /**
  * Generate a complete workout plan
@@ -14,15 +15,45 @@ export async function generateWorkoutPlan({ muscleGroups, experienceLevel, durat
     // Get available exercises
     const allExercises = getAllExercises();
 
-    // Filter exercises by muscle groups and equipment
+    // STEP 1: Map user terms to proper muscle groups using scientific knowledge
+    // Example: "pull" → ["Back", "Lats", "Traps", "Rhomboids", "Biceps", "Rear Deltoids"]
+    const expandedMuscleGroups = muscleGroups.flatMap(mg =>
+      FitnessKnowledge.mapUserTermToMuscleGroups(mg)
+    );
+
+    console.log(`📚 Scientific mapping: ${muscleGroups.join(', ')} → ${expandedMuscleGroups.join(', ')}`);
+
+    // STEP 2: Determine workout type (push/pull/legs) for validation
+    const workoutType = muscleGroups[0]?.toLowerCase();
+    const isPushPullLegsSplit = ['push', 'pull', 'legs', 'leg'].some(type =>
+      workoutType?.includes(type)
+    );
+
+    // STEP 3: Filter exercises by muscle groups and equipment
     let availableExercises = allExercises.filter(ex => {
-      // Check muscle groups (case-insensitive, flexible matching)
-      const matchesMuscle = muscleGroups.some(mg => {
-        const mgLower = mg.toLowerCase();
-        return ex.primaryMuscles?.some(pm => pm.toLowerCase().includes(mgLower)) ||
-               ex.secondaryMuscles?.some(sm => sm.toLowerCase().includes(mgLower)) ||
-               ex.muscleGroup?.toLowerCase().includes(mgLower);
-      });
+      // For push/pull/legs splits, use scientific classification
+      if (isPushPullLegsSplit) {
+        const classification = FitnessKnowledge.classifyExercise(ex);
+
+        // Match classification to workout type
+        if (workoutType.includes('push')) {
+          if (classification !== 'push') return false;
+        } else if (workoutType.includes('pull')) {
+          if (classification !== 'pull') return false;
+        } else if (workoutType.includes('leg')) {
+          if (classification !== 'legs') return false;
+        }
+      } else {
+        // For specific muscle groups, use traditional matching
+        const matchesMuscle = expandedMuscleGroups.some(mg => {
+          const mgLower = mg.toLowerCase();
+          return ex.primaryMuscles?.some(pm => pm.toLowerCase().includes(mgLower)) ||
+                 ex.secondaryMuscles?.some(sm => sm.toLowerCase().includes(mgLower)) ||
+                 ex.muscleGroup?.toLowerCase().includes(mgLower);
+        });
+
+        if (!matchesMuscle) return false;
+      }
 
       // Check equipment if specified (equipment field is comma-separated string)
       const matchesEquipment = !equipment || equipment.length === 0 ||
@@ -31,7 +62,7 @@ export async function generateWorkoutPlan({ muscleGroups, experienceLevel, durat
           return equipmentStr.includes(eq.toLowerCase());
         });
 
-      return matchesMuscle && matchesEquipment;
+      return matchesEquipment;
     });
 
     // FALLBACK 1: If no exercises found, try without equipment restriction
@@ -99,21 +130,45 @@ export async function generateWorkoutPlan({ muscleGroups, experienceLevel, durat
       goal
     );
 
-    // Generate set/rep scheme based on goal
+    // Generate set/rep scheme based on goal using scientific principles
     const workoutExercises = selectedExercises.map(exercise => {
-      const { sets, reps, restTime } = generateSetScheme(goal, experienceLevel);
+      const optimalRange = FitnessKnowledge.getOptimalRepRange(goal || 'hypertrophy', experienceLevel);
 
       return {
         name: exercise.name,
         equipment: exercise.equipment,
         muscleGroup: exercise.primaryMuscles?.[0] || 'General',
-        sets: sets,
-        reps: reps,
-        restTime: restTime,
+        sets: parseInt(optimalRange.sets.split('-')[0]), // Use minimum of range
+        reps: optimalRange.reps,
+        restTime: optimalRange.restTime,
         // Keep instructions short - just first sentence
         instructions: exercise.instructions?.split('.')[0] + '.' || '',
       };
     });
+
+    // VALIDATION: Ensure workout is scientifically correct
+    if (isPushPullLegsSplit) {
+      const validation = FitnessKnowledge.validateWorkout(
+        selectedExercises,
+        workoutType.includes('push') ? 'push' :
+        workoutType.includes('pull') ? 'pull' : 'legs'
+      );
+
+      if (!validation.isValid) {
+        console.error('❌ Workout validation failed:', validation.errors);
+        return {
+          success: false,
+          error: `Workout validation failed: ${validation.errors.join(', ')}`,
+          details: validation
+        };
+      }
+
+      if (validation.warnings.length > 0) {
+        console.warn('⚠️ Workout warnings:', validation.warnings);
+      }
+
+      console.log('✅ Workout passed scientific validation');
+    }
 
     return {
       success: true,
