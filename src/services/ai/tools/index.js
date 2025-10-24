@@ -41,6 +41,14 @@ import {
   crudToolSchemas,
 } from './CRUDTools';
 
+import {
+  calculate1RM,
+  calculatePercentage1RM,
+  predictProgression,
+  generateWarmupSets,
+  strengthToolSchemas,
+} from './StrengthTools';
+
 /**
  * Initialize and register all tools
  */
@@ -72,6 +80,12 @@ export function initializeTools() {
   ToolRegistry.registerTool('startWorkout', crudToolSchemas[5], startWorkout);
   ToolRegistry.registerTool('savePlannedWorkout', crudToolSchemas[6], savePlannedWorkout);
   ToolRegistry.registerTool('scheduleWorkoutForDate', crudToolSchemas[7], scheduleWorkoutForDate);
+
+  // Strength Training Tools
+  ToolRegistry.registerTool('calculate1RM', strengthToolSchemas[0], calculate1RM);
+  ToolRegistry.registerTool('calculatePercentage1RM', strengthToolSchemas[1], calculatePercentage1RM);
+  ToolRegistry.registerTool('predictProgression', strengthToolSchemas[2], predictProgression);
+  ToolRegistry.registerTool('generateWarmupSets', strengthToolSchemas[3], generateWarmupSets);
 
   console.log(`✅ Initialized ${ToolRegistry.getToolCount()} AI tools`);
 }
