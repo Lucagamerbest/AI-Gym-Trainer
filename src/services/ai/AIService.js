@@ -87,7 +87,7 @@ class AIService {
 
       const result = await this.model.generateContent(fullPrompt, {
         generationConfig: {
-          maxOutputTokens: 200, // Allow more detailed responses
+          maxOutputTokens: 1000, // Increased: Allow detailed responses without cutoff
           temperature: 0.4, // Lower = faster, more deterministic
           topP: 0.9,
           topK: 20, // Lower = faster
@@ -126,7 +126,7 @@ class AIService {
           parts: [{ text: msg.content }],
         })),
         generationConfig: {
-          maxOutputTokens: 300, // Allow more detailed conversational responses
+          maxOutputTokens: 1500, // Increased: Allow detailed conversational responses
           temperature: 0.4, // More deterministic for specific advice
         },
       });
@@ -205,7 +205,7 @@ class AIService {
         const chat = this.modelWithTools.startChat({
           history: history,
           generationConfig: {
-            maxOutputTokens: 2000, // Allow comprehensive responses with tool results
+            maxOutputTokens: 4096, // MAXIMUM: Ensure no cutoffs even with long tool results
             temperature: 0.7,
           },
         });
