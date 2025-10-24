@@ -5,6 +5,7 @@
 import WorkoutSyncService from '../../backend/WorkoutSyncService';
 import { getAllExercises } from '../../../data/exerciseDatabase';
 import FitnessKnowledge from '../FitnessKnowledge';
+import ProvenWorkoutTemplates from '../ProvenWorkoutTemplates';
 
 /**
  * Generate a complete workout plan
@@ -191,46 +192,70 @@ export async function generateWorkoutPlan({ muscleGroups, experienceLevel, durat
 }
 
 /**
- * Smart exercise selection algorithm
- * Prioritizes compound movements, balances muscle groups
+ * Smart exercise selection algorithm - TIER-BASED
+ * Uses proven workout templates to prioritize the BEST exercises
+ *
+ * Tier S: Essential compounds (Bench, Squat, Deadlift, OHP, Rows, Pull-ups)
+ * Tier A: Excellent accessories (DB Press, Cable Rows, RDLs)
+ * Tier B: Good isolations (Flyes, Curls, Raises)
  */
 function smartSelectExercises(exercises, count, muscleGroups, goal) {
+  // Determine category (push/pull/legs)
+  const category = muscleGroups[0]?.toLowerCase().includes('push') ? 'push' :
+                   muscleGroups[0]?.toLowerCase().includes('pull') ? 'pull' :
+                   muscleGroups[0]?.toLowerCase().includes('leg') ? 'legs' : 'push';
+
+  // STEP 1: Prioritize exercises by tier (S > A > B > Other)
+  const prioritized = ProvenWorkoutTemplates.prioritizeExercises(exercises, category);
+
+  console.log(`🎯 Exercise prioritization for ${category}:`);
+  console.log(`   Tier S (Essential): ${prioritized.slice(0, 5).map(e => e.name).join(', ')}`);
+
+  // STEP 2: Select exercises based on goal
   const selected = [];
-  const usedEquipment = new Set();
 
-  // Prioritize compound movements for first exercises
-  const compound = exercises.filter(ex =>
-    ex.equipment === 'barbell' || ex.name.toLowerCase().includes('squat') ||
-    ex.name.toLowerCase().includes('deadlift') || ex.name.toLowerCase().includes('press')
-  );
-
-  const isolation = exercises.filter(ex => !compound.includes(ex));
-
-  // Strategy based on goal
   if (goal === 'strength') {
-    // More compound, fewer reps
-    const compoundCount = Math.ceil(count * 0.7);
-    selected.push(...compound.slice(0, compoundCount));
-    selected.push(...isolation.slice(0, count - compoundCount));
+    // Strength: Heavy compounds (mostly Tier S)
+    // 70% Tier S compounds, 30% Tier A accessories
+    const tierSCount = Math.ceil(count * 0.7);
+    selected.push(...prioritized.slice(0, tierSCount));
+    selected.push(...prioritized.slice(tierSCount, count));
+
   } else if (goal === 'hypertrophy') {
-    // Balanced compound and isolation
-    const compoundCount = Math.ceil(count * 0.5);
-    selected.push(...compound.slice(0, compoundCount));
-    selected.push(...isolation.slice(0, count - compoundCount));
+    // Hypertrophy: Balanced compounds + accessories
+    // 40% Tier S, 40% Tier A, 20% Tier B
+    const tierSCount = Math.ceil(count * 0.4);
+    const tierACount = Math.ceil(count * 0.4);
+
+    // Get Tier S exercises
+    const tierS = prioritized.filter(ex =>
+      ProvenWorkoutTemplates.isTierSExercise(ex.name, category)
+    );
+    selected.push(...tierS.slice(0, tierSCount));
+
+    // Fill remaining with Tier A and B
+    const remaining = prioritized.filter(ex => !selected.includes(ex));
+    selected.push(...remaining.slice(0, count - selected.length));
+
   } else if (goal === 'endurance') {
-    // More variety, more isolation
-    const compoundCount = Math.ceil(count * 0.3);
-    selected.push(...compound.slice(0, compoundCount));
-    selected.push(...isolation.slice(0, count - compoundCount));
+    // Endurance: More variety, lighter exercises
+    // 30% Tier S, 30% Tier A, 40% Tier B
+    const tierSCount = Math.ceil(count * 0.3);
+    selected.push(...prioritized.slice(0, tierSCount));
+    selected.push(...prioritized.slice(tierSCount, count));
+
   } else {
-    // General: balanced approach
-    const compoundCount = Math.ceil(count * 0.5);
-    selected.push(...compound.slice(0, compoundCount));
-    selected.push(...isolation.slice(0, count - compoundCount));
+    // General: Balanced approach (default hypertrophy style)
+    const tierSCount = Math.ceil(count * 0.4);
+    selected.push(...prioritized.slice(0, tierSCount));
+    selected.push(...prioritized.slice(tierSCount, count));
   }
 
-  // Shuffle isolation exercises for variety
+  // STEP 3: Ensure we have the minimum required exercises
   const finalSelection = selected.slice(0, count);
+
+  // Log what was selected
+  console.log(`✅ Selected ${finalSelection.length} exercises: ${finalSelection.map(e => e.name).join(', ')}`);
 
   return finalSelection;
 }

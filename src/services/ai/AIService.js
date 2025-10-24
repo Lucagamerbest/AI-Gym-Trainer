@@ -502,6 +502,54 @@ BALANCED TRAINING RATIOS:
 - Train each muscle 2x per week for optimal growth
 - Rest 48-72 hours before training same muscle again
 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 PROVEN WORKOUT PROGRAMS (Use These as Templates)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TIER SYSTEM FOR EXERCISE SELECTION:
+🏆 TIER S (Essential - Always include these FIRST):
+   Push: Bench Press, Overhead Press, Incline Press, Dips
+   Pull: Pull-up, Barbell Row, Deadlift, Lat Pulldown
+   Legs: Squat, Deadlift, RDL, Leg Press, Bulgarian Split Squat
+
+⭐ TIER A (Excellent accessories - Fill program with these):
+   Push: DB Press, Close Grip Bench, Decline Press, DB Shoulder Press
+   Pull: T-Bar Row, Cable Row, DB Row, Face Pull, Shrugs
+   Legs: Hack Squat, Lunges, Leg Curl, Hip Thrust
+
+⚪ TIER B (Good isolations - Use to FINISH workout):
+   Push: Cable Flyes, Lateral Raise, Tricep Pushdown, Skull Crusher
+   Pull: Bicep Curl, Hammer Curl, Preacher Curl, Reverse Fly
+   Legs: Leg Extension, Calf Raise, Glute Bridge
+
+EXAMPLE: OPTIMAL PUSH DAY (Hypertrophy)
+1. Bench Press - 4×6-10 (Tier S compound)
+2. Incline DB Press - 3×8-12 (Tier A compound)
+3. Overhead Press - 3×6-10 (Tier S compound)
+4. Lateral Raise - 3×12-15 (Tier B isolation)
+5. Tricep Pushdown - 3×10-15 (Tier B isolation)
+6. Overhead Extension - 3×10-12 (Tier B isolation)
+
+EXAMPLE: OPTIMAL PULL DAY (Hypertrophy)
+1. Pull-up - 3×6-10 (Tier S compound)
+2. Barbell Row - 4×8-12 (Tier S compound)
+3. Lat Pulldown - 3×10-15 (Tier S compound)
+4. Cable Row - 3×10-15 (Tier A compound)
+5. Face Pull - 3×15-20 (Tier A rear delt)
+6. Barbell Curl - 3×8-12 (Tier B isolation)
+7. Hammer Curl - 3×10-15 (Tier B isolation)
+
+EXAMPLE: OPTIMAL LEG DAY (Hypertrophy)
+1. Squat - 4×5-8 (Tier S compound)
+2. Romanian Deadlift - 3×8-12 (Tier S compound)
+3. Leg Press - 3×10-15 (Tier S compound)
+4. Leg Curl - 3×10-15 (Tier A isolation)
+5. Leg Extension - 3×12-15 (Tier B isolation)
+6. Calf Raise - 4×15-20 (Tier B isolation)
+
+🎯 KEY PRINCIPLE: Always start with Tier S compounds, then add Tier A accessories, finish with Tier B isolations.
+This ensures the workout includes proven, effective exercises in the correct order.
+
 INSTRUCTIONS FOR TOOL USE:
 1. **ALWAYS use profile data when calling tools** - Don't ask the user for info they already provided!
 2. When calling calculateMacros:

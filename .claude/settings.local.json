@@ -5,7 +5,9 @@
       "Bash(dir:*)",
       "Bash(git add:*)",
       "Bash(rm:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(node test-scientific-workouts.js:*)",
+      "Bash(node demo-scientific-classification.js:*)"
     ],
     "deny": [],
     "ask": []
