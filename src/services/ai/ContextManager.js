@@ -702,6 +702,7 @@ class ContextManager {
 
     return {
       ...baseContext,
+      userId, // Include userId in context for tool injection
       screenSpecific: specificContext,
     };
   }

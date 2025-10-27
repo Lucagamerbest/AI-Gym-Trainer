@@ -246,10 +246,18 @@ class AIService {
         try {
           const toolStartTime = Date.now();
 
+          // Inject real userId if tool expects userId parameter
+          const toolArgs = { ...functionCall.args };
+          if (toolArgs.userId && (toolArgs.userId === 'USER_ID' || !toolArgs.userId || toolArgs.userId === '')) {
+            // Replace placeholder/empty userId with actual userId from context
+            toolArgs.userId = context.userId || 'guest';
+            console.log(`🔧 Injected real userId: ${toolArgs.userId}`);
+          }
+
           // Execute the tool
           const toolResult = await ToolRegistry.executeTool(
             functionCall.name,
-            functionCall.args
+            toolArgs
           );
 
           const toolExecutionTime = Date.now() - toolStartTime;
