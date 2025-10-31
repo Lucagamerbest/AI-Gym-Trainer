@@ -1,0 +1,284 @@
+[
+  {
+    "title": "Push - Chest, Shoulders, Triceps",
+    "date": "2025-01-20T10:00:00.000Z",
+    "duration": 65,
+    "exercises": [
+      {
+        "name": "Bench Press",
+        "equipment": "Barbell",
+        "primaryMuscles": ["Chest"],
+        "secondaryMuscles": ["Triceps", "Front Deltoids"],
+        "muscleGroup": "Chest",
+        "sets": [
+          { "weight": 135, "reps": 10, "completed": true },
+          { "weight": 185, "reps": 8, "completed": true },
+          { "weight": 205, "reps": 6, "completed": true },
+          { "weight": 225, "reps": 5, "completed": true }
+        ]
+      },
+      {
+        "name": "Overhead Press",
+        "equipment": "Barbell",
+        "primaryMuscles": ["Shoulders"],
+        "secondaryMuscles": ["Triceps"],
+        "muscleGroup": "Shoulders",
+        "sets": [
+          { "weight": 95, "reps": 8, "completed": true },
+          { "weight": 115, "reps": 6, "completed": true },
+          { "weight": 135, "reps": 5, "completed": true }
+        ]
+      },
+      {
+        "name": "Incline Dumbbell Press",
+        "equipment": "Dumbbell",
+        "primaryMuscles": ["Chest"],
+        "secondaryMuscles": ["Front Deltoids", "Triceps"],
+        "muscleGroup": "Chest",
+        "sets": [
+          { "weight": 60, "reps": 10, "completed": true },
+          { "weight": 70, "reps": 8, "completed": true },
+          { "weight": 75, "reps": 7, "completed": true }
+        ]
+      },
+      {
+        "name": "Lateral Raise",
+        "equipment": "Dumbbell",
+        "primaryMuscles": ["Shoulders"],
+        "muscleGroup": "Shoulders",
+        "sets": [
+          { "weight": 25, "reps": 12, "completed": true },
+          { "weight": 25, "reps": 12, "completed": true },
+          { "weight": 25, "reps": 10, "completed": true }
+        ]
+      },
+      {
+        "name": "Tricep Pushdown",
+        "equipment": "Cable",
+        "primaryMuscles": ["Triceps"],
+        "muscleGroup": "Triceps",
+        "sets": [
+          { "weight": 60, "reps": 12, "completed": true },
+          { "weight": 70, "reps": 10, "completed": true },
+          { "weight": 70, "reps": 10, "completed": true }
+        ]
+      }
+    ],
+    "totalVolume": 12450,
+    "notes": "Monday - Felt strong today!"
+  },
+  {
+    "title": "Pull - Back, Biceps",
+    "date": "2025-01-21T10:00:00.000Z",
+    "duration": 70,
+    "exercises": [
+      {
+        "name": "Pull-ups",
+        "equipment": "Bodyweight",
+        "primaryMuscles": ["Back", "Lats"],
+        "secondaryMuscles": ["Biceps"],
+        "muscleGroup": "Back",
+        "sets": [
+          { "weight": 0, "reps": 10, "completed": true },
+          { "weight": 0, "reps": 8, "completed": true },
+          { "weight": 0, "reps": 7, "completed": true }
+        ]
+      },
+      {
+        "name": "Barbell Row",
+        "equipment": "Barbell",
+        "primaryMuscles": ["Back", "Lats"],
+        "secondaryMuscles": ["Biceps"],
+        "muscleGroup": "Back",
+        "sets": [
+          { "weight": 135, "reps": 10, "completed": true },
+          { "weight": 185, "reps": 8, "completed": true },
+          { "weight": 205, "reps": 8, "completed": true },
+          { "weight": 225, "reps": 6, "completed": true }
+        ]
+      },
+      {
+        "name": "Cable Row",
+        "equipment": "Cable",
+        "primaryMuscles": ["Back"],
+        "secondaryMuscles": ["Biceps"],
+        "muscleGroup": "Back",
+        "sets": [
+          { "weight": 120, "reps": 12, "completed": true },
+          { "weight": 140, "reps": 10, "completed": true },
+          { "weight": 140, "reps": 10, "completed": true }
+        ]
+      },
+      {
+        "name": "Face Pull",
+        "equipment": "Cable",
+        "primaryMuscles": ["Rear Deltoids"],
+        "muscleGroup": "Shoulders",
+        "sets": [
+          { "weight": 50, "reps": 15, "completed": true },
+          { "weight": 60, "reps": 12, "completed": true },
+          { "weight": 60, "reps": 12, "completed": true }
+        ]
+      },
+      {
+        "name": "Barbell Curl",
+        "equipment": "Barbell",
+        "primaryMuscles": ["Biceps"],
+        "muscleGroup": "Biceps",
+        "sets": [
+          { "weight": 75, "reps": 10, "completed": true },
+          { "weight": 85, "reps": 8, "completed": true },
+          { "weight": 85, "reps": 7, "completed": true }
+        ]
+      },
+      {
+        "name": "Hammer Curl",
+        "equipment": "Dumbbell",
+        "primaryMuscles": ["Biceps"],
+        "muscleGroup": "Biceps",
+        "sets": [
+          { "weight": 35, "reps": 12, "completed": true },
+          { "weight": 40, "reps": 10, "completed": true },
+          { "weight": 40, "reps": 8, "completed": true }
+        ]
+      }
+    ],
+    "totalVolume": 13200,
+    "notes": "Tuesday - Great back pump!"
+  },
+  {
+    "title": "Push - Chest, Shoulders, Triceps",
+    "date": "2025-01-23T10:00:00.000Z",
+    "duration": 68,
+    "exercises": [
+      {
+        "name": "Bench Press",
+        "equipment": "Barbell",
+        "primaryMuscles": ["Chest"],
+        "secondaryMuscles": ["Triceps"],
+        "muscleGroup": "Chest",
+        "sets": [
+          { "weight": 135, "reps": 10, "completed": true },
+          { "weight": 185, "reps": 8, "completed": true },
+          { "weight": 205, "reps": 7, "completed": true },
+          { "weight": 215, "reps": 5, "completed": true }
+        ]
+      },
+      {
+        "name": "Overhead Press",
+        "equipment": "Barbell",
+        "primaryMuscles": ["Shoulders"],
+        "secondaryMuscles": ["Triceps"],
+        "muscleGroup": "Shoulders",
+        "sets": [
+          { "weight": 95, "reps": 8, "completed": true },
+          { "weight": 115, "reps": 7, "completed": true },
+          { "weight": 125, "reps": 6, "completed": true }
+        ]
+      },
+      {
+        "name": "Incline Dumbbell Press",
+        "equipment": "Dumbbell",
+        "primaryMuscles": ["Chest"],
+        "muscleGroup": "Chest",
+        "sets": [
+          { "weight": 65, "reps": 10, "completed": true },
+          { "weight": 70, "reps": 8, "completed": true },
+          { "weight": 75, "reps": 7, "completed": true }
+        ]
+      },
+      {
+        "name": "Lateral Raise",
+        "equipment": "Dumbbell",
+        "primaryMuscles": ["Shoulders"],
+        "muscleGroup": "Shoulders",
+        "sets": [
+          { "weight": 25, "reps": 15, "completed": true },
+          { "weight": 30, "reps": 12, "completed": true },
+          { "weight": 30, "reps": 10, "completed": true }
+        ]
+      },
+      {
+        "name": "Tricep Pushdown",
+        "equipment": "Cable",
+        "primaryMuscles": ["Triceps"],
+        "muscleGroup": "Triceps",
+        "sets": [
+          { "weight": 60, "reps": 15, "completed": true },
+          { "weight": 70, "reps": 12, "completed": true },
+          { "weight": 80, "reps": 10, "completed": true }
+        ]
+      }
+    ],
+    "totalVolume": 12780,
+    "notes": "Thursday - Second push day this week"
+  },
+  {
+    "title": "Pull - Back, Biceps",
+    "date": "2025-01-24T10:00:00.000Z",
+    "duration": 72,
+    "exercises": [
+      {
+        "name": "Pull-ups",
+        "equipment": "Bodyweight",
+        "primaryMuscles": ["Back", "Lats"],
+        "secondaryMuscles": ["Biceps"],
+        "muscleGroup": "Back",
+        "sets": [
+          { "weight": 0, "reps": 12, "completed": true },
+          { "weight": 0, "reps": 10, "completed": true },
+          { "weight": 0, "reps": 8, "completed": true }
+        ]
+      },
+      {
+        "name": "Barbell Row",
+        "equipment": "Barbell",
+        "primaryMuscles": ["Back", "Lats"],
+        "secondaryMuscles": ["Biceps"],
+        "muscleGroup": "Back",
+        "sets": [
+          { "weight": 135, "reps": 10, "completed": true },
+          { "weight": 185, "reps": 10, "completed": true },
+          { "weight": 205, "reps": 8, "completed": true },
+          { "weight": 215, "reps": 7, "completed": true }
+        ]
+      },
+      {
+        "name": "T-Bar Row",
+        "equipment": "T-Bar",
+        "primaryMuscles": ["Back"],
+        "secondaryMuscles": ["Biceps"],
+        "muscleGroup": "Back",
+        "sets": [
+          { "weight": 90, "reps": 12, "completed": true },
+          { "weight": 115, "reps": 10, "completed": true },
+          { "weight": 115, "reps": 9, "completed": true }
+        ]
+      },
+      {
+        "name": "Face Pull",
+        "equipment": "Cable",
+        "primaryMuscles": ["Rear Deltoids"],
+        "muscleGroup": "Shoulders",
+        "sets": [
+          { "weight": 50, "reps": 20, "completed": true },
+          { "weight": 60, "reps": 15, "completed": true },
+          { "weight": 70, "reps": 12, "completed": true }
+        ]
+      },
+      {
+        "name": "Barbell Curl",
+        "equipment": "Barbell",
+        "primaryMuscles": ["Biceps"],
+        "muscleGroup": "Biceps",
+        "sets": [
+          { "weight": 75, "reps": 12, "completed": true },
+          { "weight": 85, "reps": 10, "completed": true },
+          { "weight": 95, "reps": 7, "completed": true }
+        ]
+      }
+    ],
+    "totalVolume": 14100,
+    "notes": "Friday - Best pull day yet! Yesterday's workout"
+  }
+]

@@ -10,6 +10,7 @@ import WorkoutSyncService from '../services/backend/WorkoutSyncService';
 import { WorkoutStorageService } from '../services/workoutStorage';
 import { useAuth } from '../context/AuthContext';
 import { initializeGemini, AIService } from '../config/gemini';
+import { seedTestWorkouts } from '../services/backend/seedTestWorkouts';
 
 export default function DebugScreen({ navigation }) {
   const { user } = useAuth();
@@ -29,6 +30,11 @@ export default function DebugScreen({ navigation }) {
   const [aiStatus, setAiStatus] = useState('not-tested');
   const [aiLoading, setAiLoading] = useState(false);
   const [aiResponse, setAiResponse] = useState('');
+
+  // Test data seeding state
+  const [seedStatus, setSeedStatus] = useState('not-seeded');
+  const [seedLoading, setSeedLoading] = useState(false);
+  const [seedMessage, setSeedMessage] = useState('');
 
   useEffect(() => {
     loadStoredData();
@@ -217,6 +223,56 @@ export default function DebugScreen({ navigation }) {
     }
   };
 
+  const handleSeedTestData = async () => {
+    if (!user?.uid) {
+      Alert.alert('⚠️ Not Authenticated', 'Please sign in with Google or Email to seed test data.');
+      return;
+    }
+
+    Alert.alert(
+      '🧪 Seed Test Data',
+      'This will add 4 test workouts (2 Push + 2 Pull, NO LEGS) to test AI recommendations.\n\nAI should detect the muscle imbalance and recommend LEGS.\n\nContinue?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Seed Data',
+          onPress: async () => {
+            setSeedLoading(true);
+            setSeedStatus('seeding');
+            setSeedMessage('Adding test workouts...');
+
+            try {
+              const result = await seedTestWorkouts();
+
+              if (result.success) {
+                setSeedStatus('success');
+                setSeedMessage(`✅ Added ${result.workoutsAdded} test workouts!`);
+
+                // Refresh workout counts
+                await loadWorkoutCounts();
+
+                Alert.alert(
+                  '✅ Test Data Added!',
+                  `${result.message}\n\n🧪 Test it:\n1. Go to AI Chat\n2. Ask: "What should I train today?"\n3. AI should recommend: LEGS\n\nWhy? Because you have:\n• Push: 50% (2 workouts)\n• Pull: 50% (2 workouts)\n• Legs: 0% ⚠️ IMBALANCE`
+                );
+              } else {
+                setSeedStatus('failed');
+                setSeedMessage(`❌ Failed: ${result.error}`);
+                Alert.alert('❌ Seeding Failed', result.error);
+              }
+            } catch (error) {
+              setSeedStatus('failed');
+              setSeedMessage(`❌ Error: ${error.message}`);
+              Alert.alert('❌ Error', error.message);
+            } finally {
+              setSeedLoading(false);
+            }
+          }
+        }
+      ]
+    );
+  };
+
   return (
     <ScreenLayout
       title="Debug: User Storage"
@@ -307,6 +363,48 @@ export default function DebugScreen({ navigation }) {
                   </Text>
                 )}
               </>
+            )}
+          </View>
+        )}
+      </StyledCard>
+
+      <StyledCard variant="elevated" style={styles.infoCard}>
+        <Text style={styles.infoTitle}>🧪 Test Data Seeder (AI Recommendation Testing)</Text>
+        <Text style={styles.infoText}>• Adds 4 test workouts: 2 Push + 2 Pull (NO LEGS)</Text>
+        <Text style={styles.infoText}>• Tests AI's ability to detect muscle imbalances</Text>
+        <Text style={styles.infoText}>• AI should recommend LEGS when you ask "What to train?"</Text>
+
+        {!user?.uid && (
+          <View style={styles.warningBox}>
+            <Text style={styles.warningText}>⚠️ Not authenticated. Please sign in first.</Text>
+          </View>
+        )}
+
+        <StyledButton
+          title={seedLoading ? "Seeding..." : "Seed Test Data"}
+          icon={seedLoading ? "" : "🌱"}
+          size="md"
+          variant="primary"
+          fullWidth
+          onPress={handleSeedTestData}
+          disabled={seedLoading || !user?.uid}
+          style={styles.testButton}
+        />
+
+        {seedStatus !== 'not-seeded' && (
+          <View style={[
+            styles.statusBox,
+            seedStatus === 'success' ? styles.successBox :
+            seedStatus === 'failed' ? styles.errorBox :
+            styles.testingBox
+          ]}>
+            {seedLoading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator color={Colors.primary} />
+                <Text style={styles.statusText}>Adding test workouts...</Text>
+              </View>
+            ) : (
+              <Text style={styles.statusText}>{seedMessage}</Text>
             )}
           </View>
         )}

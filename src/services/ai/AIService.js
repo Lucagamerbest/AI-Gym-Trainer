@@ -248,10 +248,11 @@ class AIService {
 
           // Inject real userId if tool expects userId parameter
           const toolArgs = { ...functionCall.args };
-          if (toolArgs.userId && (toolArgs.userId === 'USER_ID' || !toolArgs.userId || toolArgs.userId === '')) {
+          const placeholderUserIds = ['USER_ID', 'user-123', 'some_user_id', 'test-user', 'example-user'];
+          if (toolArgs.userId && (placeholderUserIds.includes(toolArgs.userId) || !toolArgs.userId || toolArgs.userId === '')) {
             // Replace placeholder/empty userId with actual userId from context
             toolArgs.userId = context.userId || 'guest';
-            console.log(`🔧 Injected real userId: ${toolArgs.userId}`);
+            console.log(`🔧 Injected real userId: ${toolArgs.userId} (was: ${functionCall.args.userId})`);
           }
 
           // Execute the tool
@@ -478,32 +479,94 @@ CRITICAL: DISTINGUISH BETWEEN QUESTIONS AND COMMANDS
 📚 SCIENTIFIC TRAINING KNOWLEDGE (Evidence-Based)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+🚨 CRITICAL EXERCISE ORDERING PRINCIPLES (ALWAYS FOLLOW):
+
+1. **Large → Small Muscle Groups** (Multi-joint compounds FIRST)
+   - Start with exercises targeting large muscle groups (chest, back, legs)
+   - Move to smaller muscle groups (shoulders, arms) later
+   - Finish with isolation exercises
+
+2. **Full Body Sessions - ALTERNATE Movement Patterns**
+   ✅ CORRECT: Push → Pull → Legs → Push → Pull → Legs
+   Example: Bench Press → Barbell Row → Squat → Overhead Press → Lat Pulldown → RDL
+
+   ❌ WRONG: All Push → All Pull → All Legs
+   Example: Bench → Incline Bench → Decline Bench → Lat Pulldown → Pull-up (DON'T DO THIS!)
+   Why: Pre-fatigues one muscle group, reduces training stimulus by 20-30%
+
+3. **Split Sessions - Respect Large → Small Within Category**
+   Push Day: Chest compounds → Shoulder compounds → Tricep isolation
+   Pull Day: Back compounds (vertical + horizontal) → Bicep isolation
+   Leg Day: Quad-dominant → Hip-hinge/Hamstring → Isolation → Calves
+
+4. **Avoid Exercise Clustering** (Maximum 2 exercises per specific muscle)
+   ❌ NEVER: Flat Bench → Incline Bench → Decline Bench (3 chest exercises in a row)
+   ✅ BETTER: Bench Press → Overhead Press → Incline DB Press (varies muscle groups)
+
+5. **Balance Pull Movements** (Include BOTH vertical AND horizontal)
+   - Vertical Pull: Pull-ups, Lat Pulldowns (lats, teres major)
+   - Horizontal Pull: Barbell Row, Cable Row, T-Bar Row (mid-trap, rhomboids, rear delts)
+   ❌ Pull day WITHOUT rows = missing 40% of back development
+
 PUSH/PULL/LEGS SPLIT DEFINITION:
 🟦 PUSH = Pressing movements (muscles that push weight AWAY from body)
    - Muscles: Chest, Shoulders (front/side delts), Triceps
-   - Exercises: Bench Press, Overhead Press, Dips, Flyes, Lateral Raises, Tricep Extensions
-   - ❌ NEVER include: Deadlift, Squat, Rows, Pull-ups, Curls in push workouts
+   - Order: Chest compounds → Shoulder compounds → Tricep isolation
+   - Exercises: Bench Press, Overhead Press, Incline Press, Dips, Lateral Raises, Tricep Extensions
+   - ❌ NEVER include: Deadlift, Squat, Rows, Pull-ups, Curls
 
 🟩 PULL = Pulling movements (muscles that pull weight TOWARD body)
    - Muscles: Back (lats, traps, rhomboids), Biceps, Rear Delts
-   - Exercises: Pull-ups, Rows, Lat Pulldowns, Face Pulls, Shrugs, Bicep Curls, Deadlift*
-   - ❌ NEVER include: Squat, Leg Press, Bench Press, Overhead Press in pull workouts
-   - *Note: Deadlift can be in pull OR leg day (both scientifically valid)
+   - Order: Vertical pull → Horizontal pull → Rear delt → Bicep isolation
+   - MUST INCLUDE: At least 1 vertical pull (Pull-ups/Lat Pulldown) + 1 horizontal pull (Rows)
+   - Exercises: Pull-ups, Barbell Row, Cable Row, Lat Pulldowns, Face Pulls, Shrugs, Bicep Curls
+   - ❌ NEVER include: Squat, Leg Press, Bench Press, Overhead Press
 
 🟨 LEGS = Lower body movements
    - Muscles: Quads, Hamstrings, Glutes, Calves
-   - Exercises: Squat, Deadlift*, Leg Press, Lunges, Leg Curls, Leg Extensions, Calf Raises
-   - ❌ NEVER include: Bench Press, Rows, Pull-ups, Overhead Press in leg workouts
+   - Order: Quad-dominant → Hamstring/Hip-hinge → Isolation → Calves
+   - MUST INCLUDE: At least 1 quad exercise (Squat/Leg Press) + 1 hamstring exercise (RDL/Leg Curl)
+   - Exercises: Squat, Romanian Deadlift, Leg Press, Lunges, Leg Curls, Leg Extensions, Calf Raises
+   - ❌ NEVER include: Bench Press, Rows, Pull-ups, Overhead Press
 
-OPTIMAL REP RANGES (Research-based):
-- Strength: 1-5 reps, 3-5 minutes rest, 85-100% 1RM
-- Hypertrophy: 6-12 reps, 60-90 seconds rest, 65-85% 1RM (most common goal)
-- Endurance: 15-20+ reps, 30-45 seconds rest, 50-65% 1RM
+OPTIMAL REP RANGES & TRAINING STYLES (Research-based):
 
-EXERCISE ORDER (CRITICAL - Always follow this):
-1. Compound exercises FIRST (Bench, Squat, Deadlift, Rows)
-2. Isolation exercises LAST (Flyes, Curls, Extensions)
-Why: Pre-fatiguing with isolation reduces compound performance by 20-30%
+**Strength (Power/Max Strength):**
+- Reps: 3-6 reps
+- Sets: 4-5 sets
+- Rest: 3-5 minutes
+- Intensity: 85-95% 1RM, RPE 8-10
+- Format: Straight sets, focus on main lifts only
+
+**Hypertrophy (Muscle Growth):**
+- Reps: 6-12 reps (most common)
+- Sets: 3-4 sets
+- Rest: 60-90 seconds
+- Intensity: 65-85% 1RM, RPE 7-9
+- Format: Straight sets, compounds + isolation
+
+**Weight Loss / Fat Loss / Conditioning:**
+- Reps: 12-20 reps
+- Sets: 3-4 sets or circuits
+- Rest: 30-45 seconds (minimal rest)
+- Intensity: 50-70% 1RM, RPE 6-8
+- Format: **CIRCUITS or SUPERSETS** (pair antagonist movements)
+- Example Circuit: A1) Squat 15 reps → A2) Leg Curl 15 reps → 45s rest → repeat 3x
+- Metabolic Finishers: AMRAP sets, timed sets, or cardio bursts
+- Goal: High volume, short rest = metabolic stress + calorie burn
+
+**Endurance / Muscular Endurance:**
+- Reps: 15-20+ reps
+- Sets: 2-3 sets
+- Rest: 30-45 seconds
+- Intensity: 50-65% 1RM, RPE 6-7
+- Format: Straight sets or time-based (AMRAP, EMOM)
+
+RPE SCALE (Rate of Perceived Exertion):
+- RPE 10: Absolute max, no more reps possible
+- RPE 9: 1 rep left in the tank
+- RPE 8: 2 reps left in the tank (optimal for hypertrophy)
+- RPE 7: 3 reps left (good for technique work)
 
 BALANCED TRAINING RATIOS:
 - For every 1 push exercise → include 1 pull exercise (prevents shoulder issues)
@@ -530,30 +593,48 @@ TIER SYSTEM FOR EXERCISE SELECTION:
    Pull: Bicep Curl, Hammer Curl, Preacher Curl, Reverse Fly
    Legs: Leg Extension, Calf Raise, Glute Bridge
 
-EXAMPLE: OPTIMAL PUSH DAY (Hypertrophy)
-1. Bench Press - 4×6-10 (Tier S compound)
-2. Incline DB Press - 3×8-12 (Tier A compound)
-3. Overhead Press - 3×6-10 (Tier S compound)
-4. Lateral Raise - 3×12-15 (Tier B isolation)
-5. Tricep Pushdown - 3×10-15 (Tier B isolation)
-6. Overhead Extension - 3×10-12 (Tier B isolation)
+EXAMPLE: OPTIMAL PUSH DAY (Hypertrophy) - 6x/week PPL
+Order: Chest → Shoulders → Triceps (large to small)
+1. Bench Press - 4×6-10, RPE 8, 90s rest (Tier S - Chest compound)
+2. Overhead Press - 3×6-10, RPE 8, 90s rest (Tier S - Shoulder compound)
+3. Incline DB Press - 3×8-12, RPE 7-8, 75s rest (Tier A - Chest accessory)
+4. Lateral Raise - 3×12-15, RPE 7, 60s rest (Tier B - Shoulder isolation)
+5. Tricep Pushdown - 3×10-15, RPE 7, 60s rest (Tier B - Tricep isolation)
+6. Cable Flyes - 3×12-15, RPE 7, 60s rest (Tier B - Chest isolation finisher)
+Notes: MAX 3 pressing movements (Bench, OHP, Incline) - rest are isolation
+Progression: Add 2.5-5 lbs when all sets RPE ≤7. Run 4-6 weeks, deload week 4.
 
-EXAMPLE: OPTIMAL PULL DAY (Hypertrophy)
-1. Pull-up - 3×6-10 (Tier S compound)
-2. Barbell Row - 4×8-12 (Tier S compound)
-3. Lat Pulldown - 3×10-15 (Tier S compound)
-4. Cable Row - 3×10-15 (Tier A compound)
-5. Face Pull - 3×15-20 (Tier A rear delt)
-6. Barbell Curl - 3×8-12 (Tier B isolation)
-7. Hammer Curl - 3×10-15 (Tier B isolation)
+EXAMPLE: OPTIMAL PULL DAY (Hypertrophy) - 6x/week PPL
+Order: Vertical pull → Horizontal pull → Rear delt → Biceps
+1. Pull-up - 3×6-10, RPE 8, 2min rest (Tier S - Vertical compound)
+2. Barbell Row - 4×8-12, RPE 8, 90s rest (Tier S - Horizontal compound)
+3. Cable Row - 3×10-15, RPE 7, 75s rest (Tier A - Horizontal accessory)
+4. Face Pull - 3×15-20, RPE 6-7, 60s rest (Tier A - Rear delt, shoulder health)
+5. Barbell Curl - 3×8-12, RPE 7, 60s rest (Tier B - Bicep isolation)
+6. Hammer Curl - 3×10-15, RPE 7, 60s rest (Tier B - Bicep/Brachialis isolation)
+Notes: BOTH vertical (pull-up) + horizontal (rows). MAX 2 vertical pulls total.
+Progression: Increase weight when last set RPE ≤6. Deload week 4 (2 sets instead of 4).
 
 EXAMPLE: OPTIMAL LEG DAY (Hypertrophy)
-1. Squat - 4×5-8 (Tier S compound)
-2. Romanian Deadlift - 3×8-12 (Tier S compound)
-3. Leg Press - 3×10-15 (Tier S compound)
-4. Leg Curl - 3×10-15 (Tier A isolation)
-5. Leg Extension - 3×12-15 (Tier B isolation)
-6. Calf Raise - 4×15-20 (Tier B isolation)
+Order: Quad-dominant → Hip-hinge/Hamstring → Isolation → Calves
+1. Squat - 4×5-8, RPE 8-9, 3min rest (Tier S - Quad-dominant compound)
+2. Romanian Deadlift - 3×8-12, RPE 8, 2min rest (Tier S - Hamstring/Hip-hinge)
+3. Leg Press - 3×10-15, RPE 7, 90s rest (Tier S - Quad compound)
+4. Leg Curl - 3×10-15, RPE 7, 60s rest (Tier A - Hamstring isolation)
+5. Leg Extension - 3×12-15, RPE 7, 60s rest (Tier B - Quad isolation)
+6. Calf Raise - 4×15-20, RPE 7-8, 45s rest (Tier B - Calf isolation)
+Progression: Use double progression (add reps first, then weight)
+
+EXAMPLE: OPTIMAL FULL BODY (Hypertrophy)
+Order: Alternate Push → Pull → Legs (prevents muscle group fatigue)
+1. Bench Press - 3×6-10, RPE 8, 2min rest (Push compound)
+2. Barbell Row - 3×8-12, RPE 8, 2min rest (Pull compound - HORIZONTAL)
+3. Squat - 3×6-10, RPE 8, 3min rest (Leg compound)
+4. Overhead Press - 3×6-10, RPE 7-8, 90s rest (Push compound)
+5. Lat Pulldown - 3×10-12, RPE 7, 75s rest (Pull compound - VERTICAL)
+6. Romanian Deadlift - 3×8-12, RPE 7, 90s rest (Leg/Hip-hinge)
+7. Lateral Raise - 3×12-15, RPE 7, 60s rest (Push isolation - optional finisher)
+Notice: Push/Pull/Legs pattern throughout - NOT all push then all pull!
 
 EXAMPLE: 10 WEEK MASS BUILDING (Chest & Triceps)
 This is a PROVEN program from MuscleAndStrength.com:
@@ -569,11 +650,117 @@ This is a PROVEN program from MuscleAndStrength.com:
 Note the REP PROGRESSION: "10, 8, 8, 6" means each set gets heavier weight as reps decrease.
 This is PROGRESSIVE OVERLOAD - one of the most effective training methods.
 
-🎯 KEY PRINCIPLES:
-1. Start with Tier S compounds, then Tier A accessories, finish with Tier B isolations
-2. Use progressive overload (decreasing reps = increasing weight)
-3. 4-8 exercises per workout for optimal volume
-4. Always include the proven essentials (Bench, Squat, Deadlift, OHP, Rows, Pull-ups)
+🎯 KEY PRINCIPLES FOR WORKOUT GENERATION:
+
+1. **Goal-Specific Programming** (CRITICAL - Adapt to user's goal):
+   - **Strength**: 3-6 reps, 4-5 sets, 3-5min rest, ONLY main lifts (Squat, Bench, Deadlift, OHP)
+   - **Hypertrophy**: 6-12 reps, 3-4 sets, 60-90s rest, Straight sets with compounds + isolation
+   - **Weight Loss**: 12-20 reps, 3-4 sets, 30-45s rest, **FORMAT AS CIRCUITS/SUPERSETS**
+     - Example: "Circuit 1: A1) Squat 3×15 → A2) Leg Curl 3×15 (45s rest between circuits)"
+     - Add metabolic finisher at end: "Finisher: 5min treadmill sprint intervals"
+   - **Endurance**: 15-20+ reps, 2-3 sets, 30-45s rest, Time-based work (AMRAP, EMOM)
+
+2. **Movement Plane Diversity** (Avoid redundant angles):
+   - **Pull Days**: MUST include BOTH vertical (Pull-up, Lat Pulldown) AND horizontal (Barbell Row, Cable Row, Seal Row)
+     - ❌ WRONG: Lat Pulldown → Pull-up → One-Arm Lat Pulldown (3 vertical = redundant)
+     - ✅ RIGHT: Pull-up (vertical) → Barbell Row (horizontal) → Cable Row (horizontal) → Face Pull
+   - **Push Days**: Vary angles (flat, incline, overhead) - MAX 3 pressing movements total
+   - **Leg Days**: Vary stance (bilateral squats, unilateral lunges, hip-hinge RDLs)
+
+3. **Exercise Order Intelligence** (Prevent CNS fatigue):
+   - Start with heaviest compound (Squat, Deadlift, Bench)
+   - Alternate high-CNS and low-CNS exercises
+   - ❌ WRONG: Deadlift → Hack Squat → Front Squat → Leg Press (4 heavy compounds = CNS burnout)
+   - ✅ RIGHT: Squat (heavy) → Leg Curl (isolation) → Front Squat (moderate) → Leg Extension (isolation)
+   - Mix compound → isolation → compound → isolation
+
+4. **Full Body**: ALTERNATE push/pull/legs throughout (NOT all push, then all pull, then all legs)
+
+5. **Tier System**: Start with Tier S compounds → Tier A accessories → Tier B isolations
+
+6. **Balance Requirements**:
+   - Pull workouts: 1 vertical + 2 horizontal pulls (rows dominate), MAX 2 vertical pulls total
+   - Leg workouts: 1 quad + 1 hamstring minimum
+   - Push workouts: MAX 3 pressing movements, rest = isolation (lateral raises, tricep, flyes)
+
+7. **Avoid Clustering**: Maximum 2 exercises per specific muscle group in a row
+
+8. **Progressive Overload**: Include RPE targets and goal-specific progression methods
+
+9. **Volume**: 6-8 exercises per workout for optimal stimulus-to-fatigue ratio
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📅 PERIODIZATION & PROGRAM STRUCTURE (CRITICAL)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TRAINING FREQUENCY (Weekly):
+- **Beginner**: 3 days/week (full body or upper/lower)
+- **Intermediate**: 4-5 days/week (PPL, upper/lower, or 4-day split)
+- **Advanced**: 5-6 days/week (PPL x2, bro split, or specialized programs)
+- **Rule**: Each muscle group 2x/week for optimal growth (frequency > volume)
+
+PROGRAM DURATION:
+- **Mesocycle Length**: 4-8 weeks on the same program
+- **Why**: Adaptations take time; hopping programs weekly prevents progress
+- **Beginner**: Run same program 8-12 weeks (master technique + build base strength)
+- **Intermediate/Advanced**: 4-6 weeks per block, then adjust volume/intensity
+
+DELOAD PROTOCOL:
+- **When**: Every 4-6 weeks OR when performance plateaus/fatigue accumulates
+- **How**: Reduce volume by 40-50% (do 2 sets instead of 4, or skip isolation)
+- **Keep**: Same exercises, same RPE, but half the sets
+- **Duration**: 1 week deload, then back to full training
+- **Example**: If you normally do 4×8 bench at 200 lbs, do 2×8 at 200 lbs
+
+PROGRESSION TIMELINE:
+- **Weeks 1-3**: Linear progression (add 2.5-5 lbs when RPE drops below 7)
+- **Week 4**: Deload week (reduce volume by 50%)
+- **Weeks 5-7**: Resume progression with heavier base weights
+- **Week 8**: Deload OR test new 1RMs, then start new block
+
+EXERCISE ROTATION:
+- **Main Lifts (Tier S)**: Keep same for 8-12 weeks (squat, bench, deadlift, OHP)
+- **Accessories (Tier A)**: Rotate every 4-6 weeks for variety
+- **Isolation (Tier B)**: Can rotate weekly or as needed
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧠 INTELLIGENT WORKOUT RECOMMENDATIONS (USE THIS FIRST!)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+When user asks "What should I train today?" or "What to train?":
+1. **ALWAYS call recommendTodaysWorkout tool FIRST**
+2. This tool analyzes:
+   - Yesterday's workout (to follow program sequence if user is on PPL/Upper-Lower)
+   - 30-day muscle balance (identifies weak muscle groups like "Legs only 15% vs Chest 50%")
+   - Weekly workout frequency (recommends rest if trained 6+ times)
+   - Performance trends and recovery status
+
+3. The tool returns intelligent recommendations like:
+   - "You did Push yesterday. Following PPL sequence, today is Pull day."
+   - "Muscle imbalance: Legs only 18% vs Push 52%. Train Legs to balance."
+   - "You've trained 6 times this week. Rest day recommended."
+   - "3 days since last workout. Jump back in with Full Body."
+
+4. **Present the recommendation with reasoning:**
+   Example: "Based on your history, I recommend **Pull Day** today. You did Push yesterday, and following your PPL program, Pull is next. Your muscle balance is good: Push 34%, Pull 32%, Legs 34%."
+
+5. **Then offer to generate the workout:**
+   "Would you like me to create a Pull workout for you?"
+
+❌ DON'T just ask "What muscles do you want to train?" - that defeats the purpose!
+✅ DO analyze their data and make an intelligent recommendation first.
+
+AFTER GENERATING ANY WORKOUT, ALWAYS INCLUDE:
+1. **Execution Guidance**: "Choose weights so the last 2-3 reps are challenging (RPE 7-8) but maintain good form. Rest 60-90s between sets for hypertrophy."
+
+2. **Progression Method**: "Progress by adding weight when you can complete all sets at RPE 7 or less."
+
+3. **Program Context**: "Run this program for 4-6 weeks. Deload on week 4 (reduce sets by 50%, keep weight same). After 6 weeks, consider rotating accessories."
+
+4. **Frequency Recommendation**: Based on split:
+   - Full Body → "Train 3x/week (Mon/Wed/Fri)"
+   - PPL → "Train 6x/week (Push/Pull/Legs x2) or 3x/week for beginners"
+   - Upper/Lower → "Train 4x/week (Upper/Lower/Upper/Lower)"
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 💪 STRENGTH TRAINING TOOLS (Advanced Features)

@@ -6,6 +6,7 @@ import ToolRegistry from './ToolRegistry';
 
 // Import tool implementations
 import {
+  recommendTodaysWorkout,
   generateWorkoutProgram,
   generateWorkoutPlan,
   findExerciseAlternatives,
@@ -54,10 +55,11 @@ import {
  */
 export function initializeTools() {
   // Workout Tools
-  ToolRegistry.registerTool('generateWorkoutProgram', workoutToolSchemas[0], generateWorkoutProgram);
-  ToolRegistry.registerTool('generateWorkoutPlan', workoutToolSchemas[1], generateWorkoutPlan);
-  ToolRegistry.registerTool('findExerciseAlternatives', workoutToolSchemas[2], findExerciseAlternatives);
-  ToolRegistry.registerTool('analyzeWorkoutHistory', workoutToolSchemas[3], analyzeWorkoutHistory);
+  ToolRegistry.registerTool('recommendTodaysWorkout', workoutToolSchemas[0], recommendTodaysWorkout);
+  ToolRegistry.registerTool('generateWorkoutProgram', workoutToolSchemas[1], generateWorkoutProgram);
+  ToolRegistry.registerTool('generateWorkoutPlan', workoutToolSchemas[2], generateWorkoutPlan);
+  ToolRegistry.registerTool('findExerciseAlternatives', workoutToolSchemas[3], findExerciseAlternatives);
+  ToolRegistry.registerTool('analyzeWorkoutHistory', workoutToolSchemas[4], analyzeWorkoutHistory);
 
   // Exercise Tools
   ToolRegistry.registerTool('searchExercises', exerciseToolSchemas[0], searchExercises);

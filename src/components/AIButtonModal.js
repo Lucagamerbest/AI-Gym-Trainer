@@ -40,6 +40,16 @@ export default function AIButtonModal({
     }
   }, [visible]);
 
+  // Clear state when modal closes to prevent auto-close on reopen
+  useEffect(() => {
+    if (!visible) {
+      setLastResponse(null);
+      setConversationHistory([]);
+      setReplyText('');
+      setLoadingButton(null);
+    }
+  }, [visible]);
+
   // Auto-close modal after successful save
   useEffect(() => {
     if (!lastResponse) return;

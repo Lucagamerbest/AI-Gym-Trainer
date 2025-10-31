@@ -124,30 +124,219 @@ export async function generateWorkoutPlan({ muscleGroups, experienceLevel, durat
     else exerciseCount = 7;
 
     // Select exercises (smart selection based on goal)
-    const selectedExercises = smartSelectExercises(
+    let selectedExercises = smartSelectExercises(
       availableExercises,
       exerciseCount,
       muscleGroups,
       goal
     );
 
+    // CRITICAL: Limit pressing movements on push days (avoid redundant bench variations)
+    if (isPushPullLegsSplit && workoutType.includes('push')) {
+      const pressingMovements = ['Bench Press', 'Incline', 'Decline', 'Close Grip', 'Chest Press', 'Dumbbell Press'];
+      const isolationMovements = ['Lateral Raise', 'Front Raise', 'Tricep', 'Flyes', 'Cable Fly'];
+
+      // Count pressing movements (chest/shoulder presses)
+      const pressingCount = selectedExercises.filter(ex =>
+        pressingMovements.some(pm => ex.name.toLowerCase().includes(pm.toLowerCase()))
+      ).length;
+
+      // If TOO MANY pressing movements (>3), replace with isolation
+      if (pressingCount > 3) {
+        console.log(`⚠️ Removing redundant pressing movements (${pressingCount} found, max 3 allowed)`);
+
+        const pressesToRemove = [];
+        let foundCount = 0;
+        selectedExercises.forEach((ex, idx) => {
+          if (pressingMovements.some(pm => ex.name.toLowerCase().includes(pm.toLowerCase()))) {
+            foundCount++;
+            // Keep first 3 pressing movements (compounds), remove the rest
+            if (foundCount > 3) {
+              pressesToRemove.push(idx);
+            }
+          }
+        });
+
+        // Replace extra presses with lateral raises, tricep isolation, or flyes
+        pressesToRemove.forEach(idx => {
+          const lateralRaise = availableExercises.find(ex =>
+            ex.name.toLowerCase().includes('lateral raise') && !selectedExercises.some(sel => sel.name === ex.name)
+          );
+          const tricepIsolation = availableExercises.find(ex =>
+            (ex.name.toLowerCase().includes('tricep') &&
+             (ex.name.toLowerCase().includes('pushdown') || ex.name.toLowerCase().includes('extension'))) &&
+            !selectedExercises.some(sel => sel.name === ex.name)
+          );
+          const flyes = availableExercises.find(ex =>
+            ex.name.toLowerCase().includes('fly') && !selectedExercises.some(sel => sel.name === ex.name)
+          );
+
+          selectedExercises[idx] = lateralRaise || tricepIsolation || flyes || selectedExercises[idx];
+        });
+      }
+    }
+
+    // CRITICAL: Ensure pull workouts include BOTH vertical and horizontal pulls
+    // Horizontal pulls (rows) should DOMINATE: 1 vertical + 2-3 horizontal minimum
+    if (isPushPullLegsSplit && workoutType.includes('pull')) {
+      const verticalPulls = ['Pull-up', 'Chin-up', 'Lat Pulldown', 'Pull Up'];
+      const horizontalPulls = ['Row', 'Barbell Row', 'Dumbbell Row', 'Cable Row', 'T-Bar Row', 'Seated Row', 'Seal Row', 'Chest Supported Row', 'Inverted Row'];
+
+      // Count vertical and horizontal pulls
+      const verticalCount = selectedExercises.filter(ex =>
+        verticalPulls.some(vp => ex.name.toLowerCase().includes(vp.toLowerCase()))
+      ).length;
+
+      const horizontalCount = selectedExercises.filter(ex =>
+        horizontalPulls.some(hp => ex.name.toLowerCase().includes(hp.toLowerCase()))
+      ).length;
+
+      console.log(`📊 Pull day balance: ${verticalCount} vertical, ${horizontalCount} horizontal`);
+
+      // Rule 1: MAX 2 vertical pulls (avoid lat pulldown → pull-up → one-arm lat pulldown)
+      if (verticalCount > 2) {
+        console.log(`⚠️ Removing redundant vertical pulls (${verticalCount} found, max 2 allowed)`);
+
+        const verticalsToRemove = [];
+        let foundCount = 0;
+        selectedExercises.forEach((ex, idx) => {
+          if (verticalPulls.some(vp => ex.name.toLowerCase().includes(vp.toLowerCase()))) {
+            foundCount++;
+            if (foundCount > 2) {
+              verticalsToRemove.push(idx);
+            }
+          }
+        });
+
+        // Replace extra verticals with horizontal rows (priority) or face pulls
+        verticalsToRemove.forEach(idx => {
+          const horizontalRow = availableExercises.find(ex =>
+            horizontalPulls.some(hp => ex.name.toLowerCase().includes(hp.toLowerCase())) &&
+            !selectedExercises.some(sel => sel.name === ex.name)
+          );
+          const facePull = availableExercises.find(ex =>
+            (ex.name.toLowerCase().includes('face pull') || ex.name.toLowerCase().includes('rear delt')) &&
+            !selectedExercises.some(sel => sel.name === ex.name)
+          );
+          selectedExercises[idx] = horizontalRow || facePull || selectedExercises[idx];
+        });
+      }
+
+      // Rule 2: Ensure at least 1 vertical pull (for lat development)
+      if (verticalCount === 0) {
+        const verticalExercise = availableExercises.find(ex =>
+          verticalPulls.some(vp => ex.name.toLowerCase().includes(vp.toLowerCase()))
+        );
+        if (verticalExercise) {
+          console.log('⚠️ Adding vertical pull to ensure lat development');
+          selectedExercises[selectedExercises.length - 1] = verticalExercise;
+        }
+      }
+
+      // Rule 3: Ensure at least 2 horizontal pulls (rows should dominate)
+      if (horizontalCount < 2) {
+        console.log(`⚠️ Not enough horizontal pulls (${horizontalCount} found, need 2+ for balanced back development)`);
+
+        const missingHorizontal = 2 - horizontalCount;
+        const lastIndex = selectedExercises.length - 1;
+
+        for (let i = 0; i < missingHorizontal; i++) {
+          const horizontalRow = availableExercises.find(ex =>
+            horizontalPulls.some(hp => ex.name.toLowerCase().includes(hp.toLowerCase())) &&
+            !selectedExercises.some(sel => sel.name === ex.name)
+          );
+
+          if (horizontalRow) {
+            selectedExercises[lastIndex - i] = horizontalRow;
+          }
+        }
+      }
+    }
+
+    // CRITICAL: Ensure leg workouts include BOTH quad and hamstring exercises
+    if (isPushPullLegsSplit && workoutType.includes('leg')) {
+      const quadExercises = ['Squat', 'Leg Press', 'Leg Extension', 'Front Squat', 'Hack Squat', 'Lunge'];
+      const hamstringExercises = ['Romanian Deadlift', 'RDL', 'Leg Curl', 'Deadlift', 'Good Morning', 'Hip Thrust'];
+
+      const hasQuad = selectedExercises.some(ex =>
+        quadExercises.some(qe => ex.name.toLowerCase().includes(qe.toLowerCase()))
+      );
+      const hasHamstring = selectedExercises.some(ex =>
+        hamstringExercises.some(he => ex.name.toLowerCase().includes(he.toLowerCase()))
+      );
+
+      // If missing quad or hamstring, add it
+      if (!hasQuad) {
+        const quadExercise = availableExercises.find(ex =>
+          quadExercises.some(qe => ex.name.toLowerCase().includes(qe.toLowerCase()))
+        );
+        if (quadExercise) {
+          console.log('⚠️ Adding quad exercise to ensure balance');
+          selectedExercises[selectedExercises.length - 1] = quadExercise;
+        }
+      }
+
+      if (!hasHamstring) {
+        const hamstringExercise = availableExercises.find(ex =>
+          hamstringExercises.some(he => ex.name.toLowerCase().includes(he.toLowerCase()))
+        );
+        if (hamstringExercise) {
+          console.log('⚠️ Adding hamstring exercise to ensure balance');
+          selectedExercises[selectedExercises.length - 2] = hamstringExercise;
+        }
+      }
+    }
+
     // Generate set/rep scheme based on goal using scientific principles
-    const workoutExercises = selectedExercises.map(exercise => {
-      const optimalRange = FitnessKnowledge.getOptimalRepRange(goal || 'hypertrophy', experienceLevel);
+    const workoutExercises = selectedExercises.map((exercise, index) => {
+      let optimalRange = FitnessKnowledge.getOptimalRepRange(goal || 'hypertrophy', experienceLevel);
+
+      // GOAL-SPECIFIC ADJUSTMENTS
+      let targetRPE = '7-8';
+      let sets = parseInt(optimalRange.sets.split('-')[0]);
+      let reps = optimalRange.reps;
+      let restTime = optimalRange.restTime;
+
+      if (goal === 'strength') {
+        // Strength: Lower reps, longer rest, higher RPE
+        reps = index < 2 ? '3-5' : '4-6'; // Main lifts get lowest reps
+        sets = index < 2 ? 5 : 4;
+        restTime = index < 2 ? 240 : 180; // 4min for main lifts, 3min for accessories
+        targetRPE = index < 2 ? '8-9' : '7-8';
+      } else if (goal === 'hypertrophy') {
+        // Hypertrophy: Classic 6-12 reps
+        reps = index < 2 ? '6-10' : '8-12';
+        sets = index < 2 ? 4 : 3;
+        restTime = 75; // 60-90s range
+        targetRPE = index < 2 ? '8' : '7-8';
+      } else if (goal === 'weight_loss' || goal === 'fat_loss' || goal === 'conditioning') {
+        // Weight Loss: Higher reps, shorter rest, circuit format
+        reps = index < 2 ? '12-15' : '15-20'; // Higher reps for metabolic stress
+        sets = 3;
+        restTime = 45; // Minimal rest for fat burn
+        targetRPE = '6-8'; // Sustainable intensity for high volume
+      } else if (goal === 'endurance') {
+        // Endurance: Very high reps, short rest
+        reps = '15-20';
+        sets = 3;
+        restTime = 45;
+        targetRPE = '6-7';
+      }
 
       return {
         name: exercise.name,
         equipment: exercise.equipment,
         muscleGroup: exercise.primaryMuscles?.[0] || 'General',
-        sets: parseInt(optimalRange.sets.split('-')[0]), // Use minimum of range
-        reps: optimalRange.reps,
-        restTime: optimalRange.restTime,
+        sets: sets,
+        reps: reps,
+        restTime: restTime,
+        rpe: targetRPE,
         // Keep instructions short - just first sentence
         instructions: exercise.instructions?.split('.')[0] + '.' || '',
       };
     });
 
-    // VALIDATION: Ensure workout is scientifically correct
+    // VALIDATION: Ensure workout is scientifically correct (only for push/pull/legs splits)
     if (isPushPullLegsSplit) {
       const validation = FitnessKnowledge.validateWorkout(
         selectedExercises,
@@ -169,6 +358,14 @@ export async function generateWorkoutPlan({ muscleGroups, experienceLevel, durat
       }
 
       console.log('✅ Workout passed scientific validation');
+    } else {
+      console.log('ℹ️ Skipping validation for non-PPL workout');
+    }
+
+    // Add circuit/superset guidance for weight loss
+    let formatNotes = '';
+    if (goal === 'weight_loss' || goal === 'fat_loss' || goal === 'conditioning') {
+      formatNotes = 'CIRCUIT FORMAT: Pair exercises as supersets (A1/A2, B1/B2) with minimal rest between exercises, 45s rest between circuits. Add 5-10min cardio finisher at end.';
     }
 
     return {
@@ -180,6 +377,7 @@ export async function generateWorkoutPlan({ muscleGroups, experienceLevel, durat
         estimatedDuration: duration,
         exercises: workoutExercises,
         totalExercises: workoutExercises.length,
+        formatNotes: formatNotes, // Circuit/superset guidance
       }
     };
   } catch (error) {
@@ -200,16 +398,61 @@ export async function generateWorkoutPlan({ muscleGroups, experienceLevel, durat
  * Tier B: Good isolations (Flyes, Curls, Raises)
  */
 function smartSelectExercises(exercises, count, muscleGroups, goal) {
-  // Determine category (push/pull/legs)
-  const category = muscleGroups[0]?.toLowerCase().includes('push') ? 'push' :
-                   muscleGroups[0]?.toLowerCase().includes('pull') ? 'pull' :
-                   muscleGroups[0]?.toLowerCase().includes('leg') ? 'legs' : 'push';
+  // Determine category (push/pull/legs/fullbody)
+  const muscleGroupsLower = muscleGroups.map(mg => mg.toLowerCase());
 
-  // STEP 1: Prioritize exercises by tier (S > A > B > Other)
-  const prioritized = ProvenWorkoutTemplates.prioritizeExercises(exercises, category);
+  // Detect if this is a full body workout (has multiple major muscle groups)
+  const hasPush = muscleGroupsLower.some(mg => ['chest', 'shoulders', 'triceps', 'tricep'].includes(mg));
+  const hasPull = muscleGroupsLower.some(mg => ['back', 'biceps', 'bicep'].includes(mg));
+  const hasLegs = muscleGroupsLower.some(mg => ['legs', 'leg', 'quads', 'hamstrings', 'glutes', 'calves'].includes(mg));
+
+  const isFullBody = (hasPush && hasPull) || (hasPush && hasLegs) || (hasPull && hasLegs);
+
+  // Determine category
+  let category;
+  if (isFullBody) {
+    category = 'fullbody';
+  } else {
+    category = muscleGroupsLower[0]?.includes('push') ? 'push' :
+               muscleGroupsLower[0]?.includes('pull') ? 'pull' :
+               muscleGroupsLower[0]?.includes('leg') ? 'legs' :
+               hasPush ? 'push' : hasPull ? 'pull' : hasLegs ? 'legs' : 'push';
+  }
 
   console.log(`🎯 Exercise prioritization for ${category}:`);
-  console.log(`   Tier S (Essential): ${prioritized.slice(0, 5).map(e => e.name).join(', ')}`);
+
+  // STEP 1: Prioritize exercises by tier (S > A > B > Other)
+  let prioritized;
+
+  if (category === 'fullbody') {
+    // For full body, select from all categories proportionally
+    const pushExercises = ProvenWorkoutTemplates.prioritizeExercises(exercises, 'push');
+    const pullExercises = ProvenWorkoutTemplates.prioritizeExercises(exercises, 'pull');
+    const legExercises = ProvenWorkoutTemplates.prioritizeExercises(exercises, 'legs');
+
+    // Distribute exercises evenly across categories
+    const pushCount = Math.ceil(count / 3);
+    const pullCount = Math.ceil(count / 3);
+    const legCount = count - pushCount - pullCount;
+
+    // CRITICAL: Alternate push/pull/legs to prevent muscle group fatigue
+    // Pattern: Push → Pull → Legs → Push → Pull → Legs...
+    const alternated = [];
+    const maxIterations = Math.max(pushCount, pullCount, legCount);
+
+    for (let i = 0; i < maxIterations; i++) {
+      if (i < pushCount && pushExercises[i]) alternated.push(pushExercises[i]);
+      if (i < pullCount && pullExercises[i]) alternated.push(pullExercises[i]);
+      if (i < legCount && legExercises[i]) alternated.push(legExercises[i]);
+    }
+
+    prioritized = alternated.slice(0, count);
+
+    console.log(`   Full Body - Alternated Pattern (Push/Pull/Legs): ${pushCount}/${pullCount}/${legCount}`);
+  } else {
+    prioritized = ProvenWorkoutTemplates.prioritizeExercises(exercises, category);
+    console.log(`   Tier S (Essential): ${prioritized.slice(0, 5).map(e => e.name).join(', ')}`);
+  }
 
   // STEP 2: Select exercises based on goal
   const selected = [];
@@ -252,10 +495,38 @@ function smartSelectExercises(exercises, count, muscleGroups, goal) {
   }
 
   // STEP 3: Ensure we have the minimum required exercises
-  const finalSelection = selected.slice(0, count);
+  let finalSelection = selected.slice(0, count);
+
+  // STEP 4: Intelligent Exercise Ordering (prevent CNS fatigue)
+  // Alternate high-CNS compounds with low-CNS isolation exercises
+  // Compounds: Squat, Deadlift, Bench, Row, OHP, Pull-ups
+  // Isolation: Curls, Extensions, Raises, Flyes
+  const compounds = ['Squat', 'Deadlift', 'Bench', 'Press', 'Row', 'Pull-up', 'Pull Up', 'Dip', 'Lunge'];
+  const isolation = ['Curl', 'Extension', 'Raise', 'Fly', 'Flyes', 'Pushdown', 'Pulldown'];
+
+  const isCompound = (ex) => compounds.some(comp => ex.name.includes(comp));
+  const isIsolation = (ex) => isolation.some(iso => ex.name.includes(iso));
+
+  // Reorder to alternate compound → isolation → compound → isolation
+  const reordered = [];
+  const compoundExercises = finalSelection.filter(isCompound);
+  const isolationExercises = finalSelection.filter(isIsolation);
+  const otherExercises = finalSelection.filter(ex => !isCompound(ex) && !isIsolation(ex));
+
+  // Start with heaviest compound
+  const maxCompounds = Math.max(compoundExercises.length, isolationExercises.length);
+  for (let i = 0; i < maxCompounds; i++) {
+    if (compoundExercises[i]) reordered.push(compoundExercises[i]);
+    if (isolationExercises[i]) reordered.push(isolationExercises[i]);
+  }
+
+  // Add any remaining exercises
+  reordered.push(...otherExercises);
+
+  finalSelection = reordered.slice(0, count);
 
   // Log what was selected
-  console.log(`✅ Selected ${finalSelection.length} exercises: ${finalSelection.map(e => e.name).join(', ')}`);
+  console.log(`✅ Selected ${finalSelection.length} exercises (ordered compound→isolation): ${finalSelection.map(e => e.name).join(', ')}`);
 
   return finalSelection;
 }
@@ -513,8 +784,301 @@ export async function analyzeWorkoutHistory({ userId, days = 30 }) {
   }
 }
 
+/**
+ * INTELLIGENT WORKOUT RECOMMENDATION
+ * Analyzes user data to recommend what to train today
+ * Based on: muscle balance, active programs, recovery, and performance trends
+ */
+export async function recommendTodaysWorkout({ userId }) {
+  try {
+    console.log('🧠 Analyzing workout history for intelligent recommendation...');
+
+    // Get recent workouts (last 30 days)
+    const workouts = await WorkoutSyncService.getAllWorkouts(100);
+    if (!workouts || workouts.length === 0) {
+      return {
+        success: true,
+        recommendation: {
+          suggested: 'Full Body',
+          reason: 'No workout history found. Start with a balanced full body workout.',
+          muscleGroups: ['chest', 'back', 'legs'],
+          restDayRecommended: false,
+        }
+      };
+    }
+
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+    const last30DaysWorkouts = workouts.filter(w => new Date(w.date) >= thirtyDaysAgo);
+    const last7DaysWorkouts = workouts.filter(w => new Date(w.date) >= sevenDaysAgo);
+
+    // ANALYSIS 1: Check what was trained yesterday
+    const yesterdaysWorkout = workouts.find(w => {
+      const workoutDate = new Date(w.date);
+      return workoutDate.toDateString() === yesterday.toDateString();
+    });
+
+    // ANALYSIS 2: Muscle Group Balance (last 30 days)
+    const muscleGroupCount = {};
+    last30DaysWorkouts.forEach(workout => {
+      workout.exercises?.forEach(ex => {
+        const muscles = ex.primaryMuscles || [ex.muscleGroup] || [];
+        muscles.forEach(muscle => {
+          if (muscle) {
+            const muscleKey = muscle.toLowerCase();
+            muscleGroupCount[muscleKey] = (muscleGroupCount[muscleKey] || 0) + 1;
+          }
+        });
+      });
+    });
+
+    // Categorize into Push/Pull/Legs
+    const pushMuscles = ['chest', 'pectorals', 'pecs', 'shoulders', 'deltoids', 'delts', 'triceps'];
+    const pullMuscles = ['back', 'lats', 'traps', 'rhomboids', 'biceps', 'rear deltoids'];
+    const legMuscles = ['legs', 'quadriceps', 'quads', 'hamstrings', 'glutes', 'calves'];
+
+    let pushCount = 0, pullCount = 0, legCount = 0;
+
+    Object.entries(muscleGroupCount).forEach(([muscle, count]) => {
+      if (pushMuscles.some(pm => muscle.includes(pm))) pushCount += count;
+      if (pullMuscles.some(pm => muscle.includes(pm))) pullCount += count;
+      if (legMuscles.some(lm => muscle.includes(lm))) legCount += count;
+    });
+
+    console.log(`📊 Muscle balance (30 days): Push ${pushCount}, Pull ${pullCount}, Legs ${legCount}`);
+
+    // ANALYSIS 3: Detect workout pattern/program
+    const workoutTitles = last7DaysWorkouts.map(w => w.title?.toLowerCase() || '').filter(t => t);
+    const isPPLProgram = workoutTitles.some(t => t.includes('push') || t.includes('pull') || t.includes('leg'));
+    const isUpperLower = workoutTitles.some(t => t.includes('upper') || t.includes('lower'));
+
+    // ANALYSIS 4: Recovery check (days since last workout)
+    const lastWorkout = workouts[0];
+    const lastWorkoutDate = lastWorkout ? new Date(lastWorkout.date) : null;
+    const daysSinceLastWorkout = lastWorkoutDate ?
+      Math.floor((now - lastWorkoutDate) / (1000 * 60 * 60 * 24)) : 999;
+
+    console.log(`📅 Days since last workout: ${daysSinceLastWorkout}`);
+
+    // ANALYSIS 5: Weekly workout frequency
+    const weeklyFrequency = last7DaysWorkouts.length;
+    console.log(`📈 Weekly frequency: ${weeklyFrequency} workouts`);
+
+    // ============================================================
+    // DECISION LOGIC
+    // ============================================================
+
+    let recommended = '';
+    let reason = '';
+    let muscleGroups = [];
+    let restDayRecommended = false;
+
+    // Calculate muscle balance percentages
+    const total = pushCount + pullCount + legCount;
+    const pushPercent = total > 0 ? (pushCount / total * 100).toFixed(0) : 0;
+    const pullPercent = total > 0 ? (pullCount / total * 100).toFixed(0) : 0;
+    const legPercent = total > 0 ? (legCount / total * 100).toFixed(0) : 0;
+
+    // PRIORITY RULE: Severe muscle imbalance overrides everything (including rest days!)
+    // If any muscle group is completely neglected (0%) or severely undertrained (<10%), fix that first
+    if (total > 0 && (legCount === 0 || (legCount / total < 0.1))) {
+      recommended = 'Legs';
+      reason = `Muscle imbalance detected: Legs only ${legPercent}% vs Push ${pushPercent}%. Train Legs to balance.`;
+      muscleGroups = ['legs', 'quadriceps', 'hamstrings', 'glutes'];
+      // Note: Continue below to add rest day warning if needed
+    } else if (total > 0 && (pullCount === 0 || (pullCount / total < 0.1))) {
+      recommended = 'Pull';
+      reason = `Muscle imbalance detected: Pull only ${pullPercent}% vs Push ${pushPercent}%. Train Pull to balance.`;
+      muscleGroups = ['back', 'biceps'];
+    } else if (total > 0 && (pushCount === 0 || (pushCount / total < 0.1))) {
+      recommended = 'Push';
+      reason = `Muscle imbalance detected: Push only ${pushPercent}% vs Pull ${pullPercent}%. Train Push to balance.`;
+      muscleGroups = ['chest', 'shoulders', 'triceps'];
+    }
+
+    // Rule 1: Rest day needed? (>= 6 workouts this week)
+    // Only recommend rest if there's no severe muscle imbalance
+    else if (weeklyFrequency >= 6) {
+      restDayRecommended = true;
+      reason = `You've trained ${weeklyFrequency} times this week. Take a rest day for recovery.`;
+      return {
+        success: true,
+        recommendation: {
+          suggested: 'Rest Day',
+          reason,
+          restDayRecommended: true,
+          alternativeWorkout: 'Light cardio or stretching',
+        }
+      };
+    }
+
+    // Rule 2: If following PPL program, recommend next in sequence (only if no severe imbalance)
+    else if (!recommended && isPPLProgram && yesterdaysWorkout) {
+      const yesterdayTitle = yesterdaysWorkout.title?.toLowerCase() || '';
+
+      if (yesterdayTitle.includes('push')) {
+        recommended = 'Pull';
+        reason = 'You did Push yesterday. Following PPL sequence, today is Pull day.';
+        muscleGroups = ['back', 'biceps'];
+      } else if (yesterdayTitle.includes('pull')) {
+        recommended = 'Legs';
+        reason = 'You did Pull yesterday. Following PPL sequence, today is Leg day.';
+        muscleGroups = ['legs'];
+      } else if (yesterdayTitle.includes('leg')) {
+        if (weeklyFrequency >= 5) {
+          restDayRecommended = true;
+          recommended = 'Rest Day';
+          reason = 'You did Legs yesterday and trained 5+ times this week. Rest day recommended, or start new PPL cycle with Push tomorrow.';
+        } else {
+          recommended = 'Push';
+          reason = 'You did Legs yesterday. Starting new PPL cycle with Push day.';
+          muscleGroups = ['chest', 'shoulders', 'triceps'];
+        }
+      }
+    }
+
+    // Rule 3: If following Upper/Lower, recommend next (only if no severe imbalance or PPL)
+    else if (!recommended && isUpperLower && yesterdaysWorkout) {
+      const yesterdayTitle = yesterdaysWorkout.title?.toLowerCase() || '';
+
+      if (yesterdayTitle.includes('upper')) {
+        recommended = 'Lower';
+        reason = 'You did Upper yesterday. Following Upper/Lower split, today is Lower day.';
+        muscleGroups = ['legs'];
+      } else if (yesterdayTitle.includes('lower')) {
+        recommended = 'Upper';
+        reason = 'You did Lower yesterday. Following Upper/Lower split, today is Upper day.';
+        muscleGroups = ['chest', 'back', 'shoulders', 'arms'];
+      }
+    }
+
+    // Rule 4: Muscle balance - recommend weakest muscle group (only if no recommendation yet)
+    else if (!recommended) {
+      if (total === 0) {
+        recommended = 'Full Body';
+        reason = 'Start with a balanced full body workout to assess your baseline.';
+        muscleGroups = ['chest', 'back', 'legs'];
+      } else {
+        // Find least trained muscle group
+        const balance = [
+          { name: 'Push', count: pushCount, percent: (pushCount / total * 100).toFixed(0) },
+          { name: 'Pull', count: pullCount, percent: (pullCount / total * 100).toFixed(0) },
+          { name: 'Legs', count: legCount, percent: (legCount / total * 100).toFixed(0) },
+        ].sort((a, b) => a.count - b.count);
+
+        const weakest = balance[0];
+        const strongest = balance[2];
+
+        // If imbalance is >40% difference, strongly recommend weakest
+        if (strongest.count - weakest.count >= total * 0.4) {
+          recommended = weakest.name;
+          reason = `Muscle imbalance detected: ${weakest.name} only ${weakest.percent}% vs ${strongest.name} ${strongest.percent}%. Train ${weakest.name} to balance.`;
+
+          if (weakest.name === 'Push') muscleGroups = ['chest', 'shoulders', 'triceps'];
+          else if (weakest.name === 'Pull') muscleGroups = ['back', 'biceps'];
+          else if (weakest.name === 'Legs') muscleGroups = ['legs'];
+        }
+        // Else recommend based on rest days
+        else if (daysSinceLastWorkout >= 2) {
+          recommended = 'Full Body';
+          reason = `${daysSinceLastWorkout} days since last workout. Jump back in with a full body session.`;
+          muscleGroups = ['chest', 'back', 'legs'];
+        } else if (daysSinceLastWorkout === 1) {
+          recommended = balance[0].name; // Train weakest
+          reason = `Muscle balance: ${balance.map(b => `${b.name} ${b.percent}%`).join(', ')}. Train ${balance[0].name} today.`;
+
+          if (balance[0].name === 'Push') muscleGroups = ['chest', 'shoulders', 'triceps'];
+          else if (balance[0].name === 'Pull') muscleGroups = ['back', 'biceps'];
+          else if (balance[0].name === 'Legs') muscleGroups = ['legs'];
+        } else {
+          // Worked out today already
+          restDayRecommended = true;
+          recommended = 'Rest Day';
+          reason = 'You already trained today. Rest and recover.';
+        }
+      }
+    }
+
+    // Rule 5: Prevent training same muscle group 2 days in a row (unless program-based)
+    if (yesterdaysWorkout && !isPPLProgram && !isUpperLower) {
+      const yesterdayMuscles = yesterdaysWorkout.exercises?.flatMap(ex =>
+        (ex.primaryMuscles || [ex.muscleGroup] || []).map(m => m?.toLowerCase())
+      ) || [];
+
+      const isSameMuscleGroup = muscleGroups.some(mg =>
+        yesterdayMuscles.some(ym => ym?.includes(mg) || mg.includes(ym))
+      );
+
+      if (isSameMuscleGroup && !restDayRecommended) {
+        // Switch to different muscle group
+        const alternatives = [
+          { name: 'Push', muscles: ['chest', 'shoulders', 'triceps'] },
+          { name: 'Pull', muscles: ['back', 'biceps'] },
+          { name: 'Legs', muscles: ['legs'] },
+        ].filter(alt => !alt.muscles.some(m => yesterdayMuscles.includes(m)));
+
+        if (alternatives.length > 0) {
+          const chosen = alternatives[0];
+          recommended = chosen.name;
+          muscleGroups = chosen.muscles;
+          reason = `You trained similar muscles yesterday. Switch to ${chosen.name} for recovery.`;
+        }
+      }
+    }
+
+    // Add rest day warning if training volume is high but muscle imbalance exists
+    if (weeklyFrequency >= 6 && recommended && recommended !== 'Rest Day') {
+      reason += ` ⚠️ Note: You've trained ${weeklyFrequency} times this week - consider keeping this session light or taking a rest day after.`;
+    }
+
+    return {
+      success: true,
+      recommendation: {
+        suggested: recommended,
+        reason: reason,
+        muscleGroups: muscleGroups,
+        restDayRecommended: restDayRecommended,
+        analysis: {
+          weeklyFrequency,
+          daysSinceLastWorkout,
+          muscleBalance: {
+            push: `${(pushCount / (pushCount + pullCount + legCount) * 100 || 0).toFixed(0)}%`,
+            pull: `${(pullCount / (pushCount + pullCount + legCount) * 100 || 0).toFixed(0)}%`,
+            legs: `${(legCount / (pushCount + pullCount + legCount) * 100 || 0).toFixed(0)}%`,
+          },
+          programDetected: isPPLProgram ? 'PPL' : isUpperLower ? 'Upper/Lower' : 'None',
+        }
+      }
+    };
+
+  } catch (error) {
+    console.error('❌ recommendTodaysWorkout error:', error);
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+}
+
 // Export tool schemas for Gemini function calling
 export const workoutToolSchemas = [
+  {
+    name: 'recommendTodaysWorkout',
+    description: 'Intelligent workout recommendation based on user history, muscle balance, active programs, and recovery. Use when user asks "What should I train today?" or "What to train today?". Analyzes: 1) Yesterday\'s workout to follow program sequence (PPL/Upper-Lower), 2) 30-day muscle balance to identify weak points, 3) Weekly frequency to suggest rest days, 4) Performance trends.',
+    parameters: {
+      type: 'object',
+      properties: {
+        userId: {
+          type: 'string',
+          description: 'User ID to analyze workout history',
+        },
+      },
+      required: ['userId'],
+    },
+  },
   {
     name: 'generateWorkoutProgram',
     description: 'Generate a FULL PROGRAM with multiple workouts (e.g., 4-day, 6-day PPL). Use when user asks to create a PROGRAM or multiple workouts. Returns complete program with all workouts.',
