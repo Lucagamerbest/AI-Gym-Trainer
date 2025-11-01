@@ -54,11 +54,45 @@ export const WorkoutScreenSections = [
   },
 ];
 
+// Workout Assistant - Real-time workout control (bottom "Ask AI Assistant" button)
+export const WorkoutAssistantSections = [
+  {
+    title: 'Log Sets',
+    icon: 'create',
+    buttons: [
+      { icon: 'chatbubble-ellipses', text: 'Type command...', toolName: 'customWorkoutInput', isCustomInput: true },
+      { icon: 'checkmark-circle', text: 'Log current set', toolName: 'logWorkoutSet' },
+      { icon: 'flame', text: 'Log set with RPE', toolName: 'logWorkoutSet' },
+      { icon: 'fitness', text: 'Log warmup set', toolName: 'logWorkoutSet' },
+    ],
+  },
+  {
+    title: 'Workout Control',
+    icon: 'settings',
+    buttons: [
+      { icon: 'play-skip-forward', text: 'Skip to next exercise', toolName: 'skipToNextExercise' },
+      { icon: 'remove-circle', text: 'Remove exercise', toolName: 'modifyActiveWorkout' },
+      { icon: 'swap-vertical', text: 'Reorder exercises', toolName: 'modifyActiveWorkout' },
+      { icon: 'timer', text: 'Start rest timer', toolName: 'startRestTimer' },
+    ],
+  },
+  {
+    title: 'Status & Finish',
+    icon: 'stats-chart',
+    buttons: [
+      { icon: 'information-circle', text: 'Check my progress', toolName: 'getActiveWorkoutStatus' },
+      { icon: 'checkmark-done', text: 'Finish workout', toolName: 'finishWorkout' },
+      { icon: 'star', text: 'Finish with rating', toolName: 'finishWorkout' },
+    ],
+  },
+];
+
 export const StartWorkoutScreenSections = [
   {
     title: 'Create Workout',
     icon: 'add-circle',
     buttons: [
+      { icon: 'chatbubble-ellipses', text: 'Just create a workout', toolName: 'customWorkoutInput', isCustomInput: true },
       { icon: 'barbell', text: 'Push workout', toolName: 'generateWorkoutPlan', params: { type: 'push' } },
       { icon: 'return-down-back', text: 'Pull workout', toolName: 'generateWorkoutPlan', params: { type: 'pull' } },
       { icon: 'walk', text: 'Leg workout', toolName: 'generateWorkoutPlan', params: { type: 'legs' } },
@@ -410,6 +444,7 @@ export const WorkoutProgramScreenSections = [
 export const AI_SECTION_CONFIG = {
   // Workout Screens
   WorkoutScreen: WorkoutScreenSections,
+  WorkoutAssistant: WorkoutAssistantSections, // Bottom "Ask AI Assistant" button
   StartWorkoutScreen: StartWorkoutScreenSections,
   WorkoutHistoryScreen: WorkoutHistoryScreenSections,
   WorkoutDetailScreen: WorkoutDetailScreenSections,

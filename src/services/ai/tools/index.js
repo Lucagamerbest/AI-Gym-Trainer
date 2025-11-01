@@ -32,6 +32,11 @@ import {
 
 import {
   addExerciseToWorkout,
+  modifyActiveWorkout,
+  finishWorkout,
+  skipToNextExercise,
+  getActiveWorkoutStatus,
+  startRestTimer,
   logWorkoutSet,
   logMeal,
   getRecentWorkouts,
@@ -58,6 +63,13 @@ import {
   volumeProgressionToolSchemas,
 } from './VolumeProgressionTools';
 
+import {
+  navigateToScreen,
+  goBackToPreviousScreen,
+  getCurrentScreen,
+  navigationToolSchemas,
+} from './NavigationTools';
+
 /**
  * Initialize and register all tools
  */
@@ -83,13 +95,18 @@ export function initializeTools() {
 
   // CRUD Tools (Create, Read, Update, Delete)
   ToolRegistry.registerTool('addExerciseToWorkout', crudToolSchemas[0], addExerciseToWorkout);
-  ToolRegistry.registerTool('logWorkoutSet', crudToolSchemas[1], logWorkoutSet);
-  ToolRegistry.registerTool('logMeal', crudToolSchemas[2], logMeal);
-  ToolRegistry.registerTool('getRecentWorkouts', crudToolSchemas[3], getRecentWorkouts);
-  ToolRegistry.registerTool('updateUserProfile', crudToolSchemas[4], updateUserProfile);
-  ToolRegistry.registerTool('startWorkout', crudToolSchemas[5], startWorkout);
-  ToolRegistry.registerTool('savePlannedWorkout', crudToolSchemas[6], savePlannedWorkout);
-  ToolRegistry.registerTool('scheduleWorkoutForDate', crudToolSchemas[7], scheduleWorkoutForDate);
+  ToolRegistry.registerTool('modifyActiveWorkout', crudToolSchemas[1], modifyActiveWorkout);
+  ToolRegistry.registerTool('finishWorkout', crudToolSchemas[2], finishWorkout);
+  ToolRegistry.registerTool('skipToNextExercise', crudToolSchemas[3], skipToNextExercise);
+  ToolRegistry.registerTool('getActiveWorkoutStatus', crudToolSchemas[4], getActiveWorkoutStatus);
+  ToolRegistry.registerTool('startRestTimer', crudToolSchemas[5], startRestTimer);
+  ToolRegistry.registerTool('logWorkoutSet', crudToolSchemas[6], logWorkoutSet);
+  ToolRegistry.registerTool('logMeal', crudToolSchemas[7], logMeal);
+  ToolRegistry.registerTool('getRecentWorkouts', crudToolSchemas[8], getRecentWorkouts);
+  ToolRegistry.registerTool('updateUserProfile', crudToolSchemas[9], updateUserProfile);
+  ToolRegistry.registerTool('startWorkout', crudToolSchemas[10], startWorkout);
+  ToolRegistry.registerTool('savePlannedWorkout', crudToolSchemas[11], savePlannedWorkout);
+  ToolRegistry.registerTool('scheduleWorkoutForDate', crudToolSchemas[12], scheduleWorkoutForDate);
 
   // Strength Training Tools
   ToolRegistry.registerTool('calculate1RM', strengthToolSchemas[0], calculate1RM);
@@ -103,7 +120,12 @@ export function initializeTools() {
   ToolRegistry.registerTool('checkDeloadStatus', volumeProgressionToolSchemas[2], checkDeloadStatus);
   ToolRegistry.registerTool('analyzeExerciseProgression', volumeProgressionToolSchemas[3], analyzeExerciseProgression);
 
-  console.log(`✅ Initialized ${ToolRegistry.getToolCount()} AI tools (including 2024 research tools)`);
+  // Navigation Tools (Phase 1)
+  ToolRegistry.registerTool('navigateToScreen', navigationToolSchemas[0], navigateToScreen);
+  ToolRegistry.registerTool('goBackToPreviousScreen', navigationToolSchemas[1], goBackToPreviousScreen);
+  ToolRegistry.registerTool('getCurrentScreen', navigationToolSchemas[2], getCurrentScreen);
+
+  console.log(`✅ Initialized ${ToolRegistry.getToolCount()} AI tools (including navigation & 2024 research tools)`);
 }
 
 export { ToolRegistry };

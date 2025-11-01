@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView, Platform, TextInput, Keyboard } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView, Platform, TextInput, Keyboard, KeyboardAvoidingView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import AIButtonSection from './AIButtonSection';
 import { getAISectionsForScreen, hasAISections } from '../config/aiSectionConfig';
@@ -29,6 +30,14 @@ export default function AIButtonModal({
   const [expandedSections, setExpandedSections] = useState({});
   const [conversationHistory, setConversationHistory] = useState([]);
   const [replyText, setReplyText] = useState('');
+  const [showCustomInput, setShowCustomInput] = useState(false);
+  const [customInputText, setCustomInputText] = useState('');
+
+  // Workout logging state
+  const [selectedExercise, setSelectedExercise] = useState(null);
+  const [weightInput, setWeightInput] = useState('');
+  const [repsInput, setRepsInput] = useState('');
+  const [activeWorkoutExercises, setActiveWorkoutExercises] = useState([]);
 
   // Get sections for this screen
   const sections = getAISectionsForScreen(screenName);
@@ -40,6 +49,26 @@ export default function AIButtonModal({
     }
   }, [visible]);
 
+  // Load active workout exercises when modal opens (for WorkoutAssistant screen)
+  useEffect(() => {
+    const loadActiveWorkoutExercises = async () => {
+      if (visible && screenName === 'WorkoutAssistant') {
+        try {
+          const activeWorkoutStr = await AsyncStorage.getItem('@active_workout');
+          if (activeWorkoutStr) {
+            const activeWorkout = JSON.parse(activeWorkoutStr);
+            const exercises = activeWorkout.exercises || [];
+            setActiveWorkoutExercises(exercises.map(ex => ex.name));
+          }
+        } catch (error) {
+          console.error('Failed to load active workout exercises:', error);
+        }
+      }
+    };
+
+    loadActiveWorkoutExercises();
+  }, [visible, screenName]);
+
   // Clear state when modal closes to prevent auto-close on reopen
   useEffect(() => {
     if (!visible) {
@@ -47,10 +76,15 @@ export default function AIButtonModal({
       setConversationHistory([]);
       setReplyText('');
       setLoadingButton(null);
+      setShowCustomInput(false);
+      setCustomInputText('');
+      setSelectedExercise(null);
+      setWeightInput('');
+      setRepsInput('');
     }
   }, [visible]);
 
-  // Auto-close modal after successful save
+  // Auto-close modal after successful save or set logging
   useEffect(() => {
     if (!lastResponse) return;
 
@@ -63,13 +97,20 @@ export default function AIButtonModal({
       'saved workout to',
     ];
 
-    const isSaveSuccess = saveSuccessKeywords.some(keyword => lowerResponse.includes(keyword));
+    const setLoggedKeywords = [
+      'logged set',
+      'set logged',
+      'lbs × ',  // Pattern from "Logged set 1: 125 lbs × 5 reps"
+    ];
 
-    if (isSaveSuccess) {
-      // Close modal after 2 seconds to let user see the success message
+    const isSaveSuccess = saveSuccessKeywords.some(keyword => lowerResponse.includes(keyword));
+    const isSetLogged = setLoggedKeywords.some(keyword => lowerResponse.includes(keyword));
+
+    if (isSaveSuccess || isSetLogged) {
+      // Close modal after 1.5 seconds to let user see the success message
       setTimeout(() => {
         onClose();
-      }, 2000);
+      }, 1500);
     }
   }, [lastResponse, onClose]);
 
@@ -157,10 +198,44 @@ export default function AIButtonModal({
   };
 
   /**
+   * Detect if AI is asking which exercise to log
+   */
+  const detectExerciseLogQuestion = (response) => {
+    if (!response) return false;
+
+    const lowerResponse = response.toLowerCase();
+    const exerciseLogKeywords = [
+      'what exercise',
+      'which exercise',
+      'exercise.*log',
+      'exercise.*weight.*reps',
+      'log.*exercise',
+    ];
+
+    return exerciseLogKeywords.some(keyword => {
+      if (keyword.includes('.*')) {
+        const regex = new RegExp(keyword);
+        return regex.test(lowerResponse);
+      }
+      return lowerResponse.includes(keyword);
+    });
+  };
+
+  /**
    * Handle button press
    * Sends the button action to AI with context
    */
   const handleButtonPress = async (button) => {
+    // Check if this is the custom input button
+    if (button.isCustomInput) {
+      setShowCustomInput(true);
+      setExpandedSections({});
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+      return;
+    }
+
     try {
       setLoadingButton(button.text);
       setLastResponse(null);
@@ -237,6 +312,107 @@ export default function AIButtonModal({
   };
 
   /**
+   * Handle custom workout text submission
+   */
+  const handleSendCustomWorkout = async () => {
+    if (!customInputText.trim()) return;
+
+    try {
+      setLoadingButton('Creating workout...');
+      const messageToSend = customInputText;
+      setCustomInputText('');
+      setShowCustomInput(false);
+      Keyboard.dismiss();
+
+      // Build context
+      const context = await ContextManager.buildContextForScreen(screenName, user?.uid);
+      context.conversationHistory = conversationHistory;
+
+      // Send to AI with explicit workout creation instruction
+      const result = await AIService.sendMessageWithTools(
+        `Create a workout based on this request: "${messageToSend}". Use the generateWorkoutPlan tool to create the workout and save it.`,
+        context
+      );
+
+      // Store response
+      setLastResponse(result.response);
+
+      // Add to conversation history
+      setConversationHistory(prev => [
+        ...prev,
+        { userMessage: messageToSend, aiResponse: result.response }
+      ]);
+
+      // Auto-scroll to response
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+
+    } catch (error) {
+      console.error('Custom workout error:', error);
+      setLastResponse("Sorry, I couldn't process that workout request. Please try again.");
+    } finally {
+      setLoadingButton(null);
+    }
+  };
+
+  /**
+   * Handle exercise selection for logging
+   */
+  const handleExerciseSelection = (exerciseName) => {
+    setSelectedExercise(exerciseName);
+    // Auto-scroll to show input form
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+  };
+
+  /**
+   * Handle weight/reps submission for selected exercise
+   */
+  const handleLogSet = async () => {
+    if (!selectedExercise || !weightInput.trim() || !repsInput.trim()) return;
+
+    const message = `Log ${weightInput} pounds for ${repsInput} reps on ${selectedExercise}`;
+
+    try {
+      setLoadingButton('Logging set...');
+
+      // Build context
+      const context = await ContextManager.buildContextForScreen(screenName, user?.uid);
+      context.conversationHistory = conversationHistory;
+
+      // Send to AI
+      const result = await AIService.sendMessageWithTools(message, context);
+
+      // Store response
+      setLastResponse(result.response);
+
+      // Add to conversation history
+      setConversationHistory(prev => [
+        ...prev,
+        { userMessage: message, aiResponse: result.response }
+      ]);
+
+      // Clear inputs
+      setSelectedExercise(null);
+      setWeightInput('');
+      setRepsInput('');
+
+      // Auto-scroll to response
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+
+    } catch (error) {
+      console.error('Log set error:', error);
+      setLastResponse("Sorry, I couldn't log that set. Please try again.");
+    } finally {
+      setLoadingButton(null);
+    }
+  };
+
+  /**
    * Handle custom text reply
    */
   const handleSendReply = async () => {
@@ -295,6 +471,7 @@ export default function AIButtonModal({
   const isDaysQuestion = detectDaysQuestion(lastResponse);
   const isSaveLocationQuestion = detectSaveLocationQuestion(lastResponse);
   const isMuscleGroupQuestion = detectMuscleGroupQuestion(lastResponse);
+  const isExerciseLogQuestion = detectExerciseLogQuestion(lastResponse);
 
   return (
     <Modal
@@ -303,7 +480,11 @@ export default function AIButtonModal({
       presentationStyle="fullScreen"
       onRequestClose={onClose}
     >
-      <View style={styles.container}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={0}
+      >
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
@@ -330,6 +511,7 @@ export default function AIButtonModal({
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
           {noSections ? (
             <View style={styles.noSectionsContainer}>
@@ -363,13 +545,28 @@ export default function AIButtonModal({
                   <Text style={styles.responseText}>{lastResponse}</Text>
 
                   {/* Quick Reply Buttons - Show when AI asks a question */}
-                  {isQuestion && (
+                  {isQuestion && !selectedExercise && (
                     <View style={styles.quickReplyContainer}>
                       <Text style={styles.quickReplyLabel}>
-                        {isDaysQuestion ? 'Days per week:' : isSaveLocationQuestion ? 'Save to:' : isMuscleGroupQuestion ? 'Focus on:' : 'Quick Reply:'}
+                        {isDaysQuestion ? 'Days per week:' : isSaveLocationQuestion ? 'Save to:' : isMuscleGroupQuestion ? 'Focus on:' : isExerciseLogQuestion ? 'Select exercise:' : 'Quick Reply:'}
                       </Text>
                       <View style={styles.quickReplyButtons}>
-                        {isDaysQuestion ? (
+                        {isExerciseLogQuestion ? (
+                          <>
+                            {/* Exercise Selection Buttons */}
+                            {activeWorkoutExercises.map((exerciseName, index) => (
+                              <TouchableOpacity
+                                key={index}
+                                style={[styles.quickReplyButton, styles.exerciseButton]}
+                                onPress={() => handleExerciseSelection(exerciseName)}
+                                disabled={loadingButton !== null}
+                                activeOpacity={0.7}
+                              >
+                                <Text style={styles.quickReplyText}>🏋️ {exerciseName}</Text>
+                              </TouchableOpacity>
+                            ))}
+                          </>
+                        ) : isDaysQuestion ? (
                           <>
                             {/* Days Selection Buttons */}
                             {[1, 2, 3, 4, 5, 6, 7].map(days => (
@@ -489,6 +686,68 @@ export default function AIButtonModal({
                     </View>
                   )}
 
+                  {/* Weight/Reps Input Form - Show after exercise selection */}
+                  {selectedExercise && (
+                    <View style={styles.weightRepsContainer}>
+                      <View style={styles.weightRepsHeader}>
+                        <Text style={styles.weightRepsTitle}>🏋️ {selectedExercise}</Text>
+                        <TouchableOpacity
+                          onPress={() => {
+                            setSelectedExercise(null);
+                            setWeightInput('');
+                            setRepsInput('');
+                          }}
+                          style={styles.cancelExerciseButton}
+                          activeOpacity={0.7}
+                        >
+                          <Ionicons name="close-circle" size={24} color={Colors.textSecondary} />
+                        </TouchableOpacity>
+                      </View>
+                      <Text style={styles.weightRepsLabel}>Enter weight and reps:</Text>
+                      <View style={styles.weightRepsInputRow}>
+                        <View style={styles.inputGroup}>
+                          <Text style={styles.inputLabel}>Weight (lbs)</Text>
+                          <TextInput
+                            style={styles.weightRepsInput}
+                            placeholder="225"
+                            placeholderTextColor={Colors.textMuted}
+                            value={weightInput}
+                            onChangeText={setWeightInput}
+                            keyboardType="numeric"
+                            editable={loadingButton === null}
+                          />
+                        </View>
+                        <View style={styles.inputGroup}>
+                          <Text style={styles.inputLabel}>Reps</Text>
+                          <TextInput
+                            style={styles.weightRepsInput}
+                            placeholder="8"
+                            placeholderTextColor={Colors.textMuted}
+                            value={repsInput}
+                            onChangeText={setRepsInput}
+                            keyboardType="numeric"
+                            editable={loadingButton === null}
+                          />
+                        </View>
+                        <TouchableOpacity
+                          style={[
+                            styles.logSetButton,
+                            (!weightInput.trim() || !repsInput.trim() || loadingButton !== null) && styles.logSetButtonDisabled
+                          ]}
+                          onPress={handleLogSet}
+                          disabled={!weightInput.trim() || !repsInput.trim() || loadingButton !== null}
+                          activeOpacity={0.7}
+                        >
+                          <Ionicons
+                            name="checkmark"
+                            size={24}
+                            color={weightInput.trim() && repsInput.trim() && loadingButton === null ? Colors.white : Colors.textMuted}
+                          />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  )}
+
                   {/* Text Input - Always show for custom replies */}
                   <View style={styles.replyInputContainer}>
                     <Text style={styles.replyInputLabel}>Continue conversation:</Text>
@@ -523,6 +782,50 @@ export default function AIButtonModal({
                 </View>
               )}
 
+              {/* Custom Workout Input */}
+              {showCustomInput && !lastResponse && (
+                <View style={styles.customInputContainer}>
+                  <View style={styles.customInputHeader}>
+                    <Text style={styles.customInputTitle}>💬 Describe your workout</Text>
+                    <TouchableOpacity
+                      onPress={() => setShowCustomInput(false)}
+                      style={styles.customInputCloseButton}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="close-circle" size={24} color={Colors.textSecondary} />
+                    </TouchableOpacity>
+                  </View>
+                  <View style={styles.customInputRow}>
+                    <TextInput
+                      style={styles.customInput}
+                      placeholder="Type your workout request..."
+                      placeholderTextColor={Colors.textMuted}
+                      value={customInputText}
+                      onChangeText={setCustomInputText}
+                      multiline
+                      maxLength={500}
+                      editable={loadingButton === null}
+                      autoFocus
+                    />
+                    <TouchableOpacity
+                      style={[
+                        styles.sendButton,
+                        (!customInputText.trim() || loadingButton !== null) && styles.sendButtonDisabled
+                      ]}
+                      onPress={handleSendCustomWorkout}
+                      disabled={!customInputText.trim() || loadingButton !== null}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons
+                        name="send"
+                        size={20}
+                        color={customInputText.trim() && loadingButton === null ? Colors.white : Colors.textMuted}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+
               {/* Loading Indicator */}
               {loadingButton && (
                 <View style={styles.loadingContainer}>
@@ -534,7 +837,7 @@ export default function AIButtonModal({
             </>
           )}
         </ScrollView>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -716,12 +1019,82 @@ const styles = StyleSheet.create({
     borderColor: Colors.primary,
     borderWidth: 2,
   },
+  exerciseButton: {
+    minWidth: 120,
+    paddingVertical: Spacing.md,
+    backgroundColor: Colors.primary + '10',
+    borderColor: Colors.primary + '60',
+    borderWidth: 2,
+  },
   quickReplyText: {
     fontSize: Typography.fontSize.lg,
     fontWeight: '800',
     color: Colors.text,
     textAlign: 'center',
     letterSpacing: 0.3,
+  },
+  weightRepsContainer: {
+    marginTop: Spacing.md,
+    padding: Spacing.md,
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 2,
+    borderColor: Colors.primary + '40',
+  },
+  weightRepsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+  },
+  weightRepsTitle: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: 'bold',
+    color: Colors.text,
+  },
+  cancelExerciseButton: {
+    padding: Spacing.xs,
+  },
+  weightRepsLabel: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.sm,
+  },
+  weightRepsInputRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    alignItems: 'flex-end',
+  },
+  inputGroup: {
+    flex: 1,
+  },
+  inputLabel: {
+    fontSize: Typography.fontSize.xs,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+    marginBottom: 4,
+  },
+  weightRepsInput: {
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    fontSize: Typography.fontSize.md,
+    color: Colors.text,
+    textAlign: 'center',
+  },
+  logSetButton: {
+    backgroundColor: Colors.primary,
+    borderRadius: BorderRadius.md,
+    width: 50,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  logSetButtonDisabled: {
+    backgroundColor: Colors.textMuted + '30',
   },
   replyInputContainer: {
     marginTop: Spacing.md,
@@ -770,5 +1143,46 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.border,
     elevation: 0,
     shadowOpacity: 0,
+  },
+  customInputContainer: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    marginTop: Spacing.md,
+    marginBottom: Spacing.lg,
+    borderWidth: 2,
+    borderColor: Colors.primary + '50',
+  },
+  customInputHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+  },
+  customInputTitle: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: '700',
+    color: Colors.text,
+  },
+  customInputCloseButton: {
+    padding: 4,
+  },
+  customInputRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: Spacing.sm,
+  },
+  customInput: {
+    flex: 1,
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    fontSize: Typography.fontSize.md,
+    color: Colors.text,
+    maxHeight: 120,
+    minHeight: 80,
   },
 });

@@ -12,6 +12,7 @@ import SyncManager from './src/services/backend/SyncManager';
 import { initializeGemini } from './src/config/gemini';
 import AIBadge from './src/components/AIBadge';
 import ProactiveAIService from './src/services/ai/ProactiveAIService';
+import { navigationRef } from './src/services/NavigationService';
 
 // Import screens
 import SignInScreen from './src/screens/SignInScreen';
@@ -200,7 +201,7 @@ function AppNavigator() {
 
   return (
     <>
-      <NavigationContainer>
+      <NavigationContainer ref={navigationRef}>
         <Stack.Navigator
           screenOptions={{
             headerShown: false,

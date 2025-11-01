@@ -11,6 +11,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { WorkoutStorageService } from '../services/workoutStorage';
 import { useAuth } from '../context/AuthContext';
 import { useWorkout } from '../context/WorkoutContext';
+import AIButtonModal from '../components/AIButtonModal';
 
 // Configure notification handler - always show notifications
 Notifications.setNotificationHandler({
@@ -306,6 +307,7 @@ export default function WorkoutScreen({ navigation, route }) {
   const { user } = useAuth();
   const { activeWorkout, startWorkout, updateWorkout, finishWorkout, discardWorkout } = useWorkout();
   const hasProcessedExercise = useRef(false);
+  const initializedExerciseCount = useRef(0);
 
   // State management
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -344,6 +346,25 @@ export default function WorkoutScreen({ navigation, route }) {
   // Cardio timer state: { "exerciseIndex-setIndex": { startTime, duration, isRunning } }
   const [cardioTimers, setCardioTimers] = useState({});
   const cardioTimerIntervals = useRef({});
+
+  // Sync activeWorkout to AsyncStorage for AI tools (one-way: Context → Storage)
+  useEffect(() => {
+    const syncWorkoutToStorage = async () => {
+      try {
+        if (activeWorkout) {
+          // Save workout to AsyncStorage so AI tools can access it
+          await AsyncStorage.setItem('@active_workout', JSON.stringify(activeWorkout));
+        } else {
+          // Remove when no active workout
+          await AsyncStorage.removeItem('@active_workout');
+        }
+      } catch (error) {
+        console.error('Failed to sync workout to AsyncStorage:', error);
+      }
+    };
+
+    syncWorkoutToStorage();
+  }, [activeWorkout]);
 
   // Load RPE setting and request notification permissions
   useEffect(() => {
@@ -479,22 +500,37 @@ export default function WorkoutScreen({ navigation, route }) {
         fromLibrary: fromLibrary || false // Track if started from library or free workout
       });
     }
-    // Resuming existing workout
-    else if (resumingWorkout && activeWorkout) {
+    // Resuming existing workout OR returning from adding exercise
+    else if (activeWorkout) {
       if (activeWorkout.exerciseSets) {
-        setExerciseSets(activeWorkout.exerciseSets);
-        const totals = calculateTotals(activeWorkout.exerciseSets);
+        // Restore sets from context, but ensure each exercise has at least one set
+        const restoredSets = { ...activeWorkout.exerciseSets };
+
+        // Fix any empty arrays by adding default empty set
+        let needsUpdate = false;
+        activeWorkout.exercises?.forEach((ex, index) => {
+          if (!restoredSets[index] || !Array.isArray(restoredSets[index]) || restoredSets[index].length === 0) {
+            const isCardio = isCardioExercise(ex);
+            restoredSets[index] = isCardio
+              ? [{ duration: 0, completed: false }]
+              : [{ weight: '', reps: '', completed: false }];
+            needsUpdate = true;
+          }
+        });
+
+        setExerciseSets(restoredSets);
+        const totals = calculateTotals(restoredSets);
         setTotalVolume(totals.volume);
         setTotalSets(totals.sets);
+
+        // If we fixed any empty sets, update the workout context so it syncs to AsyncStorage
+        if (needsUpdate) {
+          updateWorkout({ exerciseSets: restoredSets });
+        }
       }
-      setCurrentExerciseIndex(activeWorkout.currentExerciseIndex || 0);
-    }
-    // If we have an active workout, just restore its sets
-    else if (activeWorkout && activeWorkout.exerciseSets) {
-      setExerciseSets(activeWorkout.exerciseSets);
-      const totals = calculateTotals(activeWorkout.exerciseSets);
-      setTotalVolume(totals.volume);
-      setTotalSets(totals.sets);
+      if (activeWorkout.currentExerciseIndex !== undefined) {
+        setCurrentExerciseIndex(activeWorkout.currentExerciseIndex);
+      }
     }
   }, [activeWorkout, fromProgram]); // Re-run when activeWorkout changes
 
@@ -509,30 +545,34 @@ export default function WorkoutScreen({ navigation, route }) {
   const workoutExercises = activeWorkout?.exercises || [];
   const workoutStartTime = activeWorkout?.startTime ? new Date(activeWorkout.startTime) : new Date();
 
-  // Initialize exercise sets - only for non-program workouts or new exercises
+  // Initialize exercise sets - add empty set for any new exercises
   useEffect(() => {
     // For program workouts, don't override the sets from the program
     if (activeWorkout?.fromProgram) {
       return;
     }
 
-    // If activeWorkout already has exerciseSets, don't override them
-    // (they were already set in the first useEffect)
-    if (activeWorkout?.exerciseSets && Object.keys(activeWorkout.exerciseSets).length > 0) {
+    // Only run when exercise count actually changes
+    if (workoutExercises.length === initializedExerciseCount.current) {
       return;
     }
 
+    // Update the ref
+    initializedExerciseCount.current = workoutExercises.length;
+
+    // Start with current local state to preserve user input
     const newSets = { ...exerciseSets };
     let hasChanges = false;
 
     workoutExercises.forEach((ex, index) => {
-      if (!newSets[index]) {
+      // Only add sets if this exercise doesn't have any OR has empty array
+      if (!newSets[index] || !Array.isArray(newSets[index]) || newSets[index].length === 0) {
         // Check if this is a cardio exercise to determine what fields to initialize
         const isCardio = isCardioExercise(ex);
         if (isCardio) {
-          newSets[index] = [{ duration: 0, completed: true }];
+          newSets[index] = [{ duration: 0, completed: false }];
         } else {
-          newSets[index] = [{ weight: '', reps: '', completed: true }];
+          newSets[index] = [{ weight: '', reps: '', completed: false }];
         }
         hasChanges = true;
       }
@@ -541,7 +581,7 @@ export default function WorkoutScreen({ navigation, route }) {
     if (hasChanges) {
       setExerciseSets(newSets);
     }
-  }, [workoutExercises.length, activeWorkout?.fromProgram]);
+  }, [workoutExercises.length]);
 
   // Update workout timer with immediate start
   useEffect(() => {
@@ -1581,36 +1621,36 @@ export default function WorkoutScreen({ navigation, route }) {
         </View>
       </Modal>
 
-      {/* AI Assistant Modal */}
-      <Modal
+      {/* AI Workout Assistant Modal */}
+      <AIButtonModal
         visible={showAIAssistant}
-        transparent={true}
-        animationType="slide"
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.aiModalContent}>
-            <View style={styles.aiModalHeader}>
-              <Text style={styles.modalTitle}>AI Assistant</Text>
-              <TouchableOpacity
-                style={styles.closeButton}
-                onPress={() => setShowAIAssistant(false)}
-              >
-                <Text style={styles.closeButtonText}>✕</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={styles.aiModalBody}>
-              <Text style={styles.aiIcon}>🤖</Text>
-              <Text style={styles.aiMainText}>AI is currently being built</Text>
-              <Text style={styles.aiSubText}>Check back later</Text>
-              <View style={styles.aiInfoBox}>
-                <Text style={styles.aiInfoText}>
-                  Soon, your AI assistant will provide personalized guidance about your exercises, workout routines, and fitness goals based on your current activity.
-                </Text>
-              </View>
-            </View>
-          </View>
-        </View>
-      </Modal>
+        onClose={async () => {
+          setShowAIAssistant(false);
+          // Reload workout from AsyncStorage after AI makes changes
+          try {
+            const updatedWorkoutStr = await AsyncStorage.getItem('@active_workout');
+            if (updatedWorkoutStr && activeWorkout) {
+              const updatedWorkout = JSON.parse(updatedWorkoutStr);
+
+              // Update WorkoutContext
+              updateWorkout(updatedWorkout);
+
+              // IMPORTANT: Also update local exerciseSets state so UI reflects changes
+              if (updatedWorkout.exerciseSets) {
+                setExerciseSets(updatedWorkout.exerciseSets);
+
+                // Recalculate totals
+                const totals = calculateTotals(updatedWorkout.exerciseSets);
+                setTotalVolume(totals.volume);
+                setTotalSets(totals.sets);
+              }
+            }
+          } catch (error) {
+            console.error('Failed to reload workout after AI changes:', error);
+          }
+        }}
+        screenName="WorkoutAssistant"
+      />
 
       {/* Set Type Selection Modal */}
       <Modal

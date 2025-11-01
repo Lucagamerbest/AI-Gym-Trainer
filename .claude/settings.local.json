@@ -7,7 +7,12 @@
       "Bash(rm:*)",
       "Bash(git push:*)",
       "Bash(node test-scientific-workouts.js:*)",
-      "Bash(node demo-scientific-classification.js:*)"
+      "Bash(node demo-scientific-classification.js:*)",
+      "Bash(node:*)",
+      "Bash(git checkout:*)",
+      "WebSearch",
+      "Bash(git remote:*)",
+      "Bash(tree:*)"
     ],
     "deny": [],
     "ask": []
