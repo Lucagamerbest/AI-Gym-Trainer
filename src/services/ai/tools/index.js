@@ -50,6 +50,14 @@ import {
   strengthToolSchemas,
 } from './StrengthTools';
 
+import {
+  analyzeWeeklyVolume,
+  getProgressiveOverloadAdvice,
+  checkDeloadStatus,
+  analyzeExerciseProgression,
+  volumeProgressionToolSchemas,
+} from './VolumeProgressionTools';
+
 /**
  * Initialize and register all tools
  */
@@ -89,7 +97,13 @@ export function initializeTools() {
   ToolRegistry.registerTool('predictProgression', strengthToolSchemas[2], predictProgression);
   ToolRegistry.registerTool('generateWarmupSets', strengthToolSchemas[3], generateWarmupSets);
 
-  console.log(`✅ Initialized ${ToolRegistry.getToolCount()} AI tools`);
+  // Volume & Progression Tools (2024 Research)
+  ToolRegistry.registerTool('analyzeWeeklyVolume', volumeProgressionToolSchemas[0], analyzeWeeklyVolume);
+  ToolRegistry.registerTool('getProgressiveOverloadAdvice', volumeProgressionToolSchemas[1], getProgressiveOverloadAdvice);
+  ToolRegistry.registerTool('checkDeloadStatus', volumeProgressionToolSchemas[2], checkDeloadStatus);
+  ToolRegistry.registerTool('analyzeExerciseProgression', volumeProgressionToolSchemas[3], analyzeExerciseProgression);
+
+  console.log(`✅ Initialized ${ToolRegistry.getToolCount()} AI tools (including 2024 research tools)`);
 }
 
 export { ToolRegistry };

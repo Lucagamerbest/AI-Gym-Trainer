@@ -1,11 +1,13 @@
 /**
  * WorkoutTools - AI tools for workout generation and planning
+ * Updated with 2024 exercise science research (Jeff Nippard, EMG studies, meta-analyses)
  */
 
 import WorkoutSyncService from '../../backend/WorkoutSyncService';
 import { getAllExercises } from '../../../data/exerciseDatabase';
 import FitnessKnowledge from '../FitnessKnowledge';
 import ProvenWorkoutTemplates from '../ProvenWorkoutTemplates';
+import { getExercisesByPriority, getEquipmentPriority, getExerciseTier2024 } from '../ExerciseHierarchy2024';
 
 /**
  * Generate a complete workout plan
@@ -390,12 +392,15 @@ export async function generateWorkoutPlan({ muscleGroups, experienceLevel, durat
 }
 
 /**
- * Smart exercise selection algorithm - TIER-BASED
- * Uses proven workout templates to prioritize the BEST exercises
+ * Smart exercise selection algorithm - TIER-BASED (2024 Research Update)
+ * Uses 2024 research from Jeff Nippard, EMG studies, and meta-analyses
  *
- * Tier S: Essential compounds (Bench, Squat, Deadlift, OHP, Rows, Pull-ups)
- * Tier A: Excellent accessories (DB Press, Cable Rows, RDLs)
- * Tier B: Good isolations (Flyes, Curls, Raises)
+ * Key 2024 Updates:
+ * - Incline Press > Flat Bench for chest
+ * - Overhead Extensions > Pushdowns for triceps (+50% long head growth)
+ * - Pull-ups > Lat Pulldowns (upgraded to S-tier)
+ * - Bayesian Curls > Preacher Curls for biceps
+ * - Freeweights prioritized over machines
  */
 function smartSelectExercises(exercises, count, muscleGroups, goal) {
   // Determine category (push/pull/legs/fullbody)
@@ -419,16 +424,27 @@ function smartSelectExercises(exercises, count, muscleGroups, goal) {
                hasPush ? 'push' : hasPull ? 'pull' : hasLegs ? 'legs' : 'push';
   }
 
-  console.log(`🎯 Exercise prioritization for ${category}:`);
+  console.log(`🎯 Exercise prioritization for ${category} (2024 Research):`);
 
-  // STEP 1: Prioritize exercises by tier (S > A > B > Other)
+  // STEP 1: Prioritize exercises using 2024 research hierarchy
+  // This includes: Incline > Flat, Overhead Extensions > Pushdowns, Pull-ups > Pulldowns
   let prioritized;
 
   if (category === 'fullbody') {
     // For full body, select from all categories proportionally
-    const pushExercises = ProvenWorkoutTemplates.prioritizeExercises(exercises, 'push');
-    const pullExercises = ProvenWorkoutTemplates.prioritizeExercises(exercises, 'pull');
-    const legExercises = ProvenWorkoutTemplates.prioritizeExercises(exercises, 'legs');
+    // Apply 2024 research to each category
+    const pushExercises = sortByResearch2024(
+      exercises.filter(ex => FitnessKnowledge.classifyExercise(ex) === 'push'),
+      'push'
+    );
+    const pullExercises = sortByResearch2024(
+      exercises.filter(ex => FitnessKnowledge.classifyExercise(ex) === 'pull'),
+      'pull'
+    );
+    const legExercises = sortByResearch2024(
+      exercises.filter(ex => FitnessKnowledge.classifyExercise(ex) === 'legs'),
+      'legs'
+    );
 
     // Distribute exercises evenly across categories
     const pushCount = Math.ceil(count / 3);
@@ -450,8 +466,9 @@ function smartSelectExercises(exercises, count, muscleGroups, goal) {
 
     console.log(`   Full Body - Alternated Pattern (Push/Pull/Legs): ${pushCount}/${pullCount}/${legCount}`);
   } else {
-    prioritized = ProvenWorkoutTemplates.prioritizeExercises(exercises, category);
-    console.log(`   Tier S (Essential): ${prioritized.slice(0, 5).map(e => e.name).join(', ')}`);
+    // Apply 2024 research prioritization
+    prioritized = sortByResearch2024(exercises, category);
+    console.log(`   🔬 2024 Tier S (Research-backed): ${prioritized.slice(0, 5).map(e => e.name).join(', ')}`);
   }
 
   // STEP 2: Select exercises based on goal
@@ -529,6 +546,89 @@ function smartSelectExercises(exercises, count, muscleGroups, goal) {
   console.log(`✅ Selected ${finalSelection.length} exercises (ordered compound→isolation): ${finalSelection.map(e => e.name).join(', ')}`);
 
   return finalSelection;
+}
+
+/**
+ * Sort exercises by 2024 research findings
+ * Prioritizes research-backed exercises over older methodologies
+ *
+ * Key priorities:
+ * 1. Research tier (S > A > B) based on 2024 studies
+ * 2. Equipment type (Freeweights > Cables > Machines)
+ * 3. Specific findings (Incline > Flat, Overhead Extensions > Pushdowns, Pull-ups > Pulldowns)
+ */
+function sortByResearch2024(exercises, category) {
+  return exercises.sort((a, b) => {
+    // Priority 1: Research tier from 2024 hierarchy
+    const aTier = getExerciseTier2024(a.name, category);
+    const bTier = getExerciseTier2024(b.name, category);
+
+    const tierValues = { 'S': 1, 'A': 2, 'B': 3 };
+    const aTierValue = tierValues[aTier] || 99;
+    const bTierValue = tierValues[bTier] || 99;
+
+    if (aTierValue !== bTierValue) {
+      return aTierValue - bTierValue; // Lower is better (S=1, A=2, B=3)
+    }
+
+    // Priority 2: Equipment type (Freeweights > Cables > Machines)
+    const aEquipmentPriority = getEquipmentPriority(a.equipment);
+    const bEquipmentPriority = getEquipmentPriority(b.equipment);
+
+    if (aEquipmentPriority !== bEquipmentPriority) {
+      return aEquipmentPriority - bEquipmentPriority; // Lower is better
+    }
+
+    // Priority 3: Specific 2024 research findings
+    // Incline Press > Flat Bench Press
+    const aNameLower = a.name.toLowerCase();
+    const bNameLower = b.name.toLowerCase();
+
+    if (category === 'push') {
+      // Prioritize incline press over flat bench
+      if (aNameLower.includes('incline') && bNameLower.includes('bench') && !bNameLower.includes('incline')) {
+        return -1; // a (incline) comes first
+      }
+      if (bNameLower.includes('incline') && aNameLower.includes('bench') && !aNameLower.includes('incline')) {
+        return 1; // b (incline) comes first
+      }
+
+      // Prioritize overhead extensions over pushdowns
+      if (aNameLower.includes('overhead') && aNameLower.includes('extension') &&
+          bNameLower.includes('pushdown')) {
+        return -1;
+      }
+      if (bNameLower.includes('overhead') && bNameLower.includes('extension') &&
+          aNameLower.includes('pushdown')) {
+        return 1;
+      }
+    }
+
+    if (category === 'pull') {
+      // Prioritize pull-ups over lat pulldowns
+      if (aNameLower.includes('pull-up') || aNameLower.includes('pull up')) {
+        if (bNameLower.includes('pulldown') || bNameLower.includes('pull down')) {
+          return -1; // a (pull-up) comes first
+        }
+      }
+      if (bNameLower.includes('pull-up') || bNameLower.includes('pull up')) {
+        if (aNameLower.includes('pulldown') || aNameLower.includes('pull down')) {
+          return 1; // b (pull-up) comes first
+        }
+      }
+
+      // Prioritize Bayesian curls over preacher curls
+      if (aNameLower.includes('bayesian') && bNameLower.includes('preacher')) {
+        return -1;
+      }
+      if (bNameLower.includes('bayesian') && aNameLower.includes('preacher')) {
+        return 1;
+      }
+    }
+
+    // Keep original order if no other criteria
+    return 0;
+  });
 }
 
 /**
