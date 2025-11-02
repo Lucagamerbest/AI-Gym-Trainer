@@ -885,6 +885,9 @@ export async function reorderExercise({ exerciseName, newPosition, direction, us
       }
     }
 
+    // CRITICAL: Save original order BEFORE reordering for mapping sets
+    const originalExercises = [...activeWorkout.exercises];
+
     // Remove from old position
     const [movedExercise] = exercises.splice(exerciseIndex, 1);
 
@@ -896,12 +899,16 @@ export async function reorderExercise({ exerciseName, newPosition, direction, us
     const newSets = {};
 
     exercises.forEach((ex, newIndex) => {
-      // Find old index of this exercise
-      const oldIndex = activeWorkout.exercises.findIndex(e => e.id === ex.id);
-      if (oldSets[oldIndex.toString()]) {
+      // Find old index of this exercise in ORIGINAL order
+      const oldIndex = originalExercises.findIndex(e => e.id === ex.id);
+      if (oldIndex !== -1 && oldSets[oldIndex.toString()]) {
         newSets[newIndex.toString()] = oldSets[oldIndex.toString()];
+        console.log(`🔄 Remapping sets: ${ex.name} from position ${oldIndex} → ${newIndex}`);
       }
     });
+
+    console.log('📊 Old sets:', oldSets);
+    console.log('📊 New sets:', newSets);
 
     // Update workout
     activeWorkout.exercises = exercises;
