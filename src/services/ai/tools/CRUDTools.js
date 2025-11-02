@@ -142,11 +142,38 @@ export async function modifyActiveWorkout({ action, exerciseName, position, user
         };
       }
 
+      // CRITICAL: Save original order BEFORE reordering for mapping sets
+      const originalExercises = [...activeWorkout.exercises];
+
       // Remove exercise from current position
       const [exercise] = activeWorkout.exercises.splice(exerciseIndex, 1);
 
       // Insert at new position (position is 1-indexed, array is 0-indexed)
       activeWorkout.exercises.splice(position - 1, 0, exercise);
+
+      // CRITICAL: Remap exerciseSets to follow the exercises
+      const oldSets = activeWorkout.exerciseSets || {};
+      const newSets = {};
+
+      activeWorkout.exercises.forEach((ex, newIndex) => {
+        // Find old index of this exercise in ORIGINAL order
+        const oldIndex = originalExercises.findIndex(e => {
+          // Use fuzzy matching in case exercise has ID property
+          if (e.id && ex.id) return e.id === ex.id;
+          return e.name === ex.name;
+        });
+
+        if (oldIndex !== -1 && oldSets[oldIndex.toString()]) {
+          newSets[newIndex.toString()] = oldSets[oldIndex.toString()];
+          console.log(`🔄 [modifyActiveWorkout] Remapping sets: ${ex.name} from position ${oldIndex} → ${newIndex}`);
+        }
+      });
+
+      console.log('📊 [modifyActiveWorkout] Old sets:', oldSets);
+      console.log('📊 [modifyActiveWorkout] New sets:', newSets);
+
+      // Update workout with remapped sets
+      activeWorkout.exerciseSets = newSets;
 
       await AsyncStorage.setItem(activeWorkoutKey, JSON.stringify(activeWorkout));
 
