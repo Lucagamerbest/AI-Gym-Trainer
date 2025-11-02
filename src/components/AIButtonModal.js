@@ -42,6 +42,11 @@ export default function AIButtonModal({
   const [completedSets, setCompletedSets] = useState([]); // Array of {exerciseName, setIndex, weight, reps, display}
   const [rpeEnabled, setRpeEnabled] = useState(false);
 
+  // Reorder UI state
+  const [selectedPosition, setSelectedPosition] = useState(null); // Which position number is selected (1, 2, 3...)
+  const [reorderedExercises, setReorderedExercises] = useState([]); // Local copy for reordering
+  const [showReorderUI, setShowReorderUI] = useState(false); // Show manual reorder interface
+
   // Get sections for this screen
   const sections = getAISectionsForScreen(screenName);
 
@@ -413,10 +418,13 @@ export default function AIButtonModal({
       return;
     }
 
-    // Check if this is the "Reorder exercises" button - show exercise list
+    // Check if this is the "Reorder exercises" button - show manual reorder UI
     if (button.showExerciseReorder) {
       if (activeWorkoutExercises.length > 0) {
-        setLastResponse("Select an exercise to reorder:");
+        setReorderedExercises([...activeWorkoutExercises]); // Create local copy
+        setSelectedPosition(null); // Reset selection
+        setShowReorderUI(true); // Show manual reorder interface
+        setLastResponse(null); // Clear any previous response
       } else {
         setLastResponse("No exercises in your workout to reorder.");
       }
@@ -840,6 +848,112 @@ export default function AIButtonModal({
                   loading={loadingButton !== null}
                 />
               ))}
+
+              {/* Manual Reorder UI */}
+              {showReorderUI && (
+                <View style={styles.reorderContainer}>
+                  <View style={styles.reorderHeader}>
+                    <Text style={styles.reorderIcon}>🔄</Text>
+                    <Text style={styles.reorderTitle}>Reorder Exercises</Text>
+                  </View>
+
+                  {/* Position Buttons */}
+                  <Text style={styles.reorderInstructions}>
+                    Step 1: Tap a position number
+                  </Text>
+                  <View style={styles.positionButtonsContainer}>
+                    {reorderedExercises.map((_, index) => (
+                      <TouchableOpacity
+                        key={index}
+                        style={[
+                          styles.positionButton,
+                          selectedPosition === index + 1 && styles.positionButtonSelected
+                        ]}
+                        onPress={() => setSelectedPosition(index + 1)}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={[
+                          styles.positionButtonText,
+                          selectedPosition === index + 1 && styles.positionButtonTextSelected
+                        ]}>
+                          {index + 1}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+
+                  {/* Exercise Buttons */}
+                  <Text style={styles.reorderInstructions}>
+                    Step 2: Tap an exercise to move it to position {selectedPosition || '?'}
+                  </Text>
+                  <View style={styles.exerciseListContainer}>
+                    {reorderedExercises.map((exerciseName, index) => (
+                      <TouchableOpacity
+                        key={index}
+                        style={[
+                          styles.reorderExerciseButton,
+                          !selectedPosition && styles.reorderExerciseButtonDisabled
+                        ]}
+                        onPress={() => {
+                          if (selectedPosition) {
+                            // Move exercise to selected position
+                            const newOrder = [...reorderedExercises];
+                            const [movedExercise] = newOrder.splice(index, 1);
+                            newOrder.splice(selectedPosition - 1, 0, movedExercise);
+                            setReorderedExercises(newOrder);
+                            setSelectedPosition(null); // Reset selection
+                          }
+                        }}
+                        disabled={!selectedPosition}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={[
+                          styles.reorderExerciseButtonText,
+                          !selectedPosition && styles.reorderExerciseButtonTextDisabled
+                        ]}>
+                          {index + 1}. {exerciseName}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+
+                  {/* Action Buttons */}
+                  <View style={styles.reorderActionsContainer}>
+                    <TouchableOpacity
+                      style={[styles.reorderActionButton, styles.cancelButton]}
+                      onPress={() => {
+                        setShowReorderUI(false);
+                        setSelectedPosition(null);
+                        setReorderedExercises([]);
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.reorderActionButtonText}>✖️ Cancel</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.reorderActionButton, styles.saveButton]}
+                      onPress={async () => {
+                        // Send the reordered list to AI
+                        const orderChange = reorderedExercises.map((ex, idx) => `${idx + 1}. ${ex}`).join('\n');
+                        setShowReorderUI(false);
+                        setLastResponse(`Saving new order:\n${orderChange}`);
+
+                        // Call AI to save changes
+                        const context = await ContextManager.buildContextForScreen(screenName, user?.uid);
+                        const message = `Reorder my workout to this exact order:\n${orderChange}`;
+                        const result = await AIService.sendMessageWithTools(message, context);
+                        setLastResponse(result.response);
+
+                        // Reload workout data
+                        await reloadWorkoutData();
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.reorderActionButtonText}>✅ Save Changes</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
 
               {/* Response Display */}
               {lastResponse && (
@@ -1518,6 +1632,112 @@ const styles = StyleSheet.create({
   },
   cancelExerciseButton: {
     padding: Spacing.xs,
+  },
+  // Manual Reorder UI Styles
+  reorderContainer: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+    marginTop: Spacing.lg,
+    borderWidth: 2,
+    borderColor: Colors.primary + '40',
+  },
+  reorderHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+    gap: Spacing.sm,
+  },
+  reorderIcon: {
+    fontSize: 24,
+  },
+  reorderTitle: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: 'bold',
+    color: Colors.text,
+  },
+  reorderInstructions: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+    marginTop: Spacing.md,
+    marginBottom: Spacing.sm,
+    fontWeight: '600',
+  },
+  positionButtonsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  positionButton: {
+    width: 50,
+    height: 50,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.background,
+    borderWidth: 2,
+    borderColor: Colors.border,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  positionButtonSelected: {
+    backgroundColor: Colors.primary + '20',
+    borderColor: Colors.primary,
+    borderWidth: 3,
+  },
+  positionButtonText: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: 'bold',
+    color: Colors.textSecondary,
+  },
+  positionButtonTextSelected: {
+    color: Colors.primary,
+  },
+  exerciseListContainer: {
+    gap: Spacing.sm,
+    marginTop: Spacing.sm,
+  },
+  reorderExerciseButton: {
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.background,
+    borderWidth: 2,
+    borderColor: Colors.border,
+  },
+  reorderExerciseButtonDisabled: {
+    opacity: 0.5,
+  },
+  reorderExerciseButtonText: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  reorderExerciseButtonTextDisabled: {
+    color: Colors.textMuted,
+  },
+  reorderActionsContainer: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+    marginTop: Spacing.lg,
+  },
+  reorderActionButton: {
+    flex: 1,
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cancelButton: {
+    backgroundColor: Colors.surface,
+    borderWidth: 2,
+    borderColor: Colors.border,
+  },
+  saveButton: {
+    backgroundColor: Colors.primary,
+  },
+  reorderActionButtonText: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: 'bold',
+    color: Colors.text,
   },
   weightRepsLabel: {
     fontSize: Typography.fontSize.sm,
