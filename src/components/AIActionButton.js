@@ -18,6 +18,8 @@ export default function AIActionButton({
   loading = false,
   disabled = false,
   size = 'medium', // 'small' | 'medium' | 'large'
+  subtitle, // Optional subtitle text for disabled state
+  fullWidth = false, // If true, button takes full width instead of 48%
 }) {
   const [scaleAnim] = useState(new Animated.Value(1));
 
@@ -89,6 +91,7 @@ export default function AIActionButton({
   return (
     <Animated.View style={[
       styles.chipWrapper,
+      fullWidth && styles.fullWidthWrapper,
       { transform: [{ scale: scaleAnim }] },
       disabled && styles.disabled,
     ]}>
@@ -117,19 +120,30 @@ export default function AIActionButton({
                 <Ionicons
                   name={icon}
                   size={currentSize.iconSize}
-                  color={iconColor}
+                  color={disabled ? Colors.textMuted : iconColor}
                 />
               </View>
               <View style={styles.textContainer}>
                 <Text
                   style={[
                     styles.text,
-                    { color: textColor, fontSize: currentSize.fontSize },
+                    { color: disabled ? Colors.textMuted : textColor, fontSize: currentSize.fontSize },
                   ]}
                   numberOfLines={3}
                 >
                   {text}
                 </Text>
+                {subtitle && (
+                  <Text
+                    style={[
+                      styles.subtitle,
+                      { fontSize: currentSize.fontSize - 2 },
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {subtitle}
+                  </Text>
+                )}
               </View>
             </>
           )}
@@ -142,6 +156,9 @@ export default function AIActionButton({
 const styles = StyleSheet.create({
   chipWrapper: {
     width: '48%', // 2 columns by default
+  },
+  fullWidthWrapper: {
+    width: '100%', // Full width for special buttons
   },
   disabled: {
     opacity: 0.5,
@@ -178,6 +195,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 16,
     flexWrap: 'wrap',
+  },
+  subtitle: {
+    fontWeight: '500',
+    textAlign: 'center',
+    color: Colors.textMuted,
+    marginTop: 2,
+    fontStyle: 'italic',
   },
   backButtonChip: {
     borderColor: Colors.border,

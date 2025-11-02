@@ -168,12 +168,12 @@ const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exercise
               </View>
             </>
           ) : (
-            // Regular Exercise - Show Set, RPE (if enabled), Weight, Reps
+            // Regular Exercise - Show Set, Weight, Reps, RPE (if enabled)
             <View style={styles.setsHeader}>
               <Text style={styles.setHeaderText}>Set</Text>
-              {rpeEnabled && <Text style={styles.rpeHeaderText}>RPE</Text>}
               <Text style={styles.setHeaderText}>Weight</Text>
               <Text style={styles.setHeaderText}>Reps</Text>
+              {rpeEnabled && <Text style={styles.rpeHeaderText}>RPE</Text>}
             </View>
           )}
 
@@ -221,7 +221,7 @@ const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exercise
                   )}
                 </>
               ) : (
-                // Regular exercise set row: Set number | RPE | Weight | Reps
+                // Regular exercise set row: Set number | Weight | Reps | RPE
                 <>
                   <TouchableOpacity
                     style={styles.setNumberContainer}
@@ -242,18 +242,6 @@ const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exercise
                       </Text>
                     )}
                   </TouchableOpacity>
-
-                  {rpeEnabled && (
-                    <TextInput
-                      style={[styles.setInput, styles.rpeInput]}
-                      value={set.rpe}
-                      onChangeText={(value) => onUpdateSet(index, setIndex, 'rpe', value)}
-                      placeholder="1-10"
-                      placeholderTextColor={Colors.textMuted}
-                      keyboardType="numeric"
-                      maxLength={2}
-                    />
-                  )}
 
                   <TextInput
                     style={styles.setInput}
@@ -277,6 +265,18 @@ const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exercise
                     keyboardType="numeric"
                     maxLength={5}
                   />
+
+                  {rpeEnabled && (
+                    <TextInput
+                      style={[styles.setInput, styles.rpeInput]}
+                      value={set.rpe}
+                      onChangeText={(value) => onUpdateSet(index, setIndex, 'rpe', value)}
+                      placeholder="1-10"
+                      placeholderTextColor={Colors.textMuted}
+                      keyboardType="numeric"
+                      maxLength={2}
+                    />
+                  )}
 
                   {exerciseSets.length > 1 && (
                     <TouchableOpacity
@@ -346,6 +346,18 @@ export default function WorkoutScreen({ navigation, route }) {
   // Cardio timer state: { "exerciseIndex-setIndex": { startTime, duration, isRunning } }
   const [cardioTimers, setCardioTimers] = useState({});
   const cardioTimerIntervals = useRef({});
+
+  // Auto-save debounce timer
+  const autoSaveTimeoutRef = useRef(null);
+
+  // Cleanup auto-save timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Sync activeWorkout to AsyncStorage for AI tools (one-way: Context → Storage)
   useEffect(() => {
@@ -1094,6 +1106,39 @@ export default function WorkoutScreen({ navigation, route }) {
     return volumePerExercise;
   };
 
+  /**
+   * Auto-save exerciseSets to AsyncStorage and WorkoutContext
+   * Debounced to avoid saving on every keystroke
+   */
+  const autoSaveExerciseSets = useCallback((sets) => {
+    // Clear any pending auto-save
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    // Schedule auto-save after 500ms of inactivity
+    autoSaveTimeoutRef.current = setTimeout(async () => {
+      try {
+        // Update WorkoutContext
+        updateWorkout({
+          exerciseSets: sets,
+          exercises: workoutExercises,
+          currentExerciseIndex: currentExerciseIndex
+        });
+
+        // Also directly save to AsyncStorage for immediate AI access
+        const activeWorkoutStr = await AsyncStorage.getItem('@active_workout');
+        if (activeWorkoutStr) {
+          const currentWorkout = JSON.parse(activeWorkoutStr);
+          currentWorkout.exerciseSets = sets;
+          await AsyncStorage.setItem('@active_workout', JSON.stringify(currentWorkout));
+        }
+      } catch (error) {
+        console.error('❌ Auto-save failed:', error);
+      }
+    }, 500); // 500ms debounce
+  }, [updateWorkout, workoutExercises, currentExerciseIndex]);
+
   // Update set data - LOCAL ONLY, no context update to avoid refresh
   const updateSet = (exerciseIndex, setIndex, field, value) => {
     const newSets = { ...exerciseSets };
@@ -1146,6 +1191,20 @@ export default function WorkoutScreen({ navigation, route }) {
     }
 
     newSets[exerciseIndex][setIndex][field] = value;
+
+    // CRITICAL: Auto-mark as completed when both weight AND reps are filled
+    const currentSet = newSets[exerciseIndex][setIndex];
+    const hasWeight = currentSet.weight && currentSet.weight.toString().trim() !== '';
+    const hasReps = currentSet.reps && currentSet.reps.toString().trim() !== '';
+
+    if (hasWeight && hasReps) {
+      // Both weight and reps are filled - mark as completed
+      newSets[exerciseIndex][setIndex].completed = true;
+    } else {
+      // Either weight or reps is missing - not completed yet
+      newSets[exerciseIndex][setIndex].completed = false;
+    }
+
     setExerciseSets(newSets);
 
     // Update totals if weight or reps changed
@@ -1154,7 +1213,9 @@ export default function WorkoutScreen({ navigation, route }) {
       setTotalVolume(totals.volume);
       setTotalSets(totals.sets);
     }
-    // DO NOT update context here - causes refresh on every keystroke
+
+    // CRITICAL: Auto-save after user stops typing (500ms debounce)
+    autoSaveExerciseSets(newSets);
   };
 
   // Handle set type selection

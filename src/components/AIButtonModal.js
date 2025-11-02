@@ -37,7 +37,10 @@ export default function AIButtonModal({
   const [selectedExercise, setSelectedExercise] = useState(null);
   const [weightInput, setWeightInput] = useState('');
   const [repsInput, setRepsInput] = useState('');
+  const [rpeInput, setRpeInput] = useState('');
   const [activeWorkoutExercises, setActiveWorkoutExercises] = useState([]);
+  const [completedSets, setCompletedSets] = useState([]); // Array of {exerciseName, setIndex, weight, reps, display}
+  const [rpeEnabled, setRpeEnabled] = useState(false);
 
   // Get sections for this screen
   const sections = getAISectionsForScreen(screenName);
@@ -59,6 +62,30 @@ export default function AIButtonModal({
             const activeWorkout = JSON.parse(activeWorkoutStr);
             const exercises = activeWorkout.exercises || [];
             setActiveWorkoutExercises(exercises.map(ex => ex.name));
+
+            // Also load completed sets for removal
+            const completed = [];
+
+            exercises.forEach((exercise, exIndex) => {
+              // Get sets from exerciseSets object (not exercise.sets!)
+              const sets = activeWorkout.exerciseSets?.[exIndex.toString()] || [];
+
+              sets.forEach((set, setIndex) => {
+                if (set.completed && set.weight && set.reps) {
+                  const setData = {
+                    exerciseName: exercise.name,
+                    setIndex: setIndex + 1, // 1-indexed for display
+                    weight: set.weight,
+                    reps: set.reps,
+                    rpe: set.rpe,
+                    display: `Set ${setIndex + 1}: ${set.weight} lbs × ${set.reps} reps${set.rpe ? ` @ RPE ${set.rpe}` : ''} - ${exercise.name}`,
+                  };
+                  completed.push(setData);
+                }
+              });
+            });
+
+            setCompletedSets(completed);
           }
         } catch (error) {
           console.error('Failed to load active workout exercises:', error);
@@ -68,6 +95,23 @@ export default function AIButtonModal({
 
     loadActiveWorkoutExercises();
   }, [visible, screenName]);
+
+  // Load RPE setting when modal opens
+  useEffect(() => {
+    const loadRpeSetting = async () => {
+      if (visible) {
+        try {
+          const savedRpeEnabled = await AsyncStorage.getItem('@rpe_enabled');
+          setRpeEnabled(savedRpeEnabled === 'true');
+        } catch (error) {
+          console.error('Failed to load RPE setting:', error);
+          setRpeEnabled(false);
+        }
+      }
+    };
+
+    loadRpeSetting();
+  }, [visible]);
 
   // Clear state when modal closes to prevent auto-close on reopen
   useEffect(() => {
@@ -81,6 +125,7 @@ export default function AIButtonModal({
       setSelectedExercise(null);
       setWeightInput('');
       setRepsInput('');
+      setRpeInput('');
     }
   }, [visible]);
 
@@ -135,6 +180,8 @@ export default function AIButtonModal({
       'which one',
       'what would',
       'how about',
+      'select which',
+      'here are your',  // For "Here are your completed sets:"
     ];
 
     const lowerResponse = response.toLowerCase();
@@ -222,13 +269,140 @@ export default function AIButtonModal({
   };
 
   /**
+   * Detect if AI is asking for RPE in addition to weight/reps
+   */
+  const detectRPERequest = (response) => {
+    if (!response) return false;
+
+    const lowerResponse = response.toLowerCase();
+    const rpeKeywords = [
+      'rpe',
+      'rate of perceived exertion',
+      'rating',
+      '1-10 scale',
+    ];
+
+    return rpeKeywords.some(keyword => lowerResponse.includes(keyword));
+  };
+
+  /**
+   * Detect if AI is asking which exercise to remove/modify (Tool 2)
+   */
+  const detectExerciseModificationQuestion = (response) => {
+    if (!response) return false;
+
+    const lowerResponse = response.toLowerCase();
+    const modifyKeywords = [
+      'which exercise.*remove',
+      'what exercise.*delete',
+      'remove which.*exercise',
+      'delete which.*exercise',
+    ];
+
+    return modifyKeywords.some(keyword => {
+      if (keyword.includes('.*')) {
+        const regex = new RegExp(keyword);
+        return regex.test(lowerResponse);
+      }
+      return lowerResponse.includes(keyword);
+    });
+  };
+
+  /**
+   * Detect if we're showing the set removal interface
+   * Simple check: does the response contain our static message?
+   */
+  const detectSetRemovalQuestion = (response) => {
+    if (!response) return false;
+    // Check for our exact static message
+    return response.includes('Here are your completed sets:') ||
+           response.includes('Select which set to remove:');
+  };
+
+  /**
+   * Detect if AI is asking for workout rating (Tool 3)
+   */
+  const detectWorkoutRatingQuestion = (response) => {
+    if (!response) return false;
+
+    const lowerResponse = response.toLowerCase();
+    const ratingKeywords = [
+      'rate.*workout',
+      'how.*rate',
+      'rating',
+      'out of 5',
+      '1-5',
+      'how was.*workout',
+    ];
+
+    return ratingKeywords.some(keyword => {
+      if (keyword.includes('.*')) {
+        const regex = new RegExp(keyword);
+        return regex.test(lowerResponse);
+      }
+      return lowerResponse.includes(keyword);
+    });
+  };
+
+  /**
+   * Detect if AI is asking for rest duration (Tool 4)
+   */
+  const detectRestDurationQuestion = (response) => {
+    if (!response) return false;
+
+    const lowerResponse = response.toLowerCase();
+    const restKeywords = [
+      'how long.*rest',
+      'rest.*how long',
+      'rest duration',
+      'how many.*rest',
+      'rest for',
+    ];
+
+    return restKeywords.some(keyword => {
+      if (keyword.includes('.*')) {
+        const regex = new RegExp(keyword);
+        return regex.test(lowerResponse);
+      }
+      return lowerResponse.includes(keyword);
+    });
+  };
+
+  /**
    * Handle button press
    * Sends the button action to AI with context
    */
   const handleButtonPress = async (button) => {
     // Check if this is the custom input button
-    if (button.isCustomInput) {
+    if (button.isCustomInput && !button.showCompletedSets) {
       setShowCustomInput(true);
+      setExpandedSections({});
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+      return;
+    }
+
+    // Check if this is the "Remove set" button - show completed sets directly
+    if (button.showCompletedSets) {
+      if (completedSets.length > 0) {
+        setLastResponse("Here are your completed sets:");
+      } else {
+        setLastResponse("No completed sets to remove. Log some sets first!");
+      }
+      setExpandedSections({});
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+      return;
+    }
+
+    // Check if this is the RPE button and RPE is disabled
+    if (button.requiresRPE && !rpeEnabled) {
+      setLastResponse(
+        "⚙️ RPE tracking is currently disabled in settings.\n\n" +
+        "To use this feature, go to Settings > Exercise Settings and enable 'Enable RPE Tracking'."
+      );
       setExpandedSections({});
       setTimeout(() => {
         scrollViewRef.current?.scrollToEnd({ animated: true });
@@ -246,17 +420,23 @@ export default function AIButtonModal({
       // Build context for this screen
       const context = await ContextManager.buildContextForScreen(screenName, user?.uid);
 
+      // Use custom prompt if available, otherwise use button text
+      const messageToSend = button.prompt || button.text;
+
       // Send to AI with tools
-      const result = await AIService.sendMessageWithTools(button.text, context);
+      const result = await AIService.sendMessageWithTools(messageToSend, context);
 
       // Store response
       setLastResponse(result.response);
 
-      // Add to conversation history
+      // Add to conversation history (use button.text for display, not the full prompt)
       setConversationHistory(prev => [
         ...prev,
         { userMessage: button.text, aiResponse: result.response }
       ]);
+
+      // CRITICAL: Reload workout data after AI interaction
+      await reloadWorkoutData();
 
       // Auto-scroll to response after a short delay
       setTimeout(() => {
@@ -268,6 +448,44 @@ export default function AIButtonModal({
       setLastResponse("Sorry, I couldn't process that request. Please try again.");
     } finally {
       setLoadingButton(null);
+    }
+  };
+
+  /**
+   * Reload workout data from AsyncStorage after AI makes changes
+   */
+  const reloadWorkoutData = async () => {
+    try {
+      const updatedWorkoutStr = await AsyncStorage.getItem('@active_workout');
+      if (updatedWorkoutStr) {
+        const updatedWorkout = JSON.parse(updatedWorkoutStr);
+
+        // Reload completed sets
+        const exercises = updatedWorkout.exercises || [];
+        const completed = [];
+
+        exercises.forEach((exercise, exIndex) => {
+          const sets = updatedWorkout.exerciseSets?.[exIndex.toString()] || [];
+
+          sets.forEach((set, setIndex) => {
+            if (set.completed && set.weight && set.reps) {
+              const setData = {
+                exerciseName: exercise.name,
+                setIndex: setIndex + 1,
+                weight: set.weight,
+                reps: set.reps,
+                rpe: set.rpe,
+                display: `Set ${setIndex + 1}: ${set.weight} lbs × ${set.reps} reps${set.rpe ? ` @ RPE ${set.rpe}` : ''} - ${exercise.name}`,
+              };
+              completed.push(setData);
+            }
+          });
+        });
+
+        setCompletedSets(completed);
+      }
+    } catch (error) {
+      console.error('❌ Failed to reload workout data:', error);
     }
   };
 
@@ -297,6 +515,9 @@ export default function AIButtonModal({
         ...prev,
         { userMessage: reply, aiResponse: result.response }
       ]);
+
+      // CRITICAL: Reload workout data after AI interaction
+      await reloadWorkoutData();
 
       // Auto-scroll to response
       setTimeout(() => {
@@ -343,6 +564,9 @@ export default function AIButtonModal({
         { userMessage: messageToSend, aiResponse: result.response }
       ]);
 
+      // CRITICAL: Reload workout data after AI interaction
+      await reloadWorkoutData();
+
       // Auto-scroll to response
       setTimeout(() => {
         scrollViewRef.current?.scrollToEnd({ animated: true });
@@ -368,12 +592,17 @@ export default function AIButtonModal({
   };
 
   /**
-   * Handle weight/reps submission for selected exercise
+   * Handle weight/reps/RPE submission for selected exercise
    */
   const handleLogSet = async () => {
     if (!selectedExercise || !weightInput.trim() || !repsInput.trim()) return;
+    if (isRPERequested && !rpeInput.trim()) return;
 
-    const message = `Log ${weightInput} pounds for ${repsInput} reps on ${selectedExercise}`;
+    // Build message with optional RPE
+    let message = `Log ${weightInput} pounds for ${repsInput} reps on ${selectedExercise}`;
+    if (isRPERequested && rpeInput.trim()) {
+      message += ` at RPE ${rpeInput}`;
+    }
 
     try {
       setLoadingButton('Logging set...');
@@ -394,10 +623,14 @@ export default function AIButtonModal({
         { userMessage: message, aiResponse: result.response }
       ]);
 
+      // CRITICAL: Reload workout data after AI interaction
+      await reloadWorkoutData();
+
       // Clear inputs
       setSelectedExercise(null);
       setWeightInput('');
       setRepsInput('');
+      setRpeInput('');
 
       // Auto-scroll to response
       setTimeout(() => {
@@ -440,6 +673,9 @@ export default function AIButtonModal({
         { userMessage: messageToSend, aiResponse: result.response }
       ]);
 
+      // CRITICAL: Reload workout data after AI interaction
+      await reloadWorkoutData();
+
       // Auto-scroll to response
       setTimeout(() => {
         scrollViewRef.current?.scrollToEnd({ animated: true });
@@ -463,6 +699,24 @@ export default function AIButtonModal({
     }));
   };
 
+  /**
+   * Process buttons to add disabled state and subtitle for RPE buttons
+   */
+  const processButtons = (buttons) => {
+    return buttons.map(button => {
+      // Check if this is the "Log set with RPE" button
+      if (button.text === 'Log set with RPE') {
+        return {
+          ...button,
+          requiresRPE: true,
+          disabled: !rpeEnabled,
+          subtitle: !rpeEnabled ? 'Disabled in settings' : undefined,
+        };
+      }
+      return button;
+    });
+  };
+
   // If no sections, show message
   const noSections = !hasAISections(screenName);
 
@@ -472,6 +726,23 @@ export default function AIButtonModal({
   const isSaveLocationQuestion = detectSaveLocationQuestion(lastResponse);
   const isMuscleGroupQuestion = detectMuscleGroupQuestion(lastResponse);
   const isExerciseLogQuestion = detectExerciseLogQuestion(lastResponse);
+  const isRPERequested = detectRPERequest(lastResponse);
+  const isExerciseModificationQuestion = detectExerciseModificationQuestion(lastResponse);
+  const isSetRemovalQuestion = detectSetRemovalQuestion(lastResponse);
+  const isWorkoutRatingQuestion = detectWorkoutRatingQuestion(lastResponse);
+  const isRestDurationQuestion = detectRestDurationQuestion(lastResponse);
+
+  // Debug detection when response changes
+  React.useEffect(() => {
+    if (lastResponse) {
+      console.log('\n🔍 ========== DETECTION DEBUG ==========');
+      console.log('Response:', lastResponse);
+      console.log('isQuestion:', isQuestion);
+      console.log('isSetRemovalQuestion:', isSetRemovalQuestion);
+      console.log('Will show quick replies:', isQuestion && !selectedExercise);
+      console.log('======================================\n');
+    }
+  }, [lastResponse]);
 
   return (
     <Modal
@@ -527,7 +798,7 @@ export default function AIButtonModal({
                   key={index}
                   title={section.title}
                   icon={section.icon}
-                  buttons={section.buttons}
+                  buttons={processButtons(section.buttons)}
                   onButtonPress={handleButtonPress}
                   expanded={expandedSections[index] || false}
                   onToggle={() => toggleSection(index)}
@@ -548,7 +819,7 @@ export default function AIButtonModal({
                   {isQuestion && !selectedExercise && (
                     <View style={styles.quickReplyContainer}>
                       <Text style={styles.quickReplyLabel}>
-                        {isDaysQuestion ? 'Days per week:' : isSaveLocationQuestion ? 'Save to:' : isMuscleGroupQuestion ? 'Focus on:' : isExerciseLogQuestion ? 'Select exercise:' : 'Quick Reply:'}
+                        {isDaysQuestion ? 'Days per week:' : isSaveLocationQuestion ? 'Save to:' : isMuscleGroupQuestion ? 'Focus on:' : isExerciseLogQuestion ? 'Select exercise:' : isSetRemovalQuestion ? 'Tap a set to remove it:' : isExerciseModificationQuestion ? 'Remove exercise:' : isWorkoutRatingQuestion ? 'Rate workout:' : isRestDurationQuestion ? 'Rest duration:' : 'Quick Reply:'}
                       </Text>
                       <View style={styles.quickReplyButtons}>
                         {isExerciseLogQuestion ? (
@@ -653,6 +924,91 @@ export default function AIButtonModal({
                               <Text style={styles.quickReplyText}>💾 Save to My Plans</Text>
                             </TouchableOpacity>
                           </>
+                        ) : isSetRemovalQuestion ? (
+                          <>
+                            {/* Set Removal Buttons - Show completed sets */}
+                            {completedSets.length > 0 ? (
+                              completedSets.map((set, index) => (
+                                <TouchableOpacity
+                                  key={index}
+                                  style={[styles.quickReplyButton, styles.setRemovalButton]}
+                                  onPress={() => handleQuickReply(`Remove set ${set.setIndex} from ${set.exerciseName}`)}
+                                  disabled={loadingButton !== null}
+                                  activeOpacity={0.7}
+                                >
+                                  <Text style={styles.quickReplyText}>🗑️ {set.display}</Text>
+                                </TouchableOpacity>
+                              ))
+                            ) : (
+                              <Text style={styles.noSetsText}>No completed sets to remove</Text>
+                            )}
+                          </>
+                        ) : isExerciseModificationQuestion ? (
+                          <>
+                            {/* Exercise Removal/Modification Buttons - Tool 2 */}
+                            {activeWorkoutExercises.map((exerciseName, index) => (
+                              <TouchableOpacity
+                                key={index}
+                                style={[styles.quickReplyButton, styles.exerciseButton]}
+                                onPress={() => handleQuickReply(`Remove ${exerciseName}`)}
+                                disabled={loadingButton !== null}
+                                activeOpacity={0.7}
+                              >
+                                <Text style={styles.quickReplyText}>❌ {exerciseName}</Text>
+                              </TouchableOpacity>
+                            ))}
+                          </>
+                        ) : isWorkoutRatingQuestion ? (
+                          <>
+                            {/* Workout Rating Buttons - Tool 3 */}
+                            {[1, 2, 3, 4, 5].map(rating => (
+                              <TouchableOpacity
+                                key={rating}
+                                style={[styles.quickReplyButton, styles.ratingButton]}
+                                onPress={() => handleQuickReply(`${rating} out of 5`)}
+                                disabled={loadingButton !== null}
+                                activeOpacity={0.7}
+                              >
+                                <Text style={styles.quickReplyText}>{'⭐'.repeat(rating)}</Text>
+                              </TouchableOpacity>
+                            ))}
+                          </>
+                        ) : isRestDurationQuestion ? (
+                          <>
+                            {/* Rest Duration Buttons - Tool 4 */}
+                            <TouchableOpacity
+                              style={[styles.quickReplyButton, styles.restButton]}
+                              onPress={() => handleQuickReply('60 seconds')}
+                              disabled={loadingButton !== null}
+                              activeOpacity={0.7}
+                            >
+                              <Text style={styles.quickReplyText}>⏱️ 1 min</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              style={[styles.quickReplyButton, styles.restButton]}
+                              onPress={() => handleQuickReply('90 seconds')}
+                              disabled={loadingButton !== null}
+                              activeOpacity={0.7}
+                            >
+                              <Text style={styles.quickReplyText}>⏱️ 1.5 min</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              style={[styles.quickReplyButton, styles.restButton]}
+                              onPress={() => handleQuickReply('2 minutes')}
+                              disabled={loadingButton !== null}
+                              activeOpacity={0.7}
+                            >
+                              <Text style={styles.quickReplyText}>⏱️ 2 min</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              style={[styles.quickReplyButton, styles.restButton]}
+                              onPress={() => handleQuickReply('3 minutes')}
+                              disabled={loadingButton !== null}
+                              activeOpacity={0.7}
+                            >
+                              <Text style={styles.quickReplyText}>⏱️ 3 min</Text>
+                            </TouchableOpacity>
+                          </>
                         ) : (
                           <>
                             {/* Regular Yes/No/Not Sure Buttons */}
@@ -686,7 +1042,7 @@ export default function AIButtonModal({
                     </View>
                   )}
 
-                  {/* Weight/Reps Input Form - Show after exercise selection */}
+                  {/* Weight/Reps/RPE Input Form - Show after exercise selection */}
                   {selectedExercise && (
                     <View style={styles.weightRepsContainer}>
                       <View style={styles.weightRepsHeader}>
@@ -696,6 +1052,7 @@ export default function AIButtonModal({
                             setSelectedExercise(null);
                             setWeightInput('');
                             setRepsInput('');
+                            setRpeInput('');
                           }}
                           style={styles.cancelExerciseButton}
                           activeOpacity={0.7}
@@ -703,7 +1060,9 @@ export default function AIButtonModal({
                           <Ionicons name="close-circle" size={24} color={Colors.textSecondary} />
                         </TouchableOpacity>
                       </View>
-                      <Text style={styles.weightRepsLabel}>Enter weight and reps:</Text>
+                      <Text style={styles.weightRepsLabel}>
+                        {isRPERequested ? 'Enter weight, reps, and RPE:' : 'Enter weight and reps:'}
+                      </Text>
                       <View style={styles.weightRepsInputRow}>
                         <View style={styles.inputGroup}>
                           <Text style={styles.inputLabel}>Weight (lbs)</Text>
@@ -729,19 +1088,33 @@ export default function AIButtonModal({
                             editable={loadingButton === null}
                           />
                         </View>
+                        {isRPERequested && (
+                          <View style={styles.inputGroup}>
+                            <Text style={styles.inputLabel}>RPE (1-10)</Text>
+                            <TextInput
+                              style={styles.weightRepsInput}
+                              placeholder="8"
+                              placeholderTextColor={Colors.textMuted}
+                              value={rpeInput}
+                              onChangeText={setRpeInput}
+                              keyboardType="numeric"
+                              editable={loadingButton === null}
+                            />
+                          </View>
+                        )}
                         <TouchableOpacity
                           style={[
                             styles.logSetButton,
-                            (!weightInput.trim() || !repsInput.trim() || loadingButton !== null) && styles.logSetButtonDisabled
+                            (!weightInput.trim() || !repsInput.trim() || (isRPERequested && !rpeInput.trim()) || loadingButton !== null) && styles.logSetButtonDisabled
                           ]}
                           onPress={handleLogSet}
-                          disabled={!weightInput.trim() || !repsInput.trim() || loadingButton !== null}
+                          disabled={!weightInput.trim() || !repsInput.trim() || (isRPERequested && !rpeInput.trim()) || loadingButton !== null}
                           activeOpacity={0.7}
                         >
                           <Ionicons
                             name="checkmark"
                             size={24}
-                            color={weightInput.trim() && repsInput.trim() && loadingButton === null ? Colors.white : Colors.textMuted}
+                            color={weightInput.trim() && repsInput.trim() && (!isRPERequested || rpeInput.trim()) && loadingButton === null ? Colors.white : Colors.textMuted}
                           />
                         </TouchableOpacity>
                       </View>

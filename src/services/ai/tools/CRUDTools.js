@@ -661,6 +661,12 @@ export async function logWorkoutSet({
     // Update the set in the exerciseSets object
     sets[setIndex] = setData;
 
+    // CRITICAL: Put the modified sets array back into activeWorkout before saving
+    if (!activeWorkout.exerciseSets) {
+      activeWorkout.exerciseSets = {};
+    }
+    activeWorkout.exerciseSets[exerciseIndex.toString()] = sets;
+
     // Save
     await AsyncStorage.setItem(activeWorkoutKey, JSON.stringify(activeWorkout));
 
@@ -689,6 +695,107 @@ export async function logWorkoutSet({
     return {
       success: false,
       error: error.message,
+    };
+  }
+}
+
+/**
+ * REMOVE A COMPLETED SET
+ * User says: "Remove that set", "Delete the last set I logged"
+ *
+ * NEW TOOL - Remove a specific completed set from an exercise
+ */
+export async function removeCompletedSet({ exerciseName, setIndex, userId }) {
+  try {
+    const activeWorkoutKey = '@active_workout';
+    const activeWorkoutStr = await AsyncStorage.getItem(activeWorkoutKey);
+
+    if (!activeWorkoutStr) {
+      return {
+        success: false,
+        message: "No active workout. Start a workout first to remove sets.",
+      };
+    }
+
+    const activeWorkout = JSON.parse(activeWorkoutStr);
+
+    // Find the exercise with fuzzy matching (same logic as logWorkoutSet)
+    const exerciseIndex = activeWorkout.exercises?.findIndex(
+      ex => {
+        const exName = ex.name.toLowerCase();
+        const searchName = exerciseName.toLowerCase();
+        // Exact match or partial match (e.g., "Bench Press" matches "Bench Press (Barbell)")
+        return exName === searchName ||
+               exName.includes(searchName) ||
+               searchName.includes(exName);
+      }
+    );
+
+    if (exerciseIndex === -1) {
+      return {
+        success: false,
+        message: `${exerciseName} not found in your workout.`,
+      };
+    }
+
+    const exercise = activeWorkout.exercises[exerciseIndex];
+
+    // CRITICAL: Get sets from exerciseSets object (same location as logWorkoutSet)
+    const sets = activeWorkout.exerciseSets?.[exerciseIndex.toString()] || [];
+
+    // Validate setIndex
+    if (setIndex < 1 || setIndex > sets.length) {
+      return {
+        success: false,
+        message: `Set ${setIndex} doesn't exist. ${exerciseName} has ${sets.length} sets.`,
+      };
+    }
+
+    const removedSet = sets[setIndex - 1]; // Convert to 0-indexed
+    const setInfo = `${removedSet.weight || '?'} lbs × ${removedSet.reps || '?'} reps${removedSet.rpe ? ` @ RPE ${removedSet.rpe}` : ''}`;
+
+    if (sets.length === 1) {
+      // Only one set - clear the values but keep the empty set structure
+      sets[0] = { weight: '', reps: '', rpe: '', completed: false };
+    } else {
+      // Multiple sets - actually remove this set and reindex
+      sets.splice(setIndex - 1, 1);
+    }
+
+    // CRITICAL: Put the modified sets array back into activeWorkout
+    if (!activeWorkout.exerciseSets) {
+      activeWorkout.exerciseSets = {};
+    }
+    activeWorkout.exerciseSets[exerciseIndex.toString()] = sets;
+
+    // Save updated workout
+    await AsyncStorage.setItem(activeWorkoutKey, JSON.stringify(activeWorkout));
+
+    // Build appropriate success message
+    let message;
+    if (sets.length === 1 && sets[0].completed === false) {
+      // Cleared the only set
+      message = `Cleared set data (${setInfo}) from ${exerciseName}. The empty set remains.`;
+    } else {
+      // Removed a set from multiple sets
+      message = `Removed set ${setIndex} (${setInfo}) from ${exerciseName}. ${sets.length} set${sets.length === 1 ? '' : 's'} remaining.`;
+    }
+
+    return {
+      success: true,
+      message,
+      data: {
+        exerciseName,
+        removedSet: setInfo,
+        remainingSets: sets.length,
+      },
+    };
+  } catch (error) {
+    console.error('❌ removeCompletedSet error:', error);
+    return {
+      success: false,
+      error: error.message,
+      message: "Couldn't remove set. Please try again.",
     };
   }
 }
@@ -1191,6 +1298,28 @@ export const crudToolSchemas = [
         },
       },
       required: ['exerciseName', 'weight', 'reps', 'userId'],
+    },
+  },
+  {
+    name: 'removeCompletedSet',
+    description: 'Remove a specific completed set from an exercise. Use when user wants to delete/remove a set they logged. Examples: "Remove set 2 from bench press", "Delete the last set", "Remove that set I just logged"',
+    parameters: {
+      type: 'object',
+      properties: {
+        exerciseName: {
+          type: 'string',
+          description: 'Name of the exercise to remove the set from',
+        },
+        setIndex: {
+          type: 'number',
+          description: 'Which set number to remove (1 = first set, 2 = second set, etc.). Use "last" or the highest number to remove the most recent set.',
+        },
+        userId: {
+          type: 'string',
+          description: 'User ID',
+        },
+      },
+      required: ['exerciseName', 'setIndex', 'userId'],
     },
   },
   {

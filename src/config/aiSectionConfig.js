@@ -60,10 +60,14 @@ export const WorkoutAssistantSections = [
     title: 'Log Sets',
     icon: 'create',
     buttons: [
-      { icon: 'chatbubble-ellipses', text: 'Type command...', toolName: 'customWorkoutInput', isCustomInput: true },
+      { icon: 'chatbubble-ellipses', text: 'Type command...', toolName: 'customWorkoutInput', isCustomInput: true, fullWidth: true },
       { icon: 'checkmark-circle', text: 'Log current set', toolName: 'logWorkoutSet' },
-      { icon: 'flame', text: 'Log set with RPE', toolName: 'logWorkoutSet' },
-      { icon: 'fitness', text: 'Log warmup set', toolName: 'logWorkoutSet' },
+      {
+        icon: 'flame',
+        text: 'Log set with RPE',
+        prompt: 'Log set (include RPE 1-10)',
+        toolName: 'logWorkoutSet'
+      },
     ],
   },
   {
@@ -71,7 +75,12 @@ export const WorkoutAssistantSections = [
     icon: 'settings',
     buttons: [
       { icon: 'play-skip-forward', text: 'Skip to next exercise', toolName: 'skipToNextExercise' },
-      { icon: 'remove-circle', text: 'Remove exercise', toolName: 'modifyActiveWorkout' },
+      {
+        icon: 'trash',
+        text: 'Remove set',
+        toolName: 'removeCompletedSet',
+        showCompletedSets: true  // Special flag to show sets directly
+      },
       { icon: 'swap-vertical', text: 'Reorder exercises', toolName: 'modifyActiveWorkout' },
       { icon: 'timer', text: 'Start rest timer', toolName: 'startRestTimer' },
     ],

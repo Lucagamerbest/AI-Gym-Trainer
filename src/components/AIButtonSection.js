@@ -129,6 +129,9 @@ export default function AIButtonSection({
                   variant={button.variant || 'primary'}
                   loading={loading}
                   size={button.size || 'medium'}
+                  disabled={button.disabled || false}
+                  subtitle={button.subtitle}
+                  fullWidth={button.fullWidth || false}
                 />
               ))}
             </View>
