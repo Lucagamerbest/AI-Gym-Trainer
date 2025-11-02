@@ -46,6 +46,21 @@ export default function AIButtonModal({
   const [selectedPosition, setSelectedPosition] = useState(null); // Which position number is selected (1, 2, 3...)
   const [reorderedExercises, setReorderedExercises] = useState([]); // Local copy for reordering
   const [showReorderUI, setShowReorderUI] = useState(false); // Show manual reorder interface
+  const [exerciseColors, setExerciseColors] = useState({}); // Map exercise name to color
+
+  // Color palette for exercises
+  const exercisePalette = [
+    '#FF6B6B', // Red
+    '#4ECDC4', // Teal
+    '#45B7D1', // Blue
+    '#96CEB4', // Green
+    '#FFEAA7', // Yellow
+    '#DFE6E9', // Gray
+    '#A29BFE', // Purple
+    '#FD79A8', // Pink
+    '#FDCB6E', // Orange
+    '#74B9FF', // Light Blue
+  ];
 
   // Get sections for this screen
   const sections = getAISectionsForScreen(screenName);
@@ -423,6 +438,14 @@ export default function AIButtonModal({
       if (activeWorkoutExercises.length > 0) {
         setReorderedExercises([...activeWorkoutExercises]); // Create local copy
         setSelectedPosition(null); // Reset selection
+
+        // Assign a unique color to each exercise
+        const colors = {};
+        activeWorkoutExercises.forEach((exerciseName, index) => {
+          colors[exerciseName] = exercisePalette[index % exercisePalette.length];
+        });
+        setExerciseColors(colors);
+
         setShowReorderUI(true); // Show manual reorder interface
         setLastResponse(null); // Clear any previous response
       } else {
@@ -887,34 +910,45 @@ export default function AIButtonModal({
                     Step 2: Tap an exercise to move it to position {selectedPosition || '?'}
                   </Text>
                   <View style={styles.exerciseListContainer}>
-                    {reorderedExercises.map((exerciseName, index) => (
-                      <TouchableOpacity
-                        key={index}
-                        style={[
-                          styles.reorderExerciseButton,
-                          !selectedPosition && styles.reorderExerciseButtonDisabled
-                        ]}
-                        onPress={() => {
-                          if (selectedPosition) {
-                            // Move exercise to selected position
-                            const newOrder = [...reorderedExercises];
-                            const [movedExercise] = newOrder.splice(index, 1);
-                            newOrder.splice(selectedPosition - 1, 0, movedExercise);
-                            setReorderedExercises(newOrder);
-                            setSelectedPosition(null); // Reset selection
-                          }
-                        }}
-                        disabled={!selectedPosition}
-                        activeOpacity={0.7}
-                      >
-                        <Text style={[
-                          styles.reorderExerciseButtonText,
-                          !selectedPosition && styles.reorderExerciseButtonTextDisabled
-                        ]}>
-                          {index + 1}. {exerciseName}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
+                    {reorderedExercises.map((exerciseName, index) => {
+                      const exerciseColor = exerciseColors[exerciseName] || '#DFE6E9';
+                      return (
+                        <TouchableOpacity
+                          key={index}
+                          style={[
+                            styles.reorderExerciseButton,
+                            !selectedPosition && styles.reorderExerciseButtonDisabled,
+                            {
+                              borderLeftWidth: 6,
+                              borderLeftColor: exerciseColor,
+                              backgroundColor: exerciseColor + '15', // 15 = 8% opacity
+                            }
+                          ]}
+                          onPress={() => {
+                            if (selectedPosition) {
+                              // Move exercise to selected position
+                              const newOrder = [...reorderedExercises];
+                              const [movedExercise] = newOrder.splice(index, 1);
+                              newOrder.splice(selectedPosition - 1, 0, movedExercise);
+                              setReorderedExercises(newOrder);
+                              setSelectedPosition(null); // Reset selection
+                            }
+                          }}
+                          disabled={!selectedPosition}
+                          activeOpacity={0.7}
+                        >
+                          <View style={styles.reorderExerciseContent}>
+                            <View style={[styles.exerciseColorDot, { backgroundColor: exerciseColor }]} />
+                            <Text style={[
+                              styles.reorderExerciseButtonText,
+                              !selectedPosition && styles.reorderExerciseButtonTextDisabled
+                            ]}>
+                              {index + 1}. {exerciseName}
+                            </Text>
+                          </View>
+                        </TouchableOpacity>
+                      );
+                    })}
                   </View>
 
                   {/* Action Buttons */}
@@ -1702,14 +1736,26 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
     borderWidth: 2,
     borderColor: Colors.border,
+    borderLeftWidth: 6, // Will be overridden with color
   },
   reorderExerciseButtonDisabled: {
     opacity: 0.5,
+  },
+  reorderExerciseContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  exerciseColorDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
   },
   reorderExerciseButtonText: {
     fontSize: Typography.fontSize.md,
     fontWeight: '600',
     color: Colors.text,
+    flex: 1,
   },
   reorderExerciseButtonTextDisabled: {
     color: Colors.textMuted,
