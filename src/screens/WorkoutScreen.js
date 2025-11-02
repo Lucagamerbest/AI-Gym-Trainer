@@ -1331,10 +1331,25 @@ export default function WorkoutScreen({ navigation, route }) {
       });
       setExerciseSets(reindexedSets);
 
-      // Update workout context with new exercises and sets
+      // CRITICAL: Adjust current index BEFORE updating context
+      let newCurrentIndex = currentExerciseIndex;
+
+      if (exerciseToDelete === currentExerciseIndex) {
+        // Deleted the current exercise - move to the next one (or previous if it was the last)
+        newCurrentIndex = Math.min(currentExerciseIndex, newExercises.length - 1);
+      } else if (exerciseToDelete < currentExerciseIndex) {
+        // Deleted an exercise before the current one - shift index down
+        newCurrentIndex = currentExerciseIndex - 1;
+      }
+      // else: deleted an exercise after the current one - no change needed
+
+      setCurrentExerciseIndex(newCurrentIndex);
+
+      // Update workout context with new exercises, sets, AND current index
       updateWorkout({
         exercises: newExercises,
-        exerciseSets: reindexedSets
+        exerciseSets: reindexedSets,
+        currentExerciseIndex: newCurrentIndex
       });
 
       // Also save to AsyncStorage immediately
@@ -1345,6 +1360,7 @@ export default function WorkoutScreen({ navigation, route }) {
             const currentWorkout = JSON.parse(activeWorkoutStr);
             currentWorkout.exercises = newExercises;
             currentWorkout.exerciseSets = reindexedSets;
+            currentWorkout.currentExerciseIndex = newCurrentIndex;
             await AsyncStorage.setItem('@active_workout', JSON.stringify(currentWorkout));
           }
         } catch (error) {
@@ -1352,11 +1368,6 @@ export default function WorkoutScreen({ navigation, route }) {
         }
       };
       saveToStorage();
-
-      // Adjust current index if needed
-      if (currentExerciseIndex >= newExercises.length) {
-        setCurrentExerciseIndex(Math.max(0, newExercises.length - 1));
-      }
     }
     setShowDeleteConfirmation(false);
     setExerciseToDelete(null);
