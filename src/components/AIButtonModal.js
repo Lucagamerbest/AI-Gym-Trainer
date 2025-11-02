@@ -770,8 +770,11 @@ export default function AIButtonModal({
       console.log('\n🔍 ========== DETECTION DEBUG ==========');
       console.log('Response:', lastResponse);
       console.log('isQuestion:', isQuestion);
+      console.log('isExerciseReorderQuestion:', isExerciseReorderQuestion);
+      console.log('isReorderDirectionQuestion:', isReorderDirectionQuestion);
       console.log('isSetRemovalQuestion:', isSetRemovalQuestion);
-      console.log('Will show quick replies:', isQuestion && !selectedExercise);
+      console.log('selectedExercise:', selectedExercise);
+      console.log('Will show quick replies:', (isQuestion || isExerciseReorderQuestion || isReorderDirectionQuestion) && !selectedExercise);
       console.log('======================================\n');
     }
   }, [lastResponse]);
@@ -847,11 +850,11 @@ export default function AIButtonModal({
                   </View>
                   <Text style={styles.responseText}>{lastResponse}</Text>
 
-                  {/* Quick Reply Buttons - Show when AI asks a question */}
-                  {isQuestion && !selectedExercise && (
+                  {/* Quick Reply Buttons - Show when AI asks a question OR for special UIs */}
+                  {(isQuestion || isExerciseReorderQuestion || isReorderDirectionQuestion) && !selectedExercise && (
                     <View style={styles.quickReplyContainer}>
                       <Text style={styles.quickReplyLabel}>
-                        {isDaysQuestion ? 'Days per week:' : isSaveLocationQuestion ? 'Save to:' : isMuscleGroupQuestion ? 'Focus on:' : isExerciseLogQuestion ? 'Select exercise:' : isSetRemovalQuestion ? 'Tap a set to remove it:' : isExerciseModificationQuestion ? 'Remove exercise:' : isWorkoutRatingQuestion ? 'Rate workout:' : isRestDurationQuestion ? 'Rest duration:' : 'Quick Reply:'}
+                        {isDaysQuestion ? 'Days per week:' : isSaveLocationQuestion ? 'Save to:' : isMuscleGroupQuestion ? 'Focus on:' : isExerciseLogQuestion ? 'Select exercise:' : isSetRemovalQuestion ? 'Tap a set to remove it:' : isExerciseReorderQuestion ? 'Select exercise to reorder:' : isReorderDirectionQuestion ? 'Choose direction:' : isExerciseModificationQuestion ? 'Remove exercise:' : isWorkoutRatingQuestion ? 'Rate workout:' : isRestDurationQuestion ? 'Rest duration:' : 'Quick Reply:'}
                       </Text>
                       <View style={styles.quickReplyButtons}>
                         {isExerciseLogQuestion ? (
