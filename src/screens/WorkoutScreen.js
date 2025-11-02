@@ -1279,6 +1279,43 @@ export default function WorkoutScreen({ navigation, route }) {
       const newExercises = [...workoutExercises];
       newExercises.splice(exerciseToDelete, 1);
 
+      // Check if this was the last exercise
+      if (newExercises.length === 0) {
+        // No exercises left - end the workout and go back
+        Alert.alert(
+          'Workout Empty',
+          'You deleted the last exercise. Would you like to end this workout or add more exercises?',
+          [
+            {
+              text: 'End Workout',
+              onPress: () => {
+                finishWorkout();
+                setShowDeleteConfirmation(false);
+                setExerciseToDelete(null);
+              },
+              style: 'destructive'
+            },
+            {
+              text: 'Add Exercise',
+              onPress: () => {
+                setShowDeleteConfirmation(false);
+                setExerciseToDelete(null);
+                addAnotherExercise(); // Navigate to exercise library
+              }
+            },
+            {
+              text: 'Cancel',
+              onPress: () => {
+                setShowDeleteConfirmation(false);
+                setExerciseToDelete(null);
+              },
+              style: 'cancel'
+            }
+          ]
+        );
+        return;
+      }
+
       // Update exercise sets
       const newSets = { ...exerciseSets };
       delete newSets[exerciseToDelete];
@@ -1299,6 +1336,22 @@ export default function WorkoutScreen({ navigation, route }) {
         exercises: newExercises,
         exerciseSets: reindexedSets
       });
+
+      // Also save to AsyncStorage immediately
+      const saveToStorage = async () => {
+        try {
+          const activeWorkoutStr = await AsyncStorage.getItem('@active_workout');
+          if (activeWorkoutStr) {
+            const currentWorkout = JSON.parse(activeWorkoutStr);
+            currentWorkout.exercises = newExercises;
+            currentWorkout.exerciseSets = reindexedSets;
+            await AsyncStorage.setItem('@active_workout', JSON.stringify(currentWorkout));
+          }
+        } catch (error) {
+          console.error('Failed to save after exercise deletion:', error);
+        }
+      };
+      saveToStorage();
 
       // Adjust current index if needed
       if (currentExerciseIndex >= newExercises.length) {
