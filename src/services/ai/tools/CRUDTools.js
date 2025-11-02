@@ -801,6 +801,144 @@ export async function removeCompletedSet({ exerciseName, setIndex, userId }) {
 }
 
 /**
+ * REORDER EXERCISE
+ * Move an exercise to a new position in the workout
+ */
+export async function reorderExercise({ exerciseName, newPosition, direction, userId }) {
+  try {
+    const activeWorkoutKey = '@active_workout';
+    const activeWorkoutStr = await AsyncStorage.getItem(activeWorkoutKey);
+
+    if (!activeWorkoutStr) {
+      return {
+        success: false,
+        message: "No active workout. Start a workout first.",
+      };
+    }
+
+    const activeWorkout = JSON.parse(activeWorkoutStr);
+    const exercises = activeWorkout.exercises || [];
+
+    if (exercises.length === 0) {
+      return {
+        success: false,
+        message: "No exercises in your workout to reorder.",
+      };
+    }
+
+    // Find the exercise with fuzzy matching
+    const exerciseIndex = exercises.findIndex(
+      ex => {
+        const exName = ex.name.toLowerCase();
+        const searchName = exerciseName.toLowerCase();
+        return exName === searchName ||
+               exName.includes(searchName) ||
+               searchName.includes(exName);
+      }
+    );
+
+    if (exerciseIndex === -1) {
+      return {
+        success: false,
+        message: `${exerciseName} not found in your workout.`,
+      };
+    }
+
+    const exercise = exercises[exerciseIndex];
+    let targetPosition;
+
+    // Determine target position
+    if (direction) {
+      if (direction === 'up') {
+        if (exerciseIndex === 0) {
+          return {
+            success: false,
+            message: `${exercise.name} is already first. Can't move up.`,
+          };
+        }
+        targetPosition = exerciseIndex - 1;
+      } else if (direction === 'down') {
+        if (exerciseIndex === exercises.length - 1) {
+          return {
+            success: false,
+            message: `${exercise.name} is already last. Can't move down.`,
+          };
+        }
+        targetPosition = exerciseIndex + 1;
+      }
+    } else if (newPosition !== undefined) {
+      // Convert to 0-indexed
+      targetPosition = newPosition - 1;
+
+      if (targetPosition < 0 || targetPosition >= exercises.length) {
+        return {
+          success: false,
+          message: `Position ${newPosition} is invalid. Choose between 1 and ${exercises.length}.`,
+        };
+      }
+
+      if (targetPosition === exerciseIndex) {
+        return {
+          success: false,
+          message: `${exercise.name} is already at position ${newPosition}.`,
+        };
+      }
+    }
+
+    // Remove from old position
+    const [movedExercise] = exercises.splice(exerciseIndex, 1);
+
+    // Insert at new position
+    exercises.splice(targetPosition, 0, movedExercise);
+
+    // Reorder exerciseSets accordingly
+    const oldSets = activeWorkout.exerciseSets || {};
+    const newSets = {};
+
+    exercises.forEach((ex, newIndex) => {
+      // Find old index of this exercise
+      const oldIndex = activeWorkout.exercises.findIndex(e => e.id === ex.id);
+      if (oldSets[oldIndex.toString()]) {
+        newSets[newIndex.toString()] = oldSets[oldIndex.toString()];
+      }
+    });
+
+    // Update workout
+    activeWorkout.exercises = exercises;
+    activeWorkout.exerciseSets = newSets;
+
+    // Update current exercise index if needed
+    if (activeWorkout.currentExerciseIndex === exerciseIndex) {
+      activeWorkout.currentExerciseIndex = targetPosition;
+    }
+
+    // Save
+    await AsyncStorage.setItem(activeWorkoutKey, JSON.stringify(activeWorkout));
+
+    // Build new order display
+    const orderDisplay = exercises.map((ex, idx) => `${idx + 1}. ${ex.name}`).join('\n');
+
+    return {
+      success: true,
+      message: `Moved ${exercise.name} from position ${exerciseIndex + 1} to position ${targetPosition + 1}.\n\nNew order:\n${orderDisplay}`,
+      data: {
+        exerciseName: exercise.name,
+        oldPosition: exerciseIndex + 1,
+        newPosition: targetPosition + 1,
+        newOrder: exercises.map(ex => ex.name),
+      },
+    };
+  } catch (error) {
+    console.error('❌ reorderExercise error:', error);
+    return {
+      success: false,
+      error: error.message,
+      message: "Couldn't reorder exercise. Please try again.",
+    };
+  }
+}
+
+/**
  * LOG A MEAL
  * User says: "I ate 8oz chicken breast"
  */
@@ -1320,6 +1458,33 @@ export const crudToolSchemas = [
         },
       },
       required: ['exerciseName', 'setIndex', 'userId'],
+    },
+  },
+  {
+    name: 'reorderExercise',
+    description: 'Move an exercise to a new position in the workout. Use when user wants to reorder/move/rearrange exercises.',
+    parameters: {
+      type: 'object',
+      properties: {
+        exerciseName: {
+          type: 'string',
+          description: 'Name of the exercise to move',
+        },
+        newPosition: {
+          type: 'number',
+          description: 'New position number (1-indexed). e.g., 1 for first, 2 for second, etc.',
+        },
+        direction: {
+          type: 'string',
+          description: 'Direction to move: "up" or "down" (moves exercise one position)',
+          enum: ['up', 'down'],
+        },
+        userId: {
+          type: 'string',
+          description: 'User ID',
+        },
+      },
+      required: ['exerciseName', 'userId'],
     },
   },
   {

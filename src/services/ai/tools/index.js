@@ -39,6 +39,7 @@ import {
   startRestTimer,
   logWorkoutSet,
   removeCompletedSet,
+  reorderExercise,
   logMeal,
   getRecentWorkouts,
   updateUserProfile,
@@ -103,12 +104,13 @@ export function initializeTools() {
   ToolRegistry.registerTool('startRestTimer', crudToolSchemas[5], startRestTimer);
   ToolRegistry.registerTool('logWorkoutSet', crudToolSchemas[6], logWorkoutSet);
   ToolRegistry.registerTool('removeCompletedSet', crudToolSchemas[7], removeCompletedSet);
-  ToolRegistry.registerTool('logMeal', crudToolSchemas[8], logMeal);
-  ToolRegistry.registerTool('getRecentWorkouts', crudToolSchemas[9], getRecentWorkouts);
-  ToolRegistry.registerTool('updateUserProfile', crudToolSchemas[10], updateUserProfile);
-  ToolRegistry.registerTool('startWorkout', crudToolSchemas[11], startWorkout);
-  ToolRegistry.registerTool('savePlannedWorkout', crudToolSchemas[12], savePlannedWorkout);
-  ToolRegistry.registerTool('scheduleWorkoutForDate', crudToolSchemas[13], scheduleWorkoutForDate);
+  ToolRegistry.registerTool('reorderExercise', crudToolSchemas[8], reorderExercise);
+  ToolRegistry.registerTool('logMeal', crudToolSchemas[9], logMeal);
+  ToolRegistry.registerTool('getRecentWorkouts', crudToolSchemas[10], getRecentWorkouts);
+  ToolRegistry.registerTool('updateUserProfile', crudToolSchemas[11], updateUserProfile);
+  ToolRegistry.registerTool('startWorkout', crudToolSchemas[12], startWorkout);
+  ToolRegistry.registerTool('savePlannedWorkout', crudToolSchemas[13], savePlannedWorkout);
+  ToolRegistry.registerTool('scheduleWorkoutForDate', crudToolSchemas[14], scheduleWorkoutForDate);
 
   // Strength Training Tools
   ToolRegistry.registerTool('calculate1RM', strengthToolSchemas[0], calculate1RM);

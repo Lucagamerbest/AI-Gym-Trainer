@@ -81,7 +81,12 @@ export const WorkoutAssistantSections = [
         toolName: 'removeCompletedSet',
         showCompletedSets: true  // Special flag to show sets directly
       },
-      { icon: 'swap-vertical', text: 'Reorder exercises', toolName: 'modifyActiveWorkout' },
+      {
+        icon: 'swap-vertical',
+        text: 'Reorder exercises',
+        toolName: 'reorderExercise',
+        showExerciseReorder: true  // Special flag to show reorder UI
+      },
       { icon: 'timer', text: 'Start rest timer', toolName: 'startRestTimer' },
     ],
   },

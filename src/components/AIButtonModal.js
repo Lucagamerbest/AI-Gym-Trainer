@@ -320,6 +320,22 @@ export default function AIButtonModal({
   };
 
   /**
+   * Detect if we're showing the exercise reorder interface
+   */
+  const detectExerciseReorderQuestion = (response) => {
+    if (!response) return false;
+    return response.includes('Select an exercise to reorder:');
+  };
+
+  /**
+   * Detect if AI is asking how to move the exercise
+   */
+  const detectReorderDirectionQuestion = (response) => {
+    if (!response) return false;
+    return response.includes('How would you like to move');
+  };
+
+  /**
    * Detect if AI is asking for workout rating (Tool 3)
    */
   const detectWorkoutRatingQuestion = (response) => {
@@ -389,6 +405,20 @@ export default function AIButtonModal({
         setLastResponse("Here are your completed sets:");
       } else {
         setLastResponse("No completed sets to remove. Log some sets first!");
+      }
+      setExpandedSections({});
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+      return;
+    }
+
+    // Check if this is the "Reorder exercises" button - show exercise list
+    if (button.showExerciseReorder) {
+      if (activeWorkoutExercises.length > 0) {
+        setLastResponse("Select an exercise to reorder:");
+      } else {
+        setLastResponse("No exercises in your workout to reorder.");
       }
       setExpandedSections({});
       setTimeout(() => {
@@ -729,6 +759,8 @@ export default function AIButtonModal({
   const isRPERequested = detectRPERequest(lastResponse);
   const isExerciseModificationQuestion = detectExerciseModificationQuestion(lastResponse);
   const isSetRemovalQuestion = detectSetRemovalQuestion(lastResponse);
+  const isExerciseReorderQuestion = detectExerciseReorderQuestion(lastResponse);
+  const isReorderDirectionQuestion = detectReorderDirectionQuestion(lastResponse);
   const isWorkoutRatingQuestion = detectWorkoutRatingQuestion(lastResponse);
   const isRestDurationQuestion = detectRestDurationQuestion(lastResponse);
 
@@ -942,6 +974,62 @@ export default function AIButtonModal({
                             ) : (
                               <Text style={styles.noSetsText}>No completed sets to remove</Text>
                             )}
+                          </>
+                        ) : isExerciseReorderQuestion ? (
+                          <>
+                            {/* Exercise Reorder Buttons - Show exercises with up/down */}
+                            {activeWorkoutExercises.map((exerciseName, index) => (
+                              <TouchableOpacity
+                                key={index}
+                                style={[styles.quickReplyButton, styles.exerciseReorderButton]}
+                                onPress={() => handleQuickReply(`How would you like to move ${exerciseName}? Reply with: "up", "down", or "position X"`)}
+                                disabled={loadingButton !== null}
+                                activeOpacity={0.7}
+                              >
+                                <Text style={styles.quickReplyText}>{index + 1}. 🔄 {exerciseName}</Text>
+                              </TouchableOpacity>
+                            ))}
+                          </>
+                        ) : isReorderDirectionQuestion ? (
+                          <>
+                            {/* Direction Buttons - Move up, down, or to position */}
+                            <TouchableOpacity
+                              style={[styles.quickReplyButton, styles.directionButton]}
+                              onPress={() => {
+                                // Extract exercise name from last response
+                                const match = lastResponse.match(/move\s+(.+?)\?/i);
+                                const exerciseName = match ? match[1] : '';
+                                handleQuickReply(`Move ${exerciseName} up`);
+                              }}
+                              disabled={loadingButton !== null}
+                              activeOpacity={0.7}
+                            >
+                              <Text style={styles.quickReplyText}>🔼 Move Up</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              style={[styles.quickReplyButton, styles.directionButton]}
+                              onPress={() => {
+                                const match = lastResponse.match(/move\s+(.+?)\?/i);
+                                const exerciseName = match ? match[1] : '';
+                                handleQuickReply(`Move ${exerciseName} down`);
+                              }}
+                              disabled={loadingButton !== null}
+                              activeOpacity={0.7}
+                            >
+                              <Text style={styles.quickReplyText}>🔽 Move Down</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              style={[styles.quickReplyButton, styles.directionButton]}
+                              onPress={() => {
+                                const match = lastResponse.match(/move\s+(.+?)\?/i);
+                                const exerciseName = match ? match[1] : '';
+                                handleQuickReply(`Move ${exerciseName} to position 1`);
+                              }}
+                              disabled={loadingButton !== null}
+                              activeOpacity={0.7}
+                            >
+                              <Text style={styles.quickReplyText}>🎯 Move to First</Text>
+                            </TouchableOpacity>
                           </>
                         ) : isExerciseModificationQuestion ? (
                           <>
