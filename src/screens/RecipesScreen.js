@@ -12,7 +12,7 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { CommonActions } from '@react-navigation/native';
+import { CommonActions, useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ScreenLayout from '../components/ScreenLayout';
 import StyledCard from '../components/StyledCard';
@@ -33,7 +33,9 @@ export default function RecipesScreen({ navigation, route }) {
     fromMealPlanTemplate,
     templateDayIndex,
     templateMealType,
-    screenId
+    screenId,
+    highlightRecipe, // Recipe ID to highlight (from AI chat)
+    refreshTimestamp, // Timestamp to trigger refresh
   } = route.params || { mealType: 'lunch' };
 
   // Log screen ID when RecipesScreen receives it
@@ -41,6 +43,19 @@ export default function RecipesScreen({ navigation, route }) {
     if (fromMealPlanTemplate && screenId) {
     }
   }, [fromMealPlanTemplate, screenId]);
+
+  // State for highlighting newly created recipe
+  const [highlightedRecipeId, setHighlightedRecipeId] = useState(highlightRecipe);
+
+  // Clear highlight after 3 seconds
+  useEffect(() => {
+    if (highlightedRecipeId) {
+      const timer = setTimeout(() => {
+        setHighlightedRecipeId(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [highlightedRecipeId]);
 
   // Mock recipes for testing
   const mockRecipes = [
@@ -53,6 +68,7 @@ export default function RecipesScreen({ navigation, route }) {
         { food: { name: 'Broccoli', calories: 34, protein: 2.8, carbs: 7, fat: 0.4 }, quantity: 80 },
       ],
       nutrition: { calories: 410, protein: 36.4, carbs: 30, fat: 4.9 },
+      servings: 1,
     },
     {
       id: '2',
@@ -63,6 +79,7 @@ export default function RecipesScreen({ navigation, route }) {
         { food: { name: 'Peanut Butter', calories: 588, protein: 25, carbs: 20, fat: 50 }, quantity: 20 },
       ],
       nutrition: { calories: 383, protein: 15, carbs: 46.5, fat: 11.4 },
+      servings: 1,
     },
     {
       id: '3',
@@ -74,6 +91,7 @@ export default function RecipesScreen({ navigation, route }) {
         { food: { name: 'Olive Oil', calories: 884, protein: 0, carbs: 0, fat: 100 }, quantity: 15 },
       ],
       nutrition: { calories: 295, protein: 9.6, carbs: 9.4, fat: 24.4 },
+      servings: 1,
     },
   ];
 
@@ -93,19 +111,47 @@ export default function RecipesScreen({ navigation, route }) {
     ingredients: [],
   });
 
-  useEffect(() => {
-    loadRecipes();
-  }, []);
-
-  const loadRecipes = async () => {
+  const loadRecipes = useCallback(async () => {
     try {
       const saved = await AsyncStorage.getItem(RECIPES_KEY);
       if (saved) {
-        setRecipes(JSON.parse(saved));
+        const savedRecipes = JSON.parse(saved);
+        // Merge mock recipes with saved recipes, removing duplicates by ID
+        const allRecipes = [...savedRecipes];
+        mockRecipes.forEach(mockRecipe => {
+          if (!allRecipes.find(r => r.id === mockRecipe.id)) {
+            allRecipes.push(mockRecipe);
+          }
+        });
+        setRecipes(allRecipes);
+      } else {
+        // No saved recipes, use mock recipes
+        setRecipes(mockRecipes);
       }
     } catch (error) {
+      console.error('Error loading recipes:', error);
+      setRecipes(mockRecipes); // Fallback to mock recipes on error
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadRecipes();
+  }, [loadRecipes]);
+
+  // Reload recipes when screen comes into focus (e.g., after saving a new recipe)
+  useFocusEffect(
+    useCallback(() => {
+      loadRecipes();
+    }, [loadRecipes])
+  );
+
+  // Reload when refreshTimestamp changes (triggered by AI modal saving a recipe)
+  useEffect(() => {
+    if (refreshTimestamp) {
+      console.log('🔄 Refreshing recipes due to refreshTimestamp:', refreshTimestamp);
+      loadRecipes();
+    }
+  }, [refreshTimestamp, loadRecipes]);
 
   const saveRecipes = async (updatedRecipes) => {
     try {
@@ -212,6 +258,7 @@ export default function RecipesScreen({ navigation, route }) {
       name: newRecipe.name,
       ingredients: newRecipe.ingredients,
       nutrition,
+      servings: 1, // Default to 1 serving for manually created recipes
       isFavorite: false, // Default to not favorite
       createdAt: new Date().toISOString(),
     };
@@ -349,8 +396,19 @@ export default function RecipesScreen({ navigation, route }) {
     saveRecipes(updatedRecipes);
   };
 
-  const renderRecipe = ({ item }) => (
-    <StyledCard style={styles.recipeCard}>
+  const renderRecipe = ({ item }) => {
+    const isHighlighted = highlightedRecipeId === item.id;
+
+    return (
+    <StyledCard style={[
+      styles.recipeCard,
+      isHighlighted && styles.highlightedRecipeCard
+    ]}>
+      {isHighlighted && (
+        <View style={styles.newRecipeBadge}>
+          <Text style={styles.newRecipeBadgeText}>✨ Just Created</Text>
+        </View>
+      )}
       <View style={styles.recipeHeader}>
         <TouchableOpacity
           style={styles.favoriteButton}
@@ -403,7 +461,8 @@ export default function RecipesScreen({ navigation, route }) {
         </TouchableOpacity>
       </View>
     </StyledCard>
-  );
+    );
+  };
 
 
   const renderSearchResult = ({ item }) => (
@@ -446,6 +505,7 @@ export default function RecipesScreen({ navigation, route }) {
       showHome={true}
       scrollable={true}
       screenName="RecipesScreen"
+      onAIClose={loadRecipes}
     >
       <TouchableOpacity
         style={styles.createButton}
@@ -1186,4 +1246,28 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#1a1a1a',
   },*/
+  highlightedRecipeCard: {
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  newRecipeBadge: {
+    position: 'absolute',
+    top: -8,
+    right: 12,
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+    zIndex: 10,
+  },
+  newRecipeBadgeText: {
+    fontSize: Typography.fontSize.xs,
+    fontWeight: '700',
+    color: '#000',
+  },
 });

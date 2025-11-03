@@ -16,6 +16,12 @@ const DEFAULT_PROFILE = {
   preferences: {
     units: 'metric', // metric or imperial
   },
+  foodPreferences: {
+    cookingSkill: 'intermediate',
+    dislikedIngredients: [],
+    favoriteCuisines: [],
+    dietaryRestrictions: [],
+  },
 };
 
 // Get user profile from Firebase
@@ -134,5 +140,42 @@ export const getWorkoutGoals = async (userId) => {
   } catch (error) {
     console.error('Error loading workout goals:', error);
     return DEFAULT_PROFILE.workoutGoals;
+  }
+};
+
+// Get food preferences
+export const getFoodPreferences = async (userId) => {
+  try {
+    if (!userId || userId === 'guest') return DEFAULT_PROFILE.foodPreferences;
+
+    const firebaseProfile = await BackendService.getUserProfile(userId);
+
+    if (firebaseProfile?.foodPreferences) {
+      return {
+        cookingSkill: firebaseProfile.foodPreferences.cookingSkill || 'intermediate',
+        dislikedIngredients: firebaseProfile.foodPreferences.dislikedIngredients || [],
+        favoriteCuisines: firebaseProfile.foodPreferences.favoriteCuisines || [],
+        dietaryRestrictions: firebaseProfile.foodPreferences.dietaryRestrictions || [],
+      };
+    }
+
+    return DEFAULT_PROFILE.foodPreferences;
+  } catch (error) {
+    console.error('Error loading food preferences:', error);
+    return DEFAULT_PROFILE.foodPreferences;
+  }
+};
+
+// Update food preferences
+export const updateFoodPreferences = async (userId, preferences) => {
+  try {
+    if (!userId || userId === 'guest') throw new Error('User ID is required');
+
+    await BackendService.updateUserFoodPreferences(userId, preferences);
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating food preferences:', error);
+    return { success: false, error: error.message };
   }
 };

@@ -5,6 +5,7 @@ import MealSyncService from '../backend/MealSyncService';
 import BackendService from '../backend/BackendService';
 import ProgressSyncService from '../backend/ProgressSyncService';
 import { getUserProfileSummary } from '../userProfileAssessment';
+import { getFoodPreferences } from '../userProfileService';
 
 class ContextManager {
   constructor() {
@@ -214,6 +215,14 @@ class ContextManager {
       const caloriesTarget = calorieGoal;
       const caloriesRemaining = Math.round(calorieGoal - totalCalories);
 
+      // Get food preferences
+      let foodPreferences = null;
+      try {
+        foodPreferences = await getFoodPreferences(userId);
+      } catch (error) {
+        console.error('Error fetching food preferences for context:', error);
+      }
+
       const nutritionContext = {
         todaysMeals: meals.length,
         meals: meals.map(meal => ({
@@ -247,6 +256,7 @@ class ContextManager {
           remaining: Math.round(fatGoal - totalFat),
           percentage: Math.round((totalFat / fatGoal) * 100),
         },
+        foodPreferences: foodPreferences, // Add food preferences to context
       };
 
       return nutritionContext;
@@ -694,7 +704,7 @@ class ContextManager {
     let specificContext = {};
     if (screenName?.includes('Workout')) {
       specificContext = await this.getWorkoutContext();
-    } else if (screenName?.includes('Nutrition') || screenName?.includes('Food')) {
+    } else if (screenName?.includes('Nutrition') || screenName?.includes('Food') || screenName?.includes('Recipes')) {
       specificContext = await this.getNutritionContext(userId);
     } else if (screenName?.includes('Progress')) {
       specificContext = await this.getProgressContext(userId);

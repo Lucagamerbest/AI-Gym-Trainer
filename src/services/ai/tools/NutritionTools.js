@@ -297,6 +297,419 @@ export async function calculateMealMacros({ ingredients }) {
   }
 }
 
+/**
+ * GENERATE WEEKLY MEAL PLAN
+ * User says: "Create a meal plan for this week" or "Plan my meals to hit 2000 calories and 150g protein"
+ *
+ * Generates a complete 7-day meal plan with breakfast, lunch, dinner (and snacks if requested)
+ */
+export async function generateWeeklyMealPlan({
+  dailyCalories,
+  dailyProtein,
+  dailyCarbs = null,
+  dailyFat = null,
+  mealsPerDay = 3,
+  dietaryRestrictions = [],
+  preferences = null,
+  userId
+}) {
+  try {
+    console.log('📅 Generating weekly meal plan:', {
+      dailyCalories,
+      dailyProtein,
+      dailyCarbs,
+      dailyFat,
+      mealsPerDay,
+      dietaryRestrictions,
+      preferences
+    });
+
+    // Calculate macros if not all provided
+    if (!dailyCarbs || !dailyFat) {
+      // Use standard macro ratios
+      const proteinCals = dailyProtein * 4;
+      const remainingCals = dailyCalories - proteinCals;
+
+      if (!dailyFat) {
+        dailyFat = Math.round((dailyCalories * 0.25) / 9); // 25% of calories from fat
+      }
+
+      if (!dailyCarbs) {
+        const fatCals = dailyFat * 9;
+        dailyCarbs = Math.round((dailyCalories - proteinCals - fatCals) / 4);
+      }
+    }
+
+    // Build prompt
+    let prompt = `Create a detailed 7-day meal plan with the following daily targets:
+- Calories: ${dailyCalories}
+- Protein: ${dailyProtein}g
+- Carbs: ${dailyCarbs}g
+- Fat: ${dailyFat}g
+- Meals per day: ${mealsPerDay}
+
+Requirements:
+- Each day should have ${mealsPerDay} meals (breakfast, lunch, dinner${mealsPerDay > 3 ? ', and snacks' : ''})
+- Include specific portion sizes
+- Calculate exact macros for each meal
+- Make meals varied and realistic
+- Keep prep simple (30 min or less per meal)
+- Each meal should be balanced and satisfying`;
+
+    if (dietaryRestrictions.length > 0) {
+      prompt += `\n- Follow these dietary restrictions: ${dietaryRestrictions.join(', ')}`;
+    }
+
+    if (preferences) {
+      prompt += `\n- User preferences: ${preferences}`;
+    }
+
+    prompt += `\n\nFormat the response as JSON:
+{
+  "weekSummary": {
+    "totalCalories": ${dailyCalories * 7},
+    "avgDailyCalories": ${dailyCalories},
+    "avgDailyProtein": ${dailyProtein},
+    "avgDailyCarbs": ${dailyCarbs},
+    "avgDailyFat": ${dailyFat}
+  },
+  "days": [
+    {
+      "day": "Monday",
+      "meals": [
+        {
+          "type": "breakfast",
+          "name": "Meal name",
+          "foods": [
+            { "item": "food item", "amount": "portion", "calories": 200, "protein": 20, "carbs": 30, "fat": 5 }
+          ],
+          "totalCalories": 500,
+          "totalProtein": 35,
+          "totalCarbs": 60,
+          "totalFat": 15,
+          "prepTime": "15 minutes"
+        }
+      ],
+      "dailyTotals": {
+        "calories": ${dailyCalories},
+        "protein": ${dailyProtein},
+        "carbs": ${dailyCarbs},
+        "fat": ${dailyFat}
+      }
+    }
+  ],
+  "shoppingList": ["ingredient 1", "ingredient 2"],
+  "tips": ["meal prep tip 1", "tip 2"]
+}`;
+
+    // Import GoogleGenerativeAI and get API key from AIService
+    const { GoogleGenerativeAI } = await import('@google/generative-ai');
+    const { default: AIService } = await import('../AIService');
+
+    // Get API key from AIService
+    if (!AIService.apiKey) {
+      return {
+        success: false,
+        message: "Gemini API key not configured.",
+      };
+    }
+
+    const genAI = new GoogleGenerativeAI(AIService.apiKey);
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+
+    // Generate meal plan
+    const result = await model.generateContent(prompt, {
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: 4000,
+      },
+    });
+    const response = result.response.text();
+
+    // Parse response
+    let mealPlan;
+    try {
+      const jsonMatch = response.match(/```json\n([\s\S]*?)\n```/) || response.match(/```\n([\s\S]*?)\n```/);
+      const jsonStr = jsonMatch ? jsonMatch[1] : response;
+      mealPlan = JSON.parse(jsonStr);
+    } catch (parseError) {
+      console.error('Failed to parse meal plan JSON:', parseError);
+      return {
+        success: false,
+        message: "Couldn't create meal plan. Please try again.",
+        rawResponse: response,
+      };
+    }
+
+    // Add metadata
+    mealPlan.id = `mealplan_${Date.now()}`;
+    mealPlan.createdAt = new Date().toISOString();
+    mealPlan.createdBy = 'AI';
+
+    // Save to AsyncStorage
+    const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
+    const MEAL_PLANS_KEY = '@meal_plans';
+    const savedPlansStr = await AsyncStorage.getItem(MEAL_PLANS_KEY);
+    const savedPlans = savedPlansStr ? JSON.parse(savedPlansStr) : [];
+
+    savedPlans.push(mealPlan);
+    await AsyncStorage.setItem(MEAL_PLANS_KEY, JSON.stringify(savedPlans));
+
+    // Build success message
+    const message = `✅ Created your 7-day meal plan!
+
+📊 Daily Targets:
+• ${dailyCalories} calories
+• ${dailyProtein}g protein
+• ${dailyCarbs}g carbs
+• ${dailyFat}g fat
+
+📅 ${mealPlan.days.length} days planned with ${mealsPerDay} meals/day
+🛒 Shopping list included with ${mealPlan.shoppingList?.length || 0} items
+
+Your meal plan is saved and ready!`;
+
+    return {
+      success: true,
+      message,
+      data: {
+        mealPlan,
+        mealPlanId: mealPlan.id,
+      },
+      action: 'meal_plan_generated',
+    };
+
+  } catch (error) {
+    console.error('❌ generateWeeklyMealPlan error:', error);
+    return {
+      success: false,
+      error: error.message,
+      message: "Couldn't generate meal plan. Please try again.",
+    };
+  }
+}
+
+/**
+ * SUGGEST NEXT MEAL FOR BALANCE
+ * User says: "What should I eat for dinner?" or "Suggest my next meal"
+ *
+ * Analyzes today's intake and suggests a meal to balance macros
+ */
+export async function suggestNextMealForBalance({
+  userId,
+  mealType = null
+}) {
+  try {
+    console.log('🍽️ Suggesting next meal for balance:', { userId, mealType });
+
+    // Get today's nutrition status
+    const nutritionStatus = await getNutritionStatus({ userId });
+
+    if (!nutritionStatus.success) {
+      return {
+        success: false,
+        message: "Couldn't analyze your nutrition. Please log some meals first.",
+      };
+    }
+
+    const { consumed, remaining, goals } = nutritionStatus.data;
+
+    // Build prompt
+    const currentTime = new Date().getHours();
+    let suggestedMealType = mealType;
+
+    if (!suggestedMealType) {
+      // Auto-detect meal type based on time
+      if (currentTime < 11) suggestedMealType = 'breakfast';
+      else if (currentTime < 15) suggestedMealType = 'lunch';
+      else if (currentTime < 20) suggestedMealType = 'dinner';
+      else suggestedMealType = 'snack';
+    }
+
+    let prompt = `The user needs a ${suggestedMealType} suggestion.
+
+Current nutrition today:
+• Consumed: ${consumed.calories} calories, ${consumed.protein}g protein, ${consumed.carbs}g carbs, ${consumed.fat}g fat
+• Daily Goals: ${goals.calories} calories, ${goals.protein}g protein, ${goals.carbs}g carbs, ${goals.fat}g fat
+• Remaining: ${remaining.calories} calories, ${remaining.protein}g protein, ${remaining.carbs}g carbs, ${remaining.fat}g fat
+
+Suggest a ${suggestedMealType} that:
+1. Uses most of the remaining macros appropriately
+2. Is realistic and easy to prepare
+3. Includes specific portion sizes
+4. Has detailed macro breakdown
+
+Provide 2-3 meal options with:
+- Meal name
+- Ingredients with amounts
+- Prep instructions (brief)
+- Total macros (calories, protein, carbs, fat)
+- Why this meal balances their day`;
+
+    // Import GoogleGenerativeAI and get API key from AIService
+    const { GoogleGenerativeAI } = await import('@google/generative-ai');
+    const { default: AIService } = await import('../AIService');
+
+    if (!AIService.apiKey) {
+      return {
+        success: false,
+        message: "Gemini API key not configured.",
+      };
+    }
+
+    const genAI = new GoogleGenerativeAI(AIService.apiKey);
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+
+    const result = await model.generateContent(prompt, {
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: 1500,
+      },
+    });
+    const response = result.response.text();
+
+    return {
+      success: true,
+      message: `🍽️ ${suggestedMealType.charAt(0).toUpperCase() + suggestedMealType.slice(1)} suggestions to balance your macros:\n\n${response}`,
+      data: {
+        mealType: suggestedMealType,
+        remaining,
+        suggestions: response,
+      },
+    };
+
+  } catch (error) {
+    console.error('❌ suggestNextMealForBalance error:', error);
+    return {
+      success: false,
+      error: error.message,
+      message: "Couldn't suggest meal. Please try again.",
+    };
+  }
+}
+
+/**
+ * PREDICT DAILY MACRO SHORTFALL
+ * User says: "Will I hit my protein goal today?" or "Am I on track for my calories?"
+ *
+ * Predicts if user will meet macro targets based on current progress and time of day
+ */
+export async function predictDailyMacroShortfall({ userId }) {
+  try {
+    console.log('📊 Predicting daily macro shortfall:', { userId });
+
+    // Get current nutrition status
+    const nutritionStatus = await getNutritionStatus({ userId });
+
+    if (!nutritionStatus.success) {
+      return {
+        success: false,
+        message: "Couldn't analyze your nutrition. Please log some meals first.",
+      };
+    }
+
+    const { consumed, remaining, goals, percentages } = nutritionStatus.data;
+
+    // Calculate time-based predictions
+    const now = new Date();
+    const currentHour = now.getHours();
+    const hoursIntoDay = currentHour;
+    const hoursRemaining = 24 - currentHour;
+    const dayProgress = hoursIntoDay / 24; // 0.0 to 1.0
+
+    // Expected consumption by this time (assuming even distribution)
+    const expectedCalories = goals.calories * dayProgress;
+    const expectedProtein = goals.protein * dayProgress;
+    const expectedCarbs = goals.carbs * dayProgress;
+    const expectedFat = goals.fat * dayProgress;
+
+    // Calculate variance
+    const caloriesVariance = consumed.calories - expectedCalories;
+    const proteinVariance = consumed.protein - expectedProtein;
+    const carbsVariance = consumed.carbs - expectedCarbs;
+    const fatVariance = consumed.fat - expectedFat;
+
+    // Predict end-of-day totals (simple linear projection)
+    const predictedCalories = Math.round(consumed.calories + (consumed.calories / dayProgress) * (1 - dayProgress));
+    const predictedProtein = Math.round(consumed.protein + (consumed.protein / dayProgress) * (1 - dayProgress));
+    const predictedCarbs = Math.round(consumed.carbs + (consumed.carbs / dayProgress) * (1 - dayProgress));
+    const predictedFat = Math.round(consumed.fat + (consumed.fat / dayProgress) * (1 - dayProgress));
+
+    // Determine status
+    const willHitCalories = Math.abs(predictedCalories - goals.calories) < (goals.calories * 0.1); // Within 10%
+    const willHitProtein = Math.abs(predictedProtein - goals.protein) < (goals.protein * 0.15); // Within 15%
+    const willHitCarbs = Math.abs(predictedCarbs - goals.carbs) < (goals.carbs * 0.15);
+    const willHitFat = Math.abs(predictedFat - goals.fat) < (goals.fat * 0.15);
+
+    // Build message
+    let message = `📊 Macro Prediction for Today (${currentHour}:00):\n\n`;
+
+    message += `Progress: ${Math.round(dayProgress * 100)}% through the day\n\n`;
+
+    message += `Current vs Expected:\n`;
+    message += `• Calories: ${consumed.calories}/${Math.round(expectedCalories)} ${caloriesVariance >= 0 ? '✅' : '⚠️'}\n`;
+    message += `• Protein: ${consumed.protein}g/${Math.round(expectedProtein)}g ${proteinVariance >= 0 ? '✅' : '⚠️'}\n`;
+    message += `• Carbs: ${consumed.carbs}g/${Math.round(expectedCarbs)}g ${carbsVariance >= 0 ? '✅' : '⚠️'}\n`;
+    message += `• Fat: ${consumed.fat}g/${Math.round(expectedFat)}g ${fatVariance >= 0 ? '✅' : '⚠️'}\n\n`;
+
+    message += `Predicted End-of-Day:\n`;
+    message += `• Calories: ${predictedCalories}/${goals.calories} ${willHitCalories ? '✅' : '❌'}\n`;
+    message += `• Protein: ${predictedProtein}g/${goals.protein}g ${willHitProtein ? '✅' : '❌'}\n`;
+    message += `• Carbs: ${predictedCarbs}g/${goals.carbs}g ${willHitCarbs ? '✅' : '❌'}\n`;
+    message += `• Fat: ${predictedFat}g/${goals.fat}g ${willHitFat ? '✅' : '❌'}\n\n`;
+
+    // Recommendations
+    if (!willHitProtein && remaining.protein > 20) {
+      message += `⚠️ You're ${Math.round(goals.protein - predictedProtein)}g short on protein. Add a protein shake or chicken breast!\n`;
+    }
+
+    if (!willHitCalories && remaining.calories > 300) {
+      message += `⚠️ You're ${Math.round(goals.calories - predictedCalories)} calories behind. Consider adding a meal.\n`;
+    }
+
+    if (willHitProtein && willHitCalories) {
+      message += `✅ You're on track! Keep it up!\n`;
+    }
+
+    return {
+      success: true,
+      message,
+      data: {
+        currentTime: currentHour,
+        dayProgress,
+        consumed,
+        expected: {
+          calories: Math.round(expectedCalories),
+          protein: Math.round(expectedProtein),
+          carbs: Math.round(expectedCarbs),
+          fat: Math.round(expectedFat),
+        },
+        predicted: {
+          calories: predictedCalories,
+          protein: predictedProtein,
+          carbs: predictedCarbs,
+          fat: predictedFat,
+        },
+        willHit: {
+          calories: willHitCalories,
+          protein: willHitProtein,
+          carbs: willHitCarbs,
+          fat: willHitFat,
+        },
+        remaining,
+      },
+    };
+
+  } catch (error) {
+    console.error('❌ predictDailyMacroShortfall error:', error);
+    return {
+      success: false,
+      error: error.message,
+      message: "Couldn't predict macro progress. Please try again.",
+    };
+  }
+}
+
 // Export tool schemas for Gemini function calling
 export const nutritionToolSchemas = [
   {
@@ -403,6 +816,82 @@ export const nutritionToolSchemas = [
         },
       },
       required: ['ingredients'],
+    },
+  },
+  {
+    name: 'generateWeeklyMealPlan',
+    description: 'Generate a complete 7-day meal plan that hits daily macro targets. Use when user wants meal planning for the week or asks "what should I eat this week?"',
+    parameters: {
+      type: 'object',
+      properties: {
+        dailyCalories: {
+          type: 'number',
+          description: 'Target daily calories',
+        },
+        dailyProtein: {
+          type: 'number',
+          description: 'Target daily protein in grams',
+        },
+        dailyCarbs: {
+          type: 'number',
+          description: 'Target daily carbs in grams',
+        },
+        dailyFat: {
+          type: 'number',
+          description: 'Target daily fat in grams',
+        },
+        mealsPerDay: {
+          type: 'number',
+          description: 'Number of meals per day (default: 3)',
+        },
+        dietaryRestrictions: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Dietary restrictions (e.g., ["vegetarian", "gluten-free"])',
+        },
+        preferences: {
+          type: 'string',
+          description: 'Any food preferences or dislikes',
+        },
+        userId: {
+          type: 'string',
+          description: 'User ID',
+        },
+      },
+      required: ['dailyCalories', 'dailyProtein', 'userId'],
+    },
+  },
+  {
+    name: 'suggestNextMealForBalance',
+    description: 'Analyze what user has eaten today and suggest the next meal to balance their macros. Use when user asks "what should I eat next?" or "what for dinner?"',
+    parameters: {
+      type: 'object',
+      properties: {
+        userId: {
+          type: 'string',
+          description: 'User ID',
+        },
+        mealType: {
+          type: 'string',
+          enum: ['breakfast', 'lunch', 'dinner', 'snack'],
+          description: 'Type of meal to suggest',
+        },
+      },
+      required: ['userId'],
+    },
+  },
+  {
+    name: 'predictDailyMacroShortfall',
+    description: 'Predict if user will hit their macro targets by end of day based on current intake and time. Use when user asks "will I hit my protein goal?" or "am I on track?"',
+    parameters: {
+      type: 'object',
+      properties: {
+        userId: {
+          type: 'string',
+          description: 'User ID',
+        },
+      },
+      required: ['userId'],
     },
   },
 ];

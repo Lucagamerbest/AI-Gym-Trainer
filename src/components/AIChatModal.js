@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import AIService from '../services/ai/AIService';
 import ContextManager from '../services/ai/ContextManager';
@@ -24,6 +25,7 @@ import QuickAITests from './QuickAITests';
 
 export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
   const { user } = useAuth(); // Get real user from AuthContext
+  const navigation = useNavigation(); // For navigating to RecipesScreen
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(false);
@@ -331,12 +333,14 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
       }
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
+      console.log('📦 Adding message with toolResults:', result.toolResults);
       addMessage({
         role: 'assistant',
         content: result.response,
         timestamp: new Date().toISOString(),
         model: result.model,
         toolsUsed: result.toolsUsed,
+        toolResults: result.toolResults, // Pass tool results for recipe cards, etc.
       });
 
       // Debug: Log contextual buttons state
@@ -399,9 +403,66 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
     return parts.length > 0 ? parts : [{ text, bold: false }];
   };
 
+  const handleSaveRecipe = async (recipeCard) => {
+    try {
+      const fullRecipe = recipeCard.fullRecipe;
+      const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
+      const RECIPES_KEY = '@saved_recipes';
+
+      const savedRecipesStr = await AsyncStorage.getItem(RECIPES_KEY);
+      const savedRecipes = savedRecipesStr ? JSON.parse(savedRecipesStr) : [];
+
+      savedRecipes.push(fullRecipe);
+      await AsyncStorage.setItem(RECIPES_KEY, JSON.stringify(savedRecipes));
+
+      // Update the message to show it was saved
+      addMessage({
+        role: 'assistant',
+        content: `✅ Recipe "${fullRecipe.title}" saved to your collection!`,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error('Error saving recipe:', error);
+      addMessage({
+        role: 'assistant',
+        content: "Sorry, there was an error saving the recipe. Please try again.",
+        timestamp: new Date().toISOString(),
+      });
+    }
+  };
+
+  const handleDiscardRecipe = () => {
+    addMessage({
+      role: 'assistant',
+      content: "Recipe discarded. Let me know if you'd like to generate another one!",
+      timestamp: new Date().toISOString(),
+    });
+  };
+
+  const handleRegenerateRecipe = async (recipeCard) => {
+    const originalIngredients = recipeCard.originalIngredients;
+    addMessage({
+      role: 'assistant',
+      content: "Generating a new recipe with different approach...",
+      timestamp: new Date().toISOString(),
+    });
+
+    // Auto-send the recipe generation request again
+    setTimeout(() => {
+      handleSendMessage(`Create a different recipe using: ${originalIngredients.join(', ')}`);
+    }, 500);
+  };
+
   const renderMessage = ({ item }) => {
     const isUser = item.role === 'user';
     const parsedContent = parseMarkdown(item.content);
+
+    // Check if this message has a recipe card
+    console.log('🔍 Rendering message, toolResults:', item.toolResults);
+    const toolResult = item.toolResults?.find(tool => tool.result?.recipeCard);
+    console.log('🔍 Found toolResult:', toolResult);
+    const recipeCard = toolResult?.result?.recipeCard;
+    console.log('🔍 Recipe card:', recipeCard);
 
     return (
       <View style={[
@@ -421,6 +482,78 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
             </Text>
           ))}
         </Text>
+
+        {/* Recipe Card */}
+        {recipeCard && console.log('✅ RENDERING RECIPE CARD:', recipeCard.title)}
+        {recipeCard && (
+          <View style={styles.recipeCard}>
+            <View style={styles.recipeCardHeader}>
+              <Text style={styles.recipeCardTitle}>{recipeCard.title}</Text>
+              <Text style={styles.recipeServings}>Serves {recipeCard.servings}</Text>
+            </View>
+            <View style={styles.recipeNutrition}>
+              <View style={styles.nutritionItem}>
+                <Text style={styles.nutritionValue}>{recipeCard.calories}</Text>
+                <Text style={styles.nutritionLabel}>cal</Text>
+              </View>
+              <View style={styles.nutritionItem}>
+                <Text style={styles.nutritionValue}>{recipeCard.protein}g</Text>
+                <Text style={styles.nutritionLabel}>protein</Text>
+              </View>
+              <View style={styles.nutritionItem}>
+                <Text style={styles.nutritionValue}>{recipeCard.carbs}g</Text>
+                <Text style={styles.nutritionLabel}>carbs</Text>
+              </View>
+              <View style={styles.nutritionItem}>
+                <Text style={styles.nutritionValue}>{recipeCard.fat}g</Text>
+                <Text style={styles.nutritionLabel}>fat</Text>
+              </View>
+            </View>
+            <View style={styles.recipeTimings}>
+              <Text style={styles.recipeTime}>⏱️ {recipeCard.prepTime} prep</Text>
+              <Text style={styles.recipeTime}>🔥 {recipeCard.cookTime} cook</Text>
+            </View>
+
+            {/* Confirmation Buttons or View Recipe Button */}
+            {recipeCard.needsConfirmation ? (
+              <View style={styles.recipeConfirmationButtons}>
+                <TouchableOpacity
+                  style={[styles.recipeActionButton, styles.saveRecipeButton]}
+                  onPress={() => handleSaveRecipe(recipeCard)}
+                >
+                  <Ionicons name="save" size={18} color="#fff" />
+                  <Text style={styles.saveRecipeText}>Save to Recipes</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.recipeActionButton, styles.discardRecipeButton]}
+                  onPress={handleDiscardRecipe}
+                >
+                  <Ionicons name="close-circle" size={18} color={Colors.error} />
+                  <Text style={styles.discardRecipeText}>Discard</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.recipeActionButton, styles.regenerateRecipeButton]}
+                  onPress={() => handleRegenerateRecipe(recipeCard)}
+                >
+                  <Ionicons name="refresh" size={18} color={Colors.primary} />
+                  <Text style={styles.regenerateRecipeText}>Generate New</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <TouchableOpacity
+                style={styles.viewRecipeButton}
+                onPress={() => {
+                  onClose();
+                  navigation.navigate('RecipesScreen', { highlightRecipe: recipeCard.recipeId });
+                }}
+              >
+                <Ionicons name="book" size={18} color={Colors.primary} />
+                <Text style={styles.viewRecipeText}>View Full Recipe</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
+
         {item.model && (
           <Text style={styles.modelText}>
             {item.model}
@@ -716,6 +849,113 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.xs,
     color: Colors.textMuted,
     marginTop: Spacing.xs,
+  },
+  recipeCard: {
+    marginTop: Spacing.md,
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  recipeCardHeader: {
+    marginBottom: Spacing.sm,
+  },
+  recipeCardTitle: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: '700',
+    color: Colors.text,
+    marginBottom: 4,
+  },
+  recipeServings: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+  },
+  recipeNutrition: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.sm,
+    paddingVertical: Spacing.sm,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: Colors.border,
+  },
+  nutritionItem: {
+    alignItems: 'center',
+  },
+  nutritionValue: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '700',
+    color: Colors.primary,
+    marginBottom: 2,
+  },
+  nutritionLabel: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textMuted,
+  },
+  recipeTimings: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+    marginBottom: Spacing.sm,
+  },
+  recipeTime: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+  },
+  viewRecipeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.primary + '20',
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.md,
+    gap: Spacing.xs,
+  },
+  viewRecipeText: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+    color: Colors.primary,
+  },
+  recipeConfirmationButtons: {
+    gap: Spacing.sm,
+  },
+  recipeActionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.md,
+    gap: Spacing.xs,
+  },
+  saveRecipeButton: {
+    backgroundColor: Colors.primary,
+  },
+  saveRecipeText: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+    color: '#000',
+  },
+  discardRecipeButton: {
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.error,
+  },
+  discardRecipeText: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+    color: Colors.error,
+  },
+  regenerateRecipeButton: {
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+  },
+  regenerateRecipeText: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+    color: Colors.primary,
   },
   loadingContainer: {
     alignItems: 'flex-start',

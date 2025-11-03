@@ -74,7 +74,6 @@ export const WorkoutAssistantSections = [
     title: 'Workout Control',
     icon: 'settings',
     buttons: [
-      { icon: 'play-skip-forward', text: 'Skip to next exercise', toolName: 'skipToNextExercise' },
       {
         icon: 'trash',
         text: 'Remove set',
@@ -87,16 +86,6 @@ export const WorkoutAssistantSections = [
         toolName: 'reorderExercise',
         showExerciseReorder: true  // Special flag to show reorder UI
       },
-      { icon: 'timer', text: 'Start rest timer', toolName: 'startRestTimer' },
-    ],
-  },
-  {
-    title: 'Status & Finish',
-    icon: 'stats-chart',
-    buttons: [
-      { icon: 'information-circle', text: 'Check my progress', toolName: 'getActiveWorkoutStatus' },
-      { icon: 'checkmark-done', text: 'Finish workout', toolName: 'finishWorkout' },
-      { icon: 'star', text: 'Finish with rating', toolName: 'finishWorkout' },
     ],
   },
 ];
@@ -243,22 +232,44 @@ export const FoodScanResultScreenSections = [
 
 export const ProgressScreenSections = [
   {
+    title: 'Goal Predictions',
+    icon: 'calendar',
+    buttons: [
+      {
+        icon: 'calendar',
+        text: 'Predict goal completion',
+        toolName: 'predictGoalCompletionDate',
+        prompt: 'When will I be able to bench press 225 lbs?'
+      },
+      {
+        icon: 'alert-circle',
+        text: 'Detect plateau',
+        toolName: 'detectProgressPlateau',
+        prompt: 'Am I plateauing on bench press?'
+      },
+      { icon: 'checkmark-circle', text: 'Am I on track?', toolName: 'checkGoalProgress' },
+    ],
+  },
+  {
     title: 'Progress Analysis',
     icon: 'trending-up',
     buttons: [
       { icon: 'stats-chart', text: 'Analyze my progress', toolName: 'analyzeProgress' },
+      {
+        icon: 'body',
+        text: 'Estimate body fat %',
+        toolName: 'estimateBodyFatPercentage',
+        prompt: 'Estimate my body fat percentage with waist 34, neck 15, height 70'
+      },
       { icon: 'trophy', text: 'Recent achievements', toolName: 'getRecentAchievements' },
       { icon: 'trending-up', text: 'Weight trend', toolName: 'analyzeWeightTrend' },
-      { icon: 'body', text: 'Body composition', toolName: 'analyzeBodyComposition' },
     ],
   },
   {
-    title: 'Goal Tracking',
-    icon: 'trophy',
+    title: 'Recommendations',
+    icon: 'bulb',
     buttons: [
-      { icon: 'checkmark-circle', text: 'Am I on track?', toolName: 'checkGoalProgress' },
-      { icon: 'calendar', text: 'Time to goal', toolName: 'estimateTimeToGoal' },
-      { icon: 'bulb', text: 'Recommendations', toolName: 'getProgressRecommendations' },
+      { icon: 'bulb', text: 'Get recommendations', toolName: 'getProgressRecommendations' },
     ],
   },
 ];
@@ -372,21 +383,37 @@ export const ProfileScreenSections = [
 
 export const MealsHistoryScreenSections = [
   {
+    title: 'Smart Meal Planning',
+    icon: 'calendar',
+    buttons: [
+      {
+        icon: 'calendar',
+        text: 'Generate week meal plan',
+        toolName: 'generateWeeklyMealPlan',
+        prompt: 'Create a 7-day meal plan for 2000 calories and 150g protein daily'
+      },
+      {
+        icon: 'trending-up',
+        text: 'Predict macro shortfall',
+        toolName: 'predictDailyMacroShortfall',
+        prompt: 'Will I hit my protein goal today?'
+      },
+      {
+        icon: 'restaurant',
+        text: 'Suggest next meal',
+        toolName: 'suggestNextMealForBalance',
+        prompt: 'What should I eat for dinner to balance my macros?'
+      },
+    ],
+  },
+  {
     title: 'Meal Analysis',
     icon: 'analytics',
     buttons: [
       { icon: 'stats-chart', text: 'Analyze eating patterns', toolName: 'analyzeMealPatterns' },
       { icon: 'trending-up', text: 'Macro consistency', toolName: 'analyzeMacroConsistency' },
       { icon: 'checkmark-circle', text: 'Am I hitting my goals?', toolName: 'analyzeNutritionProgress' },
-    ],
-  },
-  {
-    title: 'Meal Planning',
-    icon: 'calendar',
-    buttons: [
-      { icon: 'restaurant', text: 'Plan meals for week', toolName: 'planWeeklyMeals' },
       { icon: 'copy', text: 'Copy successful day', toolName: 'copyMealDay' },
-      { icon: 'bulb', text: 'Improve my diet', toolName: 'improveDiet' },
     ],
   },
 ];
@@ -477,11 +504,41 @@ export const AI_SECTION_CONFIG = {
   MealsHistoryScreen: MealsHistoryScreenSections,
   RecipesScreen: [
     {
-      title: 'Recipe Suggestions',
-      icon: 'restaurant',
+      title: 'Recipe Generation',
+      icon: 'sparkles',
       buttons: [
+        {
+          icon: 'restaurant',
+          text: 'Generate from ingredients',
+          toolName: 'generateRecipeFromIngredients',
+          promptTemplate: 'recentIngredients', // Special flag to use recent foods
+          fallbackPrompt: 'Generate a healthy, high-protein recipe. CRITICAL: Pick COMPLETELY DIFFERENT ingredients each time. Randomly choose: 1 protein (chicken/beef/pork/salmon/tilapia/shrimp/turkey/eggs/tofu), 1 carb (white rice/brown rice/pasta/quinoa/potatoes/sweet potatoes/couscous), and 2-3 vegetables (broccoli/carrots/bell peppers/spinach/green beans/zucchini/mushrooms/asparagus). NEVER repeat the same combination. Mix it up every single time!'
+        },
+        {
+          icon: 'fitness',
+          text: 'High-protein recipe',
+          toolName: 'generateRecipeFromIngredients',
+          prompt: 'Generate a high-protein recipe with at least 40g protein'
+        },
+        {
+          icon: 'scale',
+          text: 'Adapt recipe to my macros',
+          toolName: 'adaptRecipeToMacros',
+          prompt: 'Adjust my last recipe to 500 calories and 45g protein'
+        },
+      ],
+    },
+    {
+      title: 'Recipe Help',
+      icon: 'help-circle',
+      buttons: [
+        {
+          icon: 'swap-horizontal',
+          text: 'Substitute ingredient',
+          toolName: 'suggestIngredientSubstitutions',
+          prompt: 'I don\'t have chicken, what can I use?'
+        },
         { icon: 'restaurant', text: 'High protein recipe', toolName: 'suggestRecipe', params: { highProtein: true } },
-        { icon: 'leaf', text: 'Suggest recipe', toolName: 'suggestRecipe' },
         { icon: 'flame', text: 'Low calorie recipe', toolName: 'suggestRecipe', params: { lowCalorie: true } },
       ],
     },

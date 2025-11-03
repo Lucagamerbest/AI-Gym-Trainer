@@ -9,6 +9,7 @@ import { getAISectionsForScreen, hasAISections } from '../config/aiSectionConfig
 import AIService from '../services/ai/AIService';
 import ContextManager from '../services/ai/ContextManager';
 import { useAuth } from '../context/AuthContext';
+import { getRecentFoods } from '../services/foodDatabase';
 
 /**
  * AIButtonModal
@@ -27,6 +28,7 @@ export default function AIButtonModal({
 
   const [loadingButton, setLoadingButton] = useState(null);
   const [lastResponse, setLastResponse] = useState(null);
+  const [lastToolResults, setLastToolResults] = useState(null); // Store tool results for recipe cards, etc.
   const [expandedSections, setExpandedSections] = useState({});
   const [conversationHistory, setConversationHistory] = useState([]);
   const [replyText, setReplyText] = useState('');
@@ -405,6 +407,75 @@ export default function AIButtonModal({
   };
 
   /**
+   * Recipe handling functions
+   */
+  const handleSaveRecipe = async (recipeCard) => {
+    try {
+      const recipe = recipeCard.fullRecipe;
+      console.log('💾 Attempting to save recipe:', recipe.title, 'ID:', recipe.id);
+
+      // Save to AsyncStorage
+      const existingRecipes = await AsyncStorage.getItem('@saved_recipes');
+      const recipes = existingRecipes ? JSON.parse(existingRecipes) : [];
+      console.log('💾 Existing recipes count:', recipes.length);
+
+      // Check if recipe already exists
+      if (!recipes.find(r => r.id === recipe.id)) {
+        recipes.push(recipe);
+        await AsyncStorage.setItem('@saved_recipes', JSON.stringify(recipes));
+        console.log('✅ Recipe saved successfully! New count:', recipes.length);
+      } else {
+        console.log('⚠️ Recipe already exists, skipping save');
+      }
+
+      // Clear the recipe card and show success message
+      setLastToolResults(null);
+      setLastResponse('✅ Recipe saved! You can find it in your Recipes tab.');
+
+      // Auto-close modal after 1.5 seconds (onClose callback will trigger refresh)
+      setTimeout(() => {
+        if (onClose) {
+          onClose();
+        }
+      }, 1500);
+    } catch (error) {
+      console.error('❌ Error saving recipe:', error);
+      setLastResponse('❌ Failed to save recipe. Please try again.');
+    }
+  };
+
+  const handleDiscardRecipe = () => {
+    // Clear the recipe card and show message
+    setLastToolResults(null);
+    setLastResponse('Recipe discarded. Feel free to generate a new one!');
+  };
+
+  const handleRegenerateRecipe = async (recipeCard) => {
+    try {
+      // Clear current recipe and show loading
+      setLastToolResults(null);
+      setLastResponse('Generating a new recipe...');
+      setLoadingButton('regenerate_recipe');
+
+      // Call the AI to regenerate with same ingredients
+      const ingredients = recipeCard.originalIngredients;
+      const result = await AIService.sendMessageWithTools(
+        `Generate a different recipe using these ingredients: ${ingredients.join(', ')}. Make sure it's different from the previous one.`,
+        'Recipes'
+      );
+
+      // Update response and tool results
+      setLastResponse(result.response);
+      setLastToolResults(result.toolResults || null);
+    } catch (error) {
+      console.error('Error regenerating recipe:', error);
+      setLastResponse('❌ Failed to generate new recipe. Please try again.');
+    } finally {
+      setLoadingButton(null);
+    }
+  };
+
+  /**
    * Handle button press
    * Sends the button action to AI with context
    */
@@ -481,14 +552,32 @@ export default function AIButtonModal({
       // Build context for this screen
       const context = await ContextManager.buildContextForScreen(screenName, user?.uid);
 
-      // Use custom prompt if available, otherwise use button text
-      const messageToSend = button.prompt || button.text;
+      // Build prompt - check if we need to use recent ingredients
+      let messageToSend = button.prompt || button.text;
+
+      if (button.promptTemplate === 'recentIngredients') {
+        try {
+          const recentFoods = await getRecentFoods(user?.uid, 10);
+          if (recentFoods && recentFoods.length > 0) {
+            // Get unique food names (remove duplicates and limit to 5-6 ingredients)
+            const uniqueFoods = [...new Set(recentFoods.map(f => f.name))].slice(0, 6);
+            messageToSend = `Create a recipe using ingredients from my recent foods: ${uniqueFoods.join(', ')}`;
+          } else {
+            // Fallback to default if no recent foods
+            messageToSend = button.fallbackPrompt || 'Create a recipe using: chicken, rice, broccoli';
+          }
+        } catch (error) {
+          console.error('Error fetching recent foods:', error);
+          messageToSend = button.fallbackPrompt || 'Create a recipe using: chicken, rice, broccoli';
+        }
+      }
 
       // Send to AI with tools
       const result = await AIService.sendMessageWithTools(messageToSend, context);
 
-      // Store response
+      // Store response and tool results
       setLastResponse(result.response);
+      setLastToolResults(result.toolResults || null);
 
       // Add to conversation history (use button.text for display, not the full prompt)
       setConversationHistory(prev => [
@@ -795,20 +884,6 @@ export default function AIButtonModal({
   const isWorkoutRatingQuestion = detectWorkoutRatingQuestion(lastResponse);
   const isRestDurationQuestion = detectRestDurationQuestion(lastResponse);
 
-  // Debug detection when response changes
-  React.useEffect(() => {
-    if (lastResponse) {
-      console.log('\n🔍 ========== DETECTION DEBUG ==========');
-      console.log('Response:', lastResponse);
-      console.log('isQuestion:', isQuestion);
-      console.log('isExerciseReorderQuestion:', isExerciseReorderQuestion);
-      console.log('isReorderDirectionQuestion:', isReorderDirectionQuestion);
-      console.log('isSetRemovalQuestion:', isSetRemovalQuestion);
-      console.log('selectedExercise:', selectedExercise);
-      console.log('Will show quick replies:', (isQuestion || isExerciseReorderQuestion || isReorderDirectionQuestion) && !selectedExercise);
-      console.log('======================================\n');
-    }
-  }, [lastResponse]);
 
   return (
     <Modal
@@ -997,6 +1072,71 @@ export default function AIButtonModal({
                     <Text style={styles.responseTitle}>AI Response</Text>
                   </View>
                   <Text style={styles.responseText}>{lastResponse}</Text>
+
+                  {/* Recipe Card - Show when recipe is generated */}
+                  {(() => {
+                    const recipeCard = Array.isArray(lastToolResults) && lastToolResults[0]?.result?.recipeCard;
+                    if (recipeCard && recipeCard.needsConfirmation) {
+                      return (
+                        <View style={styles.recipeCard}>
+                          {/* Recipe Header */}
+                          <Text style={styles.recipeTitle}>{recipeCard.title}</Text>
+
+                          {/* Macros Row */}
+                          <View style={styles.macrosRow}>
+                            <View style={styles.macroItem}>
+                              <Text style={styles.macroValue}>{recipeCard.calories}</Text>
+                              <Text style={styles.macroLabel}>Calories</Text>
+                            </View>
+                            <View style={styles.macroItem}>
+                              <Text style={styles.macroValue}>{recipeCard.protein}g</Text>
+                              <Text style={styles.macroLabel}>Protein</Text>
+                            </View>
+                            <View style={styles.macroItem}>
+                              <Text style={styles.macroValue}>{recipeCard.carbs}g</Text>
+                              <Text style={styles.macroLabel}>Carbs</Text>
+                            </View>
+                            <View style={styles.macroItem}>
+                              <Text style={styles.macroValue}>{recipeCard.fat}g</Text>
+                              <Text style={styles.macroLabel}>Fat</Text>
+                            </View>
+                          </View>
+
+                          {/* Recipe Details */}
+                          <View style={styles.recipeDetails}>
+                            <Text style={styles.recipeDetail}>🍽️ {recipeCard.servings} servings</Text>
+                            <Text style={styles.recipeDetail}>⏱️ Prep: {recipeCard.prepTime} | Cook: {recipeCard.cookTime}</Text>
+                          </View>
+
+                          {/* Action Buttons */}
+                          <View style={styles.recipeButtons}>
+                            <TouchableOpacity
+                              style={[styles.recipeButton, styles.saveButton]}
+                              onPress={() => handleSaveRecipe(recipeCard)}
+                              disabled={loadingButton !== null}
+                            >
+                              <Text style={styles.recipeButtonText}>💾 Save to Recipes</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              style={[styles.recipeButton, styles.discardButton]}
+                              onPress={() => handleDiscardRecipe()}
+                              disabled={loadingButton !== null}
+                            >
+                              <Text style={styles.recipeButtonText}>❌ Discard</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              style={[styles.recipeButton, styles.regenerateButton]}
+                              onPress={() => handleRegenerateRecipe(recipeCard)}
+                              disabled={loadingButton !== null}
+                            >
+                              <Text style={styles.recipeButtonText}>🔄 Generate New</Text>
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+                      );
+                    }
+                    return null;
+                  })()}
 
                   {/* Quick Reply Buttons - Show when AI asks a question OR for special UIs */}
                   {(isQuestion || isExerciseReorderQuestion || isReorderDirectionQuestion) && !selectedExercise && (
@@ -1914,5 +2054,72 @@ const styles = StyleSheet.create({
     color: Colors.text,
     maxHeight: 120,
     minHeight: 80,
+  },
+  // Recipe Card Styles
+  recipeCard: {
+    marginTop: Spacing.md,
+    padding: Spacing.md,
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  recipeTitle: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: 'bold',
+    color: Colors.text,
+    marginBottom: Spacing.md,
+  },
+  macrosRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: Spacing.md,
+    paddingVertical: Spacing.sm,
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.sm,
+  },
+  macroItem: {
+    alignItems: 'center',
+  },
+  macroValue: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: 'bold',
+    color: Colors.primary,
+    marginBottom: 2,
+  },
+  macroLabel: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+  },
+  recipeDetails: {
+    marginBottom: Spacing.md,
+    gap: Spacing.xs,
+  },
+  recipeDetail: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+  },
+  recipeButtons: {
+    gap: Spacing.sm,
+  },
+  recipeButton: {
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+  },
+  saveButton: {
+    backgroundColor: Colors.success,
+  },
+  discardButton: {
+    backgroundColor: Colors.error,
+  },
+  regenerateButton: {
+    backgroundColor: Colors.primary,
+  },
+  recipeButtonText: {
+    color: Colors.text,
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
   },
 });

@@ -23,7 +23,7 @@ export default function EditRecipeScreen({ route, navigation }) {
   const searchTimeoutRef = useRef(null);
 
   // Calculate total nutrition for the recipe (same logic as RecipesScreen)
-  const calculateRecipeNutrition = (ingredientsList) => {
+  const calculateRecipeNutrition = (ingredientsList, servings = 1) => {
     let totals = {
       calories: 0,
       protein: 0,
@@ -39,11 +39,12 @@ export default function EditRecipeScreen({ route, navigation }) {
       totals.fat += (item.food.fat || 0) * multiplier;
     });
 
+    // Divide by servings to show per-serving nutrition (matches RecipesScreen display)
     return {
-      calories: Math.round(totals.calories),
-      protein: Math.round(totals.protein * 10) / 10,
-      carbs: Math.round(totals.carbs * 10) / 10,
-      fat: Math.round(totals.fat * 10) / 10,
+      calories: Math.round(totals.calories / servings),
+      protein: Math.round((totals.protein / servings) * 10) / 10,
+      carbs: Math.round((totals.carbs / servings) * 10) / 10,
+      fat: Math.round((totals.fat / servings) * 10) / 10,
     };
   };
 
@@ -140,7 +141,8 @@ export default function EditRecipeScreen({ route, navigation }) {
       return;
     }
 
-    const nutrition = calculateRecipeNutrition(ingredients);
+    const servings = recipe.servings || 1;
+    const nutrition = calculateRecipeNutrition(ingredients, servings);
     const updatedRecipe = {
       ...recipe,
       name: recipeName.trim(),
@@ -152,7 +154,7 @@ export default function EditRecipeScreen({ route, navigation }) {
     navigation.goBack();
   };
 
-  const totalNutrition = calculateRecipeNutrition(ingredients);
+  const totalNutrition = calculateRecipeNutrition(ingredients, recipe.servings || 1);
 
   const renderSearchResult = ({ item }) => (
     <FoodCard

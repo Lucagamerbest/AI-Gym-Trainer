@@ -162,6 +162,23 @@ class BackendService {
     }
   }
 
+  /**
+   * Update user food preferences
+   * @param {string} userId - User ID
+   * @param {object} foodPreferences - Food preferences to update
+   */
+  async updateUserFoodPreferences(userId, foodPreferences) {
+    try {
+      const userRef = doc(this.db, 'users', userId);
+      await setDoc(userRef, {
+        foodPreferences,
+        updatedAt: new Date().toISOString(),
+      }, { merge: true });
+    } catch (error) {
+      throw error;
+    }
+  }
+
   // ========================================
   // COLLECTION REFERENCES
   // ========================================

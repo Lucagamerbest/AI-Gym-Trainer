@@ -12,7 +12,10 @@
       "Bash(git checkout:*)",
       "WebSearch",
       "Bash(git remote:*)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "Bash(npx expo export:*)",
+      "Bash(npm start)",
+      "Bash(npx tsc:*)"
     ],
     "deny": [],
     "ask": []

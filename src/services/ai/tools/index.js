@@ -27,6 +27,9 @@ import {
   getNutritionStatus,
   suggestMealsForMacros,
   calculateMealMacros,
+  generateWeeklyMealPlan,
+  suggestNextMealForBalance,
+  predictDailyMacroShortfall,
   nutritionToolSchemas,
 } from './NutritionTools';
 
@@ -72,6 +75,20 @@ import {
   navigationToolSchemas,
 } from './NavigationTools';
 
+import {
+  generateRecipeFromIngredients,
+  adaptRecipeToMacros,
+  suggestIngredientSubstitutions,
+  recipeToolSchemas,
+} from './RecipeTools';
+
+import {
+  predictGoalCompletionDate,
+  detectProgressPlateau,
+  estimateBodyFatPercentage,
+  progressToolSchemas,
+} from './ProgressTools';
+
 /**
  * Initialize and register all tools
  */
@@ -94,6 +111,9 @@ export function initializeTools() {
   ToolRegistry.registerTool('getNutritionStatus', nutritionToolSchemas[1], getNutritionStatus);
   ToolRegistry.registerTool('suggestMealsForMacros', nutritionToolSchemas[2], suggestMealsForMacros);
   ToolRegistry.registerTool('calculateMealMacros', nutritionToolSchemas[3], calculateMealMacros);
+  ToolRegistry.registerTool('generateWeeklyMealPlan', nutritionToolSchemas[4], generateWeeklyMealPlan);
+  ToolRegistry.registerTool('suggestNextMealForBalance', nutritionToolSchemas[5], suggestNextMealForBalance);
+  ToolRegistry.registerTool('predictDailyMacroShortfall', nutritionToolSchemas[6], predictDailyMacroShortfall);
 
   // CRUD Tools (Create, Read, Update, Delete)
   ToolRegistry.registerTool('addExerciseToWorkout', crudToolSchemas[0], addExerciseToWorkout);
@@ -129,7 +149,17 @@ export function initializeTools() {
   ToolRegistry.registerTool('goBackToPreviousScreen', navigationToolSchemas[1], goBackToPreviousScreen);
   ToolRegistry.registerTool('getCurrentScreen', navigationToolSchemas[2], getCurrentScreen);
 
-  console.log(`✅ Initialized ${ToolRegistry.getToolCount()} AI tools (including navigation & 2024 research tools)`);
+  // Recipe Tools
+  ToolRegistry.registerTool('generateRecipeFromIngredients', recipeToolSchemas[0], generateRecipeFromIngredients);
+  ToolRegistry.registerTool('adaptRecipeToMacros', recipeToolSchemas[1], adaptRecipeToMacros);
+  ToolRegistry.registerTool('suggestIngredientSubstitutions', recipeToolSchemas[2], suggestIngredientSubstitutions);
+
+  // Progress Tools
+  ToolRegistry.registerTool('predictGoalCompletionDate', progressToolSchemas[0], predictGoalCompletionDate);
+  ToolRegistry.registerTool('detectProgressPlateau', progressToolSchemas[1], detectProgressPlateau);
+  ToolRegistry.registerTool('estimateBodyFatPercentage', progressToolSchemas[2], estimateBodyFatPercentage);
+
+  console.log(`✅ Initialized ${ToolRegistry.getToolCount()} AI tools (including navigation, recipes, progress & 2024 research tools)`);
 }
 
 export { ToolRegistry };
