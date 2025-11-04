@@ -517,8 +517,8 @@ export const AI_SECTION_CONFIG = {
         {
           icon: 'fitness',
           text: 'High-protein recipe',
-          toolName: 'generateRecipeFromIngredients',
-          prompt: 'Generate a high-protein recipe with at least 40g protein'
+          toolName: 'generateHighProteinRecipe',
+          prompt: 'Generate a high-protein recipe with 50g protein and 500 calories. Focus on lean proteins and keep calories reasonable.'
         },
         {
           icon: 'scale',

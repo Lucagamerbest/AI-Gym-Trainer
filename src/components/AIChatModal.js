@@ -22,6 +22,7 @@ import ContextManager from '../services/ai/ContextManager';
 import { useAuth } from '../context/AuthContext';
 import QuickSuggestions from './QuickSuggestions';
 import QuickAITests from './QuickAITests';
+import ThinkingAnimation from './ThinkingAnimation';
 
 export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
   const { user } = useAuth(); // Get real user from AuthContext
@@ -669,10 +670,7 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
           {/* Loading indicator - Enhanced visibility */}
           {loading && (
             <View style={styles.loadingContainer}>
-              <View style={styles.loadingBubble}>
-                <ActivityIndicator size="small" color={Colors.primary} />
-                <Text style={styles.loadingText}>Thinking...</Text>
-              </View>
+              <ThinkingAnimation text="Thinking" />
             </View>
           )}
 

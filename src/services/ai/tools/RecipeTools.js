@@ -43,7 +43,7 @@ export async function generateRecipeFromIngredients({
     let prompt = `Create a detailed, healthy recipe using these ingredients: ${ingredients.join(', ')}.
 
 Requirements:
-- Include step-by-step cooking instructions
+- Include step-by-step cooking instructions (KEEP EACH STEP SHORT AND CLEAR - max 1-2 sentences per step)
 - Provide exact measurements for all ingredients
 - Calculate nutritional information (calories, protein, carbs, fat per serving)
 - Make it realistic and easy to prepare
@@ -245,6 +245,239 @@ Requirements:
       success: false,
       error: error.message,
       message: "Couldn't generate recipe. Please try again with different ingredients.",
+    };
+  }
+}
+
+/**
+ * GENERATE HIGH-PROTEIN RECIPE
+ * User says: "Create a high-protein meal" or "Generate a recipe with 50g protein and 500 calories"
+ *
+ * Generates a recipe optimized for high protein content while keeping calories reasonable
+ * Focuses on protein-dense foods (chicken, fish, eggs, Greek yogurt, tofu, etc.)
+ */
+export async function generateHighProteinRecipe({
+  targetProtein = 40,
+  targetCalories = null,
+  cuisine = null,
+  dietaryRestrictions = [],
+  mealType = 'any', // 'breakfast', 'lunch', 'dinner', 'snack', 'any'
+  userId
+}) {
+  try {
+    console.log('💪 Generating high-protein recipe:', {
+      targetProtein,
+      targetCalories,
+      cuisine,
+      dietaryRestrictions,
+      mealType
+    });
+
+    // Build specialized prompt for high-protein recipes
+    let prompt = `Create a detailed, high-protein recipe optimized for maximum protein while keeping calories reasonable.
+
+CRITICAL PROTEIN REQUIREMENTS:
+- Target ${targetProtein}g of protein per serving (${targetProtein - 5}g to ${targetProtein + 5}g acceptable)
+- Focus on PROTEIN-DENSE foods: chicken breast, salmon, tuna, eggs, Greek yogurt, cottage cheese, tofu, lean beef, turkey, shrimp, protein powder
+- Avoid high-calorie/low-protein foods: oils, butter, nuts (use sparingly), regular cheese (use sparingly)
+- Maximize protein-to-calorie ratio`;
+
+    if (targetCalories) {
+      prompt += `\n- Target approximately ${targetCalories} calories per serving (${targetCalories - 50} to ${targetCalories + 50} acceptable)
+- Keep calories in check by using lean proteins and limiting added fats`;
+    } else {
+      prompt += `\n- Keep calories reasonable (aim for 400-600 calories per serving)
+- Prioritize lean proteins over fatty proteins`;
+    }
+
+    prompt += `\n\nREQUIREMENTS:
+- Include step-by-step cooking instructions (KEEP EACH STEP SHORT AND CLEAR - max 1-2 sentences per step)
+- Provide exact measurements for all ingredients
+- Calculate nutritional information (calories, protein, carbs, fat per serving)
+- Make it realistic and easy to prepare
+- Specify number of servings`;
+
+    if (cuisine) {
+      prompt += `\n- Use ${cuisine} cuisine style`;
+    }
+
+    if (dietaryRestrictions.length > 0) {
+      prompt += `\n- Accommodate these dietary restrictions: ${dietaryRestrictions.join(', ')}`;
+    }
+
+    if (mealType !== 'any') {
+      prompt += `\n- This is for ${mealType}`;
+    }
+
+    prompt += `\n\nEXAMPLES OF HIGH-PROTEIN FOODS TO USE:
+- Chicken breast (31g protein per 100g, ~165 calories)
+- Salmon (25g protein per 100g, ~200 calories)
+- Eggs (13g protein per 100g, ~155 calories)
+- Greek yogurt (10g protein per 100g, ~60 calories)
+- Cottage cheese (11g protein per 100g, ~98 calories)
+- Tofu (8g protein per 100g, ~76 calories)
+- Protein powder (can add to smoothies, oats, pancakes)
+
+Format the response as JSON with this structure:
+{
+  "title": "Recipe Name",
+  "description": "Brief description emphasizing high protein content",
+  "servings": 1,
+  "prepTime": "15 minutes",
+  "cookTime": "20 minutes",
+  "difficulty": "easy/medium/hard",
+  "ingredients": [
+    { "item": "ingredient name", "amount": "200g", "calories": 330, "protein": 62, "carbs": 0, "fat": 7 }
+  ],
+  "instructions": [
+    "Step 1 description",
+    "Step 2 description"
+  ],
+  "nutrition": {
+    "caloriesPerServing": ${targetCalories || 500},
+    "proteinPerServing": ${targetProtein},
+    "carbsPerServing": 30,
+    "fatPerServing": 10
+  },
+  "tags": ["high-protein", "lean", "healthy"],
+  "tips": ["Optional cooking tip 1", "Optional cooking tip 2"]
+}
+
+IMPORTANT: The nutrition.proteinPerServing MUST be within ${targetProtein - 5}g to ${targetProtein + 5}g range!`;
+
+    // Import GoogleGenerativeAI and get API key from AIService
+    const { GoogleGenerativeAI } = await import('@google/generative-ai');
+    const { default: AIService } = await import('../AIService');
+
+    // Get API key from AIService (already initialized)
+    if (!AIService.apiKey) {
+      return {
+        success: false,
+        message: "Gemini API key not configured. Please restart the app.",
+      };
+    }
+
+    const genAI = new GoogleGenerativeAI(AIService.apiKey);
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+
+    // Generate recipe using AI with JSON mode
+    const result = await model.generateContent(prompt, {
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: 2000,
+      },
+    });
+    const response = result.response.text();
+
+    // Parse the JSON response
+    let recipe;
+    try {
+      // Extract JSON from markdown code blocks if present
+      const jsonMatch = response.match(/```json\n([\s\S]*?)\n```/) || response.match(/```\n([\s\S]*?)\n```/);
+      const jsonStr = jsonMatch ? jsonMatch[1] : response;
+      recipe = JSON.parse(jsonStr);
+    } catch (parseError) {
+      console.error('Failed to parse recipe JSON:', parseError);
+      return {
+        success: false,
+        message: "AI generated a recipe but it couldn't be formatted properly. Please try again.",
+        rawResponse: response,
+      };
+    }
+
+    // Validate protein target
+    const actualProtein = recipe.nutrition.proteinPerServing;
+    if (actualProtein < targetProtein - 5) {
+      console.warn(`⚠️ Recipe only has ${actualProtein}g protein, below target of ${targetProtein}g`);
+    }
+
+    // Add metadata
+    recipe.id = `recipe_${Date.now()}`;
+    recipe.createdAt = new Date().toISOString();
+    recipe.createdBy = 'AI';
+    recipe.recipeType = 'high-protein';
+
+    // Normalize recipe structure for RecipesScreen compatibility
+    recipe.name = recipe.title;
+    recipe.nutrition = {
+      calories: recipe.nutrition.caloriesPerServing,
+      protein: recipe.nutrition.proteinPerServing,
+      carbs: recipe.nutrition.carbsPerServing,
+      fat: recipe.nutrition.fatPerServing,
+      caloriesPerServing: recipe.nutrition.caloriesPerServing,
+      proteinPerServing: recipe.nutrition.proteinPerServing,
+      carbsPerServing: recipe.nutrition.carbsPerServing,
+      fatPerServing: recipe.nutrition.fatPerServing,
+    };
+
+    // Normalize ingredients structure
+    console.log('🔧 Normalizing ingredients:', recipe.ingredients);
+
+    recipe.ingredients = recipe.ingredients.map(ingredient => {
+      let quantity = 100; // default
+
+      const gramsInParens = ingredient.amount.match(/\((\d+(?:\.\d+)?)g\)/);
+      if (gramsInParens) {
+        quantity = parseFloat(gramsInParens[1]);
+      } else {
+        const gramsMatch = ingredient.amount.match(/(\d+(?:\.\d+)?)g/);
+        if (gramsMatch) {
+          quantity = parseFloat(gramsMatch[1]);
+        } else {
+          const anyNumber = ingredient.amount.match(/[\d.]+/);
+          if (anyNumber) {
+            quantity = parseFloat(anyNumber[0]);
+          }
+        }
+      }
+
+      const caloriesPer100g = (ingredient.calories || 0) / quantity * 100;
+      const proteinPer100g = (ingredient.protein || 0) / quantity * 100;
+      const carbsPer100g = (ingredient.carbs || 0) / quantity * 100;
+      const fatPer100g = (ingredient.fat || 0) / quantity * 100;
+
+      console.log(`  ${ingredient.item}: ${quantity}g, ${ingredient.protein}g protein, ${ingredient.calories}cal total`);
+
+      return {
+        food: {
+          name: ingredient.item,
+          calories: Math.round(caloriesPer100g),
+          protein: Math.round(proteinPer100g * 10) / 10,
+          carbs: Math.round(carbsPer100g * 10) / 10,
+          fat: Math.round(fatPer100g * 10) / 10,
+        },
+        quantity: quantity,
+        original: ingredient,
+      };
+    });
+
+    const message = `High-protein recipe generated successfully with ${actualProtein}g protein! DO NOT show the recipe details to the user - they will see it in the recipe card below your message. Just say something brief like: "I've created a high-protein recipe for you with ${actualProtein}g of protein! Use the buttons below to save it, discard it, or generate a different one."`;
+
+    return {
+      success: true,
+      message,
+      action: 'recipe_generated',
+      recipeCard: {
+        title: recipe.title,
+        calories: recipe.nutrition.caloriesPerServing,
+        protein: recipe.nutrition.proteinPerServing,
+        carbs: recipe.nutrition.carbsPerServing,
+        fat: recipe.nutrition.fatPerServing,
+        servings: recipe.servings,
+        prepTime: recipe.prepTime,
+        cookTime: recipe.cookTime,
+        recipeId: recipe.id,
+        needsConfirmation: true,
+        fullRecipe: recipe,
+      },
+    };
+
+  } catch (error) {
+    console.error('❌ generateHighProteinRecipe error:', error);
+    return {
+      success: false,
+      error: error.message,
+      message: "Couldn't generate high-protein recipe. Please try again.",
     };
   }
 }
@@ -577,6 +810,42 @@ export const recipeToolSchemas = [
         },
       },
       required: ['ingredients', 'userId'],
+    },
+  },
+  {
+    name: 'generateHighProteinRecipe',
+    description: 'Generate a high-protein recipe optimized for maximum protein while keeping calories reasonable. Focuses on protein-dense foods like chicken, fish, eggs, Greek yogurt, cottage cheese, tofu. Use when user wants a high-protein meal.',
+    parameters: {
+      type: 'object',
+      properties: {
+        targetProtein: {
+          type: 'number',
+          description: 'Target grams of protein per serving (default: 40g)',
+        },
+        targetCalories: {
+          type: 'number',
+          description: 'Target calories per serving (optional, will optimize for protein-to-calorie ratio if not specified)',
+        },
+        cuisine: {
+          type: 'string',
+          description: 'Cuisine style (e.g., "Italian", "Asian", "Mexican") (optional)',
+        },
+        dietaryRestrictions: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Dietary restrictions or preferences (e.g., ["vegetarian", "gluten-free", "dairy-free"]) (optional)',
+        },
+        mealType: {
+          type: 'string',
+          enum: ['breakfast', 'lunch', 'dinner', 'snack', 'any'],
+          description: 'Type of meal (optional, defaults to "any")',
+        },
+        userId: {
+          type: 'string',
+          description: 'User ID',
+        },
+      },
+      required: ['userId'],
     },
   },
   {

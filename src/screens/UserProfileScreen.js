@@ -11,9 +11,12 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { loadUserProfile, clearUserProfile } from '../services/userProfileAssessment';
+import { getFoodPreferences } from '../services/userProfileService';
+import { useAuth } from '../context/AuthContext';
 import { Colors } from '../constants/theme';
 
 const UserProfileScreen = ({ navigation }) => {
+  const { user } = useAuth();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -24,6 +27,16 @@ const UserProfileScreen = ({ navigation }) => {
   const loadProfile = async () => {
     setLoading(true);
     const data = await loadUserProfile();
+
+    // Also load food preferences
+    try {
+      const userId = user?.uid || 'guest';
+      const foodPrefs = await getFoodPreferences(userId);
+      data.foodPreferences = foodPrefs;
+    } catch (error) {
+      console.error('Error loading food preferences:', error);
+    }
+
     setProfile(data);
     setLoading(false);
   };
@@ -60,15 +73,35 @@ const UserProfileScreen = ({ navigation }) => {
     );
   };
 
-  const InfoSection = ({ title, icon, children }) => (
-    <View style={styles.section}>
-      <View style={styles.sectionHeader}>
-        <Ionicons name={icon} size={20} color={Colors.primary} />
-        <Text style={styles.sectionTitle}>{title}</Text>
+  const InfoSection = ({ title, icon, children, sectionKey }) => {
+    const handleEditPress = () => {
+      // Recipe Preferences goes to dedicated screen
+      if (sectionKey === 'recipePreferences') {
+        navigation.navigate('RecipePreferences');
+      } else {
+        navigation.navigate('EditProfileSection', { section: sectionKey, profile });
+      }
+    };
+
+    return (
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <View style={styles.sectionTitleContainer}>
+            <Ionicons name={icon} size={20} color={Colors.primary} />
+            <Text style={styles.sectionTitle}>{title}</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.editButton}
+            onPress={handleEditPress}
+          >
+            <Ionicons name="create-outline" size={18} color={Colors.primary} />
+            <Text style={styles.editButtonText}>Edit</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.sectionContent}>{children}</View>
       </View>
-      <View style={styles.sectionContent}>{children}</View>
-    </View>
-  );
+    );
+  };
 
   const InfoRow = ({ label, value }) => (
     <View style={styles.infoRow}>
@@ -144,7 +177,7 @@ const UserProfileScreen = ({ navigation }) => {
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Experience */}
-        <InfoSection title="Experience" icon="barbell-outline">
+        <InfoSection title="Experience" icon="barbell-outline" sectionKey="experience">
           <InfoRow label="Level" value={profile.experienceLevel?.toUpperCase()} />
           <InfoRow label="Years Training" value={profile.yearsTraining?.toString()} />
           {profile.sportsBackground?.length > 0 && (
@@ -156,7 +189,7 @@ const UserProfileScreen = ({ navigation }) => {
         </InfoSection>
 
         {/* Goals */}
-        <InfoSection title="Goals" icon="trophy-outline">
+        <InfoSection title="Goals" icon="trophy-outline" sectionKey="goals">
           {profile.primaryGoal?.length > 0 && (
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Primary Goals</Text>
@@ -178,7 +211,7 @@ const UserProfileScreen = ({ navigation }) => {
         </InfoSection>
 
         {/* Training Preferences */}
-        <InfoSection title="Training" icon="fitness-outline">
+        <InfoSection title="Training" icon="fitness-outline" sectionKey="training">
           <InfoRow
             label="Workout Style"
             value={profile.workoutStyle?.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
@@ -200,7 +233,7 @@ const UserProfileScreen = ({ navigation }) => {
         </InfoSection>
 
         {/* Schedule */}
-        <InfoSection title="Schedule" icon="calendar-outline">
+        <InfoSection title="Schedule" icon="calendar-outline" sectionKey="schedule">
           <InfoRow label="Session Duration" value={`${profile.sessionDuration} minutes`} />
           <InfoRow
             label="Preferred Time"
@@ -216,7 +249,7 @@ const UserProfileScreen = ({ navigation }) => {
 
         {/* Limitations */}
         {(profile.currentPain?.length > 0 || profile.mobilityIssues?.length > 0) && (
-          <InfoSection title="Limitations" icon="medkit-outline">
+          <InfoSection title="Limitations" icon="medkit-outline" sectionKey="limitations">
             {profile.currentPain?.length > 0 && (
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>Current Pain</Text>
@@ -234,7 +267,7 @@ const UserProfileScreen = ({ navigation }) => {
 
         {/* Exercise Preferences */}
         {(profile.favoriteExercises?.length > 0 || profile.dislikedExercises?.length > 0) && (
-          <InfoSection title="Exercise Preferences" icon="heart-outline">
+          <InfoSection title="Exercise Preferences" icon="heart-outline" sectionKey="exercises">
             {profile.favoriteExercises?.length > 0 && (
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>Favorites</Text>
@@ -251,7 +284,7 @@ const UserProfileScreen = ({ navigation }) => {
         )}
 
         {/* Lifestyle */}
-        <InfoSection title="Lifestyle" icon="moon-outline">
+        <InfoSection title="Lifestyle" icon="moon-outline" sectionKey="lifestyle">
           <InfoRow label="Sleep Hours" value={`${profile.averageSleepHours} hours`} />
           <InfoRow
             label="Sleep Quality"
@@ -269,7 +302,7 @@ const UserProfileScreen = ({ navigation }) => {
 
         {/* Nutrition */}
         {(profile.dietaryRestrictions?.length > 0 || profile.mealsPerDay) && (
-          <InfoSection title="Nutrition" icon="nutrition-outline">
+          <InfoSection title="Nutrition" icon="nutrition-outline" sectionKey="nutrition">
             {profile.mealsPerDay && (
               <InfoRow label="Meals Per Day" value={profile.mealsPerDay.toString()} />
             )}
@@ -288,8 +321,65 @@ const UserProfileScreen = ({ navigation }) => {
           </InfoSection>
         )}
 
+        {/* Recipe Preferences */}
+        {profile.foodPreferences && (
+          <InfoSection title="Recipe Preferences" icon="restaurant-outline" sectionKey="recipePreferences">
+            {/* Meal Targets */}
+            {profile.foodPreferences.mealPreferences && (
+              <>
+                <Text style={styles.subsectionTitle}>Meal Targets</Text>
+                <InfoRow
+                  label="Breakfast"
+                  value={`${profile.foodPreferences.mealPreferences.breakfast?.targetCalories || 400} cal, ${profile.foodPreferences.mealPreferences.breakfast?.targetProtein || 25}g protein`}
+                />
+                <InfoRow
+                  label="Lunch"
+                  value={`${profile.foodPreferences.mealPreferences.lunch?.targetCalories || 600} cal, ${profile.foodPreferences.mealPreferences.lunch?.targetProtein || 40}g protein`}
+                />
+                <InfoRow
+                  label="Dinner"
+                  value={`${profile.foodPreferences.mealPreferences.dinner?.targetCalories || 700} cal, ${profile.foodPreferences.mealPreferences.dinner?.targetProtein || 50}g protein`}
+                />
+              </>
+            )}
+
+            {/* Recipe Complexity */}
+            {profile.foodPreferences.recipePreferences && (
+              <>
+                <Text style={[styles.subsectionTitle, { marginTop: 16 }]}>Cooking Preferences</Text>
+                <InfoRow
+                  label="Max Cooking Time"
+                  value={`${profile.foodPreferences.recipePreferences.maxCookingTime || 30} minutes`}
+                />
+                <InfoRow
+                  label="Max Prep Time"
+                  value={`${profile.foodPreferences.recipePreferences.maxPrepTime || 15} minutes`}
+                />
+                <InfoRow
+                  label="Cleanup Effort"
+                  value={profile.foodPreferences.recipePreferences.cleanupEffort?.charAt(0).toUpperCase() + profile.foodPreferences.recipePreferences.cleanupEffort?.slice(1) || 'Minimal'}
+                />
+                <InfoRow
+                  label="Recipe Complexity"
+                  value={profile.foodPreferences.recipePreferences.recipeComplexity?.charAt(0).toUpperCase() + profile.foodPreferences.recipePreferences.recipeComplexity?.slice(1) || 'Simple'}
+                />
+              </>
+            )}
+
+            {/* Favorite Meal Styles */}
+            {profile.foodPreferences.favoriteMealStyles?.length > 0 && (
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Favorite Meal Styles</Text>
+                <Text style={styles.infoValue}>
+                  {profile.foodPreferences.favoriteMealStyles.length} meal{profile.foodPreferences.favoriteMealStyles.length !== 1 ? 's' : ''} selected
+                </Text>
+              </View>
+            )}
+          </InfoSection>
+        )}
+
         {/* Coaching Preferences */}
-        <InfoSection title="Coaching Preferences" icon="chatbubble-outline">
+        <InfoSection title="Coaching Preferences" icon="chatbubble-outline" sectionKey="coaching">
           <InfoRow
             label="Style"
             value={profile.coachingStyle?.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
@@ -398,13 +488,42 @@ const styles = StyleSheet.create({
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 12,
+  },
+  sectionTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
     color: Colors.text,
     marginLeft: 8,
+  },
+  subsectionTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.primary,
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  editButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    backgroundColor: Colors.surface,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+  },
+  editButtonText: {
+    fontSize: 13,
+    color: Colors.primary,
+    marginLeft: 4,
+    fontWeight: '600',
   },
   sectionContent: {
     gap: 12,

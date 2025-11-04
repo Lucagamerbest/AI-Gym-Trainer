@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import AIButtonSection from './AIButtonSection';
+import ThinkingAnimation from './ThinkingAnimation';
 import { getAISectionsForScreen, hasAISections } from '../config/aiSectionConfig';
 import AIService from '../services/ai/AIService';
 import ContextManager from '../services/ai/ContextManager';
@@ -1580,11 +1581,12 @@ export default function AIButtonModal({
 
               {/* Loading Indicator */}
               {loadingButton && (
-                <View style={styles.loadingContainer}>
-                  <Text style={styles.loadingText}>
-                    💭 Thinking about "{loadingButton}"...
-                  </Text>
-                </View>
+                <ThinkingAnimation
+                  text={typeof loadingButton === 'string' && loadingButton.length > 0 && loadingButton !== 'true'
+                    ? loadingButton
+                    : "Thinking"}
+                  style={styles.loadingContainer}
+                />
               )}
             </>
           )}

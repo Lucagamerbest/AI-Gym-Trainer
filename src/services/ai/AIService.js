@@ -255,6 +255,42 @@ class AIService {
             console.log(`🔧 Injected real userId: ${toolArgs.userId} (was: ${functionCall.args.userId})`);
           }
 
+          // Auto-inject food preferences for recipe generation tools
+          const recipeTools = ['generateRecipeFromIngredients', 'generateHighProteinRecipe'];
+          if (recipeTools.includes(functionCall.name)) {
+            const foodPrefs = context.screenSpecific?.foodPreferences;
+
+            // 1. Auto-inject dietary restrictions
+            const userDietaryRestrictions = foodPrefs?.dietaryRestrictions || [];
+            if (userDietaryRestrictions.length > 0) {
+              const existingRestrictions = toolArgs.dietaryRestrictions || [];
+              toolArgs.dietaryRestrictions = [...new Set([...userDietaryRestrictions, ...existingRestrictions])];
+              console.log(`🔧 Auto-injected dietary restrictions: ${toolArgs.dietaryRestrictions.join(', ')}`);
+            }
+
+            // 2. Auto-inject meal-specific macro targets if not provided
+            if (foodPrefs?.mealPreferences && !toolArgs.targetCalories && !toolArgs.targetProtein) {
+              // Determine meal type from context or tool args
+              const mealType = toolArgs.mealType || 'lunch'; // Default to lunch
+              const mealTargets = foodPrefs.mealPreferences[mealType];
+
+              if (mealTargets) {
+                toolArgs.targetCalories = toolArgs.targetCalories || mealTargets.targetCalories;
+                toolArgs.targetProtein = toolArgs.targetProtein || mealTargets.targetProtein;
+                console.log(`🔧 Auto-injected ${mealType} targets: ${mealTargets.targetCalories} cal, ${mealTargets.targetProtein}g protein`);
+              }
+            }
+
+            // 3. Auto-inject recipe complexity preferences
+            if (foodPrefs?.recipePreferences) {
+              const recipePrefs = foodPrefs.recipePreferences;
+
+              // Note: These are informational - the AI uses them from the system prompt
+              // But we can log them for debugging
+              console.log(`🔧 Recipe preferences: max ${recipePrefs.maxCookingTime}min cook, ${recipePrefs.recipeComplexity} complexity`);
+            }
+          }
+
           // Execute the tool
           const toolResult = await ToolRegistry.executeTool(
             functionCall.name,
@@ -459,6 +495,52 @@ ${profile.occupation ? `- Activity Level: ${profile.occupation === 'sedentary' ?
 ${profile.primaryGoal ? `- Goals: ${Array.isArray(profile.primaryGoal) ? profile.primaryGoal.join(', ') : profile.primaryGoal}` : ''}
 ${profile.experienceLevel ? `- Experience: ${profile.experienceLevel}` : ''}
 ${context.recentActivity ? `- Recent workouts: ${context.recentActivity.workouts || 0} in last 7 days` : ''}
+${context.screenSpecific?.foodPreferences?.dietaryRestrictions?.length > 0 ? `
+🚨 DIETARY RESTRICTIONS (CRITICAL - MUST FOLLOW):
+${context.screenSpecific.foodPreferences.dietaryRestrictions.map(r => `- ${r}`).join('\n')}
+WHEN GENERATING RECIPES: ALWAYS pass these restrictions in the dietaryRestrictions parameter!` : ''}
+${context.screenSpecific?.foodPreferences?.mealPreferences ? `
+
+🍳 MEAL MACRO TARGETS (Use these when generating recipes):
+- Breakfast: ${context.screenSpecific.foodPreferences.mealPreferences.breakfast.targetCalories} cal, ${context.screenSpecific.foodPreferences.mealPreferences.breakfast.targetProtein}g protein
+- Lunch: ${context.screenSpecific.foodPreferences.mealPreferences.lunch.targetCalories} cal, ${context.screenSpecific.foodPreferences.mealPreferences.lunch.targetProtein}g protein
+- Dinner: ${context.screenSpecific.foodPreferences.mealPreferences.dinner.targetCalories} cal, ${context.screenSpecific.foodPreferences.mealPreferences.dinner.targetProtein}g protein
+- Snack: ${context.screenSpecific.foodPreferences.mealPreferences.snack.targetCalories} cal, ${context.screenSpecific.foodPreferences.mealPreferences.snack.targetProtein}g protein` : ''}
+${context.screenSpecific?.foodPreferences?.recipePreferences ? `
+
+⏱️ RECIPE COMPLEXITY PREFERENCES:
+- Max cooking time: ${context.screenSpecific.foodPreferences.recipePreferences.maxCookingTime} minutes
+- Max prep time: ${context.screenSpecific.foodPreferences.recipePreferences.maxPrepTime} minutes
+- Cleanup effort: ${context.screenSpecific.foodPreferences.recipePreferences.cleanupEffort}
+- Recipe complexity: ${context.screenSpecific.foodPreferences.recipePreferences.recipeComplexity}
+- Default servings: ${context.screenSpecific.foodPreferences.recipePreferences.servingSize}` : ''}
+${context.screenSpecific?.foodPreferences?.favoriteMealStyles?.length > 0 ? `
+
+🎯 FAVORITE MEAL STYLES (Generate recipes similar to these):
+The user loves these types of meals. Use them as templates for flavor combinations, ingredient pairings, and meal structure:
+${context.screenSpecific.foodPreferences.favoriteMealStyles.slice(0, 10).map((mealId, index) => {
+  // Import meal data
+  const getMealName = (id) => {
+    const mealMap = {
+      'grilled-chicken-rice-veggies': 'Grilled Chicken, Rice & Vegetables - Simple protein + grain + veggie',
+      'salmon-quinoa-broccoli': 'Salmon, Quinoa & Broccoli - Lean fish + healthy grain + green vegetable',
+      'greek-yogurt-berries-granola': 'Greek Yogurt, Berries & Granola - High-protein dairy + fruit + crunch',
+      'protein-pancakes-fruit': 'Protein Pancakes with Fruit - High-protein breakfast with natural sweetness',
+      'egg-white-omelet-veggies': 'Egg White Omelet - Lean protein with colorful vegetables',
+      'turkey-wrap-hummus': 'Turkey Wrap with Hummus - Light wrap-style meal with protein',
+      'chicken-caesar-salad': 'Chicken Caesar Salad - Classic protein-rich salad',
+      'tuna-poke-bowl': 'Tuna Poke Bowl - Fresh fish over rice with toppings',
+      'tofu-stir-fry': 'Tofu Stir-Fry - Plant-based protein with vegetables',
+      'one-pot-chicken-rice': 'One-Pot Chicken & Rice - Minimal cleanup, everything together',
+      'sheet-pan-salmon-vegetables': 'Sheet Pan Salmon & Vegetables - Simple one-pan meal',
+      'chicken-stir-fry-brown-rice': 'Chicken Stir-Fry - Quick stir-fried protein with vegetables',
+    };
+    return mealMap[id] || id;
+  };
+  return `${index + 1}. ${getMealName(mealId)}`;
+}).join('\n')}
+
+When generating recipes, mimic these styles: similar cooking methods, ingredient combinations, and flavor profiles.` : ''}
 
 ${context.lastGeneratedWorkout ? `
 🏋️ WORKOUT READY TO SAVE:

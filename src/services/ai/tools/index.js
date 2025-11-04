@@ -77,6 +77,7 @@ import {
 
 import {
   generateRecipeFromIngredients,
+  generateHighProteinRecipe,
   adaptRecipeToMacros,
   suggestIngredientSubstitutions,
   recipeToolSchemas,
@@ -151,8 +152,9 @@ export function initializeTools() {
 
   // Recipe Tools
   ToolRegistry.registerTool('generateRecipeFromIngredients', recipeToolSchemas[0], generateRecipeFromIngredients);
-  ToolRegistry.registerTool('adaptRecipeToMacros', recipeToolSchemas[1], adaptRecipeToMacros);
-  ToolRegistry.registerTool('suggestIngredientSubstitutions', recipeToolSchemas[2], suggestIngredientSubstitutions);
+  ToolRegistry.registerTool('generateHighProteinRecipe', recipeToolSchemas[1], generateHighProteinRecipe);
+  ToolRegistry.registerTool('adaptRecipeToMacros', recipeToolSchemas[2], adaptRecipeToMacros);
+  ToolRegistry.registerTool('suggestIngredientSubstitutions', recipeToolSchemas[3], suggestIngredientSubstitutions);
 
   // Progress Tools
   ToolRegistry.registerTool('predictGoalCompletionDate', progressToolSchemas[0], predictGoalCompletionDate);

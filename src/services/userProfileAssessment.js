@@ -325,6 +325,47 @@ export const getUserProfileSummary = async () => {
 };
 
 /**
+ * Update a specific section of the user profile
+ * @param {string} section - The section to update ('experience', 'goals', 'training', etc.)
+ * @param {object} data - The data to update in that section
+ */
+export const updateProfileSection = async (section, data) => {
+  try {
+    // Load current profile
+    const currentProfile = await loadUserProfile();
+
+    if (!currentProfile || !currentProfile.assessmentCompleted) {
+      return { success: false, error: 'No profile found. Complete assessment first.' };
+    }
+
+    // Merge the new data into the current profile
+    const updatedProfile = {
+      ...currentProfile,
+      ...data,
+      lastUpdated: new Date().toISOString(),
+    };
+
+    // Save to local storage
+    await AsyncStorage.setItem(USER_PROFILE_KEY, JSON.stringify(updatedProfile));
+
+    // Save to Firebase
+    const auth = getAuth();
+    const user = auth.currentUser;
+
+    if (user) {
+      const userProfileRef = doc(db, 'userProfiles', user.uid);
+      await setDoc(userProfileRef, updatedProfile, { merge: true });
+    }
+
+    console.log(`✅ Profile section '${section}' updated successfully`);
+    return { success: true };
+  } catch (error) {
+    console.error(`Error updating profile section '${section}':`, error);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
  * Clear user profile (for testing or reset)
  */
 export const clearUserProfile = async () => {

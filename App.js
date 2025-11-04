@@ -53,6 +53,7 @@ import EditRecipeScreen from './src/screens/EditRecipeScreen';
 import EditFoodItemScreen from './src/screens/EditFoodItemScreen';
 import ExerciseSettingsScreen from './src/screens/ExerciseSettingsScreen';
 import FoodSettingsScreen from './src/screens/FoodSettingsScreen';
+import RecipePreferencesScreen from './src/screens/RecipePreferencesScreen';
 import MealPlanTemplatesScreen from './src/screens/MealPlanTemplatesScreen';
 import EquipmentVariantSelectionScreen from './src/screens/EquipmentVariantSelectionScreen';
 import CreateMealPlanScreen from './src/screens/CreateMealPlanScreen';
@@ -66,6 +67,7 @@ import WorkoutFinalizationScreen from './src/screens/WorkoutFinalizationScreen';
 import ImageViewerScreen from './src/screens/ImageViewerScreen';
 import AICoachAssessmentScreen from './src/screens/AICoachAssessmentScreen';
 import UserProfileScreen from './src/screens/UserProfileScreen';
+import EditProfileSectionScreen from './src/screens/EditProfileSectionScreen';
 
 // Automated Testing (Dev only)
 import AutomatedTestRunner from './src/components/AutomatedTestRunner';
@@ -223,6 +225,7 @@ function AppNavigator() {
             <Stack.Screen name="FoodDetail" component={FoodDetailScreen} />
             <Stack.Screen name="FoodScanning" component={FoodScanningScreen} />
             <Stack.Screen name="Recipes" component={RecipesScreen} />
+            <Stack.Screen name="RecipePreferences" component={RecipePreferencesScreen} />
             <Stack.Screen name="CalorieBreakdown" component={CalorieBreakdownScreen} />
             <Stack.Screen name="EditRecipe" component={EditRecipeScreen} />
             <Stack.Screen name="EditFoodItem" component={EditFoodItemScreen} />
@@ -270,6 +273,7 @@ function AppNavigator() {
             <Stack.Screen name="Debug" component={DebugScreen} />
             <Stack.Screen name="AICoachAssessment" component={AICoachAssessmentScreen} />
             <Stack.Screen name="UserProfile" component={UserProfileScreen} />
+            <Stack.Screen name="EditProfileSection" component={EditProfileSectionScreen} />
 
             {/* Automated Testing & Debugging (Dev Only) */}
             {__DEV__ && (

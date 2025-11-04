@@ -21,6 +21,43 @@ const DEFAULT_PROFILE = {
     dislikedIngredients: [],
     favoriteCuisines: [],
     dietaryRestrictions: [],
+    // Meal-specific calorie and macro targets
+    mealPreferences: {
+      breakfast: {
+        targetCalories: 400,
+        targetProtein: 25,
+        targetCarbs: 45,
+        targetFat: 12,
+      },
+      lunch: {
+        targetCalories: 600,
+        targetProtein: 40,
+        targetCarbs: 60,
+        targetFat: 18,
+      },
+      dinner: {
+        targetCalories: 700,
+        targetProtein: 50,
+        targetCarbs: 65,
+        targetFat: 22,
+      },
+      snack: {
+        targetCalories: 200,
+        targetProtein: 15,
+        targetCarbs: 20,
+        targetFat: 8,
+      },
+    },
+    // Recipe complexity and time preferences
+    recipePreferences: {
+      maxCookingTime: 30, // minutes (15, 30, 45, 60, 90)
+      maxPrepTime: 15, // minutes (5, 10, 15, 20, 30)
+      cleanupEffort: 'minimal', // 'minimal', 'moderate', 'extensive'
+      recipeComplexity: 'simple', // 'simple', 'moderate', 'complex'
+      servingSize: 1, // Default servings (1, 2, 4, 6)
+    },
+    // Example meals for AI training (user selects favorites)
+    favoriteMealStyles: [],
   },
 };
 
@@ -156,6 +193,9 @@ export const getFoodPreferences = async (userId) => {
         dislikedIngredients: firebaseProfile.foodPreferences.dislikedIngredients || [],
         favoriteCuisines: firebaseProfile.foodPreferences.favoriteCuisines || [],
         dietaryRestrictions: firebaseProfile.foodPreferences.dietaryRestrictions || [],
+        mealPreferences: firebaseProfile.foodPreferences.mealPreferences || DEFAULT_PROFILE.foodPreferences.mealPreferences,
+        recipePreferences: firebaseProfile.foodPreferences.recipePreferences || DEFAULT_PROFILE.foodPreferences.recipePreferences,
+        favoriteMealStyles: firebaseProfile.foodPreferences.favoriteMealStyles || [],
       };
     }
 

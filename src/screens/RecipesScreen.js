@@ -102,6 +102,8 @@ export default function RecipesScreen({ navigation, route }) {
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [selectedFood, setSelectedFood] = useState(null);
+  const [showInstructionsModal, setShowInstructionsModal] = useState(false);
+  const [selectedRecipeForInstructions, setSelectedRecipeForInstructions] = useState(null);
 
   const searchTimeoutRef = useRef(null);
 
@@ -396,6 +398,19 @@ export default function RecipesScreen({ navigation, route }) {
     saveRecipes(updatedRecipes);
   };
 
+  const viewInstructions = (recipe) => {
+    if (!recipe.instructions || recipe.instructions.length === 0) {
+      Alert.alert(
+        'No Instructions',
+        'This recipe does not have cooking instructions yet. Only AI-generated recipes include instructions.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+    setSelectedRecipeForInstructions(recipe);
+    setShowInstructionsModal(true);
+  };
+
   const renderRecipe = ({ item }) => {
     const isHighlighted = highlightedRecipeId === item.id;
 
@@ -441,24 +456,37 @@ export default function RecipesScreen({ navigation, route }) {
         </View>
       </View>
       <View style={styles.recipeActions}>
+        {/* Main action button - full width */}
         <TouchableOpacity
           style={styles.quickAddButton}
           onPress={() => quickAddRecipe(item)}
         >
           <Text style={styles.quickAddText}>Add to {mealType.charAt(0).toUpperCase() + mealType.slice(1)}</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.editButton}
-          onPress={() => editRecipe(item)}
-        >
-          <Text style={styles.editText}>Edit</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.deleteButton}
-          onPress={() => deleteRecipe(item.id)}
-        >
-          <Text style={styles.deleteText}>Delete</Text>
-        </TouchableOpacity>
+
+        {/* Secondary actions row */}
+        <View style={styles.secondaryActionsRow}>
+          {item.instructions && item.instructions.length > 0 && (
+            <TouchableOpacity
+              style={styles.instructionsButton}
+              onPress={() => viewInstructions(item)}
+            >
+              <Text style={styles.instructionsText}>📖</Text>
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity
+            style={styles.editButton}
+            onPress={() => editRecipe(item)}
+          >
+            <Text style={styles.editText}>Edit</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={() => deleteRecipe(item.id)}
+          >
+            <Text style={styles.deleteText}>Delete</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </StyledCard>
     );
@@ -707,6 +735,98 @@ export default function RecipesScreen({ navigation, route }) {
         </SafeAreaView>
       </Modal>
 
+      {/* Instructions Modal */}
+      <Modal
+        visible={showInstructionsModal}
+        animationType="slide"
+        onRequestClose={() => setShowInstructionsModal(false)}
+      >
+        <SafeAreaView style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>
+              {selectedRecipeForInstructions?.name || 'Recipe Instructions'}
+            </Text>
+            <TouchableOpacity
+              onPress={() => setShowInstructionsModal(false)}
+              style={styles.closeButton}
+            >
+              <Text style={styles.closeButtonText}>✕</Text>
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView
+            style={styles.modalContent}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 40 }}
+          >
+            {selectedRecipeForInstructions && (
+              <>
+                {/* Recipe Info */}
+                <View style={styles.instructionsHeader}>
+                  <View style={styles.instructionsMacros}>
+                    <Text style={styles.instructionsMacroItem}>
+                      🔥 {selectedRecipeForInstructions.nutrition?.calories || 0} cal
+                    </Text>
+                    <Text style={styles.instructionsMacroItem}>
+                      💪 {selectedRecipeForInstructions.nutrition?.protein || 0}g protein
+                    </Text>
+                  </View>
+                  {selectedRecipeForInstructions.prepTime && (
+                    <Text style={styles.instructionsTime}>
+                      ⏱️ Prep: {selectedRecipeForInstructions.prepTime} | Cook: {selectedRecipeForInstructions.cookTime || 'N/A'}
+                    </Text>
+                  )}
+                  {selectedRecipeForInstructions.servings && (
+                    <Text style={styles.instructionsServings}>
+                      🍽️ Servings: {selectedRecipeForInstructions.servings}
+                    </Text>
+                  )}
+                </View>
+
+                {/* Ingredients */}
+                <View style={styles.instructionsSection}>
+                  <Text style={styles.instructionsSectionTitle}>📝 Ingredients</Text>
+                  {selectedRecipeForInstructions.ingredients?.map((ing, index) => (
+                    <View key={index} style={styles.ingredientItem}>
+                      <Text style={styles.ingredientBullet}>•</Text>
+                      <Text style={styles.ingredientText}>
+                        {ing.original?.amount || `${ing.quantity}g`} {ing.original?.item || ing.food?.name}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+
+                {/* Instructions */}
+                <View style={styles.instructionsSection}>
+                  <Text style={styles.instructionsSectionTitle}>👨‍🍳 Instructions</Text>
+                  {selectedRecipeForInstructions.instructions?.map((instruction, index) => (
+                    <View key={index} style={styles.instructionStep}>
+                      <View style={styles.stepNumber}>
+                        <Text style={styles.stepNumberText}>{index + 1}</Text>
+                      </View>
+                      <Text style={styles.stepText}>{instruction}</Text>
+                    </View>
+                  ))}
+                </View>
+
+                {/* Tips (if available) */}
+                {selectedRecipeForInstructions.tips && selectedRecipeForInstructions.tips.length > 0 && (
+                  <View style={styles.instructionsSection}>
+                    <Text style={styles.instructionsSectionTitle}>💡 Tips</Text>
+                    {selectedRecipeForInstructions.tips.map((tip, index) => (
+                      <View key={index} style={styles.tipItem}>
+                        <Text style={styles.tipBullet}>💡</Text>
+                        <Text style={styles.tipText}>{tip}</Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </>
+            )}
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
+
     </ScreenLayout>
   );
 }
@@ -803,11 +923,10 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
   },
   recipeActions: {
-    flexDirection: 'row',
     gap: Spacing.sm,
   },
   quickAddButton: {
-    flex: 1,
+    width: '100%',
     backgroundColor: Colors.primary,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.md,
@@ -818,12 +937,18 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: Typography.fontSize.sm,
   },
+  secondaryActionsRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    width: '100%',
+  },
   editButton: {
+    flex: 1,
     paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.md,
+    paddingHorizontal: Spacing.sm,
     borderRadius: BorderRadius.md,
     backgroundColor: Colors.primary + '20',
-    marginRight: Spacing.sm,
+    alignItems: 'center',
   },
   editText: {
     color: Colors.primary,
@@ -831,10 +956,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   deleteButton: {
+    flex: 1,
     paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.md,
+    paddingHorizontal: Spacing.sm,
     borderRadius: BorderRadius.md,
     backgroundColor: Colors.error + '20',
+    alignItems: 'center',
   },
   deleteText: {
     color: Colors.error,
@@ -1269,5 +1396,120 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.xs,
     fontWeight: '700',
     color: '#000',
+  },
+  instructionsButton: {
+    backgroundColor: Colors.primary,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 44, // Ensure touch target size
+  },
+  instructionsText: {
+    color: '#000',
+    fontSize: 20, // Emoji size
+  },
+  instructionsHeader: {
+    marginBottom: Spacing.lg,
+    paddingBottom: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  instructionsMacros: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: Spacing.sm,
+  },
+  instructionsMacroItem: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  instructionsTime: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textMuted,
+    textAlign: 'center',
+    marginTop: Spacing.xs,
+  },
+  instructionsServings: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textMuted,
+    textAlign: 'center',
+    marginTop: Spacing.xs,
+  },
+  instructionsSection: {
+    marginBottom: Spacing.xl,
+  },
+  instructionsSectionTitle: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: '700',
+    color: Colors.text,
+    marginBottom: Spacing.md,
+  },
+  ingredientItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: Spacing.sm,
+    paddingLeft: Spacing.sm,
+  },
+  ingredientBullet: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.primary,
+    marginRight: Spacing.sm,
+    lineHeight: 22,
+  },
+  ingredientText: {
+    flex: 1,
+    fontSize: Typography.fontSize.md,
+    color: Colors.text,
+    lineHeight: 22,
+  },
+  instructionStep: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: Spacing.md,
+  },
+  stepNumber: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: Spacing.md,
+    flexShrink: 0,
+  },
+  stepNumberText: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '700',
+    color: '#000',
+  },
+  stepText: {
+    flex: 1,
+    fontSize: Typography.fontSize.md,
+    color: Colors.text,
+    lineHeight: 22,
+    paddingTop: 4,
+  },
+  tipItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: Spacing.sm,
+    backgroundColor: Colors.cardBackground,
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    borderLeftWidth: 3,
+    borderLeftColor: Colors.primary,
+  },
+  tipBullet: {
+    fontSize: Typography.fontSize.md,
+    marginRight: Spacing.sm,
+  },
+  tipText: {
+    flex: 1,
+    fontSize: Typography.fontSize.sm,
+    color: Colors.text,
+    lineHeight: 20,
   },
 });

@@ -202,6 +202,22 @@ export default function FoodSettingsScreen({ navigation }) {
         {/* FOOD PREFERENCES SECTION */}
         <Text style={styles.sectionHeader}>Recipe Preferences</Text>
 
+        {/* Advanced Recipe Preferences Button */}
+        <TouchableOpacity
+          style={styles.advancedPrefsButton}
+          onPress={() => navigation.navigate('RecipePreferences')}
+        >
+          <View style={styles.advancedPrefsContent}>
+            <View>
+              <Text style={styles.advancedPrefsTitle}>🎯 Advanced Recipe Preferences</Text>
+              <Text style={styles.advancedPrefsSubtitle}>
+                Set meal targets, cooking time, and train AI with your favorite meals
+              </Text>
+            </View>
+            <Text style={styles.advancedPrefsArrow}>→</Text>
+          </View>
+        </TouchableOpacity>
+
         {/* Cooking Skill Level */}
         <StyledCard variant="elevated" style={styles.goalCard}>
           <Text style={styles.sectionTitle}>Cooking Skill Level</Text>
@@ -536,5 +552,35 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.sm,
     color: Colors.textMuted,
     fontStyle: 'italic',
+  },
+  advancedPrefsButton: {
+    backgroundColor: Colors.surface,
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
+  },
+  advancedPrefsContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  advancedPrefsTitle: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: 'bold',
+    color: Colors.primary,
+    marginBottom: Spacing.xs,
+  },
+  advancedPrefsSubtitle: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textMuted,
+    lineHeight: 18,
+    maxWidth: '90%',
+  },
+  advancedPrefsArrow: {
+    fontSize: 24,
+    color: Colors.primary,
+    fontWeight: 'bold',
   },
 });
