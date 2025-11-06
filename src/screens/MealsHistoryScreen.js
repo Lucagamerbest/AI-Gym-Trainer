@@ -13,6 +13,14 @@ const MEAL_PLANS_KEY = '@meal_plans';
 const DAILY_NUTRITION_KEY = '@daily_nutrition';
 const FOOD_VIEW_MODE_KEY = '@food_view_mode';
 
+// Helper function to get local date string in YYYY-MM-DD format
+const getLocalDateString = (date = new Date()) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 export default function MealsHistoryScreen({ navigation, route }) {
   const [activeTab, setActiveTab] = useState('meals'); // Start on Today tab by default
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -154,18 +162,26 @@ export default function MealsHistoryScreen({ navigation, route }) {
 
   const loadMealData = async () => {
     try {
-      // Load today's meals from daily nutrition
-      const savedNutrition = await AsyncStorage.getItem(DAILY_NUTRITION_KEY);
-      if (savedNutrition) {
-        const data = JSON.parse(savedNutrition);
-        setTodayMeals(data.meals || {});
-      }
-
-      // Load meal plans
+      // Load meal plans (includes today's logged meals)
       const savedPlans = await AsyncStorage.getItem(MEAL_PLANS_KEY);
       if (savedPlans) {
         const plans = JSON.parse(savedPlans);
         setMealData(plans);
+
+        // Load today's meals from meal plans
+        const today = getLocalDateString();
+        const todayData = plans[today];
+        if (todayData?.logged) {
+          setTodayMeals(todayData.logged);
+        } else {
+          // Reset to empty if no meals logged today
+          setTodayMeals({
+            breakfast: [],
+            lunch: [],
+            dinner: [],
+            snacks: []
+          });
+        }
       }
     } catch (error) {
     }
@@ -173,7 +189,7 @@ export default function MealsHistoryScreen({ navigation, route }) {
 
   // Get all dates sorted based on filter
   const getSortedDates = () => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalDateString();
     const todayDate = new Date(today);
     const allDates = Object.keys(mealData);
 
@@ -268,7 +284,7 @@ export default function MealsHistoryScreen({ navigation, route }) {
 
   const getSelectedDateMeals = () => {
     const dateKey = selectedDate.toISOString().split('T')[0];
-    const todayKey = new Date().toISOString().split('T')[0];
+    const todayKey = getLocalDateString();
 
     // If it's today, use todayMeals state
     if (dateKey === todayKey) {
@@ -298,7 +314,7 @@ export default function MealsHistoryScreen({ navigation, route }) {
 
       // Get source meals
       let sourceMeals = null;
-      if (sourceDateKey === new Date().toISOString().split('T')[0]) {
+      if (sourceDateKey === getLocalDateString()) {
         sourceMeals = todayMeals;
       } else {
         sourceMeals = mealData[sourceDateKey]?.logged;
@@ -348,7 +364,7 @@ export default function MealsHistoryScreen({ navigation, route }) {
 
       // Get source meals
       let sourceMeals = null;
-      if (sourceDateKey === new Date().toISOString().split('T')[0]) {
+      if (sourceDateKey === getLocalDateString()) {
         sourceMeals = todayMeals;
       } else {
         sourceMeals = mealData[sourceDateKey]?.logged;
@@ -499,7 +515,7 @@ export default function MealsHistoryScreen({ navigation, route }) {
   };
 
   const getTodayDateKey = () => {
-    return new Date().toISOString().split('T')[0];
+    return getLocalDateString();
   };
 
   const getDateKey = (date) => {
@@ -617,39 +633,57 @@ export default function MealsHistoryScreen({ navigation, route }) {
                 </View>
 
                 <View style={styles.todayFoodsList}>
-                  {items.map((food, index) => (
-                    <View key={index} style={styles.todayFoodRow}>
-                      <View style={styles.todayFoodItem}>
-                        <View style={styles.todayFoodInfo}>
-                          <Text style={styles.todayFoodName}>{food.name}</Text>
-                          <View style={styles.todayFoodMacros}>
-                            <Text style={styles.todayFoodCalories}>{food.calories || 0} cal</Text>
-                            {food.protein ? <Text style={styles.todayFoodMacro}>P: {parseFloat(food.protein).toFixed(1)}g</Text> : null}
-                            {food.carbs ? <Text style={styles.todayFoodMacro}>C: {parseFloat(food.carbs).toFixed(1)}g</Text> : null}
-                            {food.fat ? <Text style={styles.todayFoodMacro}>F: {parseFloat(food.fat).toFixed(1)}g</Text> : null}
+                  {items.map((food, index) => {
+                    // Format timestamp
+                    const formatTime = (timestamp) => {
+                      if (!timestamp) return '';
+                      const date = new Date(timestamp);
+                      const hours = date.getHours();
+                      const minutes = date.getMinutes().toString().padStart(2, '0');
+                      const ampm = hours >= 12 ? 'PM' : 'AM';
+                      const displayHours = hours % 12 || 12;
+                      return `${displayHours}:${minutes} ${ampm}`;
+                    };
+
+                    return (
+                      <View key={index} style={styles.todayFoodRow}>
+                        <View style={styles.todayFoodItem}>
+                          <View style={styles.todayFoodInfo}>
+                            <View style={styles.todayFoodNameRow}>
+                              <Text style={styles.todayFoodName}>{food.name}</Text>
+                              {food.created_at && (
+                                <Text style={styles.todayFoodTime}>{formatTime(food.created_at)}</Text>
+                              )}
+                            </View>
+                            <View style={styles.todayFoodMacros}>
+                              <Text style={styles.todayFoodCalories}>{food.calories || 0} cal</Text>
+                              {food.protein ? <Text style={styles.todayFoodMacro}>P: {parseFloat(food.protein).toFixed(1)}g</Text> : null}
+                              {food.carbs ? <Text style={styles.todayFoodMacro}>C: {parseFloat(food.carbs).toFixed(1)}g</Text> : null}
+                              {food.fat ? <Text style={styles.todayFoodMacro}>F: {parseFloat(food.fat).toFixed(1)}g</Text> : null}
+                            </View>
                           </View>
                         </View>
+                        <View style={styles.todayActionZone}>
+                          <TouchableOpacity
+                            style={styles.editFoodButton}
+                            onPress={() => handleEditFood(mealType, index, food)}
+                            activeOpacity={0.7}
+                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                          >
+                            <Text style={styles.editFoodButtonText}>✏️</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={styles.deleteFoodButton}
+                            onPress={() => handleDeleteFood(mealType, index, food.name, food.calories)}
+                            activeOpacity={0.7}
+                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                          >
+                            <Text style={styles.deleteFoodButtonText}>🗑️</Text>
+                          </TouchableOpacity>
+                        </View>
                       </View>
-                      <View style={styles.todayActionZone}>
-                        <TouchableOpacity
-                          style={styles.editFoodButton}
-                          onPress={() => handleEditFood(mealType, index, food)}
-                          activeOpacity={0.7}
-                          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                        >
-                          <Text style={styles.editFoodButtonText}>✏️</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          style={styles.deleteFoodButton}
-                          onPress={() => handleDeleteFood(mealType, index, food.name, food.calories)}
-                          activeOpacity={0.7}
-                          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                        >
-                          <Text style={styles.deleteFoodButtonText}>🗑️</Text>
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-                  ))}
+                    );
+                  })}
                 </View>
               </StyledCard>
             );
@@ -838,7 +872,7 @@ export default function MealsHistoryScreen({ navigation, route }) {
                 });
 
                 const hasAnyMeals = Object.values(mealCounts).some(count => count > 0);
-                const isToday = dateKey === new Date().toISOString().split('T')[0];
+                const isToday = dateKey === getLocalDateString();
                 const hasPlannedMeals = Object.values(plannedMeals).some(items => items?.length > 0);
                 const isSelected = selectedDatesForDelete.includes(dateKey);
 
@@ -2114,11 +2148,23 @@ const styles = StyleSheet.create({
   todayFoodInfo: {
     flex: 1,
   },
+  todayFoodNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 2,
+  },
   todayFoodName: {
     fontSize: Typography.fontSize.sm,
     color: Colors.text,
     fontWeight: '500',
-    marginBottom: 2,
+    flex: 1,
+  },
+  todayFoodTime: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textSecondary,
+    fontWeight: '400',
+    marginLeft: Spacing.xs,
   },
   todayFoodMacros: {
     flexDirection: 'row',

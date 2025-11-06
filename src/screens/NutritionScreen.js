@@ -17,6 +17,14 @@ const DAILY_NUTRITION_KEY = '@daily_nutrition';
 const LAST_RESET_DATE_KEY = '@last_reset_date';
 const MEAL_PLANS_KEY = '@meal_plans';
 
+// Helper function to get local date string in YYYY-MM-DD format
+const getLocalDateString = (date = new Date()) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 export default function NutritionScreen({ navigation, route }) {
   const { user } = useAuth();
   const [burned] = useState(0); // Will be updated when exercise tracking is implemented
@@ -198,11 +206,15 @@ export default function NutritionScreen({ navigation, route }) {
       // Update selected meal to match the added food's meal type
       setSelectedMeal(mealType);
 
+      // Add created_at timestamp to the food item
+      const timestamp = new Date().toISOString();
+      addedFood.created_at = timestamp;
+
       // Auto-sync new meal to Firebase first to get the Firebase ID
       (async () => {
         if (user?.uid && user.uid !== 'guest') {
           try {
-            const today = new Date().toISOString().split('T')[0];
+            const today = getLocalDateString();
             const consumptionEntry = {
               date: today,
               meal_type: mealType,
@@ -213,7 +225,7 @@ export default function NutritionScreen({ navigation, route }) {
               protein_consumed: addedFood.protein || 0,
               carbs_consumed: addedFood.carbs || 0,
               fat_consumed: addedFood.fat || 0,
-              created_at: new Date().toISOString(),
+              created_at: timestamp,
             };
             const firebaseId = await MealSyncService.uploadDailyConsumption(user.uid, consumptionEntry);
 
@@ -289,7 +301,7 @@ export default function NutritionScreen({ navigation, route }) {
         await AsyncStorage.removeItem(DAILY_NUTRITION_KEY);
 
         // Check if there are planned meals for today
-        const todayKey = new Date().toISOString().split('T')[0];
+        const todayKey = getLocalDateString();
         const savedPlans = await AsyncStorage.getItem(MEAL_PLANS_KEY);
         const mealPlans = savedPlans ? JSON.parse(savedPlans) : {};
         const todayPlanned = mealPlans[todayKey]?.planned;
@@ -352,7 +364,7 @@ export default function NutritionScreen({ navigation, route }) {
   const loadDailyNutrition = async () => {
     try {
       const userId = user?.uid || 'guest';
-      const today = new Date().toISOString().split('T')[0];
+      const today = getLocalDateString();
 
       // Load consumed meals from Firebase
       let loadedMeals = { breakfast: [], lunch: [], dinner: [], snacks: [] };
@@ -400,7 +412,7 @@ export default function NutritionScreen({ navigation, route }) {
 
         // MIGRATION: If plannedMeals doesn't exist in saved data, check if current meals came from today's plan
         if (!data.plannedMeals) {
-          const todayKey = new Date().toISOString().split('T')[0];
+          const todayKey = getLocalDateString();
           const savedPlans = await AsyncStorage.getItem(MEAL_PLANS_KEY);
           const mealPlans = savedPlans ? JSON.parse(savedPlans) : {};
           const todayPlanned = mealPlans[todayKey]?.planned;
@@ -461,7 +473,7 @@ export default function NutritionScreen({ navigation, route }) {
   const syncMealsToCalendar = async (meals) => {
     try {
       // Get today's date key
-      const today = new Date().toISOString().split('T')[0];
+      const today = getLocalDateString();
 
       // Load existing meal plans
       const savedPlans = await AsyncStorage.getItem(MEAL_PLANS_KEY);
@@ -554,7 +566,7 @@ export default function NutritionScreen({ navigation, route }) {
         // Update in Firebase first (if it has a Firebase ID)
         if (user?.uid && user.uid !== 'guest' && oldFood.firebaseId) {
           try {
-            const today = new Date().toISOString().split('T')[0];
+            const today = getLocalDateString();
             const firebaseUpdateData = {
               food_name: updatedFood.name || 'Unknown food',
               food_brand: updatedFood.brand || '',
@@ -613,7 +625,7 @@ export default function NutritionScreen({ navigation, route }) {
       // Auto-sync consumed planned meal to Firebase first to get Firebase ID
       if (user?.uid && user.uid !== 'guest') {
         try {
-          const today = new Date().toISOString().split('T')[0];
+          const today = getLocalDateString();
           const consumptionEntry = {
             date: today,
             meal_type: mealType,

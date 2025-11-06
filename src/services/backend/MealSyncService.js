@@ -56,19 +56,13 @@ class MealSyncService {
         throw new Error('User not authenticated');
       }
 
-      // Convert date to start and end of day
-      const startOfDay = new Date(date);
-      startOfDay.setHours(0, 0, 0, 0);
-
-      const endOfDay = new Date(date);
-      endOfDay.setHours(23, 59, 59, 999);
+      // Ensure date is in YYYY-MM-DD format
+      const dateString = typeof date === 'string' ? date : date.toISOString().split('T')[0];
 
       const mealsRef = collection(this.db, 'users', userId, 'meals');
       const q = query(
         mealsRef,
-        where('date', '>=', startOfDay.toISOString()),
-        where('date', '<=', endOfDay.toISOString()),
-        orderBy('date', 'asc')
+        where('date', '==', dateString)
       );
 
       const querySnapshot = await getDocs(q);
@@ -76,6 +70,13 @@ class MealSyncService {
 
       querySnapshot.forEach((doc) => {
         meals.push({ id: doc.id, ...doc.data() });
+      });
+
+      // Sort by created_at in memory instead of in the query
+      meals.sort((a, b) => {
+        const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return timeB - timeA; // Descending order (newest first)
       });
 
       return meals;
