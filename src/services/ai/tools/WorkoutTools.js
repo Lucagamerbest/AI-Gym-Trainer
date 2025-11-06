@@ -9,6 +9,7 @@ import { getAllExercises } from '../../../data/exerciseDatabase';
 import FitnessKnowledge from '../FitnessKnowledge';
 import ProvenWorkoutTemplates from '../ProvenWorkoutTemplates';
 import { getExercisesByPriority, getEquipmentPriority, getExerciseTier2024 } from '../ExerciseHierarchy2024';
+import { getUserProfile } from '../../userProfileService';
 
 /**
  * Exercises to NEVER generate (proven suboptimal for bodybuilding)
@@ -37,8 +38,22 @@ function filterExcludedExercises(exercises) {
  * Generate a complete workout plan
  * Used when user asks: "Create a push workout", "Plan a leg day", etc.
  */
-export async function generateWorkoutPlan({ muscleGroups, experienceLevel, duration, goal, equipment }) {
+export async function generateWorkoutPlan({ muscleGroups, experienceLevel, duration, goal, equipment, userId }) {
   try {
+    // Fetch user profile to get disliked exercises
+    let userDislikedExercises = [];
+    if (userId && userId !== 'guest') {
+      try {
+        const userProfile = await getUserProfile(userId);
+        userDislikedExercises = userProfile?.dislikedExercises || [];
+        if (userDislikedExercises.length > 0) {
+          console.log(`🚫 User blacklisted exercises: ${userDislikedExercises.join(', ')}`);
+        }
+      } catch (error) {
+        console.warn('⚠️ Could not fetch user profile for exercise blacklist:', error);
+      }
+    }
+
     // Get available exercises
     const allExercises = getAllExercises();
 
@@ -109,6 +124,17 @@ export async function generateWorkoutPlan({ muscleGroups, experienceLevel, durat
     // Filter out excluded exercises (decline movements, etc.)
     availableExercises = filterExcludedExercises(availableExercises);
 
+    // Filter out user's disliked/blacklisted exercises
+    if (userDislikedExercises.length > 0) {
+      availableExercises = availableExercises.filter(ex => {
+        const nameLower = ex.name.toLowerCase();
+        return !userDislikedExercises.some(disliked =>
+          nameLower.includes(disliked.toLowerCase()) || disliked.toLowerCase().includes(nameLower)
+        );
+      });
+      console.log(`✅ Filtered out ${userDislikedExercises.length} blacklisted exercises`);
+    }
+
     // FALLBACK 1: If no exercises found, try without equipment restriction
     if (availableExercises.length === 0 && equipment && equipment.length > 0) {
       console.log('⚠️ No exercises with specified equipment, trying without equipment filter...');
@@ -121,6 +147,16 @@ export async function generateWorkoutPlan({ muscleGroups, experienceLevel, durat
         });
         return matchesMuscle;
       });
+      // Apply exclusion filters to fallback results
+      availableExercises = filterExcludedExercises(availableExercises);
+      if (userDislikedExercises.length > 0) {
+        availableExercises = availableExercises.filter(ex => {
+          const nameLower = ex.name.toLowerCase();
+          return !userDislikedExercises.some(disliked =>
+            nameLower.includes(disliked.toLowerCase()) || disliked.toLowerCase().includes(nameLower)
+          );
+        });
+      }
     }
 
     // FALLBACK 2: If still no exercises, broaden muscle group search
@@ -147,6 +183,16 @@ export async function generateWorkoutPlan({ muscleGroups, experienceLevel, durat
                  ex.name?.toLowerCase().includes(mgLower);
         });
       });
+      // Apply exclusion filters to fallback results
+      availableExercises = filterExcludedExercises(availableExercises);
+      if (userDislikedExercises.length > 0) {
+        availableExercises = availableExercises.filter(ex => {
+          const nameLower = ex.name.toLowerCase();
+          return !userDislikedExercises.some(disliked =>
+            nameLower.includes(disliked.toLowerCase()) || disliked.toLowerCase().includes(nameLower)
+          );
+        });
+      }
     }
 
     // If STILL no exercises, return error
@@ -1416,6 +1462,10 @@ export const workoutToolSchemas = [
           type: 'array',
           items: { type: 'string' },
           description: 'Available equipment (e.g., ["barbell", "dumbbell"])',
+        },
+        userId: {
+          type: 'string',
+          description: 'User ID (used to fetch exercise preferences and blacklist)',
         },
       },
       required: ['muscleGroups'],
