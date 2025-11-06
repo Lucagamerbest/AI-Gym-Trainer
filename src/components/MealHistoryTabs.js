@@ -213,33 +213,19 @@ export default function MealHistoryTabs({ navigation, route, activeHistoryTab })
     }
 
     const allDatesWithFuture = [...allDates, ...futureDatesToAdd];
-
-    console.log('🔍 DEBUG getSortedDates:', {
-      activeHistoryTab,
-      dateRangeFilter,
-      existingDatesCount: allDates.length,
-      generatedFutureDates: futureDatesToAdd.length,
-      totalDates: allDatesWithFuture.length,
-      today
-    });
-
     let filteredDates = allDatesWithFuture;
 
     if (dateRangeFilter === 'past') {
       // Show past dates (excluding today)
       filteredDates = allDatesWithFuture.filter(dateKey => new Date(dateKey) < todayDate);
-      const result = filteredDates.sort((a, b) => new Date(b) - new Date(a)).slice(0, 30);
-      console.log('📅 PAST filter result:', result.length, 'dates');
-      return result;
+      return filteredDates.sort((a, b) => new Date(b) - new Date(a)).slice(0, 30);
     } else if (dateRangeFilter === 'future') {
       // Show future dates (excluding today)
       filteredDates = allDatesWithFuture.filter(dateKey => new Date(dateKey) > todayDate);
-      const result = filteredDates.sort((a, b) => new Date(a) - new Date(b)).slice(0, 30);
-      console.log('📆 FUTURE filter result:', result.length, 'dates');
-      return result;
+      return filteredDates.sort((a, b) => new Date(a) - new Date(b)).slice(0, 30);
     } else {
       // Show all dates: today, then next 7 future days, then past 15 days
-      // IMPORTANT: Filter out today from past/future to avoid duplicates
+      // IMPORTANT: Filter to get exactly today, future, and past dates separately
       const pastDates = allDatesWithFuture
         .filter(dateKey => dateKey < today)  // Strict less than - excludes today
         .sort((a, b) => b.localeCompare(a))
@@ -249,18 +235,10 @@ export default function MealHistoryTabs({ navigation, route, activeHistoryTab })
         .sort((a, b) => a.localeCompare(b))
         .slice(0, 7);
 
-      // Add today exactly once at the beginning (it's excluded from past/future filters)
+      // Build result: today first, then future, then past
+      // Use Set to ensure today appears exactly once
       const result = [today, ...futureDates, ...pastDates];
-
-      // Remove duplicates just in case
-      const uniqueResult = [...new Set(result)];
-
-      console.log('📊 ALL filter result:', uniqueResult.length, 'dates (1 today + ' + futureDates.length + ' future + ' + pastDates.length + ' past)');
-      console.log('  Today:', today, '| Future:', futureDates.slice(0, 3), '| Past:', pastDates.slice(0, 3));
-      if (uniqueResult.length !== result.length) {
-        console.log('  ⚠️ Removed', result.length - uniqueResult.length, 'duplicate dates');
-      }
-      return uniqueResult;
+      return [...new Set(result)];
     }
   };
 
@@ -844,7 +822,7 @@ export default function MealHistoryTabs({ navigation, route, activeHistoryTab })
             >
               {(() => {
                 const sortedDates = getSortedDates();
-                console.log('📋 Rendering list view with', sortedDates.length, 'dates');
+                const todayStr = getLocalDateString(); // Calculate once for all dates
 
                 if (sortedDates.length === 0) {
                   return (
@@ -860,18 +838,14 @@ export default function MealHistoryTabs({ navigation, route, activeHistoryTab })
                 }
 
                 return sortedDates.map((dateKey, index) => {
-                console.log(`📋 Rendering date ${index + 1}/${sortedDates.length}: ${dateKey}`);
-                const dateObj = new Date(dateKey);
+                // Parse date as local time to avoid timezone issues
+                // "2025-11-07" -> Date object with local time, not UTC
+                const [year, month, day] = dateKey.split('-').map(Number);
+                const dateObj = new Date(year, month - 1, day);
                 const isExpanded = expandedDates.includes(dateKey);
                 const dayData = mealData[dateKey] || {};
                 const loggedMeals = dayData.logged || {};
                 const plannedMeals = dayData.planned || {};
-                console.log(`  → Has meals: logged=${Object.keys(loggedMeals).length}, planned=${Object.keys(plannedMeals).length}`);
-
-                // Debug: Log actual structure for dates with "logged=4" but zero meals
-                if (Object.keys(loggedMeals).length === 4 && dateKey === '2025-11-05') {
-                  console.log(`  → DEBUG Nov 5 loggedMeals:`, JSON.stringify(loggedMeals, null, 2));
-                }
 
                 // Calculate totals
                 const loggedTotal = Object.values(loggedMeals).reduce((sum, items) =>
@@ -889,16 +863,13 @@ export default function MealHistoryTabs({ navigation, route, activeHistoryTab })
                   const plannedItems = Array.isArray(plannedMeals[type]) ? plannedMeals[type] : [];
                   mealCounts[type] = loggedItems.length + plannedItems.length;
                 });
-                console.log(`  → mealCounts:`, mealCounts);
 
                 const hasAnyMeals = Object.values(mealCounts).some(count => count > 0);
-                const todayStr = getLocalDateString();
                 const isToday = dateKey === todayStr;
                 const hasPlannedMeals = Object.values(plannedMeals).some(items => items?.length > 0);
                 const isSelected = selectedDatesForDelete.includes(dateKey);
-                const isFuture = dateKey > todayStr; // String comparison: "2025-11-07" > "2025-11-06"
+                const isFuture = dateKey > todayStr;
                 const isPast = dateKey < todayStr;
-                console.log(`  → hasAnyMeals: ${hasAnyMeals}, isPast: ${isPast}, isToday: ${isToday}, isFuture: ${isFuture}`);
 
                 return (
                   <TouchableOpacity
