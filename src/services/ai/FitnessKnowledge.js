@@ -373,6 +373,16 @@ export function mapUserTermToMuscleGroups(userTerm) {
     return TRAINING_SPLITS.LEGS.primaryMuscles;
   }
 
+  // Handle upper/lower splits
+  if (term.includes('upper')) {
+    // Upper body = push + pull muscles
+    return [...TRAINING_SPLITS.PUSH.primaryMuscles, ...TRAINING_SPLITS.PULL.primaryMuscles];
+  }
+  if (term.includes('lower')) {
+    // Lower body = leg muscles
+    return TRAINING_SPLITS.LEGS.primaryMuscles;
+  }
+
   // Handle specific muscle groups
   const muscleMap = {
     'chest': ['Chest'],

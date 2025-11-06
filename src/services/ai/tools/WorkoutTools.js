@@ -50,9 +50,12 @@ export async function generateWorkoutPlan({ muscleGroups, experienceLevel, durat
 
     console.log(`📚 Scientific mapping: ${muscleGroups.join(', ')} → ${expandedMuscleGroups.join(', ')}`);
 
-    // STEP 2: Determine workout type (push/pull/legs) for validation
+    // STEP 2: Determine workout type (push/pull/legs/upper/lower) for validation
     const workoutType = muscleGroups[0]?.toLowerCase();
     const isPushPullLegsSplit = ['push', 'pull', 'legs', 'leg'].some(type =>
+      workoutType?.includes(type)
+    );
+    const isUpperLowerSplit = ['upper', 'lower'].some(type =>
       workoutType?.includes(type)
     );
 
@@ -68,6 +71,17 @@ export async function generateWorkoutPlan({ muscleGroups, experienceLevel, durat
         } else if (workoutType.includes('pull')) {
           if (classification !== 'pull') return false;
         } else if (workoutType.includes('leg')) {
+          if (classification !== 'legs') return false;
+        }
+      } else if (isUpperLowerSplit) {
+        // For upper/lower splits, classify as upper (push + pull) or lower (legs)
+        const classification = FitnessKnowledge.classifyExercise(ex);
+
+        if (workoutType.includes('upper')) {
+          // Upper body = push + pull movements
+          if (classification !== 'push' && classification !== 'pull') return false;
+        } else if (workoutType.includes('lower')) {
+          // Lower body = legs only
           if (classification !== 'legs') return false;
         }
       } else {

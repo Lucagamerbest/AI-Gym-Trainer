@@ -100,8 +100,7 @@ export const StartWorkoutScreenSections = [
       { icon: 'return-down-back', text: 'Pull workout', toolName: 'generateWorkoutPlan', params: { type: 'pull' } },
       { icon: 'walk', text: 'Leg workout', toolName: 'generateWorkoutPlan', params: { type: 'legs' } },
       { icon: 'fitness', text: 'Full body workout', toolName: 'generateWorkoutPlan', params: { type: 'full_body' } },
-      { icon: 'barbell', text: 'Chest & triceps', toolName: 'generateWorkoutPlan', params: { muscles: ['chest', 'triceps'] } },
-      { icon: 'return-down-back', text: 'Back & biceps', toolName: 'generateWorkoutPlan', params: { muscles: ['back', 'biceps'] } },
+      { icon: 'body', text: 'Upper body', toolName: 'generateWorkoutPlan', params: { type: 'upper' } },
     ],
   },
   {
