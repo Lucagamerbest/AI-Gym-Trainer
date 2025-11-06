@@ -239,15 +239,16 @@ export default function MealHistoryTabs({ navigation, route, activeHistoryTab })
       return result;
     } else {
       // Show all dates: today, then next 7 future days, then past 15 days
-      const pastDates = allDatesWithFuture.filter(dateKey => new Date(dateKey) < todayDate)
-        .sort((a, b) => new Date(b) - new Date(a))
+      const pastDates = allDatesWithFuture.filter(dateKey => dateKey < today)
+        .sort((a, b) => b.localeCompare(a))
         .slice(0, 15);
-      const futureDates = allDatesWithFuture.filter(dateKey => new Date(dateKey) > todayDate)
-        .sort((a, b) => new Date(a) - new Date(b))
+      const futureDates = allDatesWithFuture.filter(dateKey => dateKey > today)
+        .sort((a, b) => a.localeCompare(b))
         .slice(0, 7);
 
-      const result = [...[today], ...futureDates, ...pastDates];
-      console.log('📊 ALL filter result:', result.length, 'dates (today + 7 future + 15 past)');
+      // Only add today once
+      const result = [today, ...futureDates, ...pastDates];
+      console.log('📊 ALL filter result:', result.length, 'dates (1 today + ' + futureDates.length + ' future + ' + pastDates.length + ' past)');
       return result;
     }
   };
@@ -856,6 +857,11 @@ export default function MealHistoryTabs({ navigation, route, activeHistoryTab })
                 const plannedMeals = dayData.planned || {};
                 console.log(`  → Has meals: logged=${Object.keys(loggedMeals).length}, planned=${Object.keys(plannedMeals).length}`);
 
+                // Debug: Log actual structure for dates with "logged=4" but zero meals
+                if (Object.keys(loggedMeals).length === 4 && dateKey === '2025-11-05') {
+                  console.log(`  → DEBUG Nov 5 loggedMeals:`, JSON.stringify(loggedMeals, null, 2));
+                }
+
                 // Calculate totals
                 const loggedTotal = Object.values(loggedMeals).reduce((sum, items) =>
                   sum + (items || []).reduce((s, item) => s + (item.calories || 0), 0), 0
@@ -875,17 +881,22 @@ export default function MealHistoryTabs({ navigation, route, activeHistoryTab })
                 console.log(`  → mealCounts:`, mealCounts);
 
                 const hasAnyMeals = Object.values(mealCounts).some(count => count > 0);
-                const isToday = dateKey === getLocalDateString();
+                const todayStr = getLocalDateString();
+                const isToday = dateKey === todayStr;
                 const hasPlannedMeals = Object.values(plannedMeals).some(items => items?.length > 0);
                 const isSelected = selectedDatesForDelete.includes(dateKey);
-                const isFuture = new Date(dateKey) > new Date(getLocalDateString());
-                console.log(`  → hasAnyMeals: ${hasAnyMeals}, isFuture: ${isFuture}, isToday: ${isToday}`);
+                const isFuture = dateKey > todayStr; // String comparison: "2025-11-07" > "2025-11-06"
+                const isPast = dateKey < todayStr;
+                console.log(`  → hasAnyMeals: ${hasAnyMeals}, isPast: ${isPast}, isToday: ${isToday}, isFuture: ${isFuture}`);
 
                 return (
                   <TouchableOpacity
                     key={dateKey}
                     style={[
                       styles.listDateCard,
+                      isToday && styles.listDateCardToday,
+                      isFuture && styles.listDateCardFuture,
+                      isPast && styles.listDateCardPast,
                       isExpanded && styles.listDateCardExpanded,
                       bulkDeleteMode && isSelected && styles.listDateCardSelected
                     ]}
@@ -2384,6 +2395,19 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     overflow: 'hidden',
+  },
+  listDateCardToday: {
+    borderColor: Colors.primary,
+    borderWidth: 2,
+    backgroundColor: Colors.primary + '08',
+  },
+  listDateCardFuture: {
+    borderColor: '#FF9500',  // Orange
+    borderLeftWidth: 4,
+  },
+  listDateCardPast: {
+    backgroundColor: Colors.surface,
+    opacity: 0.85,
   },
   listDateCardExpanded: {
     borderColor: Colors.primary,
