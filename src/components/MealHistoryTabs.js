@@ -239,17 +239,28 @@ export default function MealHistoryTabs({ navigation, route, activeHistoryTab })
       return result;
     } else {
       // Show all dates: today, then next 7 future days, then past 15 days
-      const pastDates = allDatesWithFuture.filter(dateKey => dateKey < today)
+      // IMPORTANT: Filter out today from past/future to avoid duplicates
+      const pastDates = allDatesWithFuture
+        .filter(dateKey => dateKey < today)  // Strict less than - excludes today
         .sort((a, b) => b.localeCompare(a))
         .slice(0, 15);
-      const futureDates = allDatesWithFuture.filter(dateKey => dateKey > today)
+      const futureDates = allDatesWithFuture
+        .filter(dateKey => dateKey > today)  // Strict greater than - excludes today
         .sort((a, b) => a.localeCompare(b))
         .slice(0, 7);
 
-      // Only add today once
+      // Add today exactly once at the beginning (it's excluded from past/future filters)
       const result = [today, ...futureDates, ...pastDates];
-      console.log('📊 ALL filter result:', result.length, 'dates (1 today + ' + futureDates.length + ' future + ' + pastDates.length + ' past)');
-      return result;
+
+      // Remove duplicates just in case
+      const uniqueResult = [...new Set(result)];
+
+      console.log('📊 ALL filter result:', uniqueResult.length, 'dates (1 today + ' + futureDates.length + ' future + ' + pastDates.length + ' past)');
+      console.log('  Today:', today, '| Future:', futureDates.slice(0, 3), '| Past:', pastDates.slice(0, 3));
+      if (uniqueResult.length !== result.length) {
+        console.log('  ⚠️ Removed', result.length - uniqueResult.length, 'duplicate dates');
+      }
+      return uniqueResult;
     }
   };
 
