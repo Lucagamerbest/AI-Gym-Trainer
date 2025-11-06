@@ -95,7 +95,7 @@ export const StartWorkoutScreenSections = [
     title: 'Create Workout',
     icon: 'add-circle',
     buttons: [
-      { icon: 'chatbubble-ellipses', text: 'Just create a workout', toolName: 'customWorkoutInput', isCustomInput: true },
+      { icon: 'chatbubble-ellipses', text: 'Create custom workout', toolName: 'customWorkoutInput', isCustomInput: true },
       { icon: 'barbell', text: 'Push workout', toolName: 'generateWorkoutPlan', params: { type: 'push' } },
       { icon: 'return-down-back', text: 'Pull workout', toolName: 'generateWorkoutPlan', params: { type: 'pull' } },
       { icon: 'walk', text: 'Leg workout', toolName: 'generateWorkoutPlan', params: { type: 'legs' } },
