@@ -210,13 +210,13 @@
 - [x] Fix unlog behavior to preserve meal origin (Nov 6)
 - [x] Add visible edit button with pencil icon (Nov 6)
 - [x] Fix Today meals tab (Verified working - Nov 6)
-- [ ] Fix AI exercise replacement ⬅️ **NEXT**
-- [ ] Fix full body workout generation
+- [x] Fix AI exercise replacement (Nov 6)
+- [ ] Fix full body workout generation ⬅️ **NEXT**
 - [ ] Define text input policy
 - [ ] Implement controlled custom text requests
 
 **Expected completion:** November 12, 2025
-**Progress Update (Nov 6):** Fixed critical nutrition tracking bugs - date display, meal editing, and unlog behavior. Today meals tab verified working.
+**Progress Update (Nov 6):** Fixed critical nutrition tracking bugs - date display, meal editing, and unlog behavior. Today meals tab verified working. Optimized AI exercise replacement for fluid one-shot execution.
 
 ---
 
@@ -344,18 +344,38 @@ By November 27, 2025, we should have:
    - Clear visual affordance for edit action
    - Consistent with status badge design
 
+6. Excluded decline exercises from AI workout generation
+   - Added global exclusion list for decline bench press variants
+   - Applied filter to all exercise generation functions
+   - Based on bodybuilding research showing limited utility
+   - Affected: `WorkoutTools.js:generateWorkoutPlan, findExerciseAlternatives, replaceExerciseInWorkout`
+
+7. Optimized AI exercise replacement for fluid one-shot execution
+   - Added comprehensive instructions to AI system prompt
+   - Supports explicit replacement: "Replace bench with incline press"
+   - Supports auto-selection: "Replace bench press" (AI picks best alternative)
+   - Eliminates 3-5 turn conversations for simple exercise swaps
+   - AI now responds: "Replaced [Old] with [New]. Sets preserved: X×Y."
+   - Fixed issue where AI would offer to generate entirely new workout
+   - Affected: `AIService.js:1081-1139` (buildSystemPromptForTools)
+
 **Files Modified:**
 - `src/components/MealHistoryTabs.js`
 - `src/screens/CalorieBreakdownScreen.js`
+- `src/services/ai/tools/WorkoutTools.js`
+- `src/services/ai/tools/index.js`
+- `src/services/ai/AIService.js`
 
-**Commits:** 4 commits pushed to main
+**Commits:** 6 commits pushed to main
 - `e6e2dff` - Fix date display timezone bug
 - `7ac0eae` - Add edit functionality and fix unlog behavior
 - `f28c127` - Add visible edit button
 - `fcfbad8` - Remove debug console logs
+- `f4930c0` - Exclude decline exercises from AI workout generation
+- `91c79ec` - Add one-shot exercise replacement to AI system prompt
 
 ---
 
 **Last Updated:** November 6, 2025
-**Status:** Sprint 1 In Progress (5/11 tasks complete)
+**Status:** Sprint 1 In Progress (7/11 tasks complete)
 **Next Review:** November 12, 2025 (End of Sprint 1)
