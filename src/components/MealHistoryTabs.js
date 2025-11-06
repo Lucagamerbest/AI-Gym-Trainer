@@ -179,13 +179,13 @@ export default function MealHistoryTabs({ navigation, route, activeHistoryTab })
         </ScrollView>
       )}
 
-      {/* Day Planner Modal - Placeholder for now */}
+      {/* Day Planner Modal */}
       <Modal
         visible={showDayPlanner}
         animationType="slide"
         onRequestClose={() => setShowDayPlanner(false)}
       >
-        <View style={styles.modalContainer}>
+        <ScrollView style={styles.modalContainer}>
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>
               {selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
@@ -194,10 +194,59 @@ export default function MealHistoryTabs({ navigation, route, activeHistoryTab })
               <Text style={styles.closeButton}>✕</Text>
             </TouchableOpacity>
           </View>
-          <Text style={styles.modalPlaceholder}>
-            Day details coming soon...
-          </Text>
-        </View>
+
+          {(() => {
+            const dateKey = getLocalDateString(selectedDate);
+            const dayData = mealData[dateKey];
+            const mealsToShow = isHistoryMode ? dayData?.logged : dayData?.planned;
+
+            if (!mealsToShow || Object.values(mealsToShow).every(items => !items || items.length === 0)) {
+              return (
+                <View style={styles.emptyModal}>
+                  <Text style={styles.emptyModalText}>
+                    {isHistoryMode ? '📅 No meals logged on this date' : '📆 No meals planned for this date'}
+                  </Text>
+                  <Text style={styles.emptyModalSubtext}>
+                    {isHistoryMode ? 'Check other dates for your meal history' : 'Go to Today tab to plan meals for this date'}
+                  </Text>
+                </View>
+              );
+            }
+
+            return (
+              <View>
+                {['breakfast', 'lunch', 'dinner', 'snacks'].map((mealType) => {
+                  const items = mealsToShow[mealType] || [];
+                  if (items.length === 0) return null;
+
+                  const mealTotal = items.reduce((sum, item) => sum + (item.calories || 0), 0);
+                  const mealName = mealType.charAt(0).toUpperCase() + mealType.slice(1);
+                  const mealIcon = { breakfast: '🌅', lunch: '☀️', dinner: '🌙', snacks: '🍿' }[mealType];
+
+                  return (
+                    <StyledCard key={mealType} style={styles.modalMealCard}>
+                      <View style={styles.modalMealHeader}>
+                        <Text style={styles.modalMealTitle}>{mealIcon} {mealName}</Text>
+                        <Text style={styles.modalMealTotal}>{mealTotal} cal</Text>
+                      </View>
+                      {items.map((food, index) => (
+                        <View key={index} style={styles.modalFoodItem}>
+                          <Text style={styles.modalFoodName}>{food.name}</Text>
+                          <View style={styles.modalFoodMacros}>
+                            <Text style={styles.modalFoodCal}>{food.calories || 0} cal</Text>
+                            {food.protein ? <Text style={styles.modalFoodMacro}>P: {parseFloat(food.protein).toFixed(1)}g</Text> : null}
+                            {food.carbs ? <Text style={styles.modalFoodMacro}>C: {parseFloat(food.carbs).toFixed(1)}g</Text> : null}
+                            {food.fat ? <Text style={styles.modalFoodMacro}>F: {parseFloat(food.fat).toFixed(1)}g</Text> : null}
+                          </View>
+                        </View>
+                      ))}
+                    </StyledCard>
+                  );
+                })}
+              </View>
+            );
+          })()}
+        </ScrollView>
       </Modal>
     </View>
   );
@@ -321,5 +370,67 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     textAlign: 'center',
     marginTop: Spacing.xl,
+  },
+  emptyModal: {
+    padding: Spacing.xl,
+    alignItems: 'center',
+  },
+  emptyModalText: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: Spacing.xs,
+    textAlign: 'center',
+  },
+  emptyModalSubtext: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+  },
+  modalMealCard: {
+    padding: Spacing.md,
+    marginBottom: Spacing.sm,
+  },
+  modalMealHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+    paddingBottom: Spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border + '30',
+  },
+  modalMealTitle: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  modalMealTotal: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
+    color: Colors.primary,
+  },
+  modalFoodItem: {
+    paddingVertical: Spacing.xs,
+  },
+  modalFoodName: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.text,
+    fontWeight: '500',
+    marginBottom: 2,
+  },
+  modalFoodMacros: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.xs,
+  },
+  modalFoodCal: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.primary,
+    fontWeight: '600',
+  },
+  modalFoodMacro: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textSecondary,
   },
 });
