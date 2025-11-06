@@ -11,6 +11,7 @@ import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { useAuth } from '../context/AuthContext';
 import { getNutritionGoals, updateNutritionGoals } from '../services/userProfileService';
 import MealSyncService from '../services/backend/MealSyncService';
+import MealHistoryTabs from '../components/MealHistoryTabs';
 
 const MACROS_KEY = '@macro_goals';
 const DAILY_NUTRITION_KEY = '@daily_nutrition';
@@ -34,6 +35,9 @@ export default function NutritionScreen({ navigation, route }) {
   const [disableBack, setDisableBack] = useState(false); // Track if back should be disabled
   const [dataLoaded, setDataLoaded] = useState(false); // Track if data has been loaded
   const processedParams = useRef({}); // Track which params have been processed
+
+  // Tab navigation state
+  const [activeTab, setActiveTab] = useState('today'); // 'today', 'history', 'plan'
   const [macroGoals, setMacroGoals] = useState({
     calories: 2000,
     proteinGrams: 150,
@@ -758,14 +762,48 @@ export default function NutritionScreen({ navigation, route }) {
 
   return (
     <ScreenLayout
-      title="Nutrition Tracker"
+      title="Nutrition"
       subtitle={getCurrentDate()}
       navigation={navigation}
       showBack={!disableBack}  // Disable back when coming from recipe add
       showHome={true}
       screenName="NutritionScreen"
     >
-      <StyledCard style={styles.statsCard}>
+      {/* Tab Navigation */}
+      <View style={styles.tabContainer}>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'today' && styles.tabActive]}
+          onPress={() => setActiveTab('today')}
+          activeOpacity={0.7}
+        >
+          <Text style={[styles.tabText, activeTab === 'today' && styles.tabTextActive]}>
+            Today
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'history' && styles.tabActive]}
+          onPress={() => setActiveTab('history')}
+          activeOpacity={0.7}
+        >
+          <Text style={[styles.tabText, activeTab === 'history' && styles.tabTextActive]}>
+            History
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'plan' && styles.tabActive]}
+          onPress={() => setActiveTab('plan')}
+          activeOpacity={0.7}
+        >
+          <Text style={[styles.tabText, activeTab === 'plan' && styles.tabTextActive]}>
+            Plan
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Today Tab Content */}
+      {activeTab === 'today' && (
+        <>
+          <StyledCard style={styles.statsCard}>
         <View style={styles.statsHeader}>
           <Text style={styles.statsTitle}>Daily Calories</Text>
           <View style={styles.headerButtons}>
@@ -824,12 +862,6 @@ export default function NutritionScreen({ navigation, route }) {
             <Text style={styles.dropdownArrow}>
               {expandedMeal === 'selector' ? '▲' : '▼'}
             </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.historyButton}
-            onPress={() => navigation.navigate('MealsHistory')}
-          >
-            <Text style={styles.historyIcon}>📅</Text>
           </TouchableOpacity>
         </View>
 
@@ -1180,6 +1212,82 @@ export default function NutritionScreen({ navigation, route }) {
             </View>
           </View>
         </StyledCard>
+
+        {/* Today's Logged Meals Section */}
+        <StyledCard style={styles.loggedMealsCard}>
+          <Text style={styles.loggedMealsTitle}>📋 Today's Logged Meals</Text>
+          {['breakfast', 'lunch', 'dinner', 'snacks'].map((mealType) => {
+            const items = meals[mealType] || [];
+            if (items.length === 0) return null;
+
+            const mealTotal = items.reduce((sum, item) => sum + (item.calories || 0), 0);
+            const mealName = mealType.charAt(0).toUpperCase() + mealType.slice(1);
+            const mealIcon = { breakfast: '🌅', lunch: '☀️', dinner: '🌙', snacks: '🍿' }[mealType];
+
+            return (
+              <View key={mealType} style={styles.loggedMealSection}>
+                <View style={styles.loggedMealHeader}>
+                  <Text style={styles.loggedMealTitle}>{mealIcon} {mealName}</Text>
+                  <Text style={styles.loggedMealTotal}>{mealTotal} cal</Text>
+                </View>
+                {items.map((food, index) => {
+                  // Format timestamp
+                  const formatTime = (timestamp) => {
+                    if (!timestamp) return '';
+                    const date = new Date(timestamp);
+                    const hours = date.getHours();
+                    const minutes = date.getMinutes().toString().padStart(2, '0');
+                    const ampm = hours >= 12 ? 'PM' : 'AM';
+                    const displayHours = hours % 12 || 12;
+                    return `${displayHours}:${minutes} ${ampm}`;
+                  };
+
+                  return (
+                    <View key={index} style={styles.loggedFoodItem}>
+                      <View style={styles.loggedFoodInfo}>
+                        <View style={styles.loggedFoodNameRow}>
+                          <Text style={styles.loggedFoodName}>{food.name}</Text>
+                          {food.created_at && (
+                            <Text style={styles.loggedFoodTime}>{formatTime(food.created_at)}</Text>
+                          )}
+                        </View>
+                        <View style={styles.loggedFoodMacros}>
+                          <Text style={styles.loggedFoodCal}>{food.calories || 0} cal</Text>
+                          {food.protein ? <Text style={styles.loggedFoodMacro}>P: {parseFloat(food.protein).toFixed(1)}g</Text> : null}
+                          {food.carbs ? <Text style={styles.loggedFoodMacro}>C: {parseFloat(food.carbs).toFixed(1)}g</Text> : null}
+                          {food.fat ? <Text style={styles.loggedFoodMacro}>F: {parseFloat(food.fat).toFixed(1)}g</Text> : null}
+                        </View>
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            );
+          })}
+          {Object.values(meals).every(items => items.length === 0) && (
+            <Text style={styles.loggedMealsEmpty}>No meals logged yet today</Text>
+          )}
+        </StyledCard>
+        </>
+      )}
+
+      {/* History Tab Content */}
+      {activeTab === 'history' && (
+        <MealHistoryTabs
+          navigation={navigation}
+          route={route}
+          activeHistoryTab="history"
+        />
+      )}
+
+      {/* Plan Tab Content */}
+      {activeTab === 'plan' && (
+        <MealHistoryTabs
+          navigation={navigation}
+          route={route}
+          activeHistoryTab="plan"
+        />
+      )}
 
       <MacroGoalsModal
         visible={showMacroModal}
@@ -1974,5 +2082,127 @@ const styles = StyleSheet.create({
     color: Colors.error,
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  // Tab Navigation Styles
+  tabContainer: {
+    flexDirection: 'row',
+    backgroundColor: Colors.cardBackground,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.xs,
+    marginBottom: Spacing.md,
+    gap: Spacing.xs,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tabActive: {
+    backgroundColor: Colors.primary,
+  },
+  tabText: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.textSecondary,
+    fontWeight: '500',
+  },
+  tabTextActive: {
+    color: Colors.white,
+    fontWeight: '600',
+  },
+  // Placeholder Tab Styles
+  placeholderTab: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.xl * 2,
+  },
+  placeholderText: {
+    fontSize: Typography.fontSize.xl,
+    color: Colors.text,
+    fontWeight: '600',
+    marginBottom: Spacing.xs,
+  },
+  placeholderSubtext: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.textSecondary,
+  },
+  // Today's Logged Meals Styles
+  loggedMealsCard: {
+    padding: Spacing.md,
+  },
+  loggedMealsTitle: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: Spacing.md,
+  },
+  loggedMealSection: {
+    marginBottom: Spacing.md,
+    paddingBottom: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border + '30',
+  },
+  loggedMealHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+  },
+  loggedMealTitle: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  loggedMealTotal: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
+    color: Colors.primary,
+  },
+  loggedFoodItem: {
+    paddingVertical: Spacing.xs,
+    paddingLeft: Spacing.md,
+  },
+  loggedFoodInfo: {
+    flex: 1,
+  },
+  loggedFoodNameRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 2,
+  },
+  loggedFoodName: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.text,
+    fontWeight: '500',
+    flex: 1,
+  },
+  loggedFoodTime: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textSecondary,
+    marginLeft: Spacing.xs,
+  },
+  loggedFoodMacros: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.xs,
+  },
+  loggedFoodCal: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.primary,
+    fontWeight: '600',
+  },
+  loggedFoodMacro: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textSecondary,
+  },
+  loggedMealsEmpty: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    paddingVertical: Spacing.lg,
   },
 });
