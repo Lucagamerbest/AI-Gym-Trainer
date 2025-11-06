@@ -368,16 +368,16 @@ export default function AIButtonModal({
 
     const lowerResponse = response.toLowerCase();
     const ratingKeywords = [
-      'rate.*workout',
-      'how.*rate',
-      'rating',
+      '\\brate\\b.*\\bworkout\\b',  // \b ensures "rate" is a whole word (prevents matching "generate")
+      'how.*\\brate\\b',
+      '\\brating\\b',
       'out of 5',
       '1-5',
       'how was.*workout',
     ];
 
     return ratingKeywords.some(keyword => {
-      if (keyword.includes('.*')) {
+      if (keyword.includes('.*') || keyword.includes('\\b')) {
         const regex = new RegExp(keyword);
         return regex.test(lowerResponse);
       }

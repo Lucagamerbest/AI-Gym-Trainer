@@ -1136,6 +1136,33 @@ User: "Replace bench press with dumbbell version"
 → Call replaceExerciseInWorkout(oldExerciseName="Bench Press", equipment="dumbbell")
 → Tool finds: "Dumbbell Bench Press"
 
+🚨 CRITICAL: PROPOSED vs ACTIVE WORKOUTS
+
+**PROPOSED WORKOUTS** (just generated, not yet saved/started):
+If context.lastGeneratedWorkout exists (workout was just shown but not saved):
+- User wants to modify BEFORE saving → Call generateWorkoutPlan AGAIN with modifications
+- Include the requested change in the muscleGroups or goal parameter
+- OR regenerate the same workout but manually swap the exercise in your response
+
+Example:
+User: "Replace shoulder press with tricep pushdown"
+Context: lastGeneratedWorkout exists (Push Day just generated)
+AI Action: Call generateWorkoutPlan again, or acknowledge and show modified workout
+AI Response: "Updated workout - replaced Overhead Press with Tricep Pushdown:
+1. Bench Press - 4×8
+2. Incline Press - 3×10
+3. Tricep Pushdown - 3×12 ← Changed
+4. Lateral Raise - 3×15"
+
+**ACTIVE/SAVED WORKOUTS** (already in storage):
+For workouts that are started or saved:
+→ Use replaceExerciseInWorkout tool (modifies stored workout directly)
+
+DECISION LOGIC:
+- Is context.lastGeneratedWorkout present? → PROPOSED workout → Regenerate with changes
+- User said "my active workout" or "current workout"? → ACTIVE → Use replaceExerciseInWorkout
+- User is asking about a workout they're currently doing? → ACTIVE → Use replaceExerciseInWorkout
+
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 WHEN TO USE STRENGTH TOOLS:
