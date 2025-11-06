@@ -601,6 +601,13 @@ export default function AIButtonModal({
       // Send to AI with tools
       const result = await AIService.sendMessageWithTools(messageToSend, context);
 
+      console.log(`📥 [AIButtonModal] Received result:`, {
+        hasResponse: !!result.response,
+        responseLength: result.response?.length,
+        responsePreview: result.response?.substring(0, 100),
+        keys: Object.keys(result)
+      });
+
       // Store response and tool results
       setLastResponse(result.response);
       setLastToolResults(result.toolResults || null);

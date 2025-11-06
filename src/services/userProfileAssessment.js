@@ -77,8 +77,8 @@ export const DEFAULT_USER_PROFILE = {
   celebratePRs: true, // boolean
 
   // Exercise Preferences
-  favoriteExercises: [], // array of strings
-  dislikedExercises: [], // array of strings
+  favoriteExercises: '', // comma-separated string, converted to array on save
+  dislikedExercises: '', // comma-separated string, converted to array on save
   exercisesToAvoid: [], // array of {exercise: string, reason: string}
 
   // Nutrition & Lifestyle

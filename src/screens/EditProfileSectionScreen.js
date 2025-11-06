@@ -11,6 +11,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { updateProfileSection } from '../services/userProfileAssessment';
+import WorkoutCacheService from '../services/WorkoutCacheService';
+import { getAuth } from 'firebase/auth';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 
 const EditProfileSectionScreen = ({ navigation, route }) => {
@@ -50,6 +52,26 @@ const EditProfileSectionScreen = ({ navigation, route }) => {
           coachingStyle: userProfile.coachingStyle || 'motivational',
           responseVerbosity: userProfile.responseVerbosity || 'concise',
         };
+      case 'limitations':
+        return {
+          currentPain: userProfile.currentPain || [],
+          mobilityIssues: userProfile.mobilityIssues || [],
+        };
+      case 'exercises':
+        return {
+          favoriteExercises: Array.isArray(userProfile.favoriteExercises)
+            ? userProfile.favoriteExercises.join(', ')
+            : userProfile.favoriteExercises || '',
+          dislikedExercises: Array.isArray(userProfile.dislikedExercises)
+            ? userProfile.dislikedExercises.join(', ')
+            : userProfile.dislikedExercises || '',
+        };
+      case 'nutrition':
+        return {
+          dietaryRestrictions: userProfile.dietaryRestrictions || [],
+          mealsPerDay: userProfile.mealsPerDay?.toString() || '3',
+          cookingSkill: userProfile.cookingSkill || 'intermediate',
+        };
       default:
         return {};
     }
@@ -69,9 +91,36 @@ const EditProfileSectionScreen = ({ navigation, route }) => {
       if (processedData.averageSleepHours) {
         processedData.averageSleepHours = parseInt(processedData.averageSleepHours) || 7;
       }
+      if (processedData.mealsPerDay) {
+        processedData.mealsPerDay = parseInt(processedData.mealsPerDay) || 3;
+      }
+
+      // Convert exercise strings to arrays
+      if (section === 'exercises') {
+        processedData.favoriteExercises = typeof processedData.favoriteExercises === 'string'
+          ? processedData.favoriteExercises.split(',').map(e => e.trim()).filter(e => e)
+          : processedData.favoriteExercises || [];
+        processedData.dislikedExercises = typeof processedData.dislikedExercises === 'string'
+          ? processedData.dislikedExercises.split(',').map(e => e.trim()).filter(e => e)
+          : processedData.dislikedExercises || [];
+      }
 
       const result = await updateProfileSection(section, processedData);
       if (result.success) {
+        // Invalidate and regenerate cache for sections that affect workouts
+        const workoutAffectingSections = ['limitations', 'exercises', 'training', 'goals', 'experience'];
+        if (workoutAffectingSections.includes(section)) {
+          const auth = getAuth();
+          const userId = auth.currentUser?.uid;
+
+          if (userId && userId !== 'guest') {
+            console.log(`🔄 [EditProfile] ${section} updated, invalidating workout cache...`);
+            WorkoutCacheService.invalidateAndRegenerate(userId).catch(err => {
+              console.error('❌ [EditProfile] Failed to invalidate cache:', err);
+            });
+          }
+        }
+
         Alert.alert('Success', 'Profile section updated!', [
           { text: 'OK', onPress: () => navigation.goBack() }
         ]);
@@ -352,6 +401,159 @@ const EditProfileSectionScreen = ({ navigation, route }) => {
           </>
         );
 
+      case 'limitations':
+        return (
+          <>
+            <Text style={styles.label}>Current Pain Areas</Text>
+            <View style={styles.multiSelectContainer}>
+              {['lower back', 'upper back', 'shoulders', 'elbows', 'wrists', 'hips', 'knees', 'ankles'].map(area => (
+                <TouchableOpacity
+                  key={area}
+                  style={[
+                    styles.multiSelectButton,
+                    editedData.currentPain?.some(p => p.area === area) && styles.multiSelectButtonActive
+                  ]}
+                  onPress={() => {
+                    const currentPain = editedData.currentPain || [];
+                    const exists = currentPain.some(p => p.area === area);
+                    if (exists) {
+                      updateField('currentPain', currentPain.filter(p => p.area !== area));
+                    } else {
+                      updateField('currentPain', [...currentPain, { area, severity: 5, notes: '' }]);
+                    }
+                  }}
+                >
+                  <Text style={[
+                    styles.multiSelectText,
+                    editedData.currentPain?.some(p => p.area === area) && styles.multiSelectTextActive
+                  ]}>
+                    {area.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <Text style={[styles.label, { marginTop: Spacing.lg }]}>Mobility Issues</Text>
+            <View style={styles.multiSelectContainer}>
+              {['tight hips', 'tight hamstrings', 'tight shoulders', 'poor ankle mobility', 'poor thoracic mobility'].map(issue => (
+                <TouchableOpacity
+                  key={issue}
+                  style={[
+                    styles.multiSelectButton,
+                    editedData.mobilityIssues?.includes(issue) && styles.multiSelectButtonActive
+                  ]}
+                  onPress={() => toggleArrayItem('mobilityIssues', issue)}
+                >
+                  <Text style={[
+                    styles.multiSelectText,
+                    editedData.mobilityIssues?.includes(issue) && styles.multiSelectTextActive
+                  ]}>
+                    {issue.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </>
+        );
+
+      case 'exercises':
+        return (
+          <>
+            <Text style={styles.label}>Favorite Exercises</Text>
+            <TextInput
+              style={[styles.input, styles.textArea]}
+              placeholder="e.g., Bench Press, Deadlifts, Pull-ups (comma separated)"
+              placeholderTextColor={Colors.textMuted}
+              multiline
+              numberOfLines={3}
+              value={editedData.favoriteExercises || ''}
+              onChangeText={(text) => updateField('favoriteExercises', text)}
+            />
+
+            <Text style={[styles.label, { marginTop: Spacing.lg }]}>Disliked Exercises</Text>
+            <TextInput
+              style={[styles.input, styles.textArea]}
+              placeholder="e.g., Squat, Leg Curl, Deadlift (will avoid ALL variations)"
+              placeholderTextColor={Colors.textMuted}
+              multiline
+              numberOfLines={3}
+              value={editedData.dislikedExercises || ''}
+              onChangeText={(text) => updateField('dislikedExercises', text)}
+            />
+            <Text style={styles.helpText}>
+              Type partial names (e.g., "Squat" avoids Goblet Squat, Front Squat, etc.)
+            </Text>
+          </>
+        );
+
+      case 'nutrition':
+        return (
+          <>
+            <Text style={styles.label}>Dietary Restrictions</Text>
+            <View style={styles.multiSelectContainer}>
+              {['vegetarian', 'vegan', 'gluten-free', 'dairy-free', 'nut-free', 'halal', 'kosher', 'none'].map(restriction => (
+                <TouchableOpacity
+                  key={restriction}
+                  style={[
+                    styles.multiSelectButton,
+                    editedData.dietaryRestrictions?.includes(restriction) && styles.multiSelectButtonActive
+                  ]}
+                  onPress={() => toggleArrayItem('dietaryRestrictions', restriction)}
+                >
+                  <Text style={[
+                    styles.multiSelectText,
+                    editedData.dietaryRestrictions?.includes(restriction) && styles.multiSelectTextActive
+                  ]}>
+                    {restriction.charAt(0).toUpperCase() + restriction.slice(1)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <Text style={[styles.label, { marginTop: Spacing.lg }]}>Meals Per Day</Text>
+            <View style={styles.optionsRow}>
+              {[2, 3, 4, 5, 6].map(meals => (
+                <TouchableOpacity
+                  key={meals}
+                  style={[
+                    styles.optionButton,
+                    editedData.mealsPerDay === meals.toString() && styles.optionButtonActive
+                  ]}
+                  onPress={() => updateField('mealsPerDay', meals.toString())}
+                >
+                  <Text style={[
+                    styles.optionText,
+                    editedData.mealsPerDay === meals.toString() && styles.optionTextActive
+                  ]}>
+                    {meals}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <Text style={[styles.label, { marginTop: Spacing.lg }]}>Cooking Skill</Text>
+            <View style={styles.optionsRow}>
+              {['beginner', 'intermediate', 'advanced'].map(skill => (
+                <TouchableOpacity
+                  key={skill}
+                  style={[
+                    styles.optionButton,
+                    editedData.cookingSkill === skill && styles.optionButtonActive
+                  ]}
+                  onPress={() => updateField('cookingSkill', skill)}
+                >
+                  <Text style={[
+                    styles.optionText,
+                    editedData.cookingSkill === skill && styles.optionTextActive
+                  ]}>
+                    {skill.charAt(0).toUpperCase() + skill.slice(1)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </>
+        );
+
       default:
         return <Text style={styles.emptyText}>This section cannot be edited yet.</Text>;
     }
@@ -365,6 +567,9 @@ const EditProfileSectionScreen = ({ navigation, route }) => {
       schedule: 'Schedule',
       lifestyle: 'Lifestyle',
       coaching: 'Coaching Preferences',
+      limitations: 'Limitations & Injuries',
+      exercises: 'Exercise Preferences',
+      nutrition: 'Nutrition Preferences',
     };
     return titles[section] || 'Edit Section';
   };
@@ -521,6 +726,44 @@ const styles = StyleSheet.create({
     fontSize: Typography.sizes.md,
     fontWeight: Typography.weights.semibold,
     color: Colors.background,
+  },
+  multiSelectContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  multiSelectButton: {
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  multiSelectButtonActive: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  multiSelectText: {
+    fontSize: Typography.sizes.sm,
+    color: Colors.text,
+  },
+  multiSelectTextActive: {
+    color: Colors.background,
+    fontWeight: Typography.weights.semibold,
+  },
+  textArea: {
+    minHeight: 80,
+    textAlignVertical: 'top',
+    paddingTop: Spacing.md,
+  },
+  helpText: {
+    fontSize: Typography.sizes.sm,
+    color: Colors.textMuted,
+    marginTop: -Spacing.sm,
+    marginBottom: Spacing.md,
+    fontStyle: 'italic',
   },
 });
 

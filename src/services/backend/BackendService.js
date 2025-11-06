@@ -8,6 +8,7 @@ import {
   setDoc,
   getDoc,
   getDocs,
+  deleteDoc,
   query,
   where,
   orderBy,
@@ -119,9 +120,21 @@ class BackendService {
       const userRef = doc(this.db, 'users', userId);
       const userDoc = await getDoc(userRef);
 
-      if (userDoc.exists()) {
-        return userDoc.data();
+      // Also fetch from userProfiles collection (assessment data)
+      const assessmentRef = doc(this.db, 'userProfiles', userId);
+      const assessmentDoc = await getDoc(assessmentRef);
+
+      // Merge both profiles (assessment data takes precedence for overlapping fields)
+      const baseProfile = userDoc.exists() ? userDoc.data() : {};
+      const assessmentProfile = assessmentDoc.exists() ? assessmentDoc.data() : {};
+
+      if (userDoc.exists() || assessmentDoc.exists()) {
+        return {
+          ...baseProfile,
+          ...assessmentProfile, // Assessment data overrides base profile
+        };
       }
+
       return null;
     } catch (error) {
       throw error;
@@ -218,6 +231,224 @@ class BackendService {
    */
   getAISessionsRef(userId) {
     return collection(this.db, 'users', userId, 'ai_sessions');
+  }
+
+  // ========================================
+  // WORKOUT CACHE METHODS
+  // ========================================
+
+  /**
+   * Save cached workouts to Firebase
+   * @param {string} userId - User ID
+   * @param {object} cache - Cache object with workouts, timestamp, and profile hash
+   * @returns {Promise<void>}
+   */
+  async setCachedWorkouts(userId, cache) {
+    try {
+      const cacheRef = doc(this.db, 'users', userId, 'cache', 'workouts');
+      await setDoc(cacheRef, cache);
+      console.log('✅ Cached workouts saved to Firebase');
+    } catch (error) {
+      console.error('❌ Failed to save workout cache:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get cached workouts from Firebase
+   * @param {string} userId - User ID
+   * @returns {Promise<object|null>} Cache object or null if not found
+   */
+  async getCachedWorkouts(userId) {
+    try {
+      const cacheRef = doc(this.db, 'users', userId, 'cache', 'workouts');
+      const cacheSnap = await getDoc(cacheRef);
+
+      if (cacheSnap.exists()) {
+        return cacheSnap.data();
+      }
+
+      return null;
+    } catch (error) {
+      console.error('❌ Failed to get workout cache:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Delete cached workouts
+   * @param {string} userId - User ID
+   * @returns {Promise<void>}
+   */
+  async deleteCachedWorkouts(userId) {
+    try {
+      const cacheRef = doc(this.db, 'users', userId, 'cache', 'workouts');
+      await deleteDoc(cacheRef);
+      console.log('✅ Workout cache deleted');
+    } catch (error) {
+      console.error('❌ Failed to delete workout cache:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get workout usage stats (which variations user has seen)
+   * @param {string} userId - User ID
+   * @param {string} workoutType - Workout type (push, pull, legs, etc.)
+   * @returns {Promise<object>} Usage stats object
+   */
+  async getWorkoutUsageStats(userId, workoutType) {
+    try {
+      const statsRef = doc(this.db, 'users', userId, 'workoutUsageStats', workoutType);
+      const statsSnap = await getDoc(statsRef);
+
+      if (statsSnap.exists()) {
+        return statsSnap.data();
+      }
+
+      return { seenVariations: [] };
+    } catch (error) {
+      console.error('❌ Failed to get workout usage stats:', error);
+      return { seenVariations: [] };
+    }
+  }
+
+  /**
+   * Mark a workout variation as seen
+   * @param {string} userId - User ID
+   * @param {string} workoutType - Workout type
+   * @param {number} variationIndex - Index of the variation
+   * @returns {Promise<void>}
+   */
+  async markWorkoutAsSeen(userId, workoutType, variationIndex) {
+    try {
+      const statsRef = doc(this.db, 'users', userId, 'workoutUsageStats', workoutType);
+      const statsSnap = await getDoc(statsRef);
+
+      let seenVariations = [];
+      if (statsSnap.exists()) {
+        seenVariations = statsSnap.data().seenVariations || [];
+      }
+
+      // Add this variation if not already seen
+      if (!seenVariations.includes(variationIndex)) {
+        seenVariations.push(variationIndex);
+        await setDoc(statsRef, { seenVariations }, { merge: true });
+      }
+    } catch (error) {
+      console.error('❌ Failed to mark workout as seen:', error);
+    }
+  }
+
+  // ========================================
+  // RECIPE CACHE METHODS
+  // ========================================
+
+  /**
+   * Save cached recipes to Firebase
+   * @param {string} userId - User ID
+   * @param {object} cache - Cache object with recipes, timestamp, and profile hash
+   * @returns {Promise<void>}
+   */
+  async setCachedRecipes(userId, cache) {
+    try {
+      const cacheRef = doc(this.db, 'users', userId, 'cache', 'recipes');
+      await setDoc(cacheRef, cache);
+      console.log('✅ Cached recipes saved to Firebase');
+    } catch (error) {
+      console.error('❌ Failed to save recipe cache:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get cached recipes from Firebase
+   * @param {string} userId - User ID
+   * @returns {Promise<object|null>} Cache object or null if not found
+   */
+  async getCachedRecipes(userId) {
+    try {
+      const cacheRef = doc(this.db, 'users', userId, 'cache', 'recipes');
+      const cacheSnap = await getDoc(cacheRef);
+
+      if (cacheSnap.exists()) {
+        return cacheSnap.data();
+      }
+
+      return null;
+    } catch (error) {
+      console.error('❌ Failed to get recipe cache:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Delete cached recipes
+   * @param {string} userId - User ID
+   * @returns {Promise<void>}
+   */
+  async deleteCachedRecipes(userId) {
+    try {
+      const cacheRef = doc(this.db, 'users', userId, 'cache', 'recipes');
+      await deleteDoc(cacheRef);
+      console.log('✅ Recipe cache deleted');
+    } catch (error) {
+      console.error('❌ Failed to delete recipe cache:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get recipe usage stats (which variations user has seen)
+   * @param {string} userId - User ID
+   * @param {string} mealType - Meal type (breakfast, lunch, dinner, snack)
+   * @param {boolean} highProtein - Whether this is high-protein variant
+   * @returns {Promise<object>} Usage stats object
+   */
+  async getRecipeUsageStats(userId, mealType, highProtein) {
+    try {
+      const category = highProtein ? 'highProtein' : 'regular';
+      const statsRef = doc(this.db, 'users', userId, 'recipeUsageStats', `${category}_${mealType}`);
+      const statsSnap = await getDoc(statsRef);
+
+      if (statsSnap.exists()) {
+        return statsSnap.data();
+      }
+
+      return { seenVariations: [] };
+    } catch (error) {
+      console.error('❌ Failed to get recipe usage stats:', error);
+      return { seenVariations: [] };
+    }
+  }
+
+  /**
+   * Mark a recipe variation as seen
+   * @param {string} userId - User ID
+   * @param {string} mealType - Meal type
+   * @param {boolean} highProtein - Whether this is high-protein variant
+   * @param {number} variationIndex - Index of the variation
+   * @returns {Promise<void>}
+   */
+  async markRecipeAsSeen(userId, mealType, highProtein, variationIndex) {
+    try {
+      const category = highProtein ? 'highProtein' : 'regular';
+      const statsRef = doc(this.db, 'users', userId, 'recipeUsageStats', `${category}_${mealType}`);
+      const statsSnap = await getDoc(statsRef);
+
+      let seenVariations = [];
+      if (statsSnap.exists()) {
+        seenVariations = statsSnap.data().seenVariations || [];
+      }
+
+      // Add this variation if not already seen
+      if (!seenVariations.includes(variationIndex)) {
+        seenVariations.push(variationIndex);
+        await setDoc(statsRef, { seenVariations }, { merge: true });
+      }
+    } catch (error) {
+      console.error('❌ Failed to mark recipe as seen:', error);
+    }
   }
 }
 

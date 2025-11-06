@@ -13,12 +13,36 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { completeAssessment, DEFAULT_USER_PROFILE } from '../services/userProfileAssessment';
+import { auth } from '../config/firebase';
 import { Colors } from '../constants/theme';
+import { getAllExercises } from '../data/exerciseDatabase';
 
 const AICoachAssessmentScreen = ({ navigation }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [profileData, setProfileData] = useState({ ...DEFAULT_USER_PROFILE });
   const [loading, setLoading] = useState(false);
+
+  // Helper: Check if exercises are recognized from database
+  const getRecognizedExercises = (exerciseString) => {
+    if (!exerciseString || typeof exerciseString !== 'string') return [];
+
+    const allExercises = getAllExercises();
+    const inputExercises = exerciseString.split(',').map(e => e.trim()).filter(e => e);
+
+    return inputExercises.map(inputEx => {
+      const match = allExercises.find(dbEx =>
+        dbEx.name.toLowerCase() === inputEx.toLowerCase() ||
+        dbEx.name.toLowerCase().includes(inputEx.toLowerCase()) ||
+        inputEx.toLowerCase().includes(dbEx.name.toLowerCase())
+      );
+
+      return {
+        text: inputEx,
+        recognized: !!match,
+        matchedName: match?.name || null,
+      };
+    });
+  };
 
   // Total steps in the assessment
   const TOTAL_STEPS = 10;
@@ -70,8 +94,49 @@ const AICoachAssessmentScreen = ({ navigation }) => {
   const handleComplete = async () => {
     setLoading(true);
     try {
-      const result = await completeAssessment(profileData);
+      // Convert disliked/favorite exercises from string to array if needed
+      const finalProfileData = {
+        ...profileData,
+        dislikedExercises: typeof profileData.dislikedExercises === 'string'
+          ? profileData.dislikedExercises.split(',').map(e => e.trim()).filter(e => e)
+          : profileData.dislikedExercises || [],
+        favoriteExercises: typeof profileData.favoriteExercises === 'string'
+          ? profileData.favoriteExercises.split(',').map(e => e.trim()).filter(e => e)
+          : profileData.favoriteExercises || [],
+      };
+
+      console.log('📝 [Assessment] Saving profile with disliked exercises:', finalProfileData.dislikedExercises);
+      console.log('📝 [Assessment] Saving profile with favorite exercises:', finalProfileData.favoriteExercises);
+
+      const result = await completeAssessment(finalProfileData);
       if (result.success) {
+        // 🚀 Trigger background cache generation for instant workouts & recipes
+        const userId = auth.currentUser?.uid;
+        if (userId) {
+          console.log('🚀 Starting background cache generation...');
+
+          // Import cache services dynamically and INVALIDATE first (profile just changed!)
+          import('../services/WorkoutCacheService').then(module => {
+            const WorkoutCacheService = module.default;
+            // Force regeneration with new profile data
+            WorkoutCacheService.invalidateAndRegenerate(userId).then(() => {
+              console.log('✅ Workout cache generation complete with new profile');
+            }).catch(err => {
+              console.error('❌ Workout cache generation failed:', err);
+            });
+          });
+
+          import('../services/NutritionCacheService').then(module => {
+            const NutritionCacheService = module.default;
+            // Force regeneration with new profile data
+            NutritionCacheService.invalidateAndRegenerate(userId).then(() => {
+              console.log('✅ Recipe cache generation complete with new profile');
+            }).catch(err => {
+              console.error('❌ Recipe cache generation failed:', err);
+            });
+          });
+        }
+
         Alert.alert(
           'Assessment Complete!',
           'Your AI coach now knows you personally and can provide tailored advice.',
@@ -494,22 +559,69 @@ const AICoachAssessmentScreen = ({ navigation }) => {
               placeholder="e.g., Bench Press, Deadlifts, Pull-ups (comma separated)"
               placeholderTextColor={Colors.textMuted}
               multiline
-              value={profileData.favoriteExercises?.join(', ') || ''}
-              onChangeText={text => updateProfile('favoriteExercises', text.split(',').map(e => e.trim()).filter(e => e))}
+              numberOfLines={3}
+              value={
+                Array.isArray(profileData.favoriteExercises)
+                  ? profileData.favoriteExercises.join(', ')
+                  : profileData.favoriteExercises || ''
+              }
+              onChangeText={text => {
+                // Store as raw string while typing
+                updateProfile('favoriteExercises', text);
+              }}
             />
 
             <Text style={styles.label}>Disliked Exercises (I'll try to avoid these)</Text>
             <TextInput
               style={[styles.input, styles.textArea]}
-              placeholder="e.g., Leg Curls, Leg Extensions (comma separated)"
+              placeholder="e.g., Squat, Leg Curl, Deadlift (will avoid ALL variations)"
               placeholderTextColor={Colors.textMuted}
               multiline
-              value={profileData.dislikedExercises?.join(', ') || ''}
-              onChangeText={text => updateProfile('dislikedExercises', text.split(',').map(e => e.trim()).filter(e => e))}
+              numberOfLines={3}
+              value={
+                Array.isArray(profileData.dislikedExercises)
+                  ? profileData.dislikedExercises.join(', ')
+                  : profileData.dislikedExercises || ''
+              }
+              onChangeText={text => {
+                // Store as raw string while typing
+                updateProfile('dislikedExercises', text);
+              }}
             />
 
+            {/* Show recognized exercises */}
+            {(profileData.dislikedExercises && profileData.dislikedExercises.length > 0) && (
+              <View style={styles.recognizedExercisesContainer}>
+                {getRecognizedExercises(
+                  Array.isArray(profileData.dislikedExercises)
+                    ? profileData.dislikedExercises.join(', ')
+                    : profileData.dislikedExercises
+                ).map((ex, index) => (
+                  <View
+                    key={index}
+                    style={[
+                      styles.exerciseTag,
+                      ex.recognized ? styles.exerciseTagRecognized : styles.exerciseTagUnrecognized
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.exerciseTagText,
+                        ex.recognized && styles.exerciseTagTextRecognized
+                      ]}
+                    >
+                      {ex.text}
+                    </Text>
+                    {ex.recognized && (
+                      <Ionicons name="checkmark-circle" size={14} color={Colors.primary} style={{ marginLeft: 4 }} />
+                    )}
+                  </View>
+                ))}
+              </View>
+            )}
+
             <Text style={styles.infoText}>
-              I'll prioritize your favorites and avoid exercises you dislike when making suggestions.
+              ✓ Recognized exercises shown with checkmark. Type partial names (e.g., "Squat" avoids Goblet Squat, Front Squat, etc.)
             </Text>
           </View>
         );

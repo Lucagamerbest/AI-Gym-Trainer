@@ -261,26 +261,14 @@ export default function ProfileScreen({ navigation }) {
                 />
               ) : (
                 <View style={styles.profileActionsRow}>
-                  <View style={styles.viewProfileButton}>
-                    <StyledButton
-                      title="View Profile"
-                      icon="person"
-                      size="md"
-                      variant="secondary"
-                      fullWidth
-                      onPress={() => navigation.navigate('UserProfile')}
-                    />
-                  </View>
-                  <View style={styles.updateProfileButton}>
-                    <StyledButton
-                      title="Update"
-                      icon="create"
-                      size="md"
-                      variant="secondary"
-                      fullWidth
-                      onPress={() => navigation.navigate('AICoachAssessment')}
-                    />
-                  </View>
+                  <StyledButton
+                    title="View & Edit Profile"
+                    icon="person"
+                    size="md"
+                    variant="secondary"
+                    fullWidth
+                    onPress={() => navigation.navigate('UserProfile')}
+                  />
                 </View>
               )}
             </View>

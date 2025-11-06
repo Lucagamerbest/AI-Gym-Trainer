@@ -106,6 +106,14 @@ export const saveUserProfile = async (userId, profile) => {
       });
     }
 
+    // 🔄 Invalidate workout cache (profile changed)
+    import('./WorkoutCacheService').then(module => {
+      const WorkoutCacheService = module.default;
+      WorkoutCacheService.invalidateAndRegenerate(userId).catch(err => {
+        console.warn('Failed to invalidate workout cache:', err);
+      });
+    });
+
     return { success: true };
   } catch (error) {
     console.error('Error saving user profile to Firebase:', error);
@@ -201,6 +209,14 @@ export const updateFoodPreferences = async (userId, preferences) => {
     if (!userId || userId === 'guest') throw new Error('User ID is required');
 
     await BackendService.updateUserFoodPreferences(userId, preferences);
+
+    // 🔄 Invalidate recipe cache (food preferences changed)
+    import('./NutritionCacheService').then(module => {
+      const NutritionCacheService = module.default;
+      NutritionCacheService.invalidateAndRegenerate(userId).catch(err => {
+        console.warn('Failed to invalidate recipe cache:', err);
+      });
+    });
 
     return { success: true };
   } catch (error) {

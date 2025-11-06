@@ -180,81 +180,30 @@ class AIService {
           console.log('🔧 Using AI with function calling enabled');
         }
 
-        // 🎯 BUTTON PRESS DETECTION: Bypass AI entirely for exact button phrases
+        // 🎯 BUTTON PRESS DETECTION: Use cached workouts for instant response
         const buttonPhraseMap = {
-          'Push workout': { tool: 'generateWorkoutPlan', params: { muscleGroups: ['push'], userId: context.userId || 'guest' } },
-          'Pull workout': { tool: 'generateWorkoutPlan', params: { muscleGroups: ['pull'], userId: context.userId || 'guest' } },
-          'Leg workout': { tool: 'generateWorkoutPlan', params: { muscleGroups: ['legs'], userId: context.userId || 'guest' } },
-          'Full body workout': { tool: 'generateWorkoutPlan', params: { muscleGroups: ['full_body'], userId: context.userId || 'guest' } },
-          'Upper body': { tool: 'generateWorkoutPlan', params: { muscleGroups: ['upper'], userId: context.userId || 'guest' } },
+          'Push workout': { type: 'push', tool: 'generateWorkoutPlan' },
+          'Pull workout': { type: 'pull', tool: 'generateWorkoutPlan' },
+          'Leg workout': { type: 'legs', tool: 'generateWorkoutPlan' },
+          'Full body workout': { type: 'full_body', tool: 'generateWorkoutPlan' },
+          'Upper body': { type: 'upper', tool: 'generateWorkoutPlan' },
         };
 
         // Check if message exactly matches a button phrase
         const buttonMatch = buttonPhraseMap[userMessage.trim()];
         if (buttonMatch) {
-          console.log(`🎯 BUTTON PRESS DETECTED: "${userMessage}" → Calling ${buttonMatch.tool} directly`);
+          console.log(`🎯 BUTTON PRESS DETECTED: "${userMessage}"`);
 
-          // Auto-inject profile data into params
-          const profile = context.userProfile || {};
-          const toolArgs = { ...buttonMatch.params };
+          // 🚨 BYPASS CACHE - Let AI think and generate workout respecting user preferences
+          // The cached workouts were generated before profile was properly loaded
+          // We need the AI to THINK and create workouts that respect disliked exercises
 
-          // Inject equipment
-          if (profile.equipmentAccess && profile.equipmentAccess.length > 0) {
-            toolArgs.equipment = profile.equipmentAccess;
-            console.log(`🔧 Auto-injected equipment: ${toolArgs.equipment.join(', ')}`);
-          }
+          console.log(`🤖 Letting AI generate ${buttonMatch.type} workout (thinking mode)...`);
 
-          // Inject experience level
-          if (profile.experienceLevel) {
-            toolArgs.experienceLevel = profile.experienceLevel;
-            console.log(`🔧 Auto-injected experienceLevel: ${toolArgs.experienceLevel}`);
-          }
-
-          // Inject goal
-          if (profile.primaryGoal) {
-            const goalMap = {
-              'muscle gain': 'hypertrophy',
-              'weight loss': 'endurance',
-              'strength': 'strength',
-              'general fitness': 'general'
-            };
-            toolArgs.goal = goalMap[profile.primaryGoal] || 'hypertrophy';
-            console.log(`🔧 Auto-injected goal: ${toolArgs.goal} (from ${profile.primaryGoal})`);
-          }
-
-          // Execute tool directly
-          const toolResult = await ToolRegistry.executeTool(buttonMatch.tool, toolArgs);
-
-          // Format the workout result
-          let formattedResponse = '';
-          if (toolResult.exercises && toolResult.exercises.length > 0) {
-            const typeLabel = buttonMatch.params.muscleGroups[0].replace('_', ' ');
-            formattedResponse = `**${typeLabel.charAt(0).toUpperCase() + typeLabel.slice(1)} Workout**\n\n`;
-
-            toolResult.exercises.forEach((ex, i) => {
-              const sets = ex.sets || 3;
-              const reps = ex.reps || '8-12';
-              const rest = ex.restPeriod || '60s';
-              formattedResponse += `${i + 1}. ${ex.name} - ${sets}×${reps} (${rest})\n`;
-            });
-
-            formattedResponse += `\nWould you like to save this workout? I can add it to Today's Plan or save it to My Plans.`;
-          } else {
-            formattedResponse = `Generated ${buttonMatch.params.muscleGroups[0]} workout. Would you like to save it?`;
-          }
-
-          // Return immediately without going through AI
-          return {
-            response: formattedResponse,
-            model: this.modelName,
-            functionCalls: [{
-              name: buttonMatch.tool,
-              args: toolArgs,
-              result: toolResult,
-              executionTime: 0
-            }],
-            totalTime: Date.now() - startTime,
-            success: true
+          // Inject button press context so AI knows to generate workout immediately
+          context.buttonPress = {
+            type: buttonMatch.type,
+            instruction: `User pressed "${userMessage}" button. IMMEDIATELY call generateWorkoutPlan tool with muscleGroups: ["${buttonMatch.type}"]. DO NOT ask questions, DO NOT confirm - just generate the workout directly.`
           };
         }
 
@@ -617,6 +566,16 @@ class AIService {
     const profile = context.userProfile || {};
 
     const basePrompt = `You are an expert AI fitness coach with access to powerful tools.
+
+${context.buttonPress ? `
+🚨 BUTTON PRESS DETECTED (IMMEDIATE ACTION REQUIRED):
+${context.buttonPress.instruction}
+
+When calling generateWorkoutPlan:
+- CRITICAL: User's BLACKLISTED exercises are in the profile below
+- The tool MUST respect dislikedExercises and avoid ALL variations
+- Example: If "Squat" is blacklisted, avoid: Squat, Goblet Squat, Front Squat, Back Squat, etc.
+` : ''}
 
 🚨 RESPONSE LENGTH RULES (CRITICAL):
 - MAX 3-4 SHORT SENTENCES unless listing exercises
@@ -1513,6 +1472,19 @@ Try **[amount] [food]** (**Xg P**, **Xg C**, **Xg F**, **X cal**)."`;
     }
 
     return 'Be ultra specific with numbers and examples. No generic advice.';
+  }
+
+  // Map user's primary goal to workout goal
+  mapGoalToWorkoutGoal(primaryGoal) {
+    const goalMap = {
+      'muscle gain': 'hypertrophy',
+      'weight loss': 'endurance',
+      'strength': 'strength',
+      'general fitness': 'general',
+      'cut': 'hypertrophy', // Maintain muscle during cut
+      'recomp': 'hypertrophy', // Build muscle during recomp
+    };
+    return goalMap[primaryGoal] || 'hypertrophy';
   }
 
   // Build system prompt based on context

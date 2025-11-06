@@ -18,6 +18,8 @@ web-build/
 
 # testing
 /coverage
+test-*.js
+temp_*.txt
 
 # misc
 .env

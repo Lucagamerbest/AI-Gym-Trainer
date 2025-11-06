@@ -6,10 +6,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import WorkoutSyncService from '../../backend/WorkoutSyncService';
 import { getAllExercises } from '../../../data/exerciseDatabase';
-import FitnessKnowledge from '../FitnessKnowledge';
-import ProvenWorkoutTemplates from '../ProvenWorkoutTemplates';
-import { getExercisesByPriority, getEquipmentPriority, getExerciseTier2024 } from '../ExerciseHierarchy2024';
 import { getUserProfile } from '../../userProfileService';
+import { generateWorkoutWithAI } from './AIWorkoutGenerator';
 
 /**
  * Exercises to NEVER generate (proven suboptimal for bodybuilding)
@@ -35,449 +33,94 @@ function filterExcludedExercises(exercises) {
 }
 
 /**
- * Generate a complete workout plan
+ * Generate a complete workout plan using AI
  * Used when user asks: "Create a push workout", "Plan a leg day", etc.
+ *
+ * NOW USES SCIENTIFIC AI GENERATOR WITH EVIDENCE-BASED PRINCIPLES
  */
 export async function generateWorkoutPlan({ muscleGroups, experienceLevel, duration, goal, equipment, userId }) {
   try {
-    // Fetch user profile to get disliked exercises
-    let userDislikedExercises = [];
+    console.log(`🤖 [WorkoutTools] Using NEW AI Generator with scientific principles`);
     console.log(`🔍 [WorkoutTools] Received userId: ${userId}`);
+
+    // Fetch full user profile for AI generator
+    let userProfile = {
+      experienceLevel: experienceLevel || 'intermediate',
+      sessionDuration: duration || 60,
+      primaryGoal: goal ? [goal] : ['build-muscle'],
+      equipmentAccess: equipment || [],
+      dislikedExercises: [],
+      favoriteExercises: [],
+      workoutStyle: 'bodybuilding', // Default
+      currentPain: [],
+    };
+
     if (userId && userId !== 'guest') {
       try {
-        const userProfile = await getUserProfile(userId);
-        console.log(`🔍 [WorkoutTools] User profile fetched:`, {
-          hasProfile: !!userProfile,
-          dislikedExercises: userProfile?.dislikedExercises
-        });
-        userDislikedExercises = userProfile?.dislikedExercises || [];
-        if (userDislikedExercises.length > 0) {
-          console.log(`🚫 User blacklisted exercises: ${userDislikedExercises.join(', ')}`);
-        } else {
-          console.log(`ℹ️ No blacklisted exercises found in user profile`);
+        const fetchedProfile = await getUserProfile(userId);
+        if (fetchedProfile) {
+          console.log(`✅ [WorkoutTools] User profile fetched successfully`);
+          userProfile = {
+            ...userProfile,
+            ...fetchedProfile, // Merge with fetched profile
+          };
+
+          if (userProfile.dislikedExercises?.length > 0) {
+            console.log(`🚫 Blacklisted exercises: ${userProfile.dislikedExercises.join(', ')}`);
+          }
         }
       } catch (error) {
-        console.warn('⚠️ Could not fetch user profile for exercise blacklist:', error);
+        console.warn('⚠️ Could not fetch user profile:', error);
       }
-    } else {
-      console.log(`ℹ️ No userId provided or guest user - skipping blacklist`);
     }
 
-    // Get available exercises
-    const allExercises = getAllExercises();
+    // Determine workout type from muscle groups
+    const workoutType = muscleGroups[0]?.toLowerCase() || 'full_body';
+    console.log(`🎯 [WorkoutTools] Workout type: ${workoutType}`);
 
-    // STEP 1: Map user terms to proper muscle groups using scientific knowledge
-    // Example: "pull" → ["Back", "Lats", "Traps", "Rhomboids", "Biceps", "Rear Deltoids"]
-    const expandedMuscleGroups = muscleGroups.flatMap(mg =>
-      FitnessKnowledge.mapUserTermToMuscleGroups(mg)
-    );
-
-    console.log(`📚 Scientific mapping: ${muscleGroups.join(', ')} → ${expandedMuscleGroups.join(', ')}`);
-
-    // STEP 2: Determine workout type (push/pull/legs/upper/lower) for validation
-    const workoutType = muscleGroups[0]?.toLowerCase();
-    const isPushPullLegsSplit = ['push', 'pull', 'legs', 'leg'].some(type =>
-      workoutType?.includes(type)
-    );
-    const isUpperLowerSplit = ['upper', 'lower'].some(type =>
-      workoutType?.includes(type)
-    );
-
-    // STEP 3: Filter exercises by muscle groups and equipment
-    let availableExercises = allExercises.filter(ex => {
-      // For push/pull/legs splits, use scientific classification
-      if (isPushPullLegsSplit) {
-        const classification = FitnessKnowledge.classifyExercise(ex);
-
-        // Match classification to workout type
-        if (workoutType.includes('push')) {
-          if (classification !== 'push') return false;
-        } else if (workoutType.includes('pull')) {
-          if (classification !== 'pull') return false;
-        } else if (workoutType.includes('leg')) {
-          if (classification !== 'legs') return false;
-        }
-      } else if (isUpperLowerSplit) {
-        // For upper/lower splits, classify as upper (push + pull) or lower (legs)
-        const classification = FitnessKnowledge.classifyExercise(ex);
-
-        if (workoutType.includes('upper')) {
-          // Upper body = push + pull movements
-          if (classification !== 'push' && classification !== 'pull') return false;
-        } else if (workoutType.includes('lower')) {
-          // Lower body = legs only
-          if (classification !== 'legs') return false;
-        }
-      } else {
-        // For specific muscle groups, use traditional matching
-        const matchesMuscle = expandedMuscleGroups.some(mg => {
-          const mgLower = mg.toLowerCase();
-          return ex.primaryMuscles?.some(pm => pm.toLowerCase().includes(mgLower)) ||
-                 ex.secondaryMuscles?.some(sm => sm.toLowerCase().includes(mgLower)) ||
-                 ex.muscleGroup?.toLowerCase().includes(mgLower);
-        });
-
-        if (!matchesMuscle) return false;
-      }
-
-      // Check equipment if specified (equipment field is comma-separated string)
-      const matchesEquipment = !equipment || equipment.length === 0 ||
-        equipment.some(eq => {
-          const equipmentStr = ex.equipment?.toLowerCase() || '';
-          return equipmentStr.includes(eq.toLowerCase());
-        });
-
-      return matchesEquipment;
+    // Call NEW AI Generator with scientific principles
+    const aiResult = await generateWorkoutWithAI({
+      workoutType,
+      userProfile,
+      variationIndex: 0,
     });
 
-    // Filter out excluded exercises (decline movements, etc.)
-    availableExercises = filterExcludedExercises(availableExercises);
-
-    // Filter out user's disliked/blacklisted exercises
-    if (userDislikedExercises.length > 0) {
-      availableExercises = availableExercises.filter(ex => {
-        const nameLower = ex.name.toLowerCase();
-        return !userDislikedExercises.some(disliked =>
-          nameLower.includes(disliked.toLowerCase()) || disliked.toLowerCase().includes(nameLower)
-        );
-      });
-      console.log(`✅ Filtered out ${userDislikedExercises.length} blacklisted exercises`);
-    }
-
-    // FALLBACK 1: If no exercises found, try without equipment restriction
-    if (availableExercises.length === 0 && equipment && equipment.length > 0) {
-      console.log('⚠️ No exercises with specified equipment, trying without equipment filter...');
-      availableExercises = allExercises.filter(ex => {
-        const matchesMuscle = muscleGroups.some(mg => {
-          const mgLower = mg.toLowerCase();
-          return ex.primaryMuscles?.some(pm => pm.toLowerCase().includes(mgLower)) ||
-                 ex.secondaryMuscles?.some(sm => sm.toLowerCase().includes(mgLower)) ||
-                 ex.muscleGroup?.toLowerCase().includes(mgLower);
-        });
-        return matchesMuscle;
-      });
-      // Apply exclusion filters to fallback results
-      availableExercises = filterExcludedExercises(availableExercises);
-      if (userDislikedExercises.length > 0) {
-        availableExercises = availableExercises.filter(ex => {
-          const nameLower = ex.name.toLowerCase();
-          return !userDislikedExercises.some(disliked =>
-            nameLower.includes(disliked.toLowerCase()) || disliked.toLowerCase().includes(nameLower)
-          );
-        });
-      }
-    }
-
-    // FALLBACK 2: If still no exercises, broaden muscle group search
-    if (availableExercises.length === 0) {
-      console.log('⚠️ No exercises found, trying broader muscle groups...');
-      // Map common variations
-      const broadMuscleGroups = muscleGroups.flatMap(mg => {
-        const mgLower = mg.toLowerCase();
-        if (mgLower.includes('chest')) return ['chest', 'pectorals', 'pecs'];
-        if (mgLower.includes('tricep')) return ['triceps', 'arms'];
-        if (mgLower.includes('bicep')) return ['biceps', 'arms'];
-        if (mgLower.includes('back')) return ['back', 'lats', 'traps'];
-        if (mgLower.includes('shoulder')) return ['shoulders', 'deltoids', 'delts'];
-        if (mgLower.includes('leg')) return ['legs', 'quadriceps', 'hamstrings', 'glutes'];
-        return [mg];
-      });
-
-      availableExercises = allExercises.filter(ex => {
-        return broadMuscleGroups.some(mg => {
-          const mgLower = mg.toLowerCase();
-          return ex.primaryMuscles?.some(pm => pm.toLowerCase().includes(mgLower)) ||
-                 ex.secondaryMuscles?.some(sm => sm.toLowerCase().includes(mgLower)) ||
-                 ex.muscleGroup?.toLowerCase().includes(mgLower) ||
-                 ex.name?.toLowerCase().includes(mgLower);
-        });
-      });
-      // Apply exclusion filters to fallback results
-      availableExercises = filterExcludedExercises(availableExercises);
-      if (userDislikedExercises.length > 0) {
-        availableExercises = availableExercises.filter(ex => {
-          const nameLower = ex.name.toLowerCase();
-          return !userDislikedExercises.some(disliked =>
-            nameLower.includes(disliked.toLowerCase()) || disliked.toLowerCase().includes(nameLower)
-          );
-        });
-      }
-    }
-
-    // If STILL no exercises, return error
-    if (availableExercises.length === 0) {
+    if (!aiResult.success) {
+      console.error(`❌ [WorkoutTools] AI generation failed:`, aiResult.error);
       return {
         success: false,
-        error: `No exercises found for muscle groups: ${muscleGroups.join(', ')}. Database may need updating.`
+        error: aiResult.error || 'AI workout generation failed',
       };
     }
 
-    console.log(`✅ Found ${availableExercises.length} exercises matching criteria`);
+    // Convert AI workout format to expected format
+    const workout = aiResult.workout;
+    const workoutExercises = workout.exercises.map(ex => ({
+      name: ex.name,
+      equipment: ex.equipment,
+      muscleGroup: ex.primaryMuscles?.[0] || workoutType,
+      sets: ex.sets,
+      reps: ex.reps,
+      restTime: ex.restPeriod,
+      instructions: ex.notes || '',
+    }));
 
-    // Determine exercise count based on duration
-    let exerciseCount;
-    if (duration <= 30) exerciseCount = 4;
-    else if (duration <= 45) exerciseCount = 5;
-    else if (duration <= 60) exerciseCount = 6;
-    else exerciseCount = 7;
-
-    // Select exercises (smart selection based on goal)
-    let selectedExercises = smartSelectExercises(
-      availableExercises,
-      exerciseCount,
-      muscleGroups,
-      goal
-    );
-
-    // CRITICAL: Limit pressing movements on push days (avoid redundant bench variations)
-    if (isPushPullLegsSplit && workoutType.includes('push')) {
-      const pressingMovements = ['Bench Press', 'Incline', 'Decline', 'Close Grip', 'Chest Press', 'Dumbbell Press'];
-      const isolationMovements = ['Lateral Raise', 'Front Raise', 'Tricep', 'Flyes', 'Cable Fly'];
-
-      // Count pressing movements (chest/shoulder presses)
-      const pressingCount = selectedExercises.filter(ex =>
-        pressingMovements.some(pm => ex.name.toLowerCase().includes(pm.toLowerCase()))
-      ).length;
-
-      // If TOO MANY pressing movements (>3), replace with isolation
-      if (pressingCount > 3) {
-        console.log(`⚠️ Removing redundant pressing movements (${pressingCount} found, max 3 allowed)`);
-
-        const pressesToRemove = [];
-        let foundCount = 0;
-        selectedExercises.forEach((ex, idx) => {
-          if (pressingMovements.some(pm => ex.name.toLowerCase().includes(pm.toLowerCase()))) {
-            foundCount++;
-            // Keep first 3 pressing movements (compounds), remove the rest
-            if (foundCount > 3) {
-              pressesToRemove.push(idx);
-            }
-          }
-        });
-
-        // Replace extra presses with lateral raises, tricep isolation, or flyes
-        pressesToRemove.forEach(idx => {
-          const lateralRaise = availableExercises.find(ex =>
-            ex.name.toLowerCase().includes('lateral raise') && !selectedExercises.some(sel => sel.name === ex.name)
-          );
-          const tricepIsolation = availableExercises.find(ex =>
-            (ex.name.toLowerCase().includes('tricep') &&
-             (ex.name.toLowerCase().includes('pushdown') || ex.name.toLowerCase().includes('extension'))) &&
-            !selectedExercises.some(sel => sel.name === ex.name)
-          );
-          const flyes = availableExercises.find(ex =>
-            ex.name.toLowerCase().includes('fly') && !selectedExercises.some(sel => sel.name === ex.name)
-          );
-
-          selectedExercises[idx] = lateralRaise || tricepIsolation || flyes || selectedExercises[idx];
-        });
-      }
-    }
-
-    // CRITICAL: Ensure pull workouts include BOTH vertical and horizontal pulls
-    // Horizontal pulls (rows) should DOMINATE: 1 vertical + 2-3 horizontal minimum
-    if (isPushPullLegsSplit && workoutType.includes('pull')) {
-      const verticalPulls = ['Pull-up', 'Chin-up', 'Lat Pulldown', 'Pull Up'];
-      const horizontalPulls = ['Row', 'Barbell Row', 'Dumbbell Row', 'Cable Row', 'T-Bar Row', 'Seated Row', 'Seal Row', 'Chest Supported Row', 'Inverted Row'];
-
-      // Count vertical and horizontal pulls
-      const verticalCount = selectedExercises.filter(ex =>
-        verticalPulls.some(vp => ex.name.toLowerCase().includes(vp.toLowerCase()))
-      ).length;
-
-      const horizontalCount = selectedExercises.filter(ex =>
-        horizontalPulls.some(hp => ex.name.toLowerCase().includes(hp.toLowerCase()))
-      ).length;
-
-      console.log(`📊 Pull day balance: ${verticalCount} vertical, ${horizontalCount} horizontal`);
-
-      // Rule 1: MAX 2 vertical pulls (avoid lat pulldown → pull-up → one-arm lat pulldown)
-      if (verticalCount > 2) {
-        console.log(`⚠️ Removing redundant vertical pulls (${verticalCount} found, max 2 allowed)`);
-
-        const verticalsToRemove = [];
-        let foundCount = 0;
-        selectedExercises.forEach((ex, idx) => {
-          if (verticalPulls.some(vp => ex.name.toLowerCase().includes(vp.toLowerCase()))) {
-            foundCount++;
-            if (foundCount > 2) {
-              verticalsToRemove.push(idx);
-            }
-          }
-        });
-
-        // Replace extra verticals with horizontal rows (priority) or face pulls
-        verticalsToRemove.forEach(idx => {
-          const horizontalRow = availableExercises.find(ex =>
-            horizontalPulls.some(hp => ex.name.toLowerCase().includes(hp.toLowerCase())) &&
-            !selectedExercises.some(sel => sel.name === ex.name)
-          );
-          const facePull = availableExercises.find(ex =>
-            (ex.name.toLowerCase().includes('face pull') || ex.name.toLowerCase().includes('rear delt')) &&
-            !selectedExercises.some(sel => sel.name === ex.name)
-          );
-          selectedExercises[idx] = horizontalRow || facePull || selectedExercises[idx];
-        });
-      }
-
-      // Rule 2: Ensure at least 1 vertical pull (for lat development)
-      if (verticalCount === 0) {
-        const verticalExercise = availableExercises.find(ex =>
-          verticalPulls.some(vp => ex.name.toLowerCase().includes(vp.toLowerCase()))
-        );
-        if (verticalExercise) {
-          console.log('⚠️ Adding vertical pull to ensure lat development');
-          selectedExercises[selectedExercises.length - 1] = verticalExercise;
-        }
-      }
-
-      // Rule 3: Ensure at least 2 horizontal pulls (rows should dominate)
-      if (horizontalCount < 2) {
-        console.log(`⚠️ Not enough horizontal pulls (${horizontalCount} found, need 2+ for balanced back development)`);
-
-        const missingHorizontal = 2 - horizontalCount;
-        const lastIndex = selectedExercises.length - 1;
-
-        for (let i = 0; i < missingHorizontal; i++) {
-          const horizontalRow = availableExercises.find(ex =>
-            horizontalPulls.some(hp => ex.name.toLowerCase().includes(hp.toLowerCase())) &&
-            !selectedExercises.some(sel => sel.name === ex.name)
-          );
-
-          if (horizontalRow) {
-            selectedExercises[lastIndex - i] = horizontalRow;
-          }
-        }
-      }
-    }
-
-    // CRITICAL: Ensure leg workouts include BOTH quad and hamstring exercises
-    if (isPushPullLegsSplit && workoutType.includes('leg')) {
-      const quadExercises = ['Squat', 'Leg Press', 'Leg Extension', 'Front Squat', 'Hack Squat', 'Lunge'];
-      const hamstringExercises = ['Romanian Deadlift', 'RDL', 'Leg Curl', 'Deadlift', 'Good Morning', 'Hip Thrust'];
-
-      const hasQuad = selectedExercises.some(ex =>
-        quadExercises.some(qe => ex.name.toLowerCase().includes(qe.toLowerCase()))
-      );
-      const hasHamstring = selectedExercises.some(ex =>
-        hamstringExercises.some(he => ex.name.toLowerCase().includes(he.toLowerCase()))
-      );
-
-      // If missing quad or hamstring, add it
-      if (!hasQuad) {
-        const quadExercise = availableExercises.find(ex =>
-          quadExercises.some(qe => ex.name.toLowerCase().includes(qe.toLowerCase()))
-        );
-        if (quadExercise) {
-          console.log('⚠️ Adding quad exercise to ensure balance');
-          selectedExercises[selectedExercises.length - 1] = quadExercise;
-        }
-      }
-
-      if (!hasHamstring) {
-        const hamstringExercise = availableExercises.find(ex =>
-          hamstringExercises.some(he => ex.name.toLowerCase().includes(he.toLowerCase()))
-        );
-        if (hamstringExercise) {
-          console.log('⚠️ Adding hamstring exercise to ensure balance');
-          selectedExercises[selectedExercises.length - 2] = hamstringExercise;
-        }
-      }
-    }
-
-    // Generate set/rep scheme based on goal using scientific principles
-    const workoutExercises = selectedExercises.map((exercise, index) => {
-      let optimalRange = FitnessKnowledge.getOptimalRepRange(goal || 'hypertrophy', experienceLevel);
-
-      // GOAL-SPECIFIC ADJUSTMENTS
-      let targetRPE = '7-8';
-      let sets = parseInt(optimalRange.sets.split('-')[0]);
-      let reps = optimalRange.reps;
-      let restTime = optimalRange.restTime;
-
-      if (goal === 'strength') {
-        // Strength: Lower reps, longer rest, higher RPE
-        reps = index < 2 ? '3-5' : '4-6'; // Main lifts get lowest reps
-        sets = index < 2 ? 5 : 4;
-        restTime = index < 2 ? 240 : 180; // 4min for main lifts, 3min for accessories
-        targetRPE = index < 2 ? '8-9' : '7-8';
-      } else if (goal === 'hypertrophy') {
-        // Hypertrophy: Classic 6-12 reps
-        reps = index < 2 ? '6-10' : '8-12';
-        sets = index < 2 ? 4 : 3;
-        restTime = 75; // 60-90s range
-        targetRPE = index < 2 ? '8' : '7-8';
-      } else if (goal === 'weight_loss' || goal === 'fat_loss' || goal === 'conditioning') {
-        // Weight Loss: Higher reps, shorter rest, circuit format
-        reps = index < 2 ? '12-15' : '15-20'; // Higher reps for metabolic stress
-        sets = 3;
-        restTime = 45; // Minimal rest for fat burn
-        targetRPE = '6-8'; // Sustainable intensity for high volume
-      } else if (goal === 'endurance') {
-        // Endurance: Very high reps, short rest
-        reps = '15-20';
-        sets = 3;
-        restTime = 45;
-        targetRPE = '6-7';
-      }
-
-      return {
-        name: exercise.name,
-        equipment: exercise.equipment,
-        muscleGroup: exercise.primaryMuscles?.[0] || 'General',
-        sets: sets,
-        reps: reps,
-        restTime: restTime,
-        rpe: targetRPE,
-        // Keep instructions short - just first sentence
-        instructions: exercise.instructions?.split('.')[0] + '.' || '',
-      };
-    });
-
-    // VALIDATION: Ensure workout is scientifically correct (only for push/pull/legs splits)
-    if (isPushPullLegsSplit) {
-      const validation = FitnessKnowledge.validateWorkout(
-        selectedExercises,
-        workoutType.includes('push') ? 'push' :
-        workoutType.includes('pull') ? 'pull' : 'legs'
-      );
-
-      if (!validation.isValid) {
-        console.error('❌ Workout validation failed:', validation.errors);
-        return {
-          success: false,
-          error: `Workout validation failed: ${validation.errors.join(', ')}`,
-          details: validation
-        };
-      }
-
-      if (validation.warnings.length > 0) {
-        console.warn('⚠️ Workout warnings:', validation.warnings);
-      }
-
-      console.log('✅ Workout passed scientific validation');
-    } else {
-      console.log('ℹ️ Skipping validation for non-PPL workout');
-    }
-
-    // Add circuit/superset guidance for weight loss
-    let formatNotes = '';
-    if (goal === 'weight_loss' || goal === 'fat_loss' || goal === 'conditioning') {
-      formatNotes = 'CIRCUIT FORMAT: Pair exercises as supersets (A1/A2, B1/B2) with minimal rest between exercises, 45s rest between circuits. Add 5-10min cardio finisher at end.';
-    }
+    console.log(`✅ [WorkoutTools] AI generated ${workoutExercises.length} exercises`);
 
     return {
       success: true,
       workout: {
-        title: generateWorkoutTitle(muscleGroups, goal),
+        title: workout.name || generateWorkoutTitle(muscleGroups, goal),
         muscleGroups,
         goal,
         estimatedDuration: duration,
         exercises: workoutExercises,
         totalExercises: workoutExercises.length,
-        formatNotes: formatNotes, // Circuit/superset guidance
+        generatedBy: 'Scientific AI',
+        generatedAt: workout.generatedAt,
       }
     };
+
   } catch (error) {
     console.error('❌ generateWorkoutPlan error:', error);
     return {
@@ -487,292 +130,14 @@ export async function generateWorkoutPlan({ muscleGroups, experienceLevel, durat
   }
 }
 
-/**
- * Smart exercise selection algorithm - TIER-BASED (2024 Research Update)
- * Uses 2024 research from Jeff Nippard, EMG studies, and meta-analyses
- *
- * Key 2024 Updates:
- * - Incline Press > Flat Bench for chest
- * - Overhead Extensions > Pushdowns for triceps (+50% long head growth)
- * - Pull-ups > Lat Pulldowns (upgraded to S-tier)
- * - Bayesian Curls > Preacher Curls for biceps
- * - Freeweights prioritized over machines
- */
-function smartSelectExercises(exercises, count, muscleGroups, goal) {
-  // Determine category (push/pull/legs/fullbody)
-  const muscleGroupsLower = muscleGroups.map(mg => mg.toLowerCase());
-
-  // Detect if this is a full body workout (has multiple major muscle groups)
-  const hasPush = muscleGroupsLower.some(mg => ['chest', 'shoulders', 'triceps', 'tricep'].includes(mg));
-  const hasPull = muscleGroupsLower.some(mg => ['back', 'biceps', 'bicep'].includes(mg));
-  const hasLegs = muscleGroupsLower.some(mg => ['legs', 'leg', 'quads', 'hamstrings', 'glutes', 'calves'].includes(mg));
-
-  const isFullBody = (hasPush && hasPull) || (hasPush && hasLegs) || (hasPull && hasLegs);
-
-  // Determine category
-  let category;
-  if (isFullBody) {
-    category = 'fullbody';
-  } else {
-    category = muscleGroupsLower[0]?.includes('push') ? 'push' :
-               muscleGroupsLower[0]?.includes('pull') ? 'pull' :
-               muscleGroupsLower[0]?.includes('leg') ? 'legs' :
-               hasPush ? 'push' : hasPull ? 'pull' : hasLegs ? 'legs' : 'push';
-  }
-
-  console.log(`🎯 Exercise prioritization for ${category} (2024 Research):`);
-
-  // STEP 1: Prioritize exercises using 2024 research hierarchy
-  // This includes: Incline > Flat, Overhead Extensions > Pushdowns, Pull-ups > Pulldowns
-  let prioritized;
-
-  if (category === 'fullbody') {
-    // For full body, select from all categories proportionally
-    // Apply 2024 research to each category
-    const pushExercises = sortByResearch2024(
-      exercises.filter(ex => FitnessKnowledge.classifyExercise(ex) === 'push'),
-      'push'
-    );
-    const pullExercises = sortByResearch2024(
-      exercises.filter(ex => FitnessKnowledge.classifyExercise(ex) === 'pull'),
-      'pull'
-    );
-    const legExercises = sortByResearch2024(
-      exercises.filter(ex => FitnessKnowledge.classifyExercise(ex) === 'legs'),
-      'legs'
-    );
-
-    // Distribute exercises evenly across categories
-    const pushCount = Math.ceil(count / 3);
-    const pullCount = Math.ceil(count / 3);
-    const legCount = count - pushCount - pullCount;
-
-    // CRITICAL: Alternate push/pull/legs to prevent muscle group fatigue
-    // Pattern: Push → Pull → Legs → Push → Pull → Legs...
-    const alternated = [];
-    const maxIterations = Math.max(pushCount, pullCount, legCount);
-
-    for (let i = 0; i < maxIterations; i++) {
-      if (i < pushCount && pushExercises[i]) alternated.push(pushExercises[i]);
-      if (i < pullCount && pullExercises[i]) alternated.push(pullExercises[i]);
-      if (i < legCount && legExercises[i]) alternated.push(legExercises[i]);
-    }
-
-    prioritized = alternated.slice(0, count);
-
-    console.log(`   Full Body - Alternated Pattern (Push/Pull/Legs): ${pushCount}/${pullCount}/${legCount}`);
-  } else {
-    // Apply 2024 research prioritization
-    prioritized = sortByResearch2024(exercises, category);
-    console.log(`   🔬 2024 Tier S (Research-backed): ${prioritized.slice(0, 5).map(e => e.name).join(', ')}`);
-  }
-
-  // STEP 2: Select exercises based on goal
-  const selected = [];
-
-  if (goal === 'strength') {
-    // Strength: Heavy compounds (mostly Tier S)
-    // 70% Tier S compounds, 30% Tier A accessories
-    const tierSCount = Math.ceil(count * 0.7);
-    selected.push(...prioritized.slice(0, tierSCount));
-    selected.push(...prioritized.slice(tierSCount, count));
-
-  } else if (goal === 'hypertrophy') {
-    // Hypertrophy: Balanced compounds + accessories
-    // 40% Tier S, 40% Tier A, 20% Tier B
-    const tierSCount = Math.ceil(count * 0.4);
-    const tierACount = Math.ceil(count * 0.4);
-
-    // Get Tier S exercises
-    const tierS = prioritized.filter(ex =>
-      ProvenWorkoutTemplates.isTierSExercise(ex.name, category)
-    );
-    selected.push(...tierS.slice(0, tierSCount));
-
-    // Fill remaining with Tier A and B
-    const remaining = prioritized.filter(ex => !selected.includes(ex));
-    selected.push(...remaining.slice(0, count - selected.length));
-
-  } else if (goal === 'endurance') {
-    // Endurance: More variety, lighter exercises
-    // 30% Tier S, 30% Tier A, 40% Tier B
-    const tierSCount = Math.ceil(count * 0.3);
-    selected.push(...prioritized.slice(0, tierSCount));
-    selected.push(...prioritized.slice(tierSCount, count));
-
-  } else {
-    // General: Balanced approach (default hypertrophy style)
-    const tierSCount = Math.ceil(count * 0.4);
-    selected.push(...prioritized.slice(0, tierSCount));
-    selected.push(...prioritized.slice(tierSCount, count));
-  }
-
-  // STEP 3: Ensure we have the minimum required exercises
-  let finalSelection = selected.slice(0, count);
-
-  // STEP 4: Intelligent Exercise Ordering (prevent CNS fatigue)
-  // Alternate high-CNS compounds with low-CNS isolation exercises
-  // Compounds: Squat, Deadlift, Bench, Row, OHP, Pull-ups
-  // Isolation: Curls, Extensions, Raises, Flyes
-  const compounds = ['Squat', 'Deadlift', 'Bench', 'Press', 'Row', 'Pull-up', 'Pull Up', 'Dip', 'Lunge'];
-  const isolation = ['Curl', 'Extension', 'Raise', 'Fly', 'Flyes', 'Pushdown', 'Pulldown'];
-
-  const isCompound = (ex) => compounds.some(comp => ex.name.includes(comp));
-  const isIsolation = (ex) => isolation.some(iso => ex.name.includes(iso));
-
-  // Reorder to alternate compound → isolation → compound → isolation
-  const reordered = [];
-  const compoundExercises = finalSelection.filter(isCompound);
-  const isolationExercises = finalSelection.filter(isIsolation);
-  const otherExercises = finalSelection.filter(ex => !isCompound(ex) && !isIsolation(ex));
-
-  // Start with heaviest compound
-  const maxCompounds = Math.max(compoundExercises.length, isolationExercises.length);
-  for (let i = 0; i < maxCompounds; i++) {
-    if (compoundExercises[i]) reordered.push(compoundExercises[i]);
-    if (isolationExercises[i]) reordered.push(isolationExercises[i]);
-  }
-
-  // Add any remaining exercises
-  reordered.push(...otherExercises);
-
-  finalSelection = reordered.slice(0, count);
-
-  // Log what was selected
-  console.log(`✅ Selected ${finalSelection.length} exercises (ordered compound→isolation): ${finalSelection.map(e => e.name).join(', ')}`);
-
-  return finalSelection;
-}
-
-/**
- * Sort exercises by 2024 research findings
- * Prioritizes research-backed exercises over older methodologies
- *
- * Key priorities:
- * 1. Research tier (S > A > B) based on 2024 studies
- * 2. Equipment type (Freeweights > Cables > Machines)
- * 3. Specific findings (Incline > Flat, Overhead Extensions > Pushdowns, Pull-ups > Pulldowns)
- */
-function sortByResearch2024(exercises, category) {
-  return exercises.sort((a, b) => {
-    // Priority 1: Research tier from 2024 hierarchy
-    const aTier = getExerciseTier2024(a.name, category);
-    const bTier = getExerciseTier2024(b.name, category);
-
-    const tierValues = { 'S': 1, 'A': 2, 'B': 3 };
-    const aTierValue = tierValues[aTier] || 99;
-    const bTierValue = tierValues[bTier] || 99;
-
-    if (aTierValue !== bTierValue) {
-      return aTierValue - bTierValue; // Lower is better (S=1, A=2, B=3)
-    }
-
-    // Priority 2: Equipment type (Freeweights > Cables > Machines)
-    const aEquipmentPriority = getEquipmentPriority(a.equipment);
-    const bEquipmentPriority = getEquipmentPriority(b.equipment);
-
-    if (aEquipmentPriority !== bEquipmentPriority) {
-      return aEquipmentPriority - bEquipmentPriority; // Lower is better
-    }
-
-    // Priority 3: Specific 2024 research findings
-    // Incline Press > Flat Bench Press
-    const aNameLower = a.name.toLowerCase();
-    const bNameLower = b.name.toLowerCase();
-
-    if (category === 'push') {
-      // Prioritize incline press over flat bench
-      if (aNameLower.includes('incline') && bNameLower.includes('bench') && !bNameLower.includes('incline')) {
-        return -1; // a (incline) comes first
-      }
-      if (bNameLower.includes('incline') && aNameLower.includes('bench') && !aNameLower.includes('incline')) {
-        return 1; // b (incline) comes first
-      }
-
-      // Prioritize overhead extensions over pushdowns
-      if (aNameLower.includes('overhead') && aNameLower.includes('extension') &&
-          bNameLower.includes('pushdown')) {
-        return -1;
-      }
-      if (bNameLower.includes('overhead') && bNameLower.includes('extension') &&
-          aNameLower.includes('pushdown')) {
-        return 1;
-      }
-    }
-
-    if (category === 'pull') {
-      // Prioritize pull-ups over lat pulldowns
-      if (aNameLower.includes('pull-up') || aNameLower.includes('pull up')) {
-        if (bNameLower.includes('pulldown') || bNameLower.includes('pull down')) {
-          return -1; // a (pull-up) comes first
-        }
-      }
-      if (bNameLower.includes('pull-up') || bNameLower.includes('pull up')) {
-        if (aNameLower.includes('pulldown') || aNameLower.includes('pull down')) {
-          return 1; // b (pull-up) comes first
-        }
-      }
-
-      // Prioritize Bayesian curls over preacher curls
-      if (aNameLower.includes('bayesian') && bNameLower.includes('preacher')) {
-        return -1;
-      }
-      if (bNameLower.includes('bayesian') && aNameLower.includes('preacher')) {
-        return 1;
-      }
-    }
-
-    // Keep original order if no other criteria
-    return 0;
-  });
-}
-
-/**
- * Generate set/rep scheme based on goal
- */
-function generateSetScheme(goal, experienceLevel) {
-  const schemes = {
-    strength: {
-      beginner: { sets: 3, reps: '5-6', restTime: 180 },
-      intermediate: { sets: 4, reps: '4-6', restTime: 180 },
-      advanced: { sets: 5, reps: '3-5', restTime: 240 },
-    },
-    hypertrophy: {
-      beginner: { sets: 3, reps: '8-10', restTime: 90 },
-      intermediate: { sets: 4, reps: '8-12', restTime: 90 },
-      advanced: { sets: 4, reps: '8-12', restTime: 60 },
-    },
-    endurance: {
-      beginner: { sets: 2, reps: '12-15', restTime: 60 },
-      intermediate: { sets: 3, reps: '15-20', restTime: 45 },
-      advanced: { sets: 3, reps: '20-25', restTime: 30 },
-    },
-    general: {
-      beginner: { sets: 3, reps: '8-10', restTime: 90 },
-      intermediate: { sets: 3, reps: '8-12', restTime: 75 },
-      advanced: { sets: 4, reps: '8-12', restTime: 60 },
-    },
-  };
-
-  const goalSchemes = schemes[goal] || schemes.general;
-  return goalSchemes[experienceLevel] || goalSchemes.intermediate;
-}
-
-/**
- * Generate workout title
- */
+// Helper function for workout title
 function generateWorkoutTitle(muscleGroups, goal) {
   const muscleStr = muscleGroups.join(' + ');
-  const goalStr = goal === 'strength' ? 'Strength' :
-                  goal === 'hypertrophy' ? 'Hypertrophy' :
-                  goal === 'endurance' ? 'Endurance' : '';
-
-  return `${muscleStr} ${goalStr}`.trim();
+  return goal ? `${muscleStr} (${goal})` : muscleStr;
 }
 
 /**
- * GENERATE WORKOUT PROGRAM (Multiple Workouts - Full Program)
- * User says: "Create 4-day program" or "Make PPL program"
+ * Generate a multi-day workout program (week-long split)
  */
 export async function generateWorkoutProgram({ days, muscleGroups, experienceLevel, goal }) {
   try {
