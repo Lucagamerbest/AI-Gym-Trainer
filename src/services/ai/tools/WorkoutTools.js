@@ -11,6 +11,29 @@ import ProvenWorkoutTemplates from '../ProvenWorkoutTemplates';
 import { getExercisesByPriority, getEquipmentPriority, getExerciseTier2024 } from '../ExerciseHierarchy2024';
 
 /**
+ * Exercises to NEVER generate (proven suboptimal for bodybuilding)
+ */
+const EXCLUDED_EXERCISES = [
+  'decline bench press',
+  'decline dumbbell bench press',
+  'decline barbell bench press',
+  'decline press',
+  'decline chest press',
+  'decline flyes',
+  'decline dumbbell flyes',
+];
+
+/**
+ * Filter to exclude suboptimal exercises
+ */
+function filterExcludedExercises(exercises) {
+  return exercises.filter(ex => {
+    const nameLower = ex.name.toLowerCase();
+    return !EXCLUDED_EXERCISES.some(excluded => nameLower.includes(excluded));
+  });
+}
+
+/**
  * Generate a complete workout plan
  * Used when user asks: "Create a push workout", "Plan a leg day", etc.
  */
@@ -68,6 +91,9 @@ export async function generateWorkoutPlan({ muscleGroups, experienceLevel, durat
 
       return matchesEquipment;
     });
+
+    // Filter out excluded exercises (decline movements, etc.)
+    availableExercises = filterExcludedExercises(availableExercises);
 
     // FALLBACK 1: If no exercises found, try without equipment restriction
     if (availableExercises.length === 0 && equipment && equipment.length > 0) {
@@ -782,7 +808,7 @@ export async function findExerciseAlternatives({ exerciseName, equipment, muscle
     // Find alternatives targeting same muscles
     const targetMuscles = original.primaryMuscles || [muscleGroup];
 
-    const alternatives = allExercises.filter(ex => {
+    let alternatives = allExercises.filter(ex => {
       if (ex.name === original.name) return false;
 
       // Match primary muscles
@@ -794,7 +820,13 @@ export async function findExerciseAlternatives({ exerciseName, equipment, muscle
       const matchesEquipment = !equipment || ex.equipment === equipment;
 
       return matchesMuscles && matchesEquipment;
-    }).slice(0, 5); // Top 5 alternatives
+    });
+
+    // Filter out excluded exercises
+    alternatives = filterExcludedExercises(alternatives);
+
+    // Top 5 alternatives
+    alternatives = alternatives.slice(0, 5);
 
     return {
       success: true,
@@ -859,7 +891,7 @@ export async function replaceExerciseInWorkout({
     } else {
       // Auto-select best alternative
       const targetMuscles = oldExercise.primaryMuscles || [];
-      const alternatives = allExercises.filter(ex => {
+      let alternatives = allExercises.filter(ex => {
         if (ex.name === oldExercise.name) return false;
         const matchesMuscles = targetMuscles.some(muscle =>
           ex.primaryMuscles?.includes(muscle)
@@ -867,6 +899,9 @@ export async function replaceExerciseInWorkout({
         const matchesEquipment = !equipment || ex.equipment?.toLowerCase() === equipment.toLowerCase();
         return matchesMuscles && matchesEquipment;
       });
+
+      // Filter out excluded exercises
+      alternatives = filterExcludedExercises(alternatives);
 
       if (alternatives.length === 0) {
         return {
