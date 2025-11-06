@@ -873,6 +873,7 @@ export default function MealHistoryTabs({ navigation, route, activeHistoryTab })
                 const isToday = dateKey === getLocalDateString();
                 const hasPlannedMeals = Object.values(plannedMeals).some(items => items?.length > 0);
                 const isSelected = selectedDatesForDelete.includes(dateKey);
+                const isFuture = new Date(dateKey) > new Date(getLocalDateString());
 
                 return (
                   <TouchableOpacity
@@ -925,7 +926,10 @@ export default function MealHistoryTabs({ navigation, route, activeHistoryTab })
                             <Text style={styles.listExpandIcon}>{isExpanded ? '▼' : '▶'}</Text>
                           </>
                         ) : (
-                          <Text style={styles.listEmptyText}>Tap to plan</Text>
+                          <View style={styles.listEmptyContainer}>
+                            {isFuture && <Text style={styles.listEmptyIcon}>📆</Text>}
+                            <Text style={styles.listEmptyText}>{isFuture ? 'Tap to plan' : 'No meals'}</Text>
+                          </View>
                         )}
                       </View>
                     </View>
@@ -2424,10 +2428,18 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Colors.textSecondary,
   },
+  listEmptyContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  listEmptyIcon: {
+    fontSize: Typography.fontSize.md,
+  },
   listEmptyText: {
     fontSize: Typography.fontSize.sm,
-    color: Colors.textMuted,
-    fontStyle: 'italic',
+    color: Colors.primary,
+    fontWeight: '600',
   },
   listDateExpanded: {
     borderTopWidth: 1,
