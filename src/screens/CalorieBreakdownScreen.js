@@ -21,10 +21,22 @@ export default function CalorieBreakdownScreen({ route, navigation }) {
     setTotalCalories(newTotal);
   }, [meals]);
 
+  // Handle edited food from EditFoodItemScreen
+  useEffect(() => {
+    if (route.params?.editFood) {
+      const { mealType, foodIndex, updatedFood } = route.params.editFood;
+      const updatedMeals = { ...meals };
+      updatedMeals[mealType][foodIndex] = updatedFood;
+      setMeals(updatedMeals);
+      // Clear the param to prevent re-triggering
+      navigation.setParams({ editFood: undefined });
+    }
+  }, [route.params?.editFood]);
+
   // NOTE: Removed AsyncStorage loading - we now use only Firebase data passed via route params
   // The data comes from NutritionScreen which loads from Firebase
 
-  // Un-log handler - moves logged meal to planned instantly (no confirmation)
+  // Un-log handler - removes logged meal or moves back to planned if it was originally planned
   const handleUnlogFood = async (mealType, foodIndex, food) => {
     try {
       const updatedMeals = { ...meals };
@@ -46,11 +58,17 @@ export default function CalorieBreakdownScreen({ route, navigation }) {
       // Remove from logged meals
       updatedMeals[mealType].splice(foodIndex, 1);
 
-      // Add to planned meals
-      if (!updatedPlannedMeals[mealType]) {
-        updatedPlannedMeals[mealType] = [];
+      // Only add back to planned meals if it was originally planned
+      // Check if the food has a wasPlanned flag set to true
+      if (foodItem.wasPlanned === true) {
+        if (!updatedPlannedMeals[mealType]) {
+          updatedPlannedMeals[mealType] = [];
+        }
+        // Remove the wasPlanned flag when moving back to planned
+        const { wasPlanned, firebaseId, ...cleanedFoodItem } = foodItem;
+        updatedPlannedMeals[mealType].push(cleanedFoodItem);
       }
-      updatedPlannedMeals[mealType].push(foodItem);
+      // Otherwise, just delete it completely (don't add to planned)
 
       // Update local state immediately
       setMeals(updatedMeals);
@@ -104,10 +122,11 @@ export default function CalorieBreakdownScreen({ route, navigation }) {
         }
       }
 
-      // Add to logged meals
+      // Add to logged meals with wasPlanned flag so it can be moved back if unlogged
       if (!updatedMeals[mealType]) {
         updatedMeals[mealType] = [];
       }
+      foodItem.wasPlanned = true; // Mark that this was originally planned
       updatedMeals[mealType].push(foodItem);
 
       // Update local state immediately
@@ -161,7 +180,7 @@ export default function CalorieBreakdownScreen({ route, navigation }) {
         </View>
 
         <View style={styles.foodsList}>
-          {/* Logged meals - click checkmark to un-log */}
+          {/* Logged meals - click checkmark to un-log, click food to edit */}
           {filteredLoggedItems.map((food, index) => (
             <View key={`logged-${index}`} style={styles.foodRow}>
               <TouchableOpacity
@@ -172,7 +191,19 @@ export default function CalorieBreakdownScreen({ route, navigation }) {
               >
                 <Text style={styles.statusBadgeText}>✓</Text>
               </TouchableOpacity>
-              <View style={[styles.foodItem, styles.foodItemLogged]}>
+              <TouchableOpacity
+                style={[styles.foodItem, styles.foodItemLogged]}
+                onPress={() => {
+                  navigation.navigate('EditFoodItem', {
+                    foodItem: food,
+                    mealType: mealType,
+                    foodIndex: index,
+                    isPlannedMeal: false,
+                    returnScreen: 'CalorieBreakdown'
+                  });
+                }}
+                activeOpacity={0.7}
+              >
                 <View style={styles.foodInfo}>
                   <View style={styles.foodNameRow}>
                     <Text style={styles.foodName}>{food.name}</Text>
@@ -185,7 +216,7 @@ export default function CalorieBreakdownScreen({ route, navigation }) {
                     {food.fat ? <Text style={styles.foodMacro}>F: {parseFloat(food.fat).toFixed(1)}g</Text> : null}
                   </View>
                 </View>
-              </View>
+              </TouchableOpacity>
             </View>
           ))}
 
