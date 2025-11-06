@@ -42,16 +42,25 @@ export async function generateWorkoutPlan({ muscleGroups, experienceLevel, durat
   try {
     // Fetch user profile to get disliked exercises
     let userDislikedExercises = [];
+    console.log(`🔍 [WorkoutTools] Received userId: ${userId}`);
     if (userId && userId !== 'guest') {
       try {
         const userProfile = await getUserProfile(userId);
+        console.log(`🔍 [WorkoutTools] User profile fetched:`, {
+          hasProfile: !!userProfile,
+          dislikedExercises: userProfile?.dislikedExercises
+        });
         userDislikedExercises = userProfile?.dislikedExercises || [];
         if (userDislikedExercises.length > 0) {
           console.log(`🚫 User blacklisted exercises: ${userDislikedExercises.join(', ')}`);
+        } else {
+          console.log(`ℹ️ No blacklisted exercises found in user profile`);
         }
       } catch (error) {
         console.warn('⚠️ Could not fetch user profile for exercise blacklist:', error);
       }
+    } else {
+      console.log(`ℹ️ No userId provided or guest user - skipping blacklist`);
     }
 
     // Get available exercises
