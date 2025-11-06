@@ -301,6 +301,40 @@ class AIService {
             }
           }
 
+          // Auto-inject workout preferences for workout generation tools
+          const workoutTools = ['generateWorkoutPlan', 'generateWorkoutProgram', 'recommendTodaysWorkout'];
+          if (workoutTools.includes(functionCall.name)) {
+            const profile = context.userProfile || {};
+
+            // Auto-inject equipment from profile if not provided
+            if (!toolArgs.equipment && profile.equipmentAccess && profile.equipmentAccess.length > 0) {
+              toolArgs.equipment = profile.equipmentAccess;
+              console.log(`🔧 Auto-injected equipment: ${toolArgs.equipment.join(', ')}`);
+            }
+
+            // Auto-inject experience level if not provided
+            if (!toolArgs.experienceLevel && profile.experienceLevel) {
+              toolArgs.experienceLevel = profile.experienceLevel;
+              console.log(`🔧 Auto-injected experienceLevel: ${toolArgs.experienceLevel}`);
+            }
+
+            // Auto-inject goal if not provided
+            if (!toolArgs.goal && profile.primaryGoal) {
+              // Map primaryGoal to workout goal
+              const goalMap = {
+                'muscle gain': 'hypertrophy',
+                'weight loss': 'endurance',
+                'strength': 'strength',
+                'general fitness': 'general'
+              };
+              const mappedGoal = goalMap[profile.primaryGoal] || 'hypertrophy';
+              toolArgs.goal = mappedGoal;
+              console.log(`🔧 Auto-injected goal: ${toolArgs.goal} (from ${profile.primaryGoal})`);
+            }
+
+            console.log(`🔧 Workout generation with profile data: experienceLevel=${toolArgs.experienceLevel}, goal=${toolArgs.goal}, equipment=${toolArgs.equipment?.length || 0} items`);
+          }
+
           // Execute the tool
           const toolResult = await ToolRegistry.executeTool(
             functionCall.name,
@@ -531,6 +565,13 @@ ${profile.height ? `- Height: ${profile.height} cm` : ''}
 ${profile.occupation ? `- Activity Level: ${profile.occupation === 'sedentary' ? 'sedentary' : profile.occupation === 'physical-labor' ? 'very active' : 'moderate'}` : ''}
 ${profile.primaryGoal ? `- Goals: ${Array.isArray(profile.primaryGoal) ? profile.primaryGoal.join(', ') : profile.primaryGoal}` : ''}
 ${profile.experienceLevel ? `- Experience: ${profile.experienceLevel}` : ''}
+${profile.gymType ? `- Gym Type: ${profile.gymType}` : ''}
+${profile.equipmentAccess && profile.equipmentAccess.length > 0 ? `- Available Equipment: ${profile.equipmentAccess.join(', ')}` : ''}
+${profile.trainingStyle ? `- Training Style: ${profile.trainingStyle}` : ''}
+${profile.preferredRepRange ? `- Preferred Rep Range: ${profile.preferredRepRange}` : ''}
+${profile.injuries && profile.injuries.length > 0 ? `- Injuries/Pain: ${profile.injuries.join(', ')}` : ''}
+${profile.dislikedExercises && profile.dislikedExercises.length > 0 ? `- BLACKLISTED Exercises (NEVER use these): ${profile.dislikedExercises.join(', ')}` : ''}
+${profile.favoriteExercises && profile.favoriteExercises.length > 0 ? `- Favorite Exercises (prioritize these): ${profile.favoriteExercises.join(', ')}` : ''}
 ${context.recentActivity ? `- Recent workouts: ${context.recentActivity.workouts || 0} in last 7 days` : ''}
 ${context.screenSpecific?.calories ? `
 
@@ -1177,11 +1218,36 @@ INSTRUCTIONS FOR TOOL USE:
    - Use profile.age, profile.gender, profile.currentWeight, profile.height
    - Map occupation to activityLevel: sedentary→sedentary, physical-labor→active, default→moderate
    - Use primaryGoal to determine goal (cut/bulk/maintain)
-3. When calling generateWorkoutPlan:
-   - Use profile.experienceLevel
-   - Use profile.primaryGoal to determine workout goal
-   - Use profile.equipmentAccess if available
-   - Tools have built-in fallbacks - they'll find alternatives automatically
+3. 🚨 When calling generateWorkoutPlan - ALWAYS USE ALL PROFILE DATA (CRITICAL):
+
+   **BEFORE GENERATING ANY WORKOUT, CHECK:**
+   - profile.experienceLevel → Determines rep/set complexity
+   - profile.primaryGoal → Determines training goal (strength/hypertrophy/endurance)
+   - profile.trainingStyle → "powerlifting", "bodybuilding", "general fitness"
+   - profile.gymType → "commercial gym" (has machines), "home gym" (limited), "bodyweight only"
+   - profile.equipmentAccess → ["barbell", "dumbbell", "machines", "cables", etc.]
+   - profile.preferredRepRange → Guides rep selection
+   - profile.injuries → AVOID exercises that aggravate these
+   - profile.dislikedExercises → NEVER include these (already filtered by tool, but respect it)
+   - profile.favoriteExercises → PRIORITIZE these when possible
+
+   **EQUIPMENT RULES:**
+   - If gymType = "commercial gym" → Include machines, cables, barbells, dumbbells
+   - If gymType = "home gym" → Stick to equipmentAccess list (usually barbell/dumbbell only)
+   - If equipmentAccess is empty → Use only bodyweight exercises
+
+   **TRAINING STYLE RULES:**
+   - "bodybuilding" → Focus on hypertrophy (8-12 reps), include machines, isolation work
+   - "powerlifting" → Focus on main lifts (squat/bench/deadlift), lower reps (3-6)
+   - "general fitness" → Mix of compound movements, moderate reps (6-15)
+
+   **INJURY CONSIDERATIONS:**
+   - Check profile.injuries BEFORE generating
+   - If "knee pain" → avoid deep squats, use leg press instead
+   - If "lower back pain" → avoid deadlifts, use RDL or back extension
+   - If "shoulder pain" → avoid overhead press, use shoulder-friendly alternatives
+
+   🚨 NEVER SKIP THIS CHECK - The user already told us this info!
 4. **WORKOUT CREATION WORKFLOW** - Follow this pattern:
    - When user COMMANDS "create" or "plan" a workout:
      a) Call generateWorkoutPlan to create the workout
