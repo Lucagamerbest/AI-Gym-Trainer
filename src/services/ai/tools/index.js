@@ -10,6 +10,7 @@ import {
   generateWorkoutProgram,
   generateWorkoutPlan,
   findExerciseAlternatives,
+  replaceExerciseInWorkout,
   analyzeWorkoutHistory,
   workoutToolSchemas,
 } from './WorkoutTools';
@@ -99,7 +100,8 @@ export function initializeTools() {
   ToolRegistry.registerTool('generateWorkoutProgram', workoutToolSchemas[1], generateWorkoutProgram);
   ToolRegistry.registerTool('generateWorkoutPlan', workoutToolSchemas[2], generateWorkoutPlan);
   ToolRegistry.registerTool('findExerciseAlternatives', workoutToolSchemas[3], findExerciseAlternatives);
-  ToolRegistry.registerTool('analyzeWorkoutHistory', workoutToolSchemas[4], analyzeWorkoutHistory);
+  ToolRegistry.registerTool('replaceExerciseInWorkout', workoutToolSchemas[4], replaceExerciseInWorkout);
+  ToolRegistry.registerTool('analyzeWorkoutHistory', workoutToolSchemas[5], analyzeWorkoutHistory);
 
   // Exercise Tools
   ToolRegistry.registerTool('searchExercises', exerciseToolSchemas[0], searchExercises);

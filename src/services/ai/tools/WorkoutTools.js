@@ -3,6 +3,7 @@
  * Updated with 2024 exercise science research (Jeff Nippard, EMG studies, meta-analyses)
  */
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import WorkoutSyncService from '../../backend/WorkoutSyncService';
 import { getAllExercises } from '../../../data/exerciseDatabase';
 import FitnessKnowledge from '../FitnessKnowledge';
@@ -815,6 +816,135 @@ export async function findExerciseAlternatives({ exerciseName, equipment, muscle
 }
 
 /**
+ * Replace an exercise in active or planned workout (ONE-SHOT)
+ * Combines find alternative + replace into a single fluid action
+ */
+export async function replaceExerciseInWorkout({
+  oldExerciseName,
+  newExerciseName,
+  workoutType = 'active', // 'active' or 'planned'
+  equipment,
+  userId
+}) {
+  try {
+    const allExercises = getAllExercises();
+
+    // Step 1: Find the old exercise
+    const oldExercise = allExercises.find(ex =>
+      ex.name.toLowerCase() === oldExerciseName.toLowerCase()
+    );
+
+    if (!oldExercise) {
+      return {
+        success: false,
+        error: `Exercise "${oldExerciseName}" not found`
+      };
+    }
+
+    let newExercise;
+
+    // Step 2: Get the new exercise (either specified or auto-select best alternative)
+    if (newExerciseName) {
+      // User specified exact replacement
+      newExercise = allExercises.find(ex =>
+        ex.name.toLowerCase() === newExerciseName.toLowerCase()
+      );
+
+      if (!newExercise) {
+        return {
+          success: false,
+          error: `Replacement exercise "${newExerciseName}" not found`
+        };
+      }
+    } else {
+      // Auto-select best alternative
+      const targetMuscles = oldExercise.primaryMuscles || [];
+      const alternatives = allExercises.filter(ex => {
+        if (ex.name === oldExercise.name) return false;
+        const matchesMuscles = targetMuscles.some(muscle =>
+          ex.primaryMuscles?.includes(muscle)
+        );
+        const matchesEquipment = !equipment || ex.equipment?.toLowerCase() === equipment.toLowerCase();
+        return matchesMuscles && matchesEquipment;
+      });
+
+      if (alternatives.length === 0) {
+        return {
+          success: false,
+          error: `No suitable alternatives found for "${oldExerciseName}"`
+        };
+      }
+
+      // Pick the first (best) alternative
+      newExercise = alternatives[0];
+    }
+
+    // Step 3: Replace in workout
+    if (workoutType === 'active') {
+      // Replace in active workout
+      const activeWorkoutKey = '@active_workout';
+      const activeWorkoutStr = await AsyncStorage.getItem(activeWorkoutKey);
+
+      if (!activeWorkoutStr) {
+        return {
+          success: false,
+          error: "No active workout found. Start a workout first."
+        };
+      }
+
+      const activeWorkout = JSON.parse(activeWorkoutStr);
+
+      // Find and replace the exercise
+      const exerciseIndex = activeWorkout.exercises?.findIndex(ex =>
+        ex.name.toLowerCase() === oldExerciseName.toLowerCase()
+      );
+
+      if (exerciseIndex === -1) {
+        return {
+          success: false,
+          error: `"${oldExerciseName}" not found in active workout`
+        };
+      }
+
+      // Replace exercise while keeping sets data
+      const oldExerciseData = activeWorkout.exercises[exerciseIndex];
+      activeWorkout.exercises[exerciseIndex] = {
+        ...oldExerciseData,
+        name: newExercise.name,
+        equipment: newExercise.equipment,
+        primaryMuscles: newExercise.primaryMuscles,
+        secondaryMuscles: newExercise.secondaryMuscles,
+        instructions: newExercise.instructions,
+      };
+
+      await AsyncStorage.setItem(activeWorkoutKey, JSON.stringify(activeWorkout));
+
+      return {
+        success: true,
+        message: `Replaced "${oldExerciseName}" with "${newExercise.name}" in active workout`,
+        oldExercise: oldExerciseName,
+        newExercise: newExercise.name
+      };
+
+    } else if (workoutType === 'planned') {
+      // Replace in planned workout
+      // TODO: Implement planned workout replacement
+      return {
+        success: false,
+        error: "Planned workout replacement not yet implemented. Use 'active' for now."
+      };
+    }
+
+  } catch (error) {
+    console.error('❌ replaceExerciseInWorkout error:', error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}
+
+/**
  * Get workout history analysis
  */
 export async function analyzeWorkoutHistory({ userId, days = 30 }) {
@@ -1262,6 +1392,37 @@ export const workoutToolSchemas = [
         },
       },
       required: ['exerciseName'],
+    },
+  },
+  {
+    name: 'replaceExerciseInWorkout',
+    description: 'ONE-SHOT exercise replacement. Instantly replace an exercise in the active workout with a specific exercise OR auto-select best alternative. Use when user says "replace X with Y" or "swap X for Y" or "change X to Y". Fluid single-step replacement - no extra questions needed.',
+    parameters: {
+      type: 'object',
+      properties: {
+        oldExerciseName: {
+          type: 'string',
+          description: 'Name of the exercise to replace (e.g., "Bench Press")',
+        },
+        newExerciseName: {
+          type: 'string',
+          description: 'Name of the new exercise (optional - if not provided, auto-selects best alternative)',
+        },
+        workoutType: {
+          type: 'string',
+          enum: ['active', 'planned'],
+          description: 'Type of workout to modify (default: active)',
+        },
+        equipment: {
+          type: 'string',
+          description: 'Preferred equipment for auto-selection (e.g., "dumbbell", "barbell")',
+        },
+        userId: {
+          type: 'string',
+          description: 'User ID',
+        },
+      },
+      required: ['oldExerciseName'],
     },
   },
   {
