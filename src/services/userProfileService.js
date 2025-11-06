@@ -54,8 +54,9 @@ export const getUserProfile = async (userId) => {
     const firebaseProfile = await BackendService.getUserProfile(userId);
 
     if (firebaseProfile) {
-      // Map Firebase format to local format
+      // Map Firebase format to local format and include ALL profile fields
       return {
+        ...firebaseProfile, // Include all fields from Firebase
         nutritionGoals: {
           calories: firebaseProfile.goals?.targetCalories || firebaseProfile.goals?.calories || 2000,
           protein: firebaseProfile.goals?.proteinGrams || firebaseProfile.goals?.protein || 150,
@@ -69,6 +70,9 @@ export const getUserProfile = async (userId) => {
         preferences: {
           units: firebaseProfile.settings?.units || 'metric',
         },
+        // Explicitly include exercise preferences (in case they're at root level)
+        dislikedExercises: firebaseProfile.dislikedExercises || [],
+        favoriteExercises: firebaseProfile.favoriteExercises || [],
       };
     }
 
