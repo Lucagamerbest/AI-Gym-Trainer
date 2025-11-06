@@ -14,11 +14,12 @@ export default function RecipePreferencesScreen({ navigation }) {
   const { user } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
 
-  // Meal-specific macro targets
-  const [breakfastTargets, setBreakfastTargets] = useState({ calories: 400, protein: 25, carbs: 45, fat: 12 });
-  const [lunchTargets, setLunchTargets] = useState({ calories: 600, protein: 40, carbs: 60, fat: 18 });
-  const [dinnerTargets, setDinnerTargets] = useState({ calories: 700, protein: 50, carbs: 65, fat: 22 });
-  const [snackTargets, setSnackTargets] = useState({ calories: 200, protein: 15, carbs: 20, fat: 8 });
+  // Maximum calories per meal type (simplified approach)
+  const [maxBreakfastCals, setMaxBreakfastCals] = useState(600);
+  const [maxLunchCals, setMaxLunchCals] = useState(800);
+  const [maxDinnerCals, setMaxDinnerCals] = useState(900);
+  const [maxSnackCals, setMaxSnackCals] = useState(300);
+  const [macroStrategy, setMacroStrategy] = useState('balanced');
 
   // Recipe preferences
   const [maxCookingTime, setMaxCookingTime] = useState(30);
@@ -40,10 +41,12 @@ export default function RecipePreferencesScreen({ navigation }) {
       const prefs = await getFoodPreferences(userId);
 
       if (prefs.mealPreferences) {
-        setBreakfastTargets(prefs.mealPreferences.breakfast);
-        setLunchTargets(prefs.mealPreferences.lunch);
-        setDinnerTargets(prefs.mealPreferences.dinner);
-        setSnackTargets(prefs.mealPreferences.snack);
+        const maxCals = prefs.mealPreferences.maxCaloriesPerMeal || {};
+        setMaxBreakfastCals(maxCals.breakfast || 600);
+        setMaxLunchCals(maxCals.lunch || 800);
+        setMaxDinnerCals(maxCals.dinner || 900);
+        setMaxSnackCals(maxCals.snack || 300);
+        setMacroStrategy(prefs.mealPreferences.macroStrategy || 'balanced');
       }
 
       if (prefs.recipePreferences) {
@@ -72,10 +75,13 @@ export default function RecipePreferencesScreen({ navigation }) {
       const updatedPrefs = {
         ...currentPrefs,
         mealPreferences: {
-          breakfast: breakfastTargets,
-          lunch: lunchTargets,
-          dinner: dinnerTargets,
-          snack: snackTargets,
+          maxCaloriesPerMeal: {
+            breakfast: maxBreakfastCals,
+            lunch: maxLunchCals,
+            dinner: maxDinnerCals,
+            snack: maxSnackCals,
+          },
+          macroStrategy,
         },
         recipePreferences: {
           maxCookingTime,
@@ -111,65 +117,23 @@ export default function RecipePreferencesScreen({ navigation }) {
     }
   };
 
-  const renderMacroSliders = (label, targets, setTargets) => (
+  const renderMaxCaloriesSlider = (label, value, setValue, min = 200, max = 1200) => (
     <StyledCard variant="elevated" style={styles.mealCard}>
       <Text style={styles.mealTitle}>{label}</Text>
+      <Text style={styles.hint}>
+        Set maximum calories. AI will calculate realistic macros based on your strategy.
+      </Text>
 
-      {/* Calories */}
+      {/* Max Calories */}
       <View style={styles.sliderContainer}>
-        <Text style={styles.sliderLabel}>Calories: {targets.calories} kcal</Text>
+        <Text style={styles.sliderLabel}>Max Calories: {value} kcal</Text>
         <Slider
           style={styles.slider}
-          minimumValue={200}
-          maximumValue={1000}
+          minimumValue={min}
+          maximumValue={max}
           step={50}
-          value={targets.calories}
-          onValueChange={(val) => setTargets({ ...targets, calories: val })}
-          minimumTrackTintColor={Colors.primary}
-          maximumTrackTintColor={Colors.border}
-        />
-      </View>
-
-      {/* Protein */}
-      <View style={styles.sliderContainer}>
-        <Text style={styles.sliderLabel}>Protein: {targets.protein}g</Text>
-        <Slider
-          style={styles.slider}
-          minimumValue={10}
-          maximumValue={80}
-          step={5}
-          value={targets.protein}
-          onValueChange={(val) => setTargets({ ...targets, protein: val })}
-          minimumTrackTintColor={Colors.primary}
-          maximumTrackTintColor={Colors.border}
-        />
-      </View>
-
-      {/* Carbs */}
-      <View style={styles.sliderContainer}>
-        <Text style={styles.sliderLabel}>Carbs: {targets.carbs}g</Text>
-        <Slider
-          style={styles.slider}
-          minimumValue={20}
-          maximumValue={120}
-          step={5}
-          value={targets.carbs}
-          onValueChange={(val) => setTargets({ ...targets, carbs: val })}
-          minimumTrackTintColor={Colors.primary}
-          maximumTrackTintColor={Colors.border}
-        />
-      </View>
-
-      {/* Fat */}
-      <View style={styles.sliderContainer}>
-        <Text style={styles.sliderLabel}>Fat: {targets.fat}g</Text>
-        <Slider
-          style={styles.slider}
-          minimumValue={5}
-          maximumValue={50}
-          step={2}
-          value={targets.fat}
-          onValueChange={(val) => setTargets({ ...targets, fat: val })}
+          value={value}
+          onValueChange={setValue}
           minimumTrackTintColor={Colors.primary}
           maximumTrackTintColor={Colors.border}
         />
@@ -188,22 +152,52 @@ export default function RecipePreferencesScreen({ navigation }) {
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
 
         {/* Section Header */}
-        <Text style={styles.sectionHeader}>Meal Macro Targets</Text>
+        <Text style={styles.sectionHeader}>Maximum Meal Calories</Text>
         <Text style={styles.sectionDescription}>
-          Set default calorie and macro targets for each meal type. The AI will use these when generating recipes.
+          Set maximum calories for each meal type. The AI will calculate realistic macros based on your selected strategy.
         </Text>
 
         {/* Breakfast */}
-        {renderMacroSliders('🍳 Breakfast Targets', breakfastTargets, setBreakfastTargets)}
+        {renderMaxCaloriesSlider('🍳 Breakfast', maxBreakfastCals, setMaxBreakfastCals, 200, 800)}
 
         {/* Lunch */}
-        {renderMacroSliders('🥗 Lunch Targets', lunchTargets, setLunchTargets)}
+        {renderMaxCaloriesSlider('🥗 Lunch', maxLunchCals, setMaxLunchCals, 300, 1000)}
 
         {/* Dinner */}
-        {renderMacroSliders('🍽️ Dinner Targets', dinnerTargets, setDinnerTargets)}
+        {renderMaxCaloriesSlider('🍽️ Dinner', maxDinnerCals, setMaxDinnerCals, 400, 1200)}
 
         {/* Snack */}
-        {renderMacroSliders('🍎 Snack Targets', snackTargets, setSnackTargets)}
+        {renderMaxCaloriesSlider('🍎 Snack', maxSnackCals, setMaxSnackCals, 100, 500)}
+
+        {/* Macro Strategy */}
+        <Text style={[styles.sectionHeader, { marginTop: Spacing.xl }]}>Macro Calculation Strategy</Text>
+        <Text style={styles.sectionDescription}>
+          Choose how the AI calculates macros for your meals. This affects protein/carbs/fat distribution.
+        </Text>
+
+        <StyledCard variant="elevated" style={styles.complexityCard}>
+          <View style={styles.optionsRow}>
+            {[
+              { value: 'balanced', label: 'Balanced', desc: '30% protein, 45% carbs, 25% fat' },
+              { value: 'high-protein', label: 'High Protein', desc: '35% protein, 45% carbs, 20% fat' },
+              { value: 'muscle-building', label: 'Muscle Building', desc: '35% protein, 45% carbs, 20% fat' },
+              { value: 'fat-loss', label: 'Fat Loss', desc: '30% protein, 40% carbs, 30% fat' },
+            ].map(option => (
+              <TouchableOpacity
+                key={option.value}
+                style={[styles.strategyOption, macroStrategy === option.value && styles.strategyOptionActive]}
+                onPress={() => setMacroStrategy(option.value)}
+              >
+                <Text style={[styles.optionText, macroStrategy === option.value && styles.optionTextActive]}>
+                  {option.label}
+                </Text>
+                <Text style={[styles.strategyDescription, macroStrategy === option.value && styles.strategyDescriptionActive]}>
+                  {option.desc}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </StyledCard>
 
         {/* Recipe Complexity Section */}
         <Text style={styles.sectionHeader}>Recipe Complexity</Text>
@@ -520,5 +514,33 @@ const styles = StyleSheet.create({
   summaryHint: {
     fontSize: Typography.sizes.sm,
     color: Colors.textMuted,
+  },
+  strategyOption: {
+    flex: 1,
+    minWidth: '45%',
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    marginBottom: Spacing.sm,
+  },
+  strategyOptionActive: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  strategyDescription: {
+    fontSize: Typography.sizes.xs,
+    color: Colors.textMuted,
+    marginTop: Spacing.xs,
+  },
+  strategyDescriptionActive: {
+    color: Colors.white,
+  },
+  hint: {
+    fontSize: Typography.sizes.sm,
+    color: Colors.textMuted,
+    marginBottom: Spacing.sm,
+    lineHeight: 18,
   },
 });

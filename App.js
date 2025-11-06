@@ -48,6 +48,7 @@ import FoodDetailScreen from './src/screens/FoodDetailScreen';
 import EnhancedFoodSearchScreen from './src/screens/EnhancedFoodSearchScreen';
 import NutritionDashboard from './src/screens/NutritionDashboard';
 import RecipesScreen from './src/screens/RecipesScreen';
+import RecipeDetailScreen from './src/screens/RecipeDetailScreen';
 import CalorieBreakdownScreen from './src/screens/CalorieBreakdownScreen';
 import EditRecipeScreen from './src/screens/EditRecipeScreen';
 import EditFoodItemScreen from './src/screens/EditFoodItemScreen';
@@ -225,6 +226,7 @@ function AppNavigator() {
             <Stack.Screen name="FoodDetail" component={FoodDetailScreen} />
             <Stack.Screen name="FoodScanning" component={FoodScanningScreen} />
             <Stack.Screen name="Recipes" component={RecipesScreen} />
+            <Stack.Screen name="RecipeDetail" component={RecipeDetailScreen} />
             <Stack.Screen name="RecipePreferences" component={RecipePreferencesScreen} />
             <Stack.Screen name="CalorieBreakdown" component={CalorieBreakdownScreen} />
             <Stack.Screen name="EditRecipe" component={EditRecipeScreen} />

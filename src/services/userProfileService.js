@@ -21,32 +21,17 @@ const DEFAULT_PROFILE = {
     dislikedIngredients: [],
     favoriteCuisines: [],
     dietaryRestrictions: [],
-    // Meal-specific calorie and macro targets
+    // Flexible meal generation preferences (AI calculates realistic macros)
     mealPreferences: {
-      breakfast: {
-        targetCalories: 400,
-        targetProtein: 25,
-        targetCarbs: 45,
-        targetFat: 12,
+      // Maximum calories per meal type
+      maxCaloriesPerMeal: {
+        breakfast: 600,  // Max calories for breakfast
+        lunch: 800,      // Max calories for lunch
+        dinner: 900,     // Max calories for dinner
+        snack: 300,      // Max calories for snacks
       },
-      lunch: {
-        targetCalories: 600,
-        targetProtein: 40,
-        targetCarbs: 60,
-        targetFat: 18,
-      },
-      dinner: {
-        targetCalories: 700,
-        targetProtein: 50,
-        targetCarbs: 65,
-        targetFat: 22,
-      },
-      snack: {
-        targetCalories: 200,
-        targetProtein: 15,
-        targetCarbs: 20,
-        targetFat: 8,
-      },
+      // Macro calculation strategy for AI
+      macroStrategy: 'balanced', // 'balanced', 'high-protein', 'muscle-building', 'fat-loss'
     },
     // Recipe complexity and time preferences
     recipePreferences: {

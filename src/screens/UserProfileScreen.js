@@ -324,21 +324,29 @@ const UserProfileScreen = ({ navigation }) => {
         {/* Recipe Preferences */}
         {profile.foodPreferences && (
           <InfoSection title="Recipe Preferences" icon="restaurant-outline" sectionKey="recipePreferences">
-            {/* Meal Targets */}
+            {/* Maximum Meal Calories */}
             {profile.foodPreferences.mealPreferences && (
               <>
-                <Text style={styles.subsectionTitle}>Meal Targets</Text>
+                <Text style={styles.subsectionTitle}>Maximum Meal Calories</Text>
                 <InfoRow
                   label="Breakfast"
-                  value={`${profile.foodPreferences.mealPreferences.breakfast?.targetCalories || 400} cal, ${profile.foodPreferences.mealPreferences.breakfast?.targetProtein || 25}g protein`}
+                  value={`Max ${profile.foodPreferences.mealPreferences.maxCaloriesPerMeal?.breakfast || 600} cal`}
                 />
                 <InfoRow
                   label="Lunch"
-                  value={`${profile.foodPreferences.mealPreferences.lunch?.targetCalories || 600} cal, ${profile.foodPreferences.mealPreferences.lunch?.targetProtein || 40}g protein`}
+                  value={`Max ${profile.foodPreferences.mealPreferences.maxCaloriesPerMeal?.lunch || 800} cal`}
                 />
                 <InfoRow
                   label="Dinner"
-                  value={`${profile.foodPreferences.mealPreferences.dinner?.targetCalories || 700} cal, ${profile.foodPreferences.mealPreferences.dinner?.targetProtein || 50}g protein`}
+                  value={`Max ${profile.foodPreferences.mealPreferences.maxCaloriesPerMeal?.dinner || 900} cal`}
+                />
+                <InfoRow
+                  label="Snack"
+                  value={`Max ${profile.foodPreferences.mealPreferences.maxCaloriesPerMeal?.snack || 300} cal`}
+                />
+                <InfoRow
+                  label="Macro Strategy"
+                  value={profile.foodPreferences.mealPreferences.macroStrategy?.charAt(0).toUpperCase() + profile.foodPreferences.mealPreferences.macroStrategy?.slice(1).replace('-', ' ') || 'Balanced'}
                 />
               </>
             )}

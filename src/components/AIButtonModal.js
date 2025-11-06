@@ -11,6 +11,7 @@ import AIService from '../services/ai/AIService';
 import ContextManager from '../services/ai/ContextManager';
 import { useAuth } from '../context/AuthContext';
 import { getRecentFoods } from '../services/foodDatabase';
+import MacroStatsCard from './MacroStatsCard';
 
 /**
  * AIButtonModal
@@ -22,6 +23,7 @@ export default function AIButtonModal({
   visible,
   onClose,
   screenName,
+  screenParams = {}, // Screen route params like mealType
 }) {
   const { user } = useAuth();
   const scrollViewRef = useRef(null);
@@ -553,8 +555,31 @@ export default function AIButtonModal({
       // Build context for this screen
       const context = await ContextManager.buildContextForScreen(screenName, user?.uid);
 
+      // Add screen params to context (e.g., mealType for RecipesScreen)
+      if (screenParams) {
+        context.screenParams = screenParams;
+      }
+
       // Build prompt - check if we need to use recent ingredients
       let messageToSend = button.prompt || button.text;
+
+      // Make high-protein recipe prompt dynamic based on meal type
+      if (button.toolName === 'generateHighProteinRecipe' && screenParams?.mealType) {
+        const mealType = screenParams.mealType;
+        const calorieRanges = {
+          breakfast: { min: 300, max: 600, ideal: 450 },
+          lunch: { min: 400, max: 700, ideal: 550 },
+          dinner: { min: 500, max: 800, ideal: 650 },
+          snack: { min: 100, max: 300, ideal: 200 },
+          snacks: { min: 100, max: 300, ideal: 200 }, // Handle both "snack" and "snacks"
+        };
+
+        const range = calorieRanges[mealType] || { min: 300, max: 700, ideal: 500 };
+        const proteinAmount = Math.round((range.ideal * 0.35) / 4); // 35% protein for high-protein meals
+
+        messageToSend = `Generate a high-protein ${mealType} with approximately ${proteinAmount}g protein and ${range.ideal} calories (max ${range.max} calories). Keep it appropriate for a ${mealType}.`;
+        console.log(`🔧 Dynamic prompt for ${mealType}: ${messageToSend}`);
+      }
 
       if (button.promptTemplate === 'recentIngredients') {
         try {
@@ -1134,6 +1159,48 @@ export default function AIButtonModal({
                             </TouchableOpacity>
                           </View>
                         </View>
+                      );
+                    }
+                    return null;
+                  })()}
+
+                  {/* Macro Stats Card - Show when nutrition tools return macro data */}
+                  {(() => {
+                    const macroToolResult = Array.isArray(lastToolResults) && lastToolResults.find(tool =>
+                      tool.name === 'predictDailyMacroShortfall' ||
+                      tool.name === 'getNutritionStatus' ||
+                      tool.name === 'suggestNextMealForBalance'
+                    );
+                    const macroData = macroToolResult?.result?.data || macroToolResult?.result?.status;
+
+                    if (macroData && macroData.consumed && macroData.goals) {
+                      return (
+                        <MacroStatsCard
+                          macros={{
+                            calories: {
+                              consumed: macroData.consumed.calories,
+                              target: macroData.goals.calories,
+                              remaining: macroData.remaining?.calories || (macroData.goals.calories - macroData.consumed.calories),
+                            },
+                            protein: {
+                              consumed: macroData.consumed.protein,
+                              target: macroData.goals.protein,
+                              remaining: macroData.remaining?.protein || (macroData.goals.protein - macroData.consumed.protein),
+                            },
+                            carbs: {
+                              consumed: macroData.consumed.carbs,
+                              target: macroData.goals.carbs,
+                              remaining: macroData.remaining?.carbs || (macroData.goals.carbs - macroData.consumed.carbs),
+                            },
+                            fat: {
+                              consumed: macroData.consumed.fat,
+                              target: macroData.goals.fat,
+                              remaining: macroData.remaining?.fat || (macroData.goals.fat - macroData.consumed.fat),
+                            },
+                          }}
+                          title="📊 Today's Macros"
+                          subtitle={macroData.dayProgress ? `${Math.round(macroData.dayProgress * 100)}% through the day` : undefined}
+                        />
                       );
                     }
                     return null;

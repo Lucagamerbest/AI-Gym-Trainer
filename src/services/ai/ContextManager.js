@@ -144,13 +144,15 @@ class ContextManager {
   }
 
   async getNutritionContext(userId = 'guest') {
-    if (!this.currentScreen?.includes('Nutrition') && !this.currentScreen?.includes('Food')) return {};
+    // NOTE: We removed the screen check - nutrition context should ALWAYS be available
+    // This allows AI to see macros from any screen (Workout, Progress, etc.)
 
     try {
-
+      console.log('🍎 getNutritionContext called for userId:', userId, 'screen:', this.currentScreen);
 
       // Read meals from Firebase
       const today = new Date().toISOString().split('T')[0];
+      console.log('📅 Today\'s date:', today);
       let meals = [];
       let totalCalories = 0;
       let totalProtein = 0;
@@ -159,7 +161,9 @@ class ContextManager {
 
       if (userId && userId !== 'guest') {
         try {
+          console.log('🔍 Fetching meals from Firebase for user:', userId);
           const firebaseMeals = await MealSyncService.getMealsByDate(userId, today);
+          console.log('📦 Firebase meals fetched:', firebaseMeals.length, 'meals');
 
           // Convert Firebase meals to array and calculate totals
           meals = firebaseMeals.map(meal => ({
@@ -178,19 +182,29 @@ class ContextManager {
             totalFat += meal.fat;
           });
 
+          console.log('✅ Meals processed. Totals:', {
+            calories: totalCalories,
+            protein: totalProtein,
+            carbs: totalCarbs,
+            fat: totalFat
+          });
 
         } catch (error) {
-
+          console.error('❌ Error fetching meals from Firebase:', error);
         }
+      } else {
+        console.log('⚠️ Guest user - skipping Firebase meal fetch');
       }
 
 
 
       // Get goals from Firebase
+      console.log('🎯 Fetching user goals from Firebase...');
       let goals = { calories: 2000, protein: 150, carbs: 200, fat: 65 };
       if (userId && userId !== 'guest') {
         try {
           const firebaseProfile = await BackendService.getUserProfile(userId);
+          console.log('📦 Firebase profile fetched:', firebaseProfile ? 'Yes' : 'No');
           if (firebaseProfile && firebaseProfile.goals) {
             goals = {
               calories: firebaseProfile.goals.targetCalories || firebaseProfile.goals.calories || 2000,
@@ -198,10 +212,15 @@ class ContextManager {
               carbs: firebaseProfile.goals.carbsGrams || firebaseProfile.goals.carbs || 200,
               fat: firebaseProfile.goals.fatGrams || firebaseProfile.goals.fat || 65,
             };
+            console.log('✅ User goals loaded:', goals);
+          } else {
+            console.log('⚠️ No goals found in profile, using defaults');
           }
         } catch (error) {
-
+          console.error('❌ Error fetching user profile/goals:', error);
         }
+      } else {
+        console.log('⚠️ Guest user - using default goals');
       }
 
 
@@ -215,6 +234,13 @@ class ContextManager {
       const caloriesTarget = calorieGoal;
       const caloriesRemaining = Math.round(calorieGoal - totalCalories);
 
+      console.log('📊 Calculated macro status:', {
+        calories: { consumed: caloriesConsumed, target: caloriesTarget, remaining: caloriesRemaining },
+        protein: { consumed: Math.round(totalProtein), target: proteinGoal, remaining: Math.round(proteinGoal - totalProtein) },
+        carbs: { consumed: Math.round(totalCarbs), target: carbsGoal, remaining: Math.round(carbsGoal - totalCarbs) },
+        fat: { consumed: Math.round(totalFat), target: fatGoal, remaining: Math.round(fatGoal - totalFat) }
+      });
+
       // Get food preferences
       let foodPreferences = null;
       try {
@@ -223,6 +249,7 @@ class ContextManager {
         console.error('Error fetching food preferences for context:', error);
       }
 
+      console.log('🍽️ Building nutrition context...');
       const nutritionContext = {
         todaysMeals: meals.length,
         meals: meals.map(meal => ({
@@ -259,6 +286,7 @@ class ContextManager {
         foodPreferences: foodPreferences, // Add food preferences to context
       };
 
+      console.log('✅ Nutrition context built successfully:', JSON.stringify(nutritionContext, null, 2));
       return nutritionContext;
     } catch (error) {
       console.error('❌ Error getting nutrition context:', error);

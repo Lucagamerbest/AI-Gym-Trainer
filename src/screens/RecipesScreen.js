@@ -14,11 +14,13 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CommonActions, useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons } from '@expo/vector-icons';
 import ScreenLayout from '../components/ScreenLayout';
 import StyledCard from '../components/StyledCard';
 import StyledButton from '../components/StyledButton';
 import FoodCard from '../components/FoodCard';
 import FoodDetailsView from '../components/FoodDetailsView';
+import RecipeBrowser from '../components/RecipeBrowser';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { unifiedFoodSearch } from '../services/unifiedFoodSearch';
 
@@ -98,6 +100,7 @@ export default function RecipesScreen({ navigation, route }) {
   const [recipes, setRecipes] = useState(mockRecipes);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [modalView, setModalView] = useState('recipe'); // 'recipe' or 'ingredient'
+  const [activeTab, setActiveTab] = useState('my-recipes'); // 'my-recipes' or 'browse'
   const [searchText, setSearchText] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -399,16 +402,11 @@ export default function RecipesScreen({ navigation, route }) {
   };
 
   const viewInstructions = (recipe) => {
-    if (!recipe.instructions || recipe.instructions.length === 0) {
-      Alert.alert(
-        'No Instructions',
-        'This recipe does not have cooking instructions yet. Only AI-generated recipes include instructions.',
-        [{ text: 'OK' }]
-      );
-      return;
-    }
-    setSelectedRecipeForInstructions(recipe);
-    setShowInstructionsModal(true);
+    // Navigate to full-page recipe detail screen
+    navigation.navigate('RecipeDetail', {
+      recipe: recipe,
+      fromDatabase: false, // From My Recipes, so no save button
+    });
   };
 
   const renderRecipe = ({ item }) => {
@@ -430,9 +428,11 @@ export default function RecipesScreen({ navigation, route }) {
           onPress={() => toggleFavorite(item.id)}
           activeOpacity={0.7}
         >
-          <Text style={styles.favoriteStar}>
-            {item.isFavorite ? '⭐' : '☆'}
-          </Text>
+          <Ionicons
+            name={item.isFavorite ? 'star' : 'star-outline'}
+            size={24}
+            color={item.isFavorite ? '#FFD700' : '#FFFFFF'}
+          />
         </TouchableOpacity>
         <View style={styles.recipeInfo}>
           <Text style={styles.recipeName}>{item.name}</Text>
@@ -466,25 +466,23 @@ export default function RecipesScreen({ navigation, route }) {
 
         {/* Secondary actions row */}
         <View style={styles.secondaryActionsRow}>
-          {item.instructions && item.instructions.length > 0 && (
-            <TouchableOpacity
-              style={styles.instructionsButton}
-              onPress={() => viewInstructions(item)}
-            >
-              <Text style={styles.instructionsText}>📖</Text>
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity
+            style={styles.viewDetailsButton}
+            onPress={() => viewInstructions(item)}
+          >
+            <Text style={styles.viewDetailsText} numberOfLines={1}>View Details</Text>
+          </TouchableOpacity>
           <TouchableOpacity
             style={styles.editButton}
             onPress={() => editRecipe(item)}
           >
-            <Text style={styles.editText}>Edit</Text>
+            <Text style={styles.editText} numberOfLines={1}>Edit</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.deleteButton}
             onPress={() => deleteRecipe(item.id)}
           >
-            <Text style={styles.deleteText}>Delete</Text>
+            <Text style={styles.deleteText} numberOfLines={1}>Delete</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -533,24 +531,59 @@ export default function RecipesScreen({ navigation, route }) {
       showHome={true}
       scrollable={true}
       screenName="RecipesScreen"
+      screenParams={{ mealType }} // Pass mealType for AI context
       onAIClose={loadRecipes}
     >
-      <TouchableOpacity
-        style={styles.createButton}
-        onPress={() => {
-          // Reset state before opening
-          setNewRecipe({ name: '', ingredients: [] });
-          setModalView('recipe');
-          setSearchText('');
-          setSearchResults([]);
-          setShowCreateModal(true);
-        }}
-        activeOpacity={0.8}
-      >
-        <Text style={styles.createButtonText}>➕ Create New Recipe</Text>
-      </TouchableOpacity>
+      {/* Tab Selector */}
+      <View style={styles.tabContainer}>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'my-recipes' && styles.tabActive]}
+          onPress={() => setActiveTab('my-recipes')}
+        >
+          <Ionicons
+            name="book"
+            size={18}
+            color={activeTab === 'my-recipes' ? '#fff' : Colors.textSecondary}
+          />
+          <Text style={[styles.tabText, activeTab === 'my-recipes' && styles.tabTextActive]}>
+            My Recipes
+          </Text>
+        </TouchableOpacity>
 
-      {recipes.length === 0 ? (
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'browse' && styles.tabActive]}
+          onPress={() => setActiveTab('browse')}
+        >
+          <Ionicons
+            name="search"
+            size={18}
+            color={activeTab === 'browse' ? '#fff' : Colors.textSecondary}
+          />
+          <Text style={[styles.tabText, activeTab === 'browse' && styles.tabTextActive]}>
+            Browse Database
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Show My Recipes or Browse Database based on active tab */}
+      {activeTab === 'my-recipes' ? (
+        <>
+          <TouchableOpacity
+            style={styles.createButton}
+            onPress={() => {
+              // Reset state before opening
+              setNewRecipe({ name: '', ingredients: [] });
+              setModalView('recipe');
+              setSearchText('');
+              setSearchResults([]);
+              setShowCreateModal(true);
+            }}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.createButtonText}>➕ Create New Recipe</Text>
+          </TouchableOpacity>
+
+          {recipes.length === 0 ? (
         <View style={styles.emptyState}>
           <Text style={styles.emptyIcon}>📖</Text>
           <Text style={styles.emptyTitle}>No Recipes Yet</Text>
@@ -566,6 +599,21 @@ export default function RecipesScreen({ navigation, route }) {
             </View>
           ))}
         </View>
+      )}
+        </>
+      ) : (
+        /* Browse Database Tab */
+        <RecipeBrowser
+          initialMealType={mealType}
+          onSelectRecipe={(recipe) => {
+            console.log('Selected recipe from database:', recipe);
+            // Navigate to full-page recipe detail screen
+            navigation.navigate('RecipeDetail', {
+              recipe: recipe,
+              fromDatabase: true, // Flag to show "Save to My Recipes" button
+            });
+          }}
+        />
       )}
 
       {/* Single Modal with Different Views */}
@@ -832,22 +880,67 @@ export default function RecipesScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  createButton: {
-    backgroundColor: '#4CAF50',
+  tabContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: Spacing.lg,
+    marginBottom: Spacing.lg,
+    gap: Spacing.sm,
+    marginTop: Spacing.sm,
+  },
+  tab: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    marginHorizontal: Spacing.md,
-    marginBottom: Spacing.md,
-    borderRadius: 12,
-    minHeight: 48,
+    paddingVertical: Spacing.md + 2,
+    paddingHorizontal: Spacing.sm,
+    backgroundColor: 'transparent',
+    borderRadius: BorderRadius.lg,
+    borderWidth: 0,
+  },
+  tabActive: {
+    backgroundColor: Colors.primary,
+  },
+  tabText: {
+    marginLeft: Spacing.sm,
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+  },
+  tabTextActive: {
+    color: '#fff',
+    fontWeight: '700',
+  },
+  freeBadge: {
+    marginLeft: Spacing.xs,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    borderRadius: BorderRadius.sm,
+  },
+  freeBadgeText: {
+    fontSize: 8,
+    fontWeight: '800',
+    color: '#fff',
+    letterSpacing: 0.5,
+  },
+  createButton: {
+    backgroundColor: Colors.primary,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.md + 2,
+    paddingHorizontal: Spacing.lg,
+    marginHorizontal: Spacing.lg,
+    marginBottom: Spacing.lg,
+    borderRadius: BorderRadius.lg,
+    minHeight: 52,
   },
   createButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000000',
+    fontSize: Typography.fontSize.md,
+    fontWeight: '700',
+    color: Colors.background,
+    letterSpacing: 0.5,
   },
   recipesContainer: {
     paddingHorizontal: Spacing.md,
@@ -876,29 +969,67 @@ const styles = StyleSheet.create({
   },
   recipeCard: {
     marginBottom: Spacing.md,
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  highlightedRecipeCard: {
+    borderColor: Colors.primary,
+    borderWidth: 2,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  newRecipeBadge: {
+    position: 'absolute',
+    top: -8,
+    right: 12,
+    backgroundColor: Colors.primary,
+    paddingHorizontal: Spacing.small,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.full,
+    zIndex: 10,
+  },
+  newRecipeBadgeText: {
+    color: '#FFF',
+    fontSize: 12,
+    fontWeight: '600',
   },
   recipeHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.lg,
   },
   favoriteButton: {
-    padding: 4,
-    marginRight: Spacing.sm,
+    padding: Spacing.xs,
+    marginRight: Spacing.md,
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.round,
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   favoriteStar: {
-    fontSize: 24,
-    color: '#FFFFFF',
+    fontSize: 22,
   },
   recipeInfo: {
     flex: 1,
+    justifyContent: 'center',
   },
   recipeName: {
     fontSize: Typography.fontSize.lg,
-    fontWeight: '600',
+    fontWeight: '700',
     color: Colors.text,
-    marginBottom: 4,
+    marginBottom: Spacing.xs,
+    lineHeight: 24,
   },
   recipeServings: {
     fontSize: Typography.fontSize.sm,
@@ -907,66 +1038,97 @@ const styles = StyleSheet.create({
   ingredientCount: {
     fontSize: Typography.fontSize.sm,
     color: Colors.textMuted,
-    marginTop: 2,
+    marginTop: Spacing.xs,
   },
   nutritionSummary: {
     alignItems: 'flex-end',
+    backgroundColor: Colors.surface,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    minWidth: 90,
   },
   caloriesText: {
-    fontSize: Typography.fontSize.lg,
-    fontWeight: '600',
+    fontSize: Typography.fontSize.xl,
+    fontWeight: '800',
     color: Colors.primary,
-    marginBottom: 4,
+    marginBottom: Spacing.xs,
   },
   macroText: {
     fontSize: Typography.fontSize.xs,
     color: Colors.textSecondary,
+    fontWeight: '600',
+    letterSpacing: 0.3,
   },
   recipeActions: {
-    gap: Spacing.sm,
+    gap: Spacing.md,
   },
   quickAddButton: {
     width: '100%',
     backgroundColor: Colors.primary,
-    paddingVertical: Spacing.sm,
+    paddingVertical: Spacing.md + 2,
     borderRadius: BorderRadius.md,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   quickAddText: {
-    color: '#1a1a1a',
-    fontWeight: '600',
-    fontSize: Typography.fontSize.sm,
+    color: Colors.background,
+    fontWeight: '700',
+    fontSize: Typography.fontSize.md,
+    letterSpacing: 0.5,
   },
   secondaryActionsRow: {
     flexDirection: 'row',
     gap: Spacing.sm,
     width: '100%',
   },
+  viewDetailsButton: {
+    flex: 1,
+    paddingVertical: Spacing.sm + 2,
+    paddingHorizontal: 4,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  viewDetailsText: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: '600',
+  },
   editButton: {
     flex: 1,
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.sm + 2,
+    paddingHorizontal: 4,
     borderRadius: BorderRadius.md,
-    backgroundColor: Colors.primary + '20',
+    backgroundColor: Colors.card,
+    borderWidth: 2,
+    borderColor: Colors.border,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   editText: {
-    color: Colors.primary,
-    fontSize: Typography.fontSize.sm,
+    color: Colors.text,
+    fontSize: 11,
     fontWeight: '600',
   },
   deleteButton: {
     flex: 1,
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.sm + 2,
+    paddingHorizontal: 4,
     borderRadius: BorderRadius.md,
-    backgroundColor: Colors.error + '20',
+    backgroundColor: Colors.card,
+    borderWidth: 2,
+    borderColor: Colors.error,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   deleteText: {
     color: Colors.error,
     fontWeight: '600',
-    fontSize: Typography.fontSize.sm,
+    fontSize: 11,
   },
   modalContainer: {
     flex: 1,
@@ -1398,17 +1560,18 @@ const styles = StyleSheet.create({
     color: '#000',
   },
   instructionsButton: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.card,
     paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
+    paddingVertical: Spacing.sm + 2,
     borderRadius: BorderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
-    minWidth: 44, // Ensure touch target size
+    minWidth: 50,
+    borderWidth: 2,
+    borderColor: Colors.primary,
   },
   instructionsText: {
-    color: '#000',
-    fontSize: 20, // Emoji size
+    fontSize: 18,
   },
   instructionsHeader: {
     marginBottom: Spacing.lg,

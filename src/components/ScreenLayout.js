@@ -20,6 +20,7 @@ export default function ScreenLayout({
   onHomePress,
   hideWorkoutIndicator = false,
   screenName, // Screen name for AI context
+  screenParams, // Screen route params (e.g., mealType for RecipesScreen)
   onAIClose // Callback when AI modal closes (e.g., to reload data)
 }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -77,7 +78,7 @@ export default function ScreenLayout({
           ]}
         >
           <View style={styles.headerLeft}>
-            {screenName && <AIHeaderButton screenName={screenName} onAIClose={onAIClose} />}
+            {screenName && <AIHeaderButton screenName={screenName} screenParams={screenParams} onAIClose={onAIClose} />}
             {showBack && navigation?.canGoBack() && (
               <TouchableOpacity
                 style={styles.navButton}

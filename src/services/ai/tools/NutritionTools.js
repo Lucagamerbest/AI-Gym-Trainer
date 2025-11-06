@@ -6,6 +6,111 @@ import MealSyncService from '../../backend/MealSyncService';
 import BackendService from '../../backend/BackendService';
 
 /**
+ * HELPER: Generate AI content with retry logic
+ * Same as RecipeTools helper for consistency
+ */
+async function generateWithRetry(prompt, options = {}) {
+  const maxAttempts = 3;
+  const retryDelay = 1000; // 1 second between retries
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      console.log(`🤖 AI Generation attempt ${attempt}/${maxAttempts}`);
+
+      const { GoogleGenerativeAI } = await import('@google/generative-ai');
+      const { default: AIService } = await import('../AIService');
+
+      if (!AIService.apiKey) {
+        throw new Error('Gemini API key not configured. Please restart the app.');
+      }
+
+      const genAI = new GoogleGenerativeAI(AIService.apiKey);
+      const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+
+      const result = await model.generateContent(prompt, {
+        generationConfig: {
+          temperature: options.temperature || 0.7,
+          maxOutputTokens: options.maxOutputTokens || 2000,
+        },
+      });
+
+      const response = result.response.text();
+
+      // Validate response has minimum length
+      if (!response || response.trim().length < 50) {
+        throw new Error('AI response too short, likely incomplete');
+      }
+
+      console.log('✅ AI generation successful');
+      return response;
+
+    } catch (error) {
+      console.error(`❌ AI generation attempt ${attempt} failed:`, error.message);
+
+      if (attempt === maxAttempts) {
+        throw error;
+      }
+
+      await new Promise(resolve => setTimeout(resolve, retryDelay));
+    }
+  }
+}
+
+/**
+ * HELPER: Extract and parse JSON from AI response
+ * Multiple extraction methods for robustness
+ */
+function extractAndParseJSON(response) {
+  console.log('🔍 Extracting JSON from AI response...');
+
+  // Method 1: Extract from ```json code blocks
+  let jsonMatch = response.match(/```json\s*\n([\s\S]*?)\n```/);
+  if (jsonMatch) {
+    console.log('✓ Found JSON in ```json block');
+    return parseJSONSafely(jsonMatch[1]);
+  }
+
+  // Method 2: Extract from regular ``` code blocks
+  jsonMatch = response.match(/```\s*\n([\s\S]*?)\n```/);
+  if (jsonMatch) {
+    console.log('✓ Found JSON in ``` block');
+    return parseJSONSafely(jsonMatch[1]);
+  }
+
+  // Method 3: Try to find JSON object directly
+  jsonMatch = response.match(/\{[\s\S]*\}/);
+  if (jsonMatch) {
+    console.log('✓ Found JSON object directly');
+    return parseJSONSafely(jsonMatch[0]);
+  }
+
+  // Method 4: Try parsing the entire response
+  console.log('⚠ No code blocks found, trying to parse entire response');
+  return parseJSONSafely(response);
+}
+
+/**
+ * HELPER: Parse JSON safely with error handling
+ */
+function parseJSONSafely(jsonStr) {
+  try {
+    // Remove trailing commas (common AI mistake)
+    const cleaned = jsonStr
+      .replace(/,\s*}/g, '}')
+      .replace(/,\s*]/g, ']')
+      .trim();
+
+    const parsed = JSON.parse(cleaned);
+    console.log('✅ JSON parsed successfully');
+    return parsed;
+
+  } catch (error) {
+    console.error('❌ JSON parsing failed:', error.message);
+    throw new Error(`Failed to parse data: ${error.message}`);
+  }
+}
+
+/**
  * Calculate recommended macros based on user goals
  */
 export async function calculateMacros({ weight, height, age, gender, activityLevel, goal }) {
@@ -402,42 +507,32 @@ Requirements:
   "tips": ["meal prep tip 1", "tip 2"]
 }`;
 
-    // Import GoogleGenerativeAI and get API key from AIService
-    const { GoogleGenerativeAI } = await import('@google/generative-ai');
-    const { default: AIService } = await import('../AIService');
-
-    // Get API key from AIService
-    if (!AIService.apiKey) {
+    // Generate meal plan using AI with retry logic
+    let response;
+    try {
+      response = await generateWithRetry(prompt, {
+        temperature: 0.7,
+        maxOutputTokens: 4000,
+      });
+    } catch (error) {
+      console.error('❌ Weekly meal plan generation failed after retries:', error);
       return {
         success: false,
-        message: "Gemini API key not configured.",
+        message: "Couldn't connect to AI service. Please check your internet connection and try again.",
+        error: error.message,
       };
     }
 
-    const genAI = new GoogleGenerativeAI(AIService.apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-
-    // Generate meal plan
-    const result = await model.generateContent(prompt, {
-      generationConfig: {
-        temperature: 0.7,
-        maxOutputTokens: 4000,
-      },
-    });
-    const response = result.response.text();
-
-    // Parse response
+    // Parse response with improved extraction
     let mealPlan;
     try {
-      const jsonMatch = response.match(/```json\n([\s\S]*?)\n```/) || response.match(/```\n([\s\S]*?)\n```/);
-      const jsonStr = jsonMatch ? jsonMatch[1] : response;
-      mealPlan = JSON.parse(jsonStr);
+      mealPlan = extractAndParseJSON(response);
     } catch (parseError) {
-      console.error('Failed to parse meal plan JSON:', parseError);
+      console.error('❌ Meal plan parsing failed:', parseError);
       return {
         success: false,
-        message: "Couldn't create meal plan. Please try again.",
-        rawResponse: response,
+        message: "Couldn't create meal plan. Please try again with different parameters.",
+        error: parseError.message,
       };
     }
 
@@ -502,17 +597,25 @@ export async function suggestNextMealForBalance({
   try {
     console.log('🍽️ Suggesting next meal for balance:', { userId, mealType });
 
+    // Validate userId
+    if (!userId) {
+      return {
+        success: false,
+        message: "User ID is required to suggest meals.",
+      };
+    }
+
     // Get today's nutrition status
     const nutritionStatus = await getNutritionStatus({ userId });
 
     if (!nutritionStatus.success) {
       return {
         success: false,
-        message: "Couldn't analyze your nutrition. Please log some meals first.",
+        message: "Couldn't analyze your nutrition. Please log some meals first to get personalized suggestions.",
       };
     }
 
-    const { consumed, remaining, goals } = nutritionStatus.data;
+    const { consumed, remaining, goals } = nutritionStatus.status || nutritionStatus.data;
 
     // Build prompt
     const currentTime = new Date().getHours();
@@ -546,34 +649,58 @@ Provide 2-3 meal options with:
 - Total macros (calories, protein, carbs, fat)
 - Why this meal balances their day`;
 
-    // Import GoogleGenerativeAI and get API key from AIService
-    const { GoogleGenerativeAI } = await import('@google/generative-ai');
-    const { default: AIService } = await import('../AIService');
-
-    if (!AIService.apiKey) {
+    // Generate suggestions using AI with retry logic
+    let response;
+    try {
+      response = await generateWithRetry(prompt, {
+        temperature: 0.7,
+        maxOutputTokens: 1500,
+      });
+    } catch (error) {
+      console.error('❌ Next meal suggestion failed after retries:', error);
       return {
         success: false,
-        message: "Gemini API key not configured.",
+        message: "Couldn't connect to AI service. Please check your internet connection and try again.",
+        error: error.message,
       };
     }
 
-    const genAI = new GoogleGenerativeAI(AIService.apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    // 🚀 NEW FEATURE: Calculate visual macro balance percentages
+    const caloriePercent = Math.round((consumed.calories / goals.calories) * 100);
+    const proteinPercent = Math.round((consumed.protein / goals.protein) * 100);
+    const carbsPercent = Math.round((consumed.carbs / goals.carbs) * 100);
+    const fatPercent = Math.round((consumed.fat / goals.fat) * 100);
 
-    const result = await model.generateContent(prompt, {
-      generationConfig: {
-        temperature: 0.7,
-        maxOutputTokens: 1500,
-      },
-    });
-    const response = result.response.text();
+    // Create visual progress bars (simple text-based)
+    const createProgressBar = (percent) => {
+      const filled = Math.min(Math.floor(percent / 10), 10);
+      const empty = 10 - filled;
+      return '█'.repeat(filled) + '░'.repeat(empty);
+    };
+
+    const macroBalance = `
+📊 Your Macro Balance Today:
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+Calories: [${createProgressBar(caloriePercent)}] ${caloriePercent}% (${consumed.calories}/${goals.calories})
+Protein:  [${createProgressBar(proteinPercent)}] ${proteinPercent}% (${consumed.protein}g/${goals.protein}g)
+Carbs:    [${createProgressBar(carbsPercent)}] ${carbsPercent}% (${consumed.carbs}g/${goals.carbs}g)
+Fat:      [${createProgressBar(fatPercent)}] ${fatPercent}% (${consumed.fat}g/${goals.fat}g)
+━━━━━━━━━━━━━━━━━━━━━━━━━━`;
 
     return {
       success: true,
-      message: `🍽️ ${suggestedMealType.charAt(0).toUpperCase() + suggestedMealType.slice(1)} suggestions to balance your macros:\n\n${response}`,
+      message: `${macroBalance}\n\n🍽️ ${suggestedMealType.charAt(0).toUpperCase() + suggestedMealType.slice(1)} suggestions to balance your macros:\n\n${response}`,
       data: {
         mealType: suggestedMealType,
         remaining,
+        consumed,
+        goals,
+        percentages: {
+          calories: caloriePercent,
+          protein: proteinPercent,
+          carbs: carbsPercent,
+          fat: fatPercent,
+        },
         suggestions: response,
       },
     };
@@ -598,21 +725,38 @@ export async function predictDailyMacroShortfall({ userId }) {
   try {
     console.log('📊 Predicting daily macro shortfall:', { userId });
 
+    // Validate userId
+    if (!userId) {
+      return {
+        success: false,
+        message: "User ID is required to predict macro progress.",
+      };
+    }
+
     // Get current nutrition status
     const nutritionStatus = await getNutritionStatus({ userId });
 
     if (!nutritionStatus.success) {
       return {
         success: false,
-        message: "Couldn't analyze your nutrition. Please log some meals first.",
+        message: "Couldn't analyze your nutrition. Please log some meals first to see your progress.",
       };
     }
 
-    const { consumed, remaining, goals, percentages } = nutritionStatus.data;
+    const { consumed, remaining, goals, percentages } = nutritionStatus.status || nutritionStatus.data;
 
     // Calculate time-based predictions
     const now = new Date();
     const currentHour = now.getHours();
+
+    // Edge case: Early morning with no meals logged yet
+    if (currentHour < 8 && consumed.calories === 0) {
+      return {
+        success: true,
+        message: `🌅 Good morning! It's too early to predict your progress. Log some meals and check back later!\n\n📊 Your goals for today:\n• ${goals.calories} calories\n• ${goals.protein}g protein\n• ${goals.carbs}g carbs\n• ${goals.fat}g fat`,
+        data: { consumed, goals, remaining, dayProgress: currentHour / 24 },
+      };
+    }
     const hoursIntoDay = currentHour;
     const hoursRemaining = 24 - currentHour;
     const dayProgress = hoursIntoDay / 24; // 0.0 to 1.0
@@ -641,22 +785,14 @@ export async function predictDailyMacroShortfall({ userId }) {
     const willHitCarbs = Math.abs(predictedCarbs - goals.carbs) < (goals.carbs * 0.15);
     const willHitFat = Math.abs(predictedFat - goals.fat) < (goals.fat * 0.15);
 
-    // Build message
-    let message = `📊 Macro Prediction for Today (${currentHour}:00):\n\n`;
+    // Build simplified message (visual bars will be shown by MacroProgressCard component)
+    const currentCaloriePercent = Math.round((consumed.calories / goals.calories) * 100);
+    const currentProteinPercent = Math.round((consumed.protein / goals.protein) * 100);
 
-    message += `Progress: ${Math.round(dayProgress * 100)}% through the day\n\n`;
+    let message = `At ${Math.round(dayProgress * 100)}% through the day, you're at ${currentCaloriePercent}% calories and ${currentProteinPercent}% protein.\n\n`;
 
-    message += `Current vs Expected:\n`;
-    message += `• Calories: ${consumed.calories}/${Math.round(expectedCalories)} ${caloriesVariance >= 0 ? '✅' : '⚠️'}\n`;
-    message += `• Protein: ${consumed.protein}g/${Math.round(expectedProtein)}g ${proteinVariance >= 0 ? '✅' : '⚠️'}\n`;
-    message += `• Carbs: ${consumed.carbs}g/${Math.round(expectedCarbs)}g ${carbsVariance >= 0 ? '✅' : '⚠️'}\n`;
-    message += `• Fat: ${consumed.fat}g/${Math.round(expectedFat)}g ${fatVariance >= 0 ? '✅' : '⚠️'}\n\n`;
-
-    message += `Predicted End-of-Day:\n`;
-    message += `• Calories: ${predictedCalories}/${goals.calories} ${willHitCalories ? '✅' : '❌'}\n`;
-    message += `• Protein: ${predictedProtein}g/${goals.protein}g ${willHitProtein ? '✅' : '❌'}\n`;
-    message += `• Carbs: ${predictedCarbs}g/${goals.carbs}g ${willHitCarbs ? '✅' : '❌'}\n`;
-    message += `• Fat: ${predictedFat}g/${goals.fat}g ${willHitFat ? '✅' : '❌'}\n\n`;
+    message += `🔮 Predicted by end of day:\n`;
+    message += `${predictedCalories}/${goals.calories} cal, ${predictedProtein}g/${goals.protein}g protein\n\n`;
 
     // Recommendations
     if (!willHitProtein && remaining.protein > 20) {
@@ -678,6 +814,7 @@ export async function predictDailyMacroShortfall({ userId }) {
         currentTime: currentHour,
         dayProgress,
         consumed,
+        goals, // Add goals so MacroProgressCard can render
         expected: {
           calories: Math.round(expectedCalories),
           protein: Math.round(expectedProtein),

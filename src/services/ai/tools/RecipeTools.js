@@ -5,6 +5,141 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import FreeRecipeService from '../../FreeRecipeService';
+import { calculateRealisticMacros, validateMacros, formatMacrosForAI } from '../../../utils/macroCalculations';
+import {
+  getMealTypeConstraints,
+  validateCaloriesForMealType,
+  formatMealTypeGuidanceForAI,
+  getProteinRangeForMealType,
+} from '../../../utils/mealTypeConstraints';
+
+/**
+ * HELPER: Generate AI content with retry logic and improved parsing
+ * Handles API failures gracefully with automatic retries
+ */
+async function generateWithRetry(prompt, options = {}) {
+  const maxAttempts = 3;
+  const retryDelay = 1000; // 1 second between retries
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      console.log(`🤖 AI Generation attempt ${attempt}/${maxAttempts}`);
+
+      // Import GoogleGenerativeAI and get API key
+      const { GoogleGenerativeAI } = await import('@google/generative-ai');
+      const { default: AIService } = await import('../AIService');
+
+      if (!AIService.apiKey) {
+        throw new Error('Gemini API key not configured. Please restart the app.');
+      }
+
+      const genAI = new GoogleGenerativeAI(AIService.apiKey);
+      const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+
+      // Generate content
+      const result = await model.generateContent(prompt, {
+        generationConfig: {
+          temperature: options.temperature || 0.7,
+          maxOutputTokens: options.maxOutputTokens || 2000,
+        },
+      });
+
+      const response = result.response.text();
+
+      // Validate response has minimum length
+      if (!response || response.trim().length < 50) {
+        throw new Error('AI response too short, likely incomplete');
+      }
+
+      console.log('✅ AI generation successful');
+      return response;
+
+    } catch (error) {
+      console.error(`❌ AI generation attempt ${attempt} failed:`, error.message);
+
+      // If this was the last attempt, throw the error
+      if (attempt === maxAttempts) {
+        throw error;
+      }
+
+      // Wait before retrying
+      await new Promise(resolve => setTimeout(resolve, retryDelay));
+    }
+  }
+}
+
+/**
+ * HELPER: Extract and parse JSON from AI response
+ * Uses multiple extraction methods for robustness
+ */
+function extractAndParseJSON(response) {
+  console.log('🔍 Extracting JSON from AI response...');
+
+  // Method 1: Extract from ```json code blocks
+  let jsonMatch = response.match(/```json\s*\n([\s\S]*?)\n```/);
+  if (jsonMatch) {
+    console.log('✓ Found JSON in ```json block');
+    return parseJSONSafely(jsonMatch[1]);
+  }
+
+  // Method 2: Extract from regular ``` code blocks
+  jsonMatch = response.match(/```\s*\n([\s\S]*?)\n```/);
+  if (jsonMatch) {
+    console.log('✓ Found JSON in ``` block');
+    return parseJSONSafely(jsonMatch[1]);
+  }
+
+  // Method 3: Try to find JSON object directly
+  jsonMatch = response.match(/\{[\s\S]*\}/);
+  if (jsonMatch) {
+    console.log('✓ Found JSON object directly');
+    return parseJSONSafely(jsonMatch[0]);
+  }
+
+  // Method 4: Try parsing the entire response
+  console.log('⚠ No code blocks found, trying to parse entire response');
+  return parseJSONSafely(response);
+}
+
+/**
+ * HELPER: Parse JSON with error handling
+ * Removes trailing commas and validates required fields
+ */
+function parseJSONSafely(jsonStr) {
+  try {
+    // Remove trailing commas (common AI mistake)
+    const cleaned = jsonStr
+      .replace(/,\s*}/g, '}')  // Remove trailing commas before }
+      .replace(/,\s*]/g, ']')  // Remove trailing commas before ]
+      .trim();
+
+    const parsed = JSON.parse(cleaned);
+
+    // Validate required recipe fields
+    const requiredFields = ['title', 'ingredients', 'instructions', 'nutrition'];
+    const missingFields = requiredFields.filter(field => !parsed[field]);
+
+    if (missingFields.length > 0) {
+      throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
+    }
+
+    // Validate nutrition has required subfields
+    const requiredNutrition = ['caloriesPerServing', 'proteinPerServing', 'carbsPerServing', 'fatPerServing'];
+    const missingNutrition = requiredNutrition.filter(field => parsed.nutrition[field] === undefined);
+
+    if (missingNutrition.length > 0) {
+      throw new Error(`Missing nutrition fields: ${missingNutrition.join(', ')}`);
+    }
+
+    console.log('✅ JSON parsed and validated successfully');
+    return parsed;
+
+  } catch (error) {
+    console.error('❌ JSON parsing failed:', error.message);
+    throw new Error(`Failed to parse recipe data: ${error.message}`);
+  }
+}
 
 /**
  * GENERATE RECIPE FROM INGREDIENTS
@@ -35,12 +170,114 @@ export async function generateRecipeFromIngredients({
     if (!ingredients || ingredients.length === 0) {
       return {
         success: false,
-        message: "Please provide at least one ingredient to generate a recipe.",
+        message: "Please provide at least one ingredient to generate a recipe. Example: 'chicken breast, rice, broccoli'",
       };
     }
 
+    // Validate ingredient names (basic check for gibberish)
+    const invalidIngredients = ingredients.filter(ing =>
+      !ing || ing.length < 2 || /[^a-zA-Z\s-]/.test(ing)
+    );
+
+    if (invalidIngredients.length > 0) {
+      return {
+        success: false,
+        message: `Invalid ingredient names detected: "${invalidIngredients.join('", "')}". Please use real food names.`,
+      };
+    }
+
+    // Ensure at least 2 ingredients for a real recipe
+    if (ingredients.length < 2) {
+      return {
+        success: false,
+        message: "Please provide at least 2 ingredients to create a complete recipe. Try adding a protein and vegetable or carb source!",
+      };
+    }
+
+    // 🚀 NEW FEATURE: Search database first for faster results!
+    // Try to find matching recipes from free database before using AI
+    if (targetCalories || targetProtein) {
+      console.log('🔍 Searching free recipe database first...');
+      try {
+        const dbRecipes = await FreeRecipeService.searchRecipes({
+          mealType: mealType !== 'any' ? mealType : null,
+          minCalories: targetCalories ? targetCalories - 100 : null,
+          maxCalories: targetCalories ? targetCalories + 100 : null,
+          minProtein: targetProtein ? targetProtein - 10 : null,
+        });
+
+        // Filter by ingredients if specific ingredients requested
+        let matchingRecipes = dbRecipes;
+        if (ingredients.length > 0) {
+          matchingRecipes = dbRecipes.filter(recipe => {
+            const recipeIngredients = recipe.ingredients.map(i =>
+              i.food?.name?.toLowerCase() || i.item?.toLowerCase() || ''
+            ).join(' ');
+            return ingredients.some(ing =>
+              recipeIngredients.includes(ing.toLowerCase())
+            );
+          });
+        }
+
+        // If we found good matches, offer them
+        if (matchingRecipes.length > 0) {
+          const topMatches = matchingRecipes.slice(0, 3);
+          console.log(`✅ Found ${topMatches.length} matching recipes in database!`);
+
+          return {
+            success: true,
+            message: `I found ${topMatches.length} recipes in the database that match your criteria! Check them out below, or ask me to generate a custom recipe with AI.`,
+            action: 'database_recipes_found',
+            recipes: topMatches,
+            suggestAIGeneration: true,
+          };
+        }
+      } catch (error) {
+        console.log('⚠️ Database search failed, falling back to AI generation:', error.message);
+        // Continue to AI generation if database search fails
+      }
+    }
+
+    // Get meal type constraints
+    const mealConstraints = getMealTypeConstraints(mealType);
+
+    // Validate calories for meal type if provided
+    let adjustedCalories = targetCalories;
+    let calorieNote = '';
+
+    if (targetCalories) {
+      const calorieValidation = validateCaloriesForMealType(targetCalories, mealType);
+      if (!calorieValidation.valid) {
+        calorieNote = `\n\n⚠️ CALORIE WARNING: ${calorieValidation.reason}`;
+        adjustedCalories = calorieValidation.suggestion;
+      }
+    } else if (mealType !== 'any') {
+      // Use ideal calories for the meal type
+      adjustedCalories = mealConstraints.calorieRange.ideal;
+    }
+
+    // Validate and calculate realistic macros if both calories and protein are provided
+    let macroGuidance = '';
+    if (adjustedCalories && targetProtein) {
+      const validation = validateMacros(adjustedCalories, targetProtein, 0, 0);
+      if (!validation.valid) {
+        // User requested unrealistic macros - provide realistic suggestion
+        const realistic = calculateRealisticMacros(adjustedCalories, 'balanced');
+        macroGuidance = `\n\nIMPORTANT MACRO NOTE: The requested macros (${targetProtein}g protein with ${adjustedCalories} calories) may not be realistic. ${validation.reason}
+Suggested realistic macros: ${formatMacrosForAI(adjustedCalories, 'balanced')}`;
+      }
+    } else if (adjustedCalories && !targetProtein) {
+      // Only calories provided - calculate realistic macros
+      macroGuidance = `\n\nRECOMMENDED MACROS: ${formatMacrosForAI(adjustedCalories, 'balanced')}`;
+    }
+
+    // Add meal type guidance
+    const mealTypeGuidance = formatMealTypeGuidanceForAI(mealType);
+
     // Build prompt for recipe generation
     let prompt = `Create a detailed, healthy recipe using these ingredients: ${ingredients.join(', ')}.
+${mealTypeGuidance}
+${calorieNote}
 
 Requirements:
 - Include step-by-step cooking instructions (KEEP EACH STEP SHORT AND CLEAR - max 1-2 sentences per step)
@@ -49,12 +286,14 @@ Requirements:
 - Make it realistic and easy to prepare
 - Specify number of servings`;
 
-    if (targetProtein) {
+    if (targetProtein && adjustedCalories) {
+      prompt += `\n- Aim for approximately ${targetProtein}g of protein and ${adjustedCalories} calories per serving`;
+      prompt += macroGuidance;
+    } else if (targetProtein) {
       prompt += `\n- Target approximately ${targetProtein}g of protein per serving`;
-    }
-
-    if (targetCalories) {
-      prompt += `\n- Target approximately ${targetCalories} calories per serving`;
+    } else if (adjustedCalories) {
+      prompt += `\n- Target approximately ${adjustedCalories} calories per serving`;
+      prompt += macroGuidance;
     }
 
     if (cuisine) {
@@ -94,43 +333,32 @@ Requirements:
   "tips": ["Optional cooking tip 1", "Optional cooking tip 2"]
 }`;
 
-    // Import GoogleGenerativeAI and get API key from AIService
-    const { GoogleGenerativeAI } = await import('@google/generative-ai');
-    const { default: AIService } = await import('../AIService');
-
-    // Get API key from AIService (already initialized)
-    if (!AIService.apiKey) {
+    // Generate recipe using AI with retry logic
+    let response;
+    try {
+      response = await generateWithRetry(prompt, {
+        temperature: 0.7,
+        maxOutputTokens: 2000,
+      });
+    } catch (error) {
+      console.error('❌ AI generation failed after retries:', error);
       return {
         success: false,
-        message: "Gemini API key not configured. Please restart the app.",
+        message: "Couldn't connect to AI service. Please check your internet connection and try again.",
+        error: error.message,
       };
     }
 
-    const genAI = new GoogleGenerativeAI(AIService.apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-
-    // Generate recipe using AI with JSON mode
-    const result = await model.generateContent(prompt, {
-      generationConfig: {
-        temperature: 0.7,
-        maxOutputTokens: 2000,
-      },
-    });
-    const response = result.response.text();
-
-    // Parse the JSON response
+    // Parse the JSON response with improved extraction
     let recipe;
     try {
-      // Extract JSON from markdown code blocks if present
-      const jsonMatch = response.match(/```json\n([\s\S]*?)\n```/) || response.match(/```\n([\s\S]*?)\n```/);
-      const jsonStr = jsonMatch ? jsonMatch[1] : response;
-      recipe = JSON.parse(jsonStr);
+      recipe = extractAndParseJSON(response);
     } catch (parseError) {
-      console.error('Failed to parse recipe JSON:', parseError);
+      console.error('❌ Recipe parsing failed:', parseError);
       return {
         success: false,
-        message: "AI generated a recipe but it couldn't be formatted properly. Please try again.",
-        rawResponse: response,
+        message: "AI generated a recipe but it couldn't be formatted properly. Please try again with different ingredients.",
+        error: parseError.message,
       };
     }
 
@@ -273,22 +501,75 @@ export async function generateHighProteinRecipe({
       mealType
     });
 
-    // Build specialized prompt for high-protein recipes
-    let prompt = `Create a detailed, high-protein recipe optimized for maximum protein while keeping calories reasonable.
+    // Get meal type constraints
+    const mealConstraints = getMealTypeConstraints(mealType);
+    const { min, max, ideal } = mealConstraints.calorieRange;
 
-CRITICAL PROTEIN REQUIREMENTS:
-- Target ${targetProtein}g of protein per serving (${targetProtein - 5}g to ${targetProtein + 5}g acceptable)
-- Focus on PROTEIN-DENSE foods: chicken breast, salmon, tuna, eggs, Greek yogurt, cottage cheese, tofu, lean beef, turkey, shrimp, protein powder
-- Avoid high-calorie/low-protein foods: oils, butter, nuts (use sparingly), regular cheese (use sparingly)
-- Maximize protein-to-calorie ratio`;
+    // Validate or adjust calories for meal type
+    let adjustedCalories = targetCalories;
+    let calorieNote = '';
 
     if (targetCalories) {
-      prompt += `\n- Target approximately ${targetCalories} calories per serving (${targetCalories - 50} to ${targetCalories + 50} acceptable)
-- Keep calories in check by using lean proteins and limiting added fats`;
+      const calorieValidation = validateCaloriesForMealType(targetCalories, mealType);
+      if (!calorieValidation.valid) {
+        calorieNote = `\n\n⚠️ CALORIE WARNING: ${calorieValidation.reason}
+Adjusted to ${calorieValidation.suggestion} calories to match ${mealType} requirements.`;
+        adjustedCalories = calorieValidation.suggestion;
+      }
     } else {
-      prompt += `\n- Keep calories reasonable (aim for 400-600 calories per serving)
-- Prioritize lean proteins over fatty proteins`;
+      // No calories specified - use ideal for meal type
+      adjustedCalories = ideal;
     }
+
+    // Get recommended protein range for this meal type and calorie amount
+    const proteinRange = getProteinRangeForMealType(mealType, adjustedCalories);
+
+    // If user's protein request is outside realistic range, adjust it
+    let adjustedProtein = targetProtein;
+    if (targetProtein > proteinRange.max) {
+      adjustedProtein = proteinRange.max;
+      calorieNote += `\n\n⚠️ PROTEIN WARNING: ${targetProtein}g protein is too high for a ${adjustedCalories}-calorie ${mealType}. Adjusted to ${adjustedProtein}g (realistic max for this meal).`;
+    } else if (targetProtein < proteinRange.min) {
+      adjustedProtein = proteinRange.ideal;
+    }
+
+    // Calculate realistic macros for high-protein meal
+    const realisticMacros = calculateRealisticMacros(adjustedCalories, 'high-protein');
+
+    // Validate if user's request is realistic
+    let macroNote = '';
+    if (targetCalories && targetProtein) {
+      const validation = validateMacros(adjustedCalories, adjustedProtein, 0, 0);
+      if (!validation.valid) {
+        macroNote = `\n\nNOTE: ${validation.reason}
+Recommended: ${formatMacrosForAI(adjustedCalories, 'high-protein')}`;
+      }
+    }
+
+    // Add meal type guidance to prompt
+    const mealTypeGuidance = formatMealTypeGuidanceForAI(mealType);
+
+    // Build specialized prompt for high-protein recipes
+    let prompt = `Create a detailed, high-protein recipe optimized for maximum protein while keeping calories reasonable.
+${mealTypeGuidance}
+${calorieNote}
+
+CRITICAL PROTEIN REQUIREMENTS:
+- Target ${adjustedProtein}g of protein per serving (${adjustedProtein - 5}g to ${adjustedProtein + 5}g acceptable)
+- Focus on PROTEIN-DENSE foods: chicken breast, salmon, tuna, eggs, Greek yogurt, cottage cheese, tofu, lean beef, turkey, shrimp, protein powder
+- Avoid high-calorie/low-protein foods: oils, butter, nuts (use sparingly), regular cheese (use sparingly)
+- Maximize protein-to-calorie ratio
+
+REALISTIC MACRO GUIDANCE:
+- For high-protein meals, aim for ~35% protein, ~45% carbs, ~20% fat
+- Example: ${realisticMacros.protein.grams}g protein, ${realisticMacros.carbs.grams}g carbs, ${realisticMacros.fat.grams}g fat for ${adjustedCalories} calories${macroNote}
+
+CRITICAL CALORIE REQUIREMENTS FOR ${mealType.toUpperCase()}:
+- MUST stay within ${adjustedCalories - 50} to ${adjustedCalories + 50} calories per serving
+- Target exactly ${adjustedCalories} calories per serving
+- THIS IS NON-NEGOTIABLE: Exceeding ${adjustedCalories + 50} calories is NOT ACCEPTABLE
+- Keep calories in check by using lean proteins and limiting added fats
+- If this is a SNACK, use snack-sized portions (NOT full meals!)`;
 
     prompt += `\n\nREQUIREMENTS:
 - Include step-by-step cooking instructions (KEEP EACH STEP SHORT AND CLEAR - max 1-2 sentences per step)
@@ -334,8 +615,8 @@ Format the response as JSON with this structure:
     "Step 2 description"
   ],
   "nutrition": {
-    "caloriesPerServing": ${targetCalories || 500},
-    "proteinPerServing": ${targetProtein},
+    "caloriesPerServing": ${adjustedCalories},
+    "proteinPerServing": ${adjustedProtein},
     "carbsPerServing": 30,
     "fatPerServing": 10
   },
@@ -343,45 +624,35 @@ Format the response as JSON with this structure:
   "tips": ["Optional cooking tip 1", "Optional cooking tip 2"]
 }
 
-IMPORTANT: The nutrition.proteinPerServing MUST be within ${targetProtein - 5}g to ${targetProtein + 5}g range!`;
+IMPORTANT: The nutrition.proteinPerServing MUST be within ${adjustedProtein - 5}g to ${adjustedProtein + 5}g range!
+IMPORTANT: The nutrition.caloriesPerServing MUST be within ${adjustedCalories - 50} to ${adjustedCalories + 50} range!`;
 
-    // Import GoogleGenerativeAI and get API key from AIService
-    const { GoogleGenerativeAI } = await import('@google/generative-ai');
-    const { default: AIService } = await import('../AIService');
-
-    // Get API key from AIService (already initialized)
-    if (!AIService.apiKey) {
+    // Generate recipe using AI with retry logic
+    let response;
+    try {
+      response = await generateWithRetry(prompt, {
+        temperature: 0.7,
+        maxOutputTokens: 2000,
+      });
+    } catch (error) {
+      console.error('❌ High-protein recipe generation failed after retries:', error);
       return {
         success: false,
-        message: "Gemini API key not configured. Please restart the app.",
+        message: "Couldn't connect to AI service. Please check your internet connection and try again.",
+        error: error.message,
       };
     }
 
-    const genAI = new GoogleGenerativeAI(AIService.apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-
-    // Generate recipe using AI with JSON mode
-    const result = await model.generateContent(prompt, {
-      generationConfig: {
-        temperature: 0.7,
-        maxOutputTokens: 2000,
-      },
-    });
-    const response = result.response.text();
-
-    // Parse the JSON response
+    // Parse the JSON response with improved extraction
     let recipe;
     try {
-      // Extract JSON from markdown code blocks if present
-      const jsonMatch = response.match(/```json\n([\s\S]*?)\n```/) || response.match(/```\n([\s\S]*?)\n```/);
-      const jsonStr = jsonMatch ? jsonMatch[1] : response;
-      recipe = JSON.parse(jsonStr);
+      recipe = extractAndParseJSON(response);
     } catch (parseError) {
-      console.error('Failed to parse recipe JSON:', parseError);
+      console.error('❌ High-protein recipe parsing failed:', parseError);
       return {
         success: false,
         message: "AI generated a recipe but it couldn't be formatted properly. Please try again.",
-        rawResponse: response,
+        error: parseError.message,
       };
     }
 
@@ -531,6 +802,25 @@ export async function adaptRecipeToMacros({
       };
     }
 
+    // Validate requested macros if calories and macros are provided
+    let validation = null;
+    let macroGuidance = '';
+
+    if (targetCalories && targetProtein && targetCarbs && targetFat) {
+      validation = validateMacros(targetCalories, targetProtein, targetCarbs, targetFat);
+      if (!validation.valid) {
+        macroGuidance = `\n\n⚠️ MACRO VALIDATION WARNING: ${validation.reason}
+Suggested realistic macros: ${formatMacrosForAI(targetCalories, 'balanced')}`;
+      }
+    } else if (targetCalories && targetProtein) {
+      // Calculate realistic macros for the target
+      const realistic = calculateRealisticMacros(targetCalories, 'balanced');
+      macroGuidance = `\n\nRECOMMENDED MACROS for ${targetCalories} calories:
+- Protein: ${realistic.protein.grams}g (you requested ${targetProtein}g)
+- Carbs: ${realistic.carbs.grams}g
+- Fat: ${realistic.fat.grams}g`;
+    }
+
     // Build prompt for adaptation
     let prompt = `I have this recipe:
 
@@ -551,50 +841,47 @@ Please adjust this recipe to meet these targets (per serving):`;
     if (targetCarbs) prompt += `\n- Carbs: ${targetCarbs}g`;
     if (targetFat) prompt += `\n- Fat: ${targetFat}g`;
 
-    prompt += `\n\nProvide the adjusted recipe with:
+    prompt += macroGuidance;
+
+    prompt += `\n\nIMPORTANT: Ensure the macros are realistic and match the calorie target. Remember:
+- Protein: 4 calories per gram
+- Carbs: 4 calories per gram
+- Fat: 9 calories per gram
+
+Provide the adjusted recipe with:
 1. Modified ingredient amounts
 2. Any ingredient substitutions needed
-3. Updated nutrition facts
+3. Updated nutrition facts that are REALISTIC
 4. Brief explanation of changes made
 
 Format as JSON with the same structure as the original recipe.`;
 
-    // Import GoogleGenerativeAI and get API key from AIService
-    const { GoogleGenerativeAI } = await import('@google/generative-ai');
-    const { default: AIService } = await import('../AIService');
-
-    // Get API key from AIService
-    if (!AIService.apiKey) {
+    // Get adapted recipe using retry logic
+    let response;
+    try {
+      response = await generateWithRetry(prompt, {
+        temperature: 0.5,
+        maxOutputTokens: 2000,
+      });
+    } catch (error) {
+      console.error('❌ Recipe adaptation failed after retries:', error);
       return {
         success: false,
-        message: "Gemini API key not configured.",
+        message: "Couldn't connect to AI service. Please check your internet connection and try again.",
+        error: error.message,
       };
     }
 
-    const genAI = new GoogleGenerativeAI(AIService.apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-
-    // Get adapted recipe
-    const result = await model.generateContent(prompt, {
-      generationConfig: {
-        temperature: 0.5,
-        maxOutputTokens: 2000,
-      },
-    });
-    const response = result.response.text();
-
-    // Parse response
+    // Parse response with improved extraction
     let adaptedRecipe;
     try {
-      const jsonMatch = response.match(/```json\n([\s\S]*?)\n```/) || response.match(/```\n([\s\S]*?)\n```/);
-      const jsonStr = jsonMatch ? jsonMatch[1] : response;
-      adaptedRecipe = JSON.parse(jsonStr);
+      adaptedRecipe = extractAndParseJSON(response);
     } catch (parseError) {
-      console.error('Failed to parse adapted recipe JSON:', parseError);
+      console.error('❌ Adapted recipe parsing failed:', parseError);
       return {
         success: false,
-        message: "Couldn't adapt the recipe properly. Please try again.",
-        rawResponse: response,
+        message: "Couldn't adapt the recipe properly. Please try again with different macro targets.",
+        error: parseError.message,
       };
     }
 
@@ -687,21 +974,21 @@ export async function suggestIngredientSubstitutions({
 3. How it will affect the dish
 4. Nutritional comparison (if significantly different)`;
 
-      const { GoogleGenerativeAI } = await import('@google/generative-ai');
-      const { default: AIService } = await import('../AIService');
-
-      if (!AIService.apiKey) {
+      // Generate substitution suggestions with retry logic
+      let response;
+      try {
+        response = await generateWithRetry(prompt, {
+          temperature: 0.7,
+          maxOutputTokens: 1500,
+        });
+      } catch (error) {
+        console.error('❌ Substitution generation failed:', error);
         return {
           success: false,
-          message: "Gemini API key not configured.",
+          message: "Couldn't connect to AI service. Please check your internet connection and try again.",
+          error: error.message,
         };
       }
-
-      const genAI = new GoogleGenerativeAI(AIService.apiKey);
-      const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-
-      const result = await model.generateContent(prompt);
-      const response = result.response.text();
 
       return {
         success: true,
@@ -733,21 +1020,21 @@ ${recipe.instructions.map((inst, i) => `${i + 1}. ${inst}`).join('\n')}`;
 4. How it will affect taste/nutrition
 5. Alternative options if available`;
 
-    const { GoogleGenerativeAI } = await import('@google/generative-ai');
-    const { default: AIService } = await import('../AIService');
-
-    if (!AIService.apiKey) {
+    // Generate recipe-specific substitution suggestions with retry logic
+    let response;
+    try {
+      response = await generateWithRetry(prompt, {
+        temperature: 0.7,
+        maxOutputTokens: 1500,
+      });
+    } catch (error) {
+      console.error('❌ Recipe-specific substitution failed:', error);
       return {
         success: false,
-        message: "Gemini API key not configured.",
+        message: "Couldn't connect to AI service. Please check your internet connection and try again.",
+        error: error.message,
       };
     }
-
-    const genAI = new GoogleGenerativeAI(AIService.apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-
-    const result = await model.generateContent(prompt);
-    const response = result.response.text();
 
     return {
       success: true,

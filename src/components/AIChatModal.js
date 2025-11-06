@@ -23,6 +23,7 @@ import { useAuth } from '../context/AuthContext';
 import QuickSuggestions from './QuickSuggestions';
 import QuickAITests from './QuickAITests';
 import ThinkingAnimation from './ThinkingAnimation';
+import MacroStatsCard from './MacroStatsCard';
 
 export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
   const { user } = useAuth(); // Get real user from AuthContext
@@ -38,6 +39,9 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
 
   useEffect(() => {
     if (visible && messages.length === 0) {
+      // Clear any corrupted chat history on first load
+      clearCorruptedMessages();
+
       // Add welcome message when first opening
       addMessage({
         role: 'assistant',
@@ -46,6 +50,16 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
       });
     }
   }, [visible]);
+
+  // Clear any corrupted messages from storage
+  const clearCorruptedMessages = async () => {
+    try {
+      await AsyncStorage.removeItem('@ai_chat_messages');
+      console.log('✅ Cleared any corrupted chat history');
+    } catch (error) {
+      console.error('Error clearing chat history:', error);
+    }
+  };
 
   // Handle initial message from proactive suggestions
   useEffect(() => {
@@ -108,6 +122,15 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
   };
 
   const addMessage = (message) => {
+    // Safety check: Ensure message content is a string
+    if (message && typeof message.content !== 'string') {
+      console.warn('⚠️ addMessage received non-string content:', typeof message.content);
+      message = {
+        ...message,
+        content: String(message.content || 'Error: Invalid message content')
+      };
+    }
+
     setMessages(prev => [...prev, message]);
     setTimeout(() => {
       flatListRef.current?.scrollToEnd({ animated: true });
@@ -203,19 +226,34 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
 
       // Get real user ID from AuthContext
       const userId = user?.uid || 'guest';
+      console.log('🆔 User ID:', userId);
 
       const context = await ContextManager.getFullContext(userId);
+      console.log('📦 Full Context:', JSON.stringify(context, null, 2));
 
       // Add screen-specific context
       let screenContext = {};
       const currentScreen = context.screen;
+      console.log('📱 Current Screen:', currentScreen);
+
+      // ALWAYS fetch nutrition context (not just on Nutrition screens)
+      // This allows AI to see macros from ANY screen
+      const nutritionContext = await ContextManager.getNutritionContext(userId);
+      console.log('🍎 Nutrition Context (universal):', JSON.stringify(nutritionContext, null, 2));
 
       if (currentScreen?.includes('Workout')) {
-        screenContext = await ContextManager.getWorkoutContext();
+        const workoutContext = await ContextManager.getWorkoutContext();
+        console.log('🏋️ Workout Context:', JSON.stringify(workoutContext, null, 2));
+        screenContext = { ...nutritionContext, ...workoutContext };
       } else if (currentScreen?.includes('Nutrition') || currentScreen?.includes('Food')) {
-        screenContext = await ContextManager.getNutritionContext(userId);
+        screenContext = nutritionContext;
       } else if (currentScreen?.includes('Progress')) {
-        screenContext = await ContextManager.getProgressContext();
+        const progressContext = await ContextManager.getProgressContext();
+        console.log('📊 Progress Context:', JSON.stringify(progressContext, null, 2));
+        screenContext = { ...nutritionContext, ...progressContext };
+      } else {
+        // For all other screens, still include nutrition context
+        screenContext = nutritionContext;
       }
 
       // Only detect exercises if message contains exercise keywords (skip for general questions)
@@ -253,6 +291,12 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
         lastGeneratedWorkout: lastGeneratedWorkout.current, // Pass last generated workout
       };
 
+      console.log('🎯 FULL CONTEXT BEING SENT TO AI:');
+      console.log('   - Screen:', fullContext.screen);
+      console.log('   - User ID:', userId);
+      console.log('   - Screen Specific Data:', JSON.stringify(fullContext.screenSpecific, null, 2));
+      console.log('   - Exercise Specific Data:', JSON.stringify(fullContext.exerciseSpecific, null, 2));
+
       // Detect if this is a complex query that needs tools
       const needsTools = userMessage.toLowerCase().includes('plan') ||
                          userMessage.toLowerCase().includes('create') ||
@@ -267,17 +311,25 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
                          userMessage.toLowerCase().includes('show me') ||
                          userMessage.toLowerCase().includes('what exercises') ||
                          userMessage.toLowerCase().includes('meal') ||
-                         userMessage.toLowerCase().includes('save');
+                         userMessage.toLowerCase().includes('save') ||
+                         userMessage.toLowerCase().includes('track') ||
+                         userMessage.toLowerCase().includes('macros') ||
+                         userMessage.toLowerCase().includes('calories') ||
+                         userMessage.toLowerCase().includes('protein') ||
+                         userMessage.toLowerCase().includes('on track');
 
       // Use tool-enabled AI for complex queries, regular AI for simple questions
       console.log('🔧 needsTools:', needsTools, 'for message:', userMessage.substring(0, 50));
 
+      console.log('⏳ About to call AIService...');
       const result = needsTools
         ? await AIService.sendMessageWithTools(userMessage, fullContext)
         : await AIService.sendMessage(userMessage, fullContext);
+      console.log('✅ AIService call completed!');
 
       console.log('📦 AI Result:', { hasResponse: !!result.response, hasToolResults: !!result.toolResults });
       console.log('📦 Full response text:', result.response);
+      console.log('📦 Tool results:', result.toolResults);
 
       // Store generated workout if one was created
       if (result.toolResults) {
@@ -335,14 +387,21 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
       console.log('📦 Adding message with toolResults:', result.toolResults);
-      addMessage({
+      console.log('📦 toolResults array length:', result.toolResults?.length);
+      console.log('📦 toolResults[0]:', result.toolResults?.[0]);
+
+      const messageToAdd = {
         role: 'assistant',
         content: result.response,
         timestamp: new Date().toISOString(),
         model: result.model,
         toolsUsed: result.toolsUsed,
         toolResults: result.toolResults, // Pass tool results for recipe cards, etc.
-      });
+      };
+
+      console.log('📦 About to add message:', messageToAdd);
+      addMessage(messageToAdd);
+      console.log('✅ Message added to state');
 
       // Debug: Log contextual buttons state
       console.log('📊 Contextual Buttons State:', contextualButtons);
@@ -372,6 +431,12 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
 
   // Parse markdown **bold** syntax
   const parseMarkdown = (text) => {
+    // Safety check: Ensure text is a string
+    if (typeof text !== 'string') {
+      console.warn('⚠️ parseMarkdown received non-string:', typeof text, text);
+      text = String(text || '');
+    }
+
     const parts = [];
     const regex = /\*\*(.+?)\*\*/g;
     let lastIndex = 0;
@@ -456,7 +521,10 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
 
   const renderMessage = ({ item }) => {
     const isUser = item.role === 'user';
-    const parsedContent = parseMarkdown(item.content);
+
+    // Safety check: Ensure content is a string
+    const contentText = typeof item.content === 'string' ? item.content : String(item.content || '');
+    const parsedContent = parseMarkdown(contentText);
 
     // Check if this message has a recipe card
     console.log('🔍 Rendering message, toolResults:', item.toolResults);
@@ -464,6 +532,15 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
     console.log('🔍 Found toolResult:', toolResult);
     const recipeCard = toolResult?.result?.recipeCard;
     console.log('🔍 Recipe card:', recipeCard);
+
+    // Check if this message has macro data from tools
+    const macroToolResult = item.toolResults?.find(tool =>
+      tool.name === 'predictDailyMacroShortfall' ||
+      tool.name === 'getNutritionStatus' ||
+      tool.name === 'suggestNextMealForBalance'
+    );
+    // Handle both data and status structures
+    const macroData = macroToolResult?.result?.data || macroToolResult?.result?.status;
 
     return (
       <View style={[
@@ -484,8 +561,39 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
           ))}
         </Text>
 
+        {/* Macro Stats Card - shown when tool returns macro data */}
+        {macroData && macroData.consumed && macroData.goals && (
+          <View style={styles.macroCardWrapper}>
+            <MacroStatsCard
+              macros={{
+                calories: {
+                  consumed: macroData.consumed.calories,
+                  target: macroData.goals.calories,
+                  remaining: macroData.remaining?.calories || (macroData.goals.calories - macroData.consumed.calories),
+                },
+                protein: {
+                  consumed: macroData.consumed.protein,
+                  target: macroData.goals.protein,
+                  remaining: macroData.remaining?.protein || (macroData.goals.protein - macroData.consumed.protein),
+                },
+                carbs: {
+                  consumed: macroData.consumed.carbs,
+                  target: macroData.goals.carbs,
+                  remaining: macroData.remaining?.carbs || (macroData.goals.carbs - macroData.consumed.carbs),
+                },
+                fat: {
+                  consumed: macroData.consumed.fat,
+                  target: macroData.goals.fat,
+                  remaining: macroData.remaining?.fat || (macroData.goals.fat - macroData.consumed.fat),
+                },
+              }}
+              title="📊 Today's Macros"
+              subtitle={macroData.dayProgress ? `${Math.round(macroData.dayProgress * 100)}% through the day` : undefined}
+            />
+          </View>
+        )}
+
         {/* Recipe Card */}
-        {recipeCard && console.log('✅ RENDERING RECIPE CARD:', recipeCard.title)}
         {recipeCard && (
           <View style={styles.recipeCard}>
             <View style={styles.recipeCardHeader}>
@@ -1052,5 +1160,9 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.sm,
     fontWeight: '600',
     color: Colors.text,
+  },
+  macroCardWrapper: {
+    marginTop: Spacing.md,
+    width: '100%',
   },
 });

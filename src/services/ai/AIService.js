@@ -248,17 +248,24 @@ class AIService {
 
           // Inject real userId if tool expects userId parameter
           const toolArgs = { ...functionCall.args };
-          const placeholderUserIds = ['USER_ID', 'user-123', 'some_user_id', 'test-user', 'example-user'];
-          if (toolArgs.userId && (placeholderUserIds.includes(toolArgs.userId) || !toolArgs.userId || toolArgs.userId === '')) {
-            // Replace placeholder/empty userId with actual userId from context
+          const placeholderUserIds = ['USER_ID', 'user-123', 'user123', 'some_user_id', 'test-user', 'example-user', '_user_id', 'userId', 'user_id', 'current_user', '<user_id>'];
+          // Always inject real userId if it's a placeholder or missing
+          if (!toolArgs.userId || toolArgs.userId === '' || placeholderUserIds.includes(toolArgs.userId)) {
+            const originalUserId = toolArgs.userId;
             toolArgs.userId = context.userId || 'guest';
-            console.log(`🔧 Injected real userId: ${toolArgs.userId} (was: ${functionCall.args.userId})`);
+            console.log(`🔧 Injected real userId: ${toolArgs.userId} (was: ${originalUserId || 'undefined'})`);
           }
 
           // Auto-inject food preferences for recipe generation tools
           const recipeTools = ['generateRecipeFromIngredients', 'generateHighProteinRecipe'];
           if (recipeTools.includes(functionCall.name)) {
             const foodPrefs = context.screenSpecific?.foodPreferences;
+
+            // 0. Auto-inject mealType from screen params (RecipesScreen passes this)
+            if (context.screenParams?.mealType && !toolArgs.mealType) {
+              toolArgs.mealType = context.screenParams.mealType;
+              console.log(`🔧 Auto-injected mealType: ${toolArgs.mealType} (from RecipesScreen)`);
+            }
 
             // 1. Auto-inject dietary restrictions
             const userDietaryRestrictions = foodPrefs?.dietaryRestrictions || [];
@@ -270,8 +277,11 @@ class AIService {
 
             // 2. Auto-inject meal-specific macro targets if not provided
             if (foodPrefs?.mealPreferences && !toolArgs.targetCalories && !toolArgs.targetProtein) {
-              // Determine meal type from context or tool args
-              const mealType = toolArgs.mealType || 'lunch'; // Default to lunch
+              // Determine meal type from screenParams (e.g., RecipesScreen route params), tool args, or default to 'any'
+              const mealType = context.screenParams?.mealType || toolArgs.mealType || 'any';
+              console.log(`🔧 Detected mealType for recipe generation: ${mealType}`);
+
+              // IMPORTANT: Don't use old exact macro targets - use max calories instead
               const mealTargets = foodPrefs.mealPreferences[mealType];
 
               if (mealTargets) {
@@ -395,6 +405,13 @@ class AIService {
           },
         });
 
+        console.log('🎉 AIService returning result with:', {
+          responseLength: responseText.length,
+          toolsUsedCount: functionCallCount,
+          toolResultsCount: toolsUsedLog.length,
+          toolNames: toolsUsedLog.map(t => t.name),
+        });
+
         return {
           response: responseText,
           model: this.modelName,
@@ -464,6 +481,26 @@ class AIService {
    * Build system prompt optimized for tool use
    */
   buildSystemPromptForTools(context) {
+    console.log('🔧 buildSystemPromptForTools called with context:', {
+      screen: context.screen,
+      hasUserProfile: !!context.userProfile,
+      hasScreenSpecific: !!context.screenSpecific,
+      screenSpecificKeys: context.screenSpecific ? Object.keys(context.screenSpecific) : [],
+      hasNutritionData: !!(context.screenSpecific?.calories),
+    });
+
+    // Log nutrition data specifically
+    if (context.screenSpecific?.calories) {
+      console.log('✅ NUTRITION DATA AVAILABLE FOR AI:', {
+        calories: `${context.screenSpecific.calories.consumed}/${context.screenSpecific.calories.target}`,
+        protein: `${context.screenSpecific.protein.consumed}g/${context.screenSpecific.protein.target}g`,
+        carbs: `${context.screenSpecific.carbs.consumed}g/${context.screenSpecific.carbs.target}g`,
+        fat: `${context.screenSpecific.fat.consumed}g/${context.screenSpecific.fat.target}g`,
+      });
+    } else {
+      console.log('⚠️ NO NUTRITION DATA in context.screenSpecific');
+    }
+
     // Extract user profile data for tools
     const profile = context.userProfile || {};
 
@@ -495,17 +532,58 @@ ${profile.occupation ? `- Activity Level: ${profile.occupation === 'sedentary' ?
 ${profile.primaryGoal ? `- Goals: ${Array.isArray(profile.primaryGoal) ? profile.primaryGoal.join(', ') : profile.primaryGoal}` : ''}
 ${profile.experienceLevel ? `- Experience: ${profile.experienceLevel}` : ''}
 ${context.recentActivity ? `- Recent workouts: ${context.recentActivity.workouts || 0} in last 7 days` : ''}
+${context.screenSpecific?.calories ? `
+
+📊 TODAY'S NUTRITION STATUS (CRITICAL - ALWAYS USE THIS DATA):
+Current Time: ${new Date().getHours()}:00 (${Math.round((new Date().getHours() / 24) * 100)}% through the day)
+User Goal: ${profile.primaryGoal ? (Array.isArray(profile.primaryGoal) ? profile.primaryGoal.join(', ') : profile.primaryGoal) : 'maintenance'}
+
+Calories: ${context.screenSpecific.calories.consumed}/${context.screenSpecific.calories.target} cal (${context.screenSpecific.calories.remaining} remaining) - ${context.screenSpecific.calories.percentage}%
+Protein: ${context.screenSpecific.protein.consumed}g/${context.screenSpecific.protein.target}g (${context.screenSpecific.protein.remaining}g remaining) - ${context.screenSpecific.protein.percentage}%
+Carbs: ${context.screenSpecific.carbs.consumed}g/${context.screenSpecific.carbs.target}g (${context.screenSpecific.carbs.remaining}g remaining) - ${context.screenSpecific.carbs.percentage}%
+Fat: ${context.screenSpecific.fat.consumed}g/${context.screenSpecific.fat.target}g (${context.screenSpecific.fat.remaining}g remaining) - ${context.screenSpecific.fat.percentage}%
+
+${context.screenSpecific.todaysMeals > 0 ? `Meals logged today: ${context.screenSpecific.todaysMeals}
+${context.screenSpecific.meals?.map(m => `- ${m.name}: ${m.calories} cal, ${m.protein}g protein, ${m.carbs}g carbs, ${m.fat}g fat`).join('\n') || ''}` : 'No meals logged today.'}
+
+🚨 CRITICAL INSTRUCTIONS FOR NUTRITION QUESTIONS:
+1. NEVER create text-based progress bars (e.g., [████░░░]) - the app displays visual charts automatically
+2. When discussing macros, just mention percentages and numbers: "You're at 45% calories (892/2000)"
+3. The app will show beautiful colored progress bars automatically - don't duplicate them in text
+4. Consider USER'S GOAL when evaluating calorie progress:
+   - CUTTING (weight loss): Being behind on calories is GOOD! "You're doing great staying in deficit!"
+   - BULKING (muscle gain): Being behind on calories is BAD! "You need to eat more to hit your surplus!"
+   - MAINTENANCE: Should match time of day closely
+5. Consider TIME OF DAY + GOAL:
+   - CUTTING + Late + High Remaining: PERFECT! "Great job! You have room for a satisfying dinner and still hit your deficit."
+   - BULKING + Late + High Remaining: PROBLEM! "You need to eat more. Try calorie-dense foods: nuts, peanut butter, shakes."
+   - MAINTENANCE + Late + High Remaining: "That's a lot for one meal. Consider splitting across meals tomorrow."
+6. If user is significantly under/over their expected progress, ALWAYS consider their goal before judging` : ''}
 ${context.screenSpecific?.foodPreferences?.dietaryRestrictions?.length > 0 ? `
 🚨 DIETARY RESTRICTIONS (CRITICAL - MUST FOLLOW):
 ${context.screenSpecific.foodPreferences.dietaryRestrictions.map(r => `- ${r}`).join('\n')}
 WHEN GENERATING RECIPES: ALWAYS pass these restrictions in the dietaryRestrictions parameter!` : ''}
 ${context.screenSpecific?.foodPreferences?.mealPreferences ? `
 
-🍳 MEAL MACRO TARGETS (Use these when generating recipes):
-- Breakfast: ${context.screenSpecific.foodPreferences.mealPreferences.breakfast.targetCalories} cal, ${context.screenSpecific.foodPreferences.mealPreferences.breakfast.targetProtein}g protein
-- Lunch: ${context.screenSpecific.foodPreferences.mealPreferences.lunch.targetCalories} cal, ${context.screenSpecific.foodPreferences.mealPreferences.lunch.targetProtein}g protein
-- Dinner: ${context.screenSpecific.foodPreferences.mealPreferences.dinner.targetCalories} cal, ${context.screenSpecific.foodPreferences.mealPreferences.dinner.targetProtein}g protein
-- Snack: ${context.screenSpecific.foodPreferences.mealPreferences.snack.targetCalories} cal, ${context.screenSpecific.foodPreferences.mealPreferences.snack.targetProtein}g protein` : ''}
+🍳 MEAL CALORIE LIMITS & MACRO STRATEGY:
+IMPORTANT: User has set MAXIMUM calories per meal, NOT exact targets. Generate meals UNDER these limits.
+- Breakfast: Max ${context.screenSpecific.foodPreferences.mealPreferences.maxCaloriesPerMeal?.breakfast || 600} cal
+- Lunch: Max ${context.screenSpecific.foodPreferences.mealPreferences.maxCaloriesPerMeal?.lunch || 800} cal
+- Dinner: Max ${context.screenSpecific.foodPreferences.mealPreferences.maxCaloriesPerMeal?.dinner || 900} cal
+- Snack: Max ${context.screenSpecific.foodPreferences.mealPreferences.maxCaloriesPerMeal?.snack || 300} cal
+
+MACRO CALCULATION STRATEGY: ${context.screenSpecific.foodPreferences.mealPreferences.macroStrategy || 'balanced'}
+${context.screenSpecific.foodPreferences.mealPreferences.macroStrategy === 'high-protein' || context.screenSpecific.foodPreferences.mealPreferences.macroStrategy === 'muscle-building' ?
+'- Use 35% protein, 45% carbs, 20% fat' :
+context.screenSpecific.foodPreferences.mealPreferences.macroStrategy === 'fat-loss' ?
+'- Use 30% protein, 40% carbs, 30% fat' :
+'- Use 30% protein, 45% carbs, 25% fat (balanced)'}
+
+CRITICAL MACRO RULES:
+1. Calculate realistic macros based on calories (4 cal/g protein, 4 cal/g carbs, 9 cal/g fat)
+2. NEVER promise impossible macros (e.g., 400 cal with 100g protein is IMPOSSIBLE)
+3. If user requests unrealistic macros, suggest realistic alternatives based on their strategy
+4. Protein should be 25-35% of calories, Carbs 40-50%, Fat 20-30%` : ''}
 ${context.screenSpecific?.foodPreferences?.recipePreferences ? `
 
 ⏱️ RECIPE COMPLEXITY PREFERENCES:
@@ -1164,7 +1242,12 @@ Remember: The user took time to fill out their profile - USE IT!
     }
 
     if (screen.includes('Nutrition') || screen.includes('Food')) {
-      return `Nutrition advice: Suggest ONE food with full macros. Format: "**[amount] [food]** (**Xg P**, **Xg C**, **Xg F**, **X cal**)". ONE sentence only.`;
+      return `Nutrition advice: ALWAYS start with visual progress bars, then suggest food. Format:
+"📊 Macros Today:
+Calories: [████████░░] 80% (1600/2000)
+Protein: [██████░░░░] 60% (90g/150g)
+
+Try **[amount] [food]** (**Xg P**, **Xg C**, **Xg F**, **X cal**)."`;
     }
 
     if (screen.includes('Progress')) {
@@ -1214,10 +1297,36 @@ Examples:
     if (context.screenSpecific && Object.keys(context.screenSpecific).length > 0) {
       const ss = context.screenSpecific;
 
-      // Nutrition context - ONLY show remaining macros
+      // Nutrition context - Show current status with visual bar
       if (ss.calories) {
-        const proteinLeft = ss.protein?.remaining || 0;
-        contextPrompt += `\nNeed: ${proteinLeft}g P`;
+        const currentHour = new Date().getHours();
+        const dayProgress = Math.round((currentHour / 24) * 100);
+
+        // Create simple progress bar
+        const createBar = (percent) => {
+          const filled = Math.min(Math.floor(percent / 10), 10);
+          return '[' + '█'.repeat(filled) + '░'.repeat(10 - filled) + ']';
+        };
+
+        contextPrompt += `\nTime: ${currentHour}:00 (${dayProgress}% through day)`;
+        contextPrompt += `\nCalories: ${createBar(ss.calories.percentage)} ${ss.calories.percentage}% (${ss.calories.consumed}/${ss.calories.target})`;
+        contextPrompt += `\nProtein: ${createBar(ss.protein.percentage)} ${ss.protein.percentage}% (${ss.protein.consumed}g/${ss.protein.target}g)`;
+
+        // Get user's goal from context
+        const userGoal = context.userProfile?.primaryGoal;
+        const isCutting = userGoal && (userGoal.includes('loss') || userGoal.includes('cut') || userGoal.includes('lean'));
+        const isBulking = userGoal && (userGoal.includes('gain') || userGoal.includes('bulk') || userGoal.includes('muscle'));
+
+        // Smart meal timing warning based on goal
+        if (currentHour >= 19 && ss.calories.remaining > 1000) {
+          if (isCutting) {
+            contextPrompt += `\n✅ CUTTING + HIGH REMAINING: ${ss.calories.remaining} cal left is GOOD for cutting! User can have satisfying dinner and stay in deficit.`;
+          } else if (isBulking) {
+            contextPrompt += `\n⚠️ BULKING + HIGH REMAINING: ${ss.calories.remaining} cal left at ${currentHour}:00 is a problem for bulking! Advise calorie-dense foods (nuts, shakes, peanut butter).`;
+          } else {
+            contextPrompt += `\n⚠️ LATE + HIGH REMAINING: ${ss.calories.remaining} cal left at ${currentHour}:00 is too much for one meal. Advise lighter dinner.`;
+          }
+        }
       }
     }
 

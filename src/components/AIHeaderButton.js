@@ -10,7 +10,7 @@ import ContextManager from '../services/ai/ContextManager';
  * Displays a floating AI button that opens the button-based AI modal.
  * Automatically sets the screen context when pressed.
  */
-export default function AIHeaderButton({ screenName, onAIClose }) {
+export default function AIHeaderButton({ screenName, screenParams, onAIClose }) {
   const [modalVisible, setModalVisible] = useState(false);
 
   const handlePress = () => {
@@ -43,6 +43,7 @@ export default function AIHeaderButton({ screenName, onAIClose }) {
         visible={modalVisible}
         onClose={handleClose}
         screenName={screenName}
+        screenParams={screenParams}
       />
     </>
   );
