@@ -49,9 +49,8 @@ export default function CalorieBreakdownScreen({ route, navigation }) {
       if (userId && userId !== 'guest' && foodItem.firebaseId) {
         try {
           await MealSyncService.deleteMeal(userId, foodItem.firebaseId);
-          console.log('✅ Meal deleted from Firebase (unlogged)');
         } catch (error) {
-          console.log('⚠️ Failed to delete from Firebase:', error);
+          // Silently fail - NutritionScreen will reload from Firebase
         }
       }
 
@@ -82,7 +81,7 @@ export default function CalorieBreakdownScreen({ route, navigation }) {
 
       // Note: NutritionScreen will reload from Firebase when we navigate back
     } catch (error) {
-      console.error('Error unlogging food:', error);
+      // Error handling - state already updated locally
     }
   };
 
@@ -116,9 +115,8 @@ export default function CalorieBreakdownScreen({ route, navigation }) {
           };
           const firebaseId = await MealSyncService.uploadDailyConsumption(userId, consumptionEntry);
           foodItem.firebaseId = firebaseId;
-          console.log('✅ Meal re-logged to Firebase with ID:', firebaseId);
         } catch (error) {
-          console.log('⚠️ Failed to sync to Firebase:', error);
+          // Silently fail - NutritionScreen will reload from Firebase
         }
       }
 
