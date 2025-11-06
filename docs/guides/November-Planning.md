@@ -204,6 +204,11 @@
 ## **📊 RECOMMENDED EXECUTION ORDER**
 
 ### **Sprint 1 (Week 1: Nov 6-12): Critical Fixes**
+- [x] Fix duplicate date display bug in Nutrition Calendar List View (Nov 6)
+- [x] Fix timezone issue causing incorrect date display (Nov 6)
+- [x] Add edit functionality for logged meals (Nov 6)
+- [x] Fix unlog behavior to preserve meal origin (Nov 6)
+- [x] Add visible edit button with pencil icon (Nov 6)
 - [ ] Fix Today meals tab
 - [ ] Fix AI exercise replacement
 - [ ] Fix full body workout generation
@@ -211,6 +216,7 @@
 - [ ] Implement controlled custom text requests
 
 **Expected completion:** November 12, 2025
+**Progress Update (Nov 6):** Fixed critical nutrition tracking bugs - date display, meal editing, and unlog behavior
 
 ---
 
@@ -308,6 +314,48 @@ By November 27, 2025, we should have:
 
 ---
 
+## **🔧 COMPLETED WORK LOG**
+
+### **November 6, 2025**
+**Focus:** Nutrition tracking bug fixes and UX improvements
+
+**Completed:**
+1. Fixed timezone bug causing dates to display incorrectly (Nov 7 showing as "Nov 6")
+   - Changed Date parsing from UTC to local time
+   - Affected: `MealHistoryTabs.js:878-881`
+
+2. Fixed duplicate date display in List View
+   - Added Set deduplication for date arrays
+   - Moved todayStr calculation outside map loop for consistency
+
+3. Added meal editing functionality
+   - Logged meals now editable via EditFoodItemScreen
+   - Can modify ingredients and amounts for logged meals
+   - Navigation properly handles edit callbacks
+
+4. Fixed unlog behavior to preserve meal origin
+   - Added `wasPlanned` flag to track meal history
+   - Unlogging planned meals → moves back to planned
+   - Unlogging directly logged meals → removes completely
+   - Affected: `CalorieBreakdownScreen.js:43-86, 128-133`
+
+5. Added visible edit button for better UX
+   - Pencil icon (✏️) button added to each logged meal
+   - Clear visual affordance for edit action
+   - Consistent with status badge design
+
+**Files Modified:**
+- `src/components/MealHistoryTabs.js`
+- `src/screens/CalorieBreakdownScreen.js`
+
+**Commits:** 4 commits pushed to main
+- `e6e2dff` - Fix date display timezone bug
+- `7ac0eae` - Add edit functionality and fix unlog behavior
+- `f28c127` - Add visible edit button
+- `fcfbad8` - Remove debug console logs
+
+---
+
 **Last Updated:** November 6, 2025
-**Status:** Planning Phase
+**Status:** Sprint 1 In Progress (5/11 tasks complete)
 **Next Review:** November 12, 2025 (End of Sprint 1)
