@@ -847,12 +847,14 @@ export default function MealHistoryTabs({ navigation, route, activeHistoryTab })
                   );
                 }
 
-                return sortedDates.map((dateKey) => {
+                return sortedDates.map((dateKey, index) => {
+                console.log(`📋 Rendering date ${index + 1}/${sortedDates.length}: ${dateKey}`);
                 const dateObj = new Date(dateKey);
                 const isExpanded = expandedDates.includes(dateKey);
                 const dayData = mealData[dateKey] || {};
                 const loggedMeals = dayData.logged || {};
                 const plannedMeals = dayData.planned || {};
+                console.log(`  → Has meals: logged=${Object.keys(loggedMeals).length}, planned=${Object.keys(plannedMeals).length}`);
 
                 // Calculate totals
                 const loggedTotal = Object.values(loggedMeals).reduce((sum, items) =>
@@ -866,14 +868,18 @@ export default function MealHistoryTabs({ navigation, route, activeHistoryTab })
                 // Count meals by type
                 const mealCounts = { breakfast: 0, lunch: 0, dinner: 0, snacks: 0 };
                 ['breakfast', 'lunch', 'dinner', 'snacks'].forEach(type => {
-                  mealCounts[type] = ((loggedMeals[type] || []).length + (plannedMeals[type] || []).length);
+                  const loggedItems = Array.isArray(loggedMeals[type]) ? loggedMeals[type] : [];
+                  const plannedItems = Array.isArray(plannedMeals[type]) ? plannedMeals[type] : [];
+                  mealCounts[type] = loggedItems.length + plannedItems.length;
                 });
+                console.log(`  → mealCounts:`, mealCounts);
 
                 const hasAnyMeals = Object.values(mealCounts).some(count => count > 0);
                 const isToday = dateKey === getLocalDateString();
                 const hasPlannedMeals = Object.values(plannedMeals).some(items => items?.length > 0);
                 const isSelected = selectedDatesForDelete.includes(dateKey);
                 const isFuture = new Date(dateKey) > new Date(getLocalDateString());
+                console.log(`  → hasAnyMeals: ${hasAnyMeals}, isFuture: ${isFuture}, isToday: ${isToday}`);
 
                 return (
                   <TouchableOpacity
