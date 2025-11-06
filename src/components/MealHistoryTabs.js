@@ -209,14 +209,25 @@ export default function MealHistoryTabs({ navigation, route, activeHistoryTab })
 
     let filteredDates = allDates;
 
+    console.log('🔍 DEBUG getSortedDates:', {
+      activeHistoryTab,
+      dateRangeFilter,
+      allDatesCount: allDates.length,
+      today
+    });
+
     if (dateRangeFilter === 'past') {
       // Show past dates (excluding today)
       filteredDates = allDates.filter(dateKey => new Date(dateKey) < todayDate);
-      return filteredDates.sort((a, b) => new Date(b) - new Date(a)).slice(0, 30);
+      const result = filteredDates.sort((a, b) => new Date(b) - new Date(a)).slice(0, 30);
+      console.log('📅 PAST filter result:', result.length, 'dates');
+      return result;
     } else if (dateRangeFilter === 'future') {
       // Show future dates (excluding today)
       filteredDates = allDates.filter(dateKey => new Date(dateKey) > todayDate);
-      return filteredDates.sort((a, b) => new Date(a) - new Date(b)).slice(0, 30);
+      const result = filteredDates.sort((a, b) => new Date(a) - new Date(b)).slice(0, 30);
+      console.log('📆 FUTURE filter result:', result.length, 'dates');
+      return result;
     } else {
       // Show all dates, starting with today
       const pastDates = allDates.filter(dateKey => new Date(dateKey) < todayDate)
@@ -226,7 +237,9 @@ export default function MealHistoryTabs({ navigation, route, activeHistoryTab })
         .sort((a, b) => new Date(a) - new Date(b))
         .slice(0, 15);
 
-      return [...[today], ...futureDates, ...pastDates];
+      const result = [...[today], ...futureDates, ...pastDates];
+      console.log('📊 ALL filter result:', result.length, 'dates');
+      return result;
     }
   };
 
@@ -812,8 +825,31 @@ export default function MealHistoryTabs({ navigation, route, activeHistoryTab })
               </View>
             </View>
           ) : (
-            <ScrollView style={styles.listView} showsVerticalScrollIndicator={false}>
-              {getSortedDates().map((dateKey) => {
+            <ScrollView
+              style={styles.listView}
+              contentContainerStyle={styles.listViewContent}
+              showsVerticalScrollIndicator={false}
+            >
+              {(() => {
+                const sortedDates = getSortedDates();
+                console.log('📋 Rendering list view with', sortedDates.length, 'dates');
+
+                if (sortedDates.length === 0) {
+                  return (
+                    <View style={styles.emptyListView}>
+                      <Text style={styles.emptyListTitle}>
+                        {activeHistoryTab === 'history' ? '📅 No Past Meals' : '📆 No Planned Meals'}
+                      </Text>
+                      <Text style={styles.emptyListText}>
+                        {activeHistoryTab === 'history'
+                          ? 'Start logging meals in the Today tab to see your history here.'
+                          : 'Add planned meals for future dates to see them here.'}
+                      </Text>
+                    </View>
+                  );
+                }
+
+                return sortedDates.map((dateKey) => {
                 const dateObj = new Date(dateKey);
                 const isExpanded = expandedDates.includes(dateKey);
                 const dayData = mealData[dateKey] || {};
@@ -944,18 +980,20 @@ export default function MealHistoryTabs({ navigation, route, activeHistoryTab })
                     )}
                   </TouchableOpacity>
                 );
-              })}
+              });
+              })()}
 
-              {/* Bulk Delete Planned Meals - List View */}
-              <View style={styles.bulkDeleteContainer}>
-                {!bulkDeleteMode ? (
-                  <TouchableOpacity
-                    style={styles.clearPlannedButton}
-                    onPress={() => setBulkDeleteMode(true)}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.clearPlannedButtonText}>🗑️ Clear Planned Meals</Text>
-                  </TouchableOpacity>
+              {/* Bulk Delete Planned Meals - List View - Only in Plan tab */}
+              {activeHistoryTab === 'plan' && (
+                <View style={styles.bulkDeleteContainer}>
+                  {!bulkDeleteMode ? (
+                    <TouchableOpacity
+                      style={styles.clearPlannedButton}
+                      onPress={() => setBulkDeleteMode(true)}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={styles.clearPlannedButtonText}>🗑️ Clear Planned Meals</Text>
+                    </TouchableOpacity>
                 ) : (
                   <View>
                     <Text style={styles.bulkDeleteInstructions}>
@@ -988,7 +1026,8 @@ export default function MealHistoryTabs({ navigation, route, activeHistoryTab })
                     </View>
                   </View>
                 )}
-              </View>
+                </View>
+              )}
             </ScrollView>
           )}
         </View>
@@ -2305,6 +2344,29 @@ const styles = StyleSheet.create({
   // List view styles
   listView: {
     flex: 1,
+  },
+  listViewContent: {
+    flexGrow: 1,
+  },
+  emptyListView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: Spacing.xl * 3,
+    paddingHorizontal: Spacing.xl,
+  },
+  emptyListTitle: {
+    fontSize: Typography.fontSize.xl,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: Spacing.sm,
+    textAlign: 'center',
+  },
+  emptyListText: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 22,
   },
   listDateCard: {
     backgroundColor: Colors.surface,
