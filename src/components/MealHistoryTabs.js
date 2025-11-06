@@ -22,9 +22,8 @@ const getLocalDateString = (date = new Date()) => {
 };
 
 export default function MealHistoryTabs({ navigation, route, activeHistoryTab }) {
-  // activeHistoryTab prop: 'history' or 'plan' from parent Nutrition screen
-  // 'history' = show past logged meals only
-  // 'plan' = show future planned meals only
+  // activeHistoryTab prop from parent: 'all' = show ALL dates (past + future)
+  // Unified calendar: green dots = past logged meals, orange dots = future planned meals
   const [activeTab, setActiveTab] = useState('calendar'); // Always show calendar (no Today tab)
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [mealData, setMealData] = useState({});
@@ -42,16 +41,11 @@ export default function MealHistoryTabs({ navigation, route, activeHistoryTab })
   const [deleteModal, setDeleteModal] = useState({ visible: false, title: '', message: '', onConfirm: null });
   const [calendarViewMode, setCalendarViewMode] = useState('calendar'); // 'calendar' or 'list'
   const [expandedDates, setExpandedDates] = useState([]); // Track which dates are expanded in list view
-  // Set filter based on which tab we're in: 'history' tab = past, 'plan' tab = future
-  const [dateRangeFilter, setDateRangeFilter] = useState(activeHistoryTab === 'history' ? 'past' : 'future');
+  // Show all dates by default (past + future + today)
+  const [dateRangeFilter, setDateRangeFilter] = useState('all');
   const [bulkDeleteMode, setBulkDeleteMode] = useState(false); // Bulk delete selection mode
   const [selectedDatesForDelete, setSelectedDatesForDelete] = useState([]); // Selected dates for bulk delete
   
-  // Sync filter with activeHistoryTab prop
-  React.useEffect(() => {
-    setDateRangeFilter(activeHistoryTab === 'history' ? 'past' : 'future');
-  }, [activeHistoryTab]);
-
   // Load meal data on focus
   useFocusEffect(
     React.useCallback(() => {
@@ -746,8 +740,8 @@ export default function MealHistoryTabs({ navigation, route, activeHistoryTab })
                 selectedDates={bulkDeleteMode ? selectedDatesForDelete.map(dateKey => new Date(dateKey)) : []}
               />
 
-              {/* Bulk Delete Planned Meals Button - Only show in Plan tab */}
-              {activeHistoryTab === 'plan' && (
+              {/* Bulk Delete Planned Meals Button - Always show in calendar view */}
+              {(
                 <View style={styles.bulkDeleteContainer}>
                   {!bulkDeleteMode ? (
                     <TouchableOpacity
@@ -795,20 +789,11 @@ export default function MealHistoryTabs({ navigation, route, activeHistoryTab })
               <View style={styles.calendarInfo}>
                 <Text style={styles.infoTitle}>📅 How to Use</Text>
                 <View style={styles.infoList}>
-                  {activeHistoryTab === 'history' ? (
-                    <>
-                      <Text style={styles.infoText}>• Shows PAST dates only (read-only)</Text>
-                      <Text style={styles.infoText}>• Green dots = Meals you logged</Text>
-                      <Text style={styles.infoText}>• Tap any date to view meal details</Text>
-                    </>
-                  ) : (
-                    <>
-                      <Text style={styles.infoText}>• Shows FUTURE dates only (editable)</Text>
-                      <Text style={styles.infoText}>• Orange dots = Planned meals</Text>
-                      <Text style={styles.infoText}>• Tap any date to add/edit planned meals</Text>
-                      <Text style={styles.infoText}>• Use bulk delete to clear multiple dates</Text>
-                    </>
-                  )}
+                  <Text style={styles.infoText}>• 🟢 Green dots = Past logged meals (read-only)</Text>
+                  <Text style={styles.infoText}>• 🟠 Orange dots = Future planned meals (editable)</Text>
+                  <Text style={styles.infoText}>• Tap any date to view/edit details</Text>
+                  <Text style={styles.infoText}>• Plan meals for future dates - they become history after that date</Text>
+                  <Text style={styles.infoText}>• Use "Clear Planned Meals" to bulk delete future plans</Text>
                 </View>
               </View>
 
@@ -983,8 +968,8 @@ export default function MealHistoryTabs({ navigation, route, activeHistoryTab })
               });
               })()}
 
-              {/* Bulk Delete Planned Meals - List View - Only in Plan tab */}
-              {activeHistoryTab === 'plan' && (
+              {/* Bulk Delete Planned Meals - List View */}
+              {(
                 <View style={styles.bulkDeleteContainer}>
                   {!bulkDeleteMode ? (
                     <TouchableOpacity

@@ -37,7 +37,7 @@ export default function NutritionScreen({ navigation, route }) {
   const processedParams = useRef({}); // Track which params have been processed
 
   // Tab navigation state
-  const [activeTab, setActiveTab] = useState('today'); // 'today', 'history', 'plan'
+  const [activeTab, setActiveTab] = useState('today'); // 'today', 'calendar'
   const [macroGoals, setMacroGoals] = useState({
     calories: 2000,
     proteinGrams: 150,
@@ -781,21 +781,12 @@ export default function NutritionScreen({ navigation, route }) {
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'history' && styles.tabActive]}
-          onPress={() => setActiveTab('history')}
+          style={[styles.tab, activeTab === 'calendar' && styles.tabActive]}
+          onPress={() => setActiveTab('calendar')}
           activeOpacity={0.7}
         >
-          <Text style={[styles.tabText, activeTab === 'history' && styles.tabTextActive]}>
-            History
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'plan' && styles.tabActive]}
-          onPress={() => setActiveTab('plan')}
-          activeOpacity={0.7}
-        >
-          <Text style={[styles.tabText, activeTab === 'plan' && styles.tabTextActive]}>
-            Plan
+          <Text style={[styles.tabText, activeTab === 'calendar' && styles.tabTextActive]}>
+            Calendar
           </Text>
         </TouchableOpacity>
       </View>
@@ -1271,21 +1262,12 @@ export default function NutritionScreen({ navigation, route }) {
         </>
       )}
 
-      {/* History Tab Content */}
-      {activeTab === 'history' && (
+      {/* Calendar Tab Content - Shows both history AND planning */}
+      {activeTab === 'calendar' && (
         <MealHistoryTabs
           navigation={navigation}
           route={route}
-          activeHistoryTab="history"
-        />
-      )}
-
-      {/* Plan Tab Content */}
-      {activeTab === 'plan' && (
-        <MealHistoryTabs
-          navigation={navigation}
-          route={route}
-          activeHistoryTab="plan"
+          activeHistoryTab="all"
         />
       )}
 
