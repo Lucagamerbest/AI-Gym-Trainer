@@ -209,14 +209,14 @@
 - [x] Add edit functionality for logged meals (Nov 6)
 - [x] Fix unlog behavior to preserve meal origin (Nov 6)
 - [x] Add visible edit button with pencil icon (Nov 6)
-- [ ] Fix Today meals tab
-- [ ] Fix AI exercise replacement
+- [x] Fix Today meals tab (Verified working - Nov 6)
+- [ ] Fix AI exercise replacement ⬅️ **NEXT**
 - [ ] Fix full body workout generation
 - [ ] Define text input policy
 - [ ] Implement controlled custom text requests
 
 **Expected completion:** November 12, 2025
-**Progress Update (Nov 6):** Fixed critical nutrition tracking bugs - date display, meal editing, and unlog behavior
+**Progress Update (Nov 6):** Fixed critical nutrition tracking bugs - date display, meal editing, and unlog behavior. Today meals tab verified working.
 
 ---
 
