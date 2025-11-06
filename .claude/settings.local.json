@@ -35,7 +35,10 @@
       "Bash(if not exist docsguides mkdir docsguides)",
       "Bash(move /Y *.md docsguides 2)",
       "Bash(nul)",
-      "Bash(npx expo start:*)"
+      "Bash(npx expo start:*)",
+      "Bash(C:UserslucarAI-Gym-Trainertemp_meals_part1.txt)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)"
     ],
     "deny": [],
     "ask": []
