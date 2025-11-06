@@ -180,6 +180,84 @@ class AIService {
           console.log('🔧 Using AI with function calling enabled');
         }
 
+        // 🎯 BUTTON PRESS DETECTION: Bypass AI entirely for exact button phrases
+        const buttonPhraseMap = {
+          'Push workout': { tool: 'generateWorkoutPlan', params: { type: 'push', userId: context.userId || 'guest' } },
+          'Pull workout': { tool: 'generateWorkoutPlan', params: { type: 'pull', userId: context.userId || 'guest' } },
+          'Leg workout': { tool: 'generateWorkoutPlan', params: { type: 'legs', userId: context.userId || 'guest' } },
+          'Full body workout': { tool: 'generateWorkoutPlan', params: { type: 'full_body', userId: context.userId || 'guest' } },
+          'Upper body': { tool: 'generateWorkoutPlan', params: { type: 'upper', userId: context.userId || 'guest' } },
+        };
+
+        // Check if message exactly matches a button phrase
+        const buttonMatch = buttonPhraseMap[userMessage.trim()];
+        if (buttonMatch) {
+          console.log(`🎯 BUTTON PRESS DETECTED: "${userMessage}" → Calling ${buttonMatch.tool} directly`);
+
+          // Auto-inject profile data into params
+          const profile = context.userProfile || {};
+          const toolArgs = { ...buttonMatch.params };
+
+          // Inject equipment
+          if (profile.equipmentAccess && profile.equipmentAccess.length > 0) {
+            toolArgs.equipment = profile.equipmentAccess;
+            console.log(`🔧 Auto-injected equipment: ${toolArgs.equipment.join(', ')}`);
+          }
+
+          // Inject experience level
+          if (profile.experienceLevel) {
+            toolArgs.experienceLevel = profile.experienceLevel;
+            console.log(`🔧 Auto-injected experienceLevel: ${toolArgs.experienceLevel}`);
+          }
+
+          // Inject goal
+          if (profile.primaryGoal) {
+            const goalMap = {
+              'muscle gain': 'hypertrophy',
+              'weight loss': 'endurance',
+              'strength': 'strength',
+              'general fitness': 'general'
+            };
+            toolArgs.goal = goalMap[profile.primaryGoal] || 'hypertrophy';
+            console.log(`🔧 Auto-injected goal: ${toolArgs.goal} (from ${profile.primaryGoal})`);
+          }
+
+          // Execute tool directly
+          const toolResult = await ToolRegistry.executeTool(buttonMatch.tool, toolArgs);
+
+          // Format the workout result
+          let formattedResponse = '';
+          if (toolResult.exercises && toolResult.exercises.length > 0) {
+            const typeLabel = buttonMatch.params.type.replace('_', ' ');
+            formattedResponse = `**${typeLabel.charAt(0).toUpperCase() + typeLabel.slice(1)} Workout**\n\n`;
+
+            toolResult.exercises.forEach((ex, i) => {
+              const sets = ex.sets || 3;
+              const reps = ex.reps || '8-12';
+              const rest = ex.restPeriod || '60s';
+              formattedResponse += `${i + 1}. ${ex.name} - ${sets}×${reps} (${rest})\n`;
+            });
+
+            formattedResponse += `\nWould you like to save this workout? I can add it to Today's Plan or save it to My Plans.`;
+          } else {
+            formattedResponse = `Generated ${buttonMatch.params.type} workout. Would you like to save it?`;
+          }
+
+          // Return immediately without going through AI
+          return {
+            response: formattedResponse,
+            model: this.modelName,
+            functionCalls: [{
+              name: buttonMatch.tool,
+              args: toolArgs,
+              result: toolResult,
+              executionTime: 0
+            }],
+            totalTime: Date.now() - startTime,
+            success: true
+          };
+        }
+
         // Build system instructions
         const systemPrompt = this.buildSystemPromptForTools(context);
 
