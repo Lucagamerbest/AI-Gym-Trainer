@@ -2073,26 +2073,38 @@ const styles = StyleSheet.create({
     padding: Spacing.xs,
     marginBottom: Spacing.md,
     gap: Spacing.xs,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
   tab: {
     flex: 1,
-    paddingVertical: Spacing.sm,
+    paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.md,
     borderRadius: BorderRadius.sm,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'transparent',
   },
   tabActive: {
     backgroundColor: Colors.primary,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
   },
   tabText: {
     fontSize: Typography.fontSize.md,
-    color: Colors.textSecondary,
+    color: Colors.text + '80', // More muted
     fontWeight: '500',
   },
   tabTextActive: {
-    color: Colors.white,
-    fontWeight: '600',
+    color: '#FFFFFF',
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
   // Placeholder Tab Styles
   placeholderTab: {

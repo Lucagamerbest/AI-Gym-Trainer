@@ -201,38 +201,53 @@ export default function MealHistoryTabs({ navigation, route, activeHistoryTab })
       allDates.push(today);
     }
 
-    let filteredDates = allDates;
+    // Generate future dates (next 14 days) for planning
+    const futureDatesToAdd = [];
+    for (let i = 1; i <= 14; i++) {
+      const futureDate = new Date(todayDate);
+      futureDate.setDate(futureDate.getDate() + i);
+      const futureDateKey = getLocalDateString(futureDate);
+      if (!allDates.includes(futureDateKey)) {
+        futureDatesToAdd.push(futureDateKey);
+      }
+    }
+
+    const allDatesWithFuture = [...allDates, ...futureDatesToAdd];
 
     console.log('🔍 DEBUG getSortedDates:', {
       activeHistoryTab,
       dateRangeFilter,
-      allDatesCount: allDates.length,
+      existingDatesCount: allDates.length,
+      generatedFutureDates: futureDatesToAdd.length,
+      totalDates: allDatesWithFuture.length,
       today
     });
 
+    let filteredDates = allDatesWithFuture;
+
     if (dateRangeFilter === 'past') {
       // Show past dates (excluding today)
-      filteredDates = allDates.filter(dateKey => new Date(dateKey) < todayDate);
+      filteredDates = allDatesWithFuture.filter(dateKey => new Date(dateKey) < todayDate);
       const result = filteredDates.sort((a, b) => new Date(b) - new Date(a)).slice(0, 30);
       console.log('📅 PAST filter result:', result.length, 'dates');
       return result;
     } else if (dateRangeFilter === 'future') {
       // Show future dates (excluding today)
-      filteredDates = allDates.filter(dateKey => new Date(dateKey) > todayDate);
+      filteredDates = allDatesWithFuture.filter(dateKey => new Date(dateKey) > todayDate);
       const result = filteredDates.sort((a, b) => new Date(a) - new Date(b)).slice(0, 30);
       console.log('📆 FUTURE filter result:', result.length, 'dates');
       return result;
     } else {
-      // Show all dates, starting with today
-      const pastDates = allDates.filter(dateKey => new Date(dateKey) < todayDate)
+      // Show all dates: today, then next 7 future days, then past 15 days
+      const pastDates = allDatesWithFuture.filter(dateKey => new Date(dateKey) < todayDate)
         .sort((a, b) => new Date(b) - new Date(a))
         .slice(0, 15);
-      const futureDates = allDates.filter(dateKey => new Date(dateKey) > todayDate)
+      const futureDates = allDatesWithFuture.filter(dateKey => new Date(dateKey) > todayDate)
         .sort((a, b) => new Date(a) - new Date(b))
-        .slice(0, 15);
+        .slice(0, 7);
 
       const result = [...[today], ...futureDates, ...pastDates];
-      console.log('📊 ALL filter result:', result.length, 'dates');
+      console.log('📊 ALL filter result:', result.length, 'dates (today + 7 future + 15 past)');
       return result;
     }
   };
@@ -823,12 +838,10 @@ export default function MealHistoryTabs({ navigation, route, activeHistoryTab })
                   return (
                     <View style={styles.emptyListView}>
                       <Text style={styles.emptyListTitle}>
-                        {activeHistoryTab === 'history' ? '📅 No Past Meals' : '📆 No Planned Meals'}
+                        📅 No Meal Data
                       </Text>
                       <Text style={styles.emptyListText}>
-                        {activeHistoryTab === 'history'
-                          ? 'Start logging meals in the Today tab to see your history here.'
-                          : 'Add planned meals for future dates to see them here.'}
+                        Start logging meals in the Today tab or plan future meals by tapping dates in the calendar.
                       </Text>
                     </View>
                   );
