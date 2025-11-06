@@ -180,7 +180,7 @@ export default function CalorieBreakdownScreen({ route, navigation }) {
         </View>
 
         <View style={styles.foodsList}>
-          {/* Logged meals - click checkmark to un-log, click food to edit */}
+          {/* Logged meals - click checkmark to un-log, click edit button to modify */}
           {filteredLoggedItems.map((food, index) => (
             <View key={`logged-${index}`} style={styles.foodRow}>
               <TouchableOpacity
@@ -191,19 +191,7 @@ export default function CalorieBreakdownScreen({ route, navigation }) {
               >
                 <Text style={styles.statusBadgeText}>✓</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.foodItem, styles.foodItemLogged]}
-                onPress={() => {
-                  navigation.navigate('EditFoodItem', {
-                    foodItem: food,
-                    mealType: mealType,
-                    foodIndex: index,
-                    isPlannedMeal: false,
-                    returnScreen: 'CalorieBreakdown'
-                  });
-                }}
-                activeOpacity={0.7}
-              >
+              <View style={[styles.foodItem, styles.foodItemLogged]}>
                 <View style={styles.foodInfo}>
                   <View style={styles.foodNameRow}>
                     <Text style={styles.foodName}>{food.name}</Text>
@@ -216,6 +204,22 @@ export default function CalorieBreakdownScreen({ route, navigation }) {
                     {food.fat ? <Text style={styles.foodMacro}>F: {parseFloat(food.fat).toFixed(1)}g</Text> : null}
                   </View>
                 </View>
+              </View>
+              <TouchableOpacity
+                style={styles.editButton}
+                onPress={() => {
+                  navigation.navigate('EditFoodItem', {
+                    foodItem: food,
+                    mealType: mealType,
+                    foodIndex: index,
+                    isPlannedMeal: false,
+                    returnScreen: 'CalorieBreakdown'
+                  });
+                }}
+                activeOpacity={0.7}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Text style={styles.editButtonText}>✏️</Text>
               </TouchableOpacity>
             </View>
           ))}
@@ -437,6 +441,18 @@ const styles = StyleSheet.create({
   },
   statusBadgeText: {
     fontSize: 14,
+  },
+  editButton: {
+    width: 32,
+    height: 32,
+    borderRadius: BorderRadius.sm,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  editButtonText: {
+    fontSize: 16,
   },
   foodItem: {
     flex: 1,
