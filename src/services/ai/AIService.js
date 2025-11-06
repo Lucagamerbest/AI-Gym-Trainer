@@ -182,11 +182,11 @@ class AIService {
 
         // 🎯 BUTTON PRESS DETECTION: Bypass AI entirely for exact button phrases
         const buttonPhraseMap = {
-          'Push workout': { tool: 'generateWorkoutPlan', params: { type: 'push', userId: context.userId || 'guest' } },
-          'Pull workout': { tool: 'generateWorkoutPlan', params: { type: 'pull', userId: context.userId || 'guest' } },
-          'Leg workout': { tool: 'generateWorkoutPlan', params: { type: 'legs', userId: context.userId || 'guest' } },
-          'Full body workout': { tool: 'generateWorkoutPlan', params: { type: 'full_body', userId: context.userId || 'guest' } },
-          'Upper body': { tool: 'generateWorkoutPlan', params: { type: 'upper', userId: context.userId || 'guest' } },
+          'Push workout': { tool: 'generateWorkoutPlan', params: { muscleGroups: ['push'], userId: context.userId || 'guest' } },
+          'Pull workout': { tool: 'generateWorkoutPlan', params: { muscleGroups: ['pull'], userId: context.userId || 'guest' } },
+          'Leg workout': { tool: 'generateWorkoutPlan', params: { muscleGroups: ['legs'], userId: context.userId || 'guest' } },
+          'Full body workout': { tool: 'generateWorkoutPlan', params: { muscleGroups: ['full_body'], userId: context.userId || 'guest' } },
+          'Upper body': { tool: 'generateWorkoutPlan', params: { muscleGroups: ['upper'], userId: context.userId || 'guest' } },
         };
 
         // Check if message exactly matches a button phrase
@@ -228,7 +228,7 @@ class AIService {
           // Format the workout result
           let formattedResponse = '';
           if (toolResult.exercises && toolResult.exercises.length > 0) {
-            const typeLabel = buttonMatch.params.type.replace('_', ' ');
+            const typeLabel = buttonMatch.params.muscleGroups[0].replace('_', ' ');
             formattedResponse = `**${typeLabel.charAt(0).toUpperCase() + typeLabel.slice(1)} Workout**\n\n`;
 
             toolResult.exercises.forEach((ex, i) => {
@@ -240,7 +240,7 @@ class AIService {
 
             formattedResponse += `\nWould you like to save this workout? I can add it to Today's Plan or save it to My Plans.`;
           } else {
-            formattedResponse = `Generated ${buttonMatch.params.type} workout. Would you like to save it?`;
+            formattedResponse = `Generated ${buttonMatch.params.muscleGroups[0]} workout. Would you like to save it?`;
           }
 
           // Return immediately without going through AI
