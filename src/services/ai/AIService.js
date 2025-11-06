@@ -565,9 +565,9 @@ ${profile.height ? `- Height: ${profile.height} cm` : ''}
 ${profile.occupation ? `- Activity Level: ${profile.occupation === 'sedentary' ? 'sedentary' : profile.occupation === 'physical-labor' ? 'very active' : 'moderate'}` : ''}
 ${profile.primaryGoal ? `- Goals: ${Array.isArray(profile.primaryGoal) ? profile.primaryGoal.join(', ') : profile.primaryGoal}` : ''}
 ${profile.experienceLevel ? `- Experience: ${profile.experienceLevel}` : ''}
-${profile.gymType ? `- Gym Type: ${profile.gymType}` : ''}
+${profile.gymEnvironment ? `- Gym Type: ${profile.gymEnvironment}` : ''}
 ${profile.equipmentAccess && profile.equipmentAccess.length > 0 ? `- Available Equipment: ${profile.equipmentAccess.join(', ')}` : ''}
-${profile.trainingStyle ? `- Training Style: ${profile.trainingStyle}` : ''}
+${profile.workoutStyle ? `- Training Style: ${profile.workoutStyle}` : ''}
 ${profile.preferredRepRange ? `- Preferred Rep Range: ${profile.preferredRepRange}` : ''}
 ${profile.injuries && profile.injuries.length > 0 ? `- Injuries/Pain: ${profile.injuries.join(', ')}` : ''}
 ${profile.dislikedExercises && profile.dislikedExercises.length > 0 ? `- BLACKLISTED Exercises (NEVER use these): ${profile.dislikedExercises.join(', ')}` : ''}
@@ -1223,23 +1223,24 @@ INSTRUCTIONS FOR TOOL USE:
    **BEFORE GENERATING ANY WORKOUT, CHECK:**
    - profile.experienceLevel → Determines rep/set complexity
    - profile.primaryGoal → Determines training goal (strength/hypertrophy/endurance)
-   - profile.trainingStyle → "powerlifting", "bodybuilding", "general fitness"
-   - profile.gymType → "commercial gym" (has machines), "home gym" (limited), "bodyweight only"
-   - profile.equipmentAccess → ["barbell", "dumbbell", "machines", "cables", etc.]
-   - profile.preferredRepRange → Guides rep selection
+   - profile.workoutStyle → "powerlifting", "bodybuilding", "crossfit", "athletic"
+   - profile.gymEnvironment → "commercial gym" (has machines), "home gym" (limited), "bodyweight only"
+   - profile.equipmentAccess → ["barbell", "dumbbells", "machines", "cables", etc.]
+   - profile.preferredRepRange → "low" (1-5), "medium" (6-12), "high" (12+), "varied"
    - profile.injuries → AVOID exercises that aggravate these
    - profile.dislikedExercises → NEVER include these (already filtered by tool, but respect it)
    - profile.favoriteExercises → PRIORITIZE these when possible
 
    **EQUIPMENT RULES:**
-   - If gymType = "commercial gym" → Include machines, cables, barbells, dumbbells
-   - If gymType = "home gym" → Stick to equipmentAccess list (usually barbell/dumbbell only)
+   - If gymEnvironment = "commercial-gym" → Include machines, cables, barbells, dumbbells
+   - If gymEnvironment = "home-gym" → Stick to equipmentAccess list (usually barbell/dumbbell only)
    - If equipmentAccess is empty → Use only bodyweight exercises
 
-   **TRAINING STYLE RULES:**
+   **TRAINING STYLE RULES (workoutStyle):**
    - "bodybuilding" → Focus on hypertrophy (8-12 reps), include machines, isolation work
    - "powerlifting" → Focus on main lifts (squat/bench/deadlift), lower reps (3-6)
-   - "general fitness" → Mix of compound movements, moderate reps (6-15)
+   - "crossfit" → Varied high-intensity, functional movements, circuits
+   - "athletic" → Sport-specific, explosive movements, power development
 
    **INJURY CONSIDERATIONS:**
    - Check profile.injuries BEFORE generating
