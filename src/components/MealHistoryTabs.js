@@ -23,6 +23,8 @@ const getLocalDateString = (date = new Date()) => {
 
 export default function MealHistoryTabs({ navigation, route, activeHistoryTab }) {
   // activeHistoryTab prop: 'history' or 'plan' from parent Nutrition screen
+  // 'history' = show past logged meals only
+  // 'plan' = show future planned meals only
   const [activeTab, setActiveTab] = useState('calendar'); // Always show calendar (no Today tab)
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [mealData, setMealData] = useState({});
@@ -40,10 +42,16 @@ export default function MealHistoryTabs({ navigation, route, activeHistoryTab })
   const [deleteModal, setDeleteModal] = useState({ visible: false, title: '', message: '', onConfirm: null });
   const [calendarViewMode, setCalendarViewMode] = useState('calendar'); // 'calendar' or 'list'
   const [expandedDates, setExpandedDates] = useState([]); // Track which dates are expanded in list view
-  const [dateRangeFilter, setDateRangeFilter] = useState('all'); // 'all', 'past', 'future'
+  // Set filter based on which tab we're in: 'history' tab = past, 'plan' tab = future
+  const [dateRangeFilter, setDateRangeFilter] = useState(activeHistoryTab === 'history' ? 'past' : 'future');
   const [bulkDeleteMode, setBulkDeleteMode] = useState(false); // Bulk delete selection mode
   const [selectedDatesForDelete, setSelectedDatesForDelete] = useState([]); // Selected dates for bulk delete
   
+  // Sync filter with activeHistoryTab prop
+  React.useEffect(() => {
+    setDateRangeFilter(activeHistoryTab === 'history' ? 'past' : 'future');
+  }, [activeHistoryTab]);
+
   // Load meal data on focus
   useFocusEffect(
     React.useCallback(() => {
@@ -707,38 +715,7 @@ export default function MealHistoryTabs({ navigation, route, activeHistoryTab })
             </TouchableOpacity>
           </View>
 
-          {/* Date Range Filter - Only show in List View */}
-          {calendarViewMode === 'list' && (
-            <View style={styles.dateRangeFilter}>
-              <TouchableOpacity
-                style={[styles.dateRangeButton, dateRangeFilter === 'past' && styles.dateRangeButtonActive]}
-                onPress={() => setDateRangeFilter('past')}
-                activeOpacity={0.7}
-              >
-                <Text style={[styles.dateRangeText, dateRangeFilter === 'past' && styles.dateRangeTextActive]}>
-                  ← Past
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.dateRangeButton, dateRangeFilter === 'all' && styles.dateRangeButtonActive]}
-                onPress={() => setDateRangeFilter('all')}
-                activeOpacity={0.7}
-              >
-                <Text style={[styles.dateRangeText, dateRangeFilter === 'all' && styles.dateRangeTextActive]}>
-                  Today
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.dateRangeButton, dateRangeFilter === 'future' && styles.dateRangeButtonActive]}
-                onPress={() => setDateRangeFilter('future')}
-                activeOpacity={0.7}
-              >
-                <Text style={[styles.dateRangeText, dateRangeFilter === 'future' && styles.dateRangeTextActive]}>
-                  Future →
-                </Text>
-              </TouchableOpacity>
-            </View>
-          )}
+          {/* Date range filter removed - controlled by parent tabs (History vs Plan) */}
 
           {calendarViewMode === 'calendar' ? (
             <View style={styles.calendarTab}>
@@ -756,58 +733,69 @@ export default function MealHistoryTabs({ navigation, route, activeHistoryTab })
                 selectedDates={bulkDeleteMode ? selectedDatesForDelete.map(dateKey => new Date(dateKey)) : []}
               />
 
-              {/* Bulk Delete Planned Meals Button - MOVED ABOVE HOW TO USE */}
-              <View style={styles.bulkDeleteContainer}>
-                {!bulkDeleteMode ? (
-                  <TouchableOpacity
-                    style={styles.clearPlannedButton}
-                    onPress={() => setBulkDeleteMode(true)}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.clearPlannedButtonText}>🗑️ Clear Planned Meals</Text>
-                  </TouchableOpacity>
-                ) : (
-                  <View>
-                    <Text style={styles.bulkDeleteInstructions}>
-                      Tap dates with planned meals to select them
-                    </Text>
-                    <View style={styles.bulkDeleteActions}>
-                      <TouchableOpacity
-                        style={styles.cancelBulkButton}
-                        onPress={() => {
-                          setBulkDeleteMode(false);
-                          setSelectedDatesForDelete([]);
-                        }}
-                        activeOpacity={0.8}
-                      >
-                        <Text style={styles.cancelBulkButtonText}>Cancel</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[
-                          styles.clearSelectedButton,
-                          selectedDatesForDelete.length === 0 && styles.clearSelectedButtonDisabled
-                        ]}
-                        onPress={bulkDeletePlannedMeals}
-                        disabled={selectedDatesForDelete.length === 0}
-                        activeOpacity={0.8}
-                      >
-                        <Text style={styles.clearSelectedButtonText}>
-                          Clear Selected ({selectedDatesForDelete.length})
-                        </Text>
-                      </TouchableOpacity>
+              {/* Bulk Delete Planned Meals Button - Only show in Plan tab */}
+              {activeHistoryTab === 'plan' && (
+                <View style={styles.bulkDeleteContainer}>
+                  {!bulkDeleteMode ? (
+                    <TouchableOpacity
+                      style={styles.clearPlannedButton}
+                      onPress={() => setBulkDeleteMode(true)}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={styles.clearPlannedButtonText}>🗑️ Clear Planned Meals</Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <View>
+                      <Text style={styles.bulkDeleteInstructions}>
+                        Tap dates with planned meals to select them
+                      </Text>
+                      <View style={styles.bulkDeleteActions}>
+                        <TouchableOpacity
+                          style={styles.cancelBulkButton}
+                          onPress={() => {
+                            setBulkDeleteMode(false);
+                            setSelectedDatesForDelete([]);
+                          }}
+                          activeOpacity={0.8}
+                        >
+                          <Text style={styles.cancelBulkButtonText}>Cancel</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[
+                            styles.clearSelectedButton,
+                            selectedDatesForDelete.length === 0 && styles.clearSelectedButtonDisabled
+                          ]}
+                          onPress={bulkDeletePlannedMeals}
+                          disabled={selectedDatesForDelete.length === 0}
+                          activeOpacity={0.8}
+                        >
+                          <Text style={styles.clearSelectedButtonText}>
+                            Clear Selected ({selectedDatesForDelete.length})
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
                     </View>
-                  </View>
-                )}
-              </View>
+                  )}
+                </View>
+              )}
 
               <View style={styles.calendarInfo}>
                 <Text style={styles.infoTitle}>📅 How to Use</Text>
                 <View style={styles.infoList}>
-                  <Text style={styles.infoText}>• Tap any date to view details</Text>
-                  <Text style={styles.infoText}>• Green dots = Logged meals</Text>
-                  <Text style={styles.infoText}>• Orange dots = Planned meals</Text>
-                  <Text style={styles.infoText}>• Copy past meals to plan future days</Text>
-                  <Text style={styles.infoText}>• Planned meals auto-load on their date</Text>
+                  {activeHistoryTab === 'history' ? (
+                    <>
+                      <Text style={styles.infoText}>• Shows PAST dates only (read-only)</Text>
+                      <Text style={styles.infoText}>• Green dots = Meals you logged</Text>
+                      <Text style={styles.infoText}>• Tap any date to view meal details</Text>
+                    </>
+                  ) : (
+                    <>
+                      <Text style={styles.infoText}>• Shows FUTURE dates only (editable)</Text>
+                      <Text style={styles.infoText}>• Orange dots = Planned meals</Text>
+                      <Text style={styles.infoText}>• Tap any date to add/edit planned meals</Text>
+                      <Text style={styles.infoText}>• Use bulk delete to clear multiple dates</Text>
+                    </>
+                  )}
                 </View>
               </View>
 
