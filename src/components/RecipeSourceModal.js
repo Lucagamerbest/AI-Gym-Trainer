@@ -47,27 +47,20 @@ export default function RecipeSourceModal({
             }}
             activeOpacity={0.7}
           >
-            <LinearGradient
-              colors={[Colors.success, '#22c55e']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.optionGradient}
-            >
-              <View style={styles.optionIcon}>
-                <Ionicons name="search" size={32} color={Colors.white} />
+            <View style={styles.optionCard}>
+              <View style={styles.iconCircle}>
+                <Ionicons name="search" size={24} color={Colors.success} />
               </View>
               <View style={styles.optionContent}>
-                <Text style={styles.optionTitle}>Search Recipe Database</Text>
+                <Text style={styles.optionTitle}>Search Database</Text>
                 <Text style={styles.optionDescription}>
-                  Browse {recipeCount}+ fitness recipes
+                  {recipeCount}+ recipes • Instant results
                 </Text>
-                <View style={styles.badge}>
-                  <Ionicons name="flash" size={14} color={Colors.success} />
-                  <Text style={styles.badgeText}>Instant</Text>
-                </View>
               </View>
-              <Ionicons name="chevron-forward" size={24} color={Colors.white} />
-            </LinearGradient>
+              <View style={styles.badge}>
+                <Ionicons name="flash" size={12} color={Colors.success} />
+              </View>
+            </View>
           </TouchableOpacity>
 
           {/* Option 2: AI Generation */}
@@ -79,27 +72,20 @@ export default function RecipeSourceModal({
             }}
             activeOpacity={0.7}
           >
-            <LinearGradient
-              colors={[Colors.primary, Colors.primaryDark]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.optionGradient}
-            >
-              <View style={styles.optionIcon}>
-                <Ionicons name="sparkles" size={32} color={Colors.white} />
+            <View style={styles.optionCard}>
+              <View style={[styles.iconCircle, styles.iconCircleAI]}>
+                <Ionicons name="sparkles" size={24} color={Colors.primary} />
               </View>
               <View style={styles.optionContent}>
-                <Text style={styles.optionTitle}>Generate Custom Recipe</Text>
+                <Text style={styles.optionTitle}>Generate Custom</Text>
                 <Text style={styles.optionDescription}>
-                  AI creates recipe tailored to you
+                  AI-powered • Personalized
                 </Text>
-                <View style={styles.badge}>
-                  <Ionicons name="time" size={14} color={Colors.primary} />
-                  <Text style={styles.badgeText}>10-30 seconds</Text>
-                </View>
               </View>
-              <Ionicons name="chevron-forward" size={24} color={Colors.white} />
-            </LinearGradient>
+              <View style={[styles.badge, styles.badgeAI]}>
+                <Ionicons name="time" size={12} color={Colors.primary} />
+              </View>
+            </View>
           </TouchableOpacity>
 
           {/* Help Text */}
@@ -154,51 +140,62 @@ const styles = StyleSheet.create({
   },
   optionButton: {
     marginBottom: Spacing.md,
-    borderRadius: BorderRadius.lg,
-    overflow: 'hidden',
   },
-  optionGradient: {
+  optionCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: Spacing.lg,
+    backgroundColor: Colors.card,
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
     gap: Spacing.md,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
-  optionIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: BorderRadius.lg,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  iconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: Colors.success + '20',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  iconCircleAI: {
+    backgroundColor: Colors.primary + '20',
   },
   optionContent: {
     flex: 1,
   },
   optionTitle: {
-    fontSize: Typography.fontSize.lg,
-    fontWeight: Typography.weights.semibold,
-    color: Colors.white,
-    marginBottom: Spacing.xs,
-  },
-  optionDescription: {
-    fontSize: Typography.fontSize.sm,
-    color: 'rgba(255, 255, 255, 0.9)',
-    marginBottom: Spacing.sm,
-  },
-  badge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.white,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-    borderRadius: BorderRadius.sm,
-    alignSelf: 'flex-start',
-    gap: 4,
-  },
-  badgeText: {
-    fontSize: Typography.fontSize.xs,
+    fontSize: Typography.fontSize.md,
     fontWeight: Typography.weights.semibold,
     color: Colors.text,
+    marginBottom: 2,
+  },
+  optionDescription: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textSecondary,
+  },
+  badge: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.success + '15',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  badgeAI: {
+    backgroundColor: Colors.primary + '15',
   },
   helpText: {
     fontSize: Typography.fontSize.sm,
