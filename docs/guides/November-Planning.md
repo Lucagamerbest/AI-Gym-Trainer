@@ -211,12 +211,26 @@
 - [x] Add visible edit button with pencil icon (Nov 6)
 - [x] Fix Today meals tab (Verified working - Nov 6)
 - [x] Fix AI exercise replacement (Nov 6)
-- [ ] Fix full body workout generation ⬅️ **NEXT**
-- [ ] Define text input policy
+- [x] **Fix full body workout generation** (Nov 6) ✅ **COMPLETED**
+  - Implemented scientific AI workout generator with Gemini
+  - Fixed exercise selection (no more hip thrusts for bodybuilding!)
+  - Added mandatory exercises: Leg Press, Leg Extension, Leg Curl, Calf Raise
+  - Training style adaptation (bodybuilding vs powerlifting vs athletic)
+  - Proper rep ranges (8-12 for hypertrophy, 3-6 for strength)
+  - 100% blacklist enforcement
+- [x] **Implemented workout caching system** (Nov 6)
+  - Background generation of 2 variations per workout type
+  - Instant responses for 1st & 2nd requests
+  - Cache invalidation when profile changes
+- [x] **Added profile editing for missing sections** (Nov 6)
+  - Limitations (pain areas, mobility issues)
+  - Exercise preferences (favorites, dislikes)
+  - Nutrition preferences
+- [ ] Define text input policy ⬅️ **NEXT PRIORITY**
 - [ ] Implement controlled custom text requests
 
 **Expected completion:** November 12, 2025
-**Progress Update (Nov 6):** Fixed critical nutrition tracking bugs - date display, meal editing, and unlog behavior. Today meals tab verified working. Optimized AI exercise replacement for fluid one-shot execution.
+**Progress Update (Nov 6):** 🔥 MAJOR MILESTONE - Fixed critical nutrition tracking bugs AND completely rebuilt workout generation system with scientific AI principles. Workouts now use evidence-based training protocols, proper exercise selection, and respect user preferences. Added profile editing and caching systems.
 
 ---
 
@@ -376,6 +390,72 @@ By November 27, 2025, we should have:
 
 ---
 
-**Last Updated:** November 6, 2025
-**Status:** Sprint 1 In Progress (7/11 tasks complete)
+8. **MAJOR: Implemented scientific AI workout generator** (Nov 6 Evening)
+   - Created `AIWorkoutGenerator.js` with Gemini 2.0 Flash integration
+   - Evidence-based training principles from 2024 research:
+     * Training frequency: 2-3x/week per muscle = 38% faster gains
+     * Volume guidelines: 10-20 sets per week optimal
+     * Proper exercise order: compound → isolation
+   - Training style-specific protocols:
+     * Bodybuilding: Machines priority, 8-12 reps, mandatory exercises
+     * Powerlifting: Barbell compounds, 3-6 reps, heavy focus
+     * Athletic: Functional movements, power development
+   - Fixed major issues:
+     * No more hip thrusts/glute bridges for bodybuilding legs
+     * Mandatory: Leg Press, Leg Extension, Leg Curl, Calf Raise
+     * 100% blacklist enforcement (respects disliked exercises)
+     * Correct rep ranges based on training goal
+   - Affected: NEW `src/services/ai/tools/AIWorkoutGenerator.js`
+
+9. **Implemented workout caching system** (Nov 6 Evening)
+   - Created `WorkoutCacheService.js` for background workout generation
+   - Generates 2 AI variations per workout type after assessment
+   - Instant delivery for 1st & 2nd requests (pre-cached)
+   - Fresh generation for 3rd+ requests (10-30s AI thinking)
+   - Cache invalidation when profile changes
+   - Affected: NEW `src/services/WorkoutCacheService.js`
+
+10. **Added profile editing for missing sections** (Nov 6 Evening)
+    - Limitations section: pain areas, mobility issues
+    - Exercise preferences: favorites, dislikes (with blacklist)
+    - Nutrition preferences: dietary restrictions, meals/day, cooking skill
+    - Cache invalidation on profile update
+    - Removed duplicate "Update" button from ProfileScreen
+    - Affected: `src/screens/EditProfileSectionScreen.js`, `src/screens/ProfileScreen.js`
+
+11. **Major code cleanup and refactoring** (Nov 6 Evening)
+    - Updated `WorkoutTools.js` to use new AI generator
+    - Removed unused imports (FitnessKnowledge, ProvenWorkoutTemplates, etc.)
+    - Cleaned up orphaned code
+    - Added test files to .gitignore
+    - Fixed API key imports to use @env standard
+    - Comprehensive documentation added
+
+**Files Modified:**
+- `src/services/ai/tools/WorkoutTools.js` (refactored to use AI generator)
+- `src/screens/EditProfileSectionScreen.js` (added 3 new edit sections)
+- `src/screens/ProfileScreen.js` (removed duplicate button)
+- `src/screens/AICoachAssessmentScreen.js` (cache regeneration on assessment)
+- `src/services/backend/BackendService.js` (profile merging from both collections)
+- `src/services/userProfileService.js` (profile system updates)
+- `.gitignore` (added test files)
+
+**Files Created:**
+- `src/services/ai/tools/AIWorkoutGenerator.js` (NEW - scientific AI generator)
+- `src/services/WorkoutCacheService.js` (NEW - caching system)
+- `src/services/NutritionCacheService.js` (NEW - future nutrition caching)
+- `docs/SCIENTIFIC_WORKOUT_IMPLEMENTATION.md` (implementation plan)
+- `docs/WORKOUT_GENERATION_FIX_PLAN.md` (debugging strategy)
+- `docs/CACHE_IMPLEMENTATION_SUMMARY.md` (caching architecture)
+- `docs/CACHE_TESTING_GUIDE.md` (testing guide)
+- `docs/guides/science.md` (exercise science research)
+
+**Commits:** 1 major commit pushed to main
+- `fe3ce30` - feat: Implement scientific AI workout generation with evidence-based principles
+  - 18 files changed, 5032 insertions, 792 deletions
+
+---
+
+**Last Updated:** November 6, 2025 (Evening)
+**Status:** Sprint 1 Almost Complete (10/11 tasks complete - 91%)
 **Next Review:** November 12, 2025 (End of Sprint 1)
