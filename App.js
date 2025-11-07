@@ -13,6 +13,7 @@ import { initializeGemini } from './src/config/gemini';
 import AIBadge from './src/components/AIBadge';
 import ProactiveAIService from './src/services/ai/ProactiveAIService';
 import { navigationRef } from './src/services/NavigationService';
+import FreeRecipeService from './src/services/FreeRecipeService';
 
 // Import screens
 import SignInScreen from './src/screens/SignInScreen';
@@ -152,6 +153,7 @@ function TabNavigator() {
 
 function AppNavigator() {
   const { isSignedIn, isLoading, user } = useAuth();
+  const [recipeCacheProgress, setRecipeCacheProgress] = useState(null);
 
   // Initialize SyncManager and Gemini AI when app starts
   useEffect(() => {
@@ -169,6 +171,47 @@ function AppNavigator() {
     return () => {
       SyncManager.cleanup();
     };
+  }, []);
+
+  // Pre-cache recipes in background (non-blocking)
+  useEffect(() => {
+    const preCacheRecipes = async () => {
+      try {
+        // Check if already cached - if so, skip the loading UI
+        const isCached = await FreeRecipeService.isCached();
+        if (isCached) {
+          console.log('✅ Recipes already cached, skipping pre-cache');
+          return;
+        }
+
+        // Start pre-caching with progress updates
+        console.log('🍽️ Pre-caching recipe database...');
+        setRecipeCacheProgress({ current: 0, total: 26, completed: false });
+
+        await FreeRecipeService.preCacheRecipes((progress) => {
+          if (progress.completed) {
+            console.log(`✅ Recipe cache complete: ${progress.count} recipes`);
+            // Keep the loading message for 1 second before hiding
+            setTimeout(() => {
+              setRecipeCacheProgress(null);
+            }, 1000);
+          } else {
+            setRecipeCacheProgress({
+              current: progress.current,
+              total: progress.total,
+              letter: progress.letter,
+              completed: false,
+            });
+          }
+        });
+      } catch (error) {
+        console.error('❌ Recipe pre-cache failed:', error);
+        setRecipeCacheProgress(null);
+      }
+    };
+
+    // Start pre-caching immediately to ensure cache is ready when user needs it
+    preCacheRecipes();
   }, []);
 
   // Handle app state changes (foreground/background)
@@ -204,6 +247,20 @@ function AppNavigator() {
 
   return (
     <>
+      {/* Recipe cache progress indicator (only shown during first-time cache) */}
+      {recipeCacheProgress && !recipeCacheProgress.completed && (
+        <View style={styles.recipeCacheOverlay}>
+          <View style={styles.recipeCacheContainer}>
+            <Text style={styles.recipeCacheTitle}>📚 Loading Recipe Database</Text>
+            <Text style={styles.recipeCacheText}>
+              Fetching recipes: {recipeCacheProgress.letter || '...'}
+              ({recipeCacheProgress.current}/{recipeCacheProgress.total})
+            </Text>
+            <ActivityIndicator size="small" color={Colors.primary} style={{ marginTop: 10 }} />
+            <Text style={styles.recipeCacheHint}>This only happens once!</Text>
+          </View>
+        </View>
+      )}
       <NavigationContainer ref={navigationRef}>
         <Stack.Navigator
           screenOptions={{
@@ -324,5 +381,46 @@ const styles = StyleSheet.create({
     marginTop: 10,
     color: Colors.textSecondary,
     fontSize: 16,
+  },
+  recipeCacheOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 9999,
+    elevation: 9999,
+  },
+  recipeCacheContainer: {
+    backgroundColor: Colors.surface,
+    padding: 24,
+    borderRadius: 16,
+    alignItems: 'center',
+    minWidth: 280,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  recipeCacheTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 12,
+  },
+  recipeCacheText: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+  },
+  recipeCacheHint: {
+    fontSize: 12,
+    color: Colors.success,
+    marginTop: 12,
+    fontStyle: 'italic',
   },
 });

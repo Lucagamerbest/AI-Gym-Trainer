@@ -6,12 +6,15 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import AIButtonSection from './AIButtonSection';
 import ThinkingAnimation from './ThinkingAnimation';
+import RecipeSourceModal from './RecipeSourceModal';
+import RecipeFilterModal from './RecipeFilterModal';
 import { getAISectionsForScreen, hasAISections } from '../config/aiSectionConfig';
 import AIService from '../services/ai/AIService';
 import ContextManager from '../services/ai/ContextManager';
 import { useAuth } from '../context/AuthContext';
 import { getRecentFoods } from '../services/foodDatabase';
 import MacroStatsCard from './MacroStatsCard';
+import FreeRecipeService from '../services/FreeRecipeService';
 
 /**
  * AIButtonModal
@@ -37,6 +40,14 @@ export default function AIButtonModal({
   const [replyText, setReplyText] = useState('');
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [customInputText, setCustomInputText] = useState('');
+  const customInputRef = useRef(null);
+
+  // Recipe source modal state
+  const [showRecipeSourceModal, setShowRecipeSourceModal] = useState(false);
+  const [showRecipeFilterModal, setShowRecipeFilterModal] = useState(false);
+  const [pendingRecipeButton, setPendingRecipeButton] = useState(null); // Store button while user chooses source
+  const [currentRecipeIndex, setCurrentRecipeIndex] = useState(0); // For navigating database results
+  const [lastSearchFilters, setLastSearchFilters] = useState(null); // Store last filters for retry
 
   // Workout logging state
   const [selectedExercise, setSelectedExercise] = useState(null);
@@ -76,6 +87,36 @@ export default function AIButtonModal({
       setExpandedSections({ 0: true });
     }
   }, [visible]);
+
+  // Auto-scroll when custom input opens or keyboard shows
+  useEffect(() => {
+    if (!showCustomInput) return;
+
+    // Scroll to bottom when input is revealed
+    const scrollToBottom = () => {
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    };
+
+    // Listen for keyboard events
+    const keyboardDidShowListener = Keyboard.addListener(
+      'keyboardDidShow',
+      () => {
+        // Scroll to bottom when keyboard appears
+        setTimeout(() => {
+          scrollViewRef.current?.scrollToEnd({ animated: true });
+        }, 100);
+      }
+    );
+
+    // Initial scroll when input opens
+    scrollToBottom();
+
+    return () => {
+      keyboardDidShowListener.remove();
+    };
+  }, [showCustomInput]);
 
   // Load active workout exercises when modal opens (for WorkoutAssistant screen)
   useEffect(() => {
@@ -479,10 +520,192 @@ export default function AIButtonModal({
   };
 
   /**
+   * Handle database recipe search with smart filtering
+   * Uses filters from RecipeFilterModal to find optimal recipes
+   */
+  const handleDatabaseRecipeSearch = async (filters) => {
+    try {
+      setLoadingButton('database_search');
+      setLastResponse('🔍 Searching recipe database...');
+      setExpandedSections({});
+
+      // Store filters for retry
+      setLastSearchFilters(filters);
+
+      // Use FreeRecipeService to search (should be instant if cached)
+      const recipes = await FreeRecipeService.searchRecipes({
+        mealType: filters.mealType !== 'any' ? filters.mealType : null,
+      });
+
+      // Filter by calorie and protein requirements
+      let filteredRecipes = recipes.filter(recipe => {
+        const calories = recipe.nutrition.calories;
+        const protein = recipe.nutrition.protein;
+
+        // Must be within calorie limit
+        if (calories > filters.maxCalories) return false;
+
+        // Must meet minimum protein (if specified)
+        if (filters.minProtein && protein < filters.minProtein) return false;
+
+        return true;
+      });
+
+      // Determine sorting strategy based on button context
+      const buttonContext = filters.buttonContext || '';
+      let sortDescription = 'recipes';
+
+      if (buttonContext.includes('low-calorie')) {
+        // Sort by lowest calories, but still prioritize protein per calorie
+        filteredRecipes.sort((a, b) => {
+          const ratioA = a.nutrition.protein / a.nutrition.calories;
+          const ratioB = b.nutrition.protein / b.nutrition.calories;
+          // If protein/calorie ratio is similar, prefer lower calories
+          if (Math.abs(ratioA - ratioB) < 0.02) {
+            return a.nutrition.calories - b.nutrition.calories;
+          }
+          return ratioB - ratioA; // Higher protein/calorie ratio first
+        });
+        sortDescription = 'low-calorie, high-protein recipes';
+      } else if (buttonContext.includes('high-protein')) {
+        // Sort by maximum protein within calorie budget
+        filteredRecipes.sort((a, b) => b.nutrition.protein - a.nutrition.protein);
+        sortDescription = 'high-protein recipes within your calorie limit';
+      } else if (buttonContext.includes('quick')) {
+        // Sort by preparation time
+        filteredRecipes.sort((a, b) => (a.readyInMinutes || 30) - (b.readyInMinutes || 30));
+        sortDescription = 'quick recipes';
+      } else {
+        // Default: maximize protein within calorie budget
+        filteredRecipes.sort((a, b) => b.nutrition.protein - a.nutrition.protein);
+        sortDescription = 'high-protein recipes';
+      }
+
+      const topRecipes = filteredRecipes.slice(0, 10);
+
+      // Check if we have recipes
+      if (topRecipes.length === 0) {
+        setLastResponse(
+          `❌ No recipes found matching your filters.\n\n` +
+          `Try increasing max calories to ${filters.maxCalories + 200} or lowering protein requirement.`
+        );
+        setLastToolResults({ noResults: true }); // Flag to show retry button
+        return;
+      }
+
+      // Format as tool results for recipe cards
+      setLastToolResults({
+        recipes: topRecipes,
+        source: 'database',
+      });
+
+      // Build response based on sort type
+      const topRecipe = topRecipes[0];
+      let responseText = `✅ Found ${topRecipes.length} ${sortDescription}!\n\n`;
+      responseText += `**Filter:** Max ${filters.maxCalories} cal`;
+      if (filters.minProtein) responseText += `, Min ${filters.minProtein}g protein`;
+      if (filters.mealType !== 'any') responseText += `, ${filters.mealType}`;
+      responseText += `\n\n**Best match:** ${topRecipe.name}\n`;
+      responseText += `${topRecipe.nutrition.calories} cal | ${topRecipe.nutrition.protein}g protein`;
+
+      setLastResponse(responseText);
+
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    } catch (error) {
+      console.error('❌ Database search error:', error);
+      setLastResponse('❌ Failed to search recipes. Please try again.');
+    } finally {
+      setLoadingButton(null);
+    }
+  };
+
+  /**
+   * Handle AI recipe generation (custom, 10-30 seconds)
+   */
+  const handleAIRecipeGeneration = async (button) => {
+    try {
+      setLoadingButton(button.text);
+      setLastResponse(null);
+      setExpandedSections({});
+
+      // Build context for AI
+      const context = await ContextManager.buildContextForScreen(screenName, user?.uid);
+      if (screenParams) {
+        context.screenParams = screenParams;
+      }
+
+      // Build prompt from button
+      let messageToSend = button.prompt || button.text;
+
+      // Handle dynamic prompts (same logic as existing handleButtonPress)
+      if (button.toolName === 'generateHighProteinRecipe' && screenParams?.mealType) {
+        const mealType = screenParams.mealType;
+        const calorieRanges = {
+          breakfast: { min: 300, max: 600, ideal: 450 },
+          lunch: { min: 400, max: 700, ideal: 550 },
+          dinner: { min: 500, max: 800, ideal: 650 },
+          snack: { min: 100, max: 300, ideal: 200 },
+          snacks: { min: 100, max: 300, ideal: 200 },
+        };
+
+        const range = calorieRanges[mealType] || { min: 300, max: 700, ideal: 500 };
+        const proteinAmount = Math.round((range.ideal * 0.35) / 4);
+
+        messageToSend = `Generate a high-protein ${mealType} with approximately ${proteinAmount}g protein and ${range.ideal} calories (max ${range.max} calories). Keep it appropriate for a ${mealType}.`;
+      }
+
+      if (button.promptTemplate === 'recentIngredients') {
+        try {
+          const recentFoods = await getRecentFoods(user?.uid, 10);
+          if (recentFoods && recentFoods.length > 0) {
+            const uniqueFoods = [...new Set(recentFoods.map(f => f.name))].slice(0, 6);
+            messageToSend = `Create a recipe using ingredients from my recent foods: ${uniqueFoods.join(', ')}`;
+          } else {
+            messageToSend = button.fallbackPrompt || 'Create a recipe using: chicken, rice, broccoli';
+          }
+        } catch (error) {
+          console.error('Error fetching recent foods:', error);
+          messageToSend = button.fallbackPrompt || 'Create a recipe using: chicken, rice, broccoli';
+        }
+      }
+
+      // Send to AI with tools
+      const result = await AIService.sendMessageWithTools(messageToSend, context);
+
+      setLastResponse(result.response);
+      setLastToolResults(result.toolResults || null);
+
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    } catch (error) {
+      console.error('❌ AI recipe generation error:', error);
+      setLastResponse('❌ Failed to generate recipe. Please try again.');
+    } finally {
+      setLoadingButton(null);
+    }
+  };
+
+  /**
    * Handle button press
    * Sends the button action to AI with context
    */
   const handleButtonPress = async (button) => {
+    // Check if this is a recipe button - show source modal first
+    const isRecipeButton = button.toolName && (
+      button.toolName.includes('Recipe') ||
+      button.toolName.includes('recipe') ||
+      button.text.toLowerCase().includes('recipe')
+    );
+
+    if (isRecipeButton) {
+      setPendingRecipeButton(button);
+      setShowRecipeSourceModal(true);
+      return;
+    }
+
     // Check if this is the custom input button
     if (button.isCustomInput && !button.showCompletedSets) {
       setShowCustomInput(true);
@@ -980,6 +1203,26 @@ export default function AIButtonModal({
                 />
               ))}
 
+              {/* "Ask Coach Anything..." Button - Global Text Input Toggle */}
+              {!lastResponse && !showCustomInput && loadingButton === null && (
+                <TouchableOpacity
+                  style={styles.askCoachButton}
+                  onPress={() => setShowCustomInput(true)}
+                  activeOpacity={0.7}
+                >
+                  <LinearGradient
+                    colors={[Colors.primary, Colors.primaryDark]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.askCoachGradient}
+                  >
+                    <Ionicons name="chatbubble-ellipses" size={20} color={Colors.white} />
+                    <Text style={styles.askCoachButtonText}>Ask Coach Anything...</Text>
+                    <Ionicons name="chevron-forward" size={20} color={Colors.white} />
+                  </LinearGradient>
+                </TouchableOpacity>
+              )}
+
               {/* Manual Reorder UI */}
               {showReorderUI && (
                 <View style={styles.reorderContainer}>
@@ -1212,6 +1455,127 @@ export default function AIButtonModal({
                     }
                     return null;
                   })()}
+
+                  {/* Database Recipe Results - Show all recipes with navigation */}
+                  {(() => {
+                    if (lastToolResults?.recipes && lastToolResults?.source === 'database') {
+                      const recipes = lastToolResults.recipes;
+                      const currentRecipe = recipes[currentRecipeIndex];
+
+                      if (!currentRecipe) return null;
+
+                      return (
+                        <View style={styles.recipeCard}>
+                          {/* Recipe Counter */}
+                          <View style={styles.recipeCounter}>
+                            <Text style={styles.recipeCounterText}>
+                              Recipe {currentRecipeIndex + 1} of {recipes.length}
+                            </Text>
+                          </View>
+
+                          {/* Recipe Header */}
+                          <Text style={styles.recipeTitle}>{currentRecipe.name}</Text>
+
+                          {/* Macros Row */}
+                          <View style={styles.macrosRow}>
+                            <View style={styles.macroItem}>
+                              <Text style={styles.macroValue}>{currentRecipe.nutrition.calories}</Text>
+                              <Text style={styles.macroLabel}>Calories</Text>
+                            </View>
+                            <View style={styles.macroItem}>
+                              <Text style={styles.macroValue}>{currentRecipe.nutrition.protein}g</Text>
+                              <Text style={styles.macroLabel}>Protein</Text>
+                            </View>
+                            <View style={styles.macroItem}>
+                              <Text style={styles.macroValue}>{currentRecipe.nutrition.carbs}g</Text>
+                              <Text style={styles.macroLabel}>Carbs</Text>
+                            </View>
+                            <View style={styles.macroItem}>
+                              <Text style={styles.macroValue}>{currentRecipe.nutrition.fat}g</Text>
+                              <Text style={styles.macroLabel}>Fat</Text>
+                            </View>
+                          </View>
+
+                          {/* Recipe Details */}
+                          <View style={styles.recipeDetails}>
+                            <Text style={styles.recipeDetail}>🍽️ {currentRecipe.servings} servings</Text>
+                            <Text style={styles.recipeDetail}>⏱️ {currentRecipe.prepTime} prep | {currentRecipe.cookTime} cook</Text>
+                            {currentRecipe.category && (
+                              <Text style={styles.recipeDetail}>📁 {currentRecipe.category}</Text>
+                            )}
+                          </View>
+
+                          {/* Navigation Buttons */}
+                          <View style={styles.navigationButtons}>
+                            <TouchableOpacity
+                              style={[styles.navButton, currentRecipeIndex === 0 && styles.navButtonDisabled]}
+                              onPress={() => setCurrentRecipeIndex(Math.max(0, currentRecipeIndex - 1))}
+                              disabled={currentRecipeIndex === 0}
+                            >
+                              <Ionicons name="chevron-back" size={24} color={currentRecipeIndex === 0 ? Colors.textMuted : Colors.white} />
+                              <Text style={[styles.navButtonText, currentRecipeIndex === 0 && styles.navButtonTextDisabled]}>Previous</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                              style={[styles.navButton, currentRecipeIndex === recipes.length - 1 && styles.navButtonDisabled]}
+                              onPress={() => setCurrentRecipeIndex(Math.min(recipes.length - 1, currentRecipeIndex + 1))}
+                              disabled={currentRecipeIndex === recipes.length - 1}
+                            >
+                              <Text style={[styles.navButtonText, currentRecipeIndex === recipes.length - 1 && styles.navButtonTextDisabled]}>Next</Text>
+                              <Ionicons name="chevron-forward" size={24} color={currentRecipeIndex === recipes.length - 1 ? Colors.textMuted : Colors.white} />
+                            </TouchableOpacity>
+                          </View>
+
+                          {/* Action Buttons */}
+                          <View style={styles.recipeButtons}>
+                            <TouchableOpacity
+                              style={[styles.recipeButton, styles.saveButton]}
+                              onPress={() => {
+                                // Convert database recipe to save format
+                                const recipeCard = {
+                                  fullRecipe: {
+                                    id: currentRecipe.id,
+                                    title: currentRecipe.name,
+                                    ...currentRecipe
+                                  }
+                                };
+                                handleSaveRecipe(recipeCard);
+                              }}
+                              disabled={loadingButton !== null}
+                            >
+                              <Text style={styles.recipeButtonText}>💾 Save Recipe</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                              style={[styles.recipeButton, styles.discardButton]}
+                              onPress={() => handleDiscardRecipe()}
+                              disabled={loadingButton !== null}
+                            >
+                              <Text style={styles.recipeButtonText}>❌ Close</Text>
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+                      );
+                    }
+                    return null;
+                  })()}
+
+                  {/* No Results - Retry Button */}
+                  {lastToolResults?.noResults && (
+                    <View style={styles.recipeCard}>
+                      <TouchableOpacity
+                        style={[styles.recipeButton, styles.regenerateButton]}
+                        onPress={() => {
+                          // Reopen filter modal with last filters
+                          setShowRecipeFilterModal(true);
+                          setLastToolResults(null); // Clear no results flag
+                        }}
+                        disabled={loadingButton !== null}
+                      >
+                        <Text style={styles.recipeButtonText}>🔄 Try Different Filters</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
 
                   {/* Quick Reply Buttons - Show when AI asks a question OR for special UIs */}
                   {(isQuestion || isExerciseReorderQuestion || isReorderDirectionQuestion) && !selectedExercise && (
@@ -1609,13 +1973,16 @@ export default function AIButtonModal({
                 </View>
               )}
 
-              {/* Custom Workout Input */}
+              {/* Custom Text Input - Revealed when user taps "Ask Coach Anything..." */}
               {showCustomInput && !lastResponse && (
-                <View style={styles.customInputContainer}>
+                <View style={styles.customInputContainer} ref={customInputRef}>
                   <View style={styles.customInputHeader}>
-                    <Text style={styles.customInputTitle}>💬 Describe your workout</Text>
+                    <Text style={styles.customInputTitle}>💬 Ask your coach</Text>
                     <TouchableOpacity
-                      onPress={() => setShowCustomInput(false)}
+                      onPress={() => {
+                        setShowCustomInput(false);
+                        setCustomInputText(''); // Clear input when closing
+                      }}
                       style={styles.customInputCloseButton}
                       activeOpacity={0.7}
                     >
@@ -1625,7 +1992,7 @@ export default function AIButtonModal({
                   <View style={styles.customInputRow}>
                     <TextInput
                       style={styles.customInput}
-                      placeholder="Type your workout request..."
+                      placeholder="Ask any question you have..."
                       placeholderTextColor={Colors.textMuted}
                       value={customInputText}
                       onChangeText={setCustomInputText}
@@ -1666,6 +2033,47 @@ export default function AIButtonModal({
           )}
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Recipe Source Modal */}
+      <RecipeSourceModal
+        visible={showRecipeSourceModal}
+        onClose={() => {
+          setShowRecipeSourceModal(false);
+          setPendingRecipeButton(null);
+        }}
+        onSelectDatabase={() => {
+          setShowRecipeSourceModal(false);
+          // Show filter modal instead of direct search
+          setShowRecipeFilterModal(true);
+        }}
+        onSelectAI={() => {
+          setShowRecipeSourceModal(false);
+          if (pendingRecipeButton) {
+            handleAIRecipeGeneration(pendingRecipeButton);
+          } else {
+            console.error('❌ No pending recipe button - this should not happen');
+            setLastResponse('❌ Something went wrong. Please try again.');
+          }
+          setPendingRecipeButton(null);
+        }}
+        recipeCount={500}
+      />
+
+      {/* Recipe Filter Modal */}
+      <RecipeFilterModal
+        visible={showRecipeFilterModal}
+        onClose={() => {
+          setShowRecipeFilterModal(false);
+          setPendingRecipeButton(null);
+        }}
+        onSearch={(filters) => {
+          handleDatabaseRecipeSearch(filters);
+          setPendingRecipeButton(null);
+        }}
+        buttonContext={pendingRecipeButton?.text?.toLowerCase() || 'high-protein'}
+        defaultMaxCalories={lastSearchFilters?.maxCalories || 600}
+        defaultMinProtein={lastSearchFilters?.minProtein || 30}
+      />
     </Modal>
   );
 }
@@ -2197,5 +2605,84 @@ const styles = StyleSheet.create({
     color: Colors.text,
     fontSize: Typography.fontSize.md,
     fontWeight: '600',
+  },
+  // "Ask Coach Anything..." Button Styles
+  askCoachButton: {
+    marginHorizontal: Spacing.lg,
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    overflow: 'hidden',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  askCoachGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.md + 2,
+    paddingHorizontal: Spacing.lg,
+    gap: Spacing.sm,
+  },
+  askCoachButtonText: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+    color: Colors.white,
+    flex: 1,
+    textAlign: 'center',
+  },
+  customInputHint: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textMuted,
+    marginBottom: Spacing.sm,
+    marginTop: -Spacing.xs,
+    fontStyle: 'italic',
+  },
+  // Recipe Navigation Styles
+  recipeCounter: {
+    alignSelf: 'center',
+    backgroundColor: Colors.primary + '20',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.md,
+  },
+  recipeCounterText: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
+    color: Colors.primary,
+    textAlign: 'center',
+  },
+  navigationButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: Spacing.md,
+    marginVertical: Spacing.md,
+  },
+  navButton: {
+    flex: 1,
+    backgroundColor: Colors.primary,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: Spacing.xs,
+  },
+  navButtonDisabled: {
+    backgroundColor: Colors.border,
+    opacity: 0.5,
+  },
+  navButtonText: {
+    color: Colors.white,
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+  },
+  navButtonTextDisabled: {
+    color: Colors.textMuted,
   },
 });

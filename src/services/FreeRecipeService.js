@@ -545,6 +545,85 @@ class FreeRecipeService {
       console.error('Error clearing cache:', error);
     }
   }
+
+  /**
+   * Pre-cache all recipes on app startup
+   * Call this during app initialization for instant database searches
+   * Returns progress info for loading screen
+   */
+  async preCacheRecipes(onProgress = null) {
+    try {
+      console.log('🚀 Starting recipe pre-cache...');
+
+      // Check if already cached
+      const cacheKey = `${CACHE_PREFIX}all_recipes`;
+      const cached = await this._getCached(cacheKey);
+
+      if (cached) {
+        console.log(`✅ Recipes already cached (${cached.length} recipes)`);
+        if (onProgress) onProgress({ completed: true, count: cached.length });
+        return cached;
+      }
+
+      // Not cached yet - fetch all recipes
+      const letters = 'abcdefghijklmnopqrstuvwxyz'.split('');
+      const allRecipes = [];
+      let completed = 0;
+
+      // Fetch in parallel for speed
+      const promises = letters.map(async (letter) => {
+        try {
+          const url = `${THEMEALDB_BASE}/search.php?f=${letter}`;
+          const response = await fetch(url);
+          const data = await response.json();
+
+          completed++;
+          if (onProgress) {
+            onProgress({
+              completed: false,
+              progress: (completed / letters.length) * 100,
+              letter: letter.toUpperCase(),
+              total: letters.length,
+              current: completed,
+            });
+          }
+
+          return data.meals || [];
+        } catch (err) {
+          console.error(`Error fetching recipes for letter ${letter}:`, err);
+          completed++;
+          return [];
+        }
+      });
+
+      const results = await Promise.all(promises);
+      results.forEach(meals => {
+        meals.forEach(meal => allRecipes.push(this._transformRecipe(meal)));
+      });
+
+      // Cache the results
+      await this._setCache(cacheKey, allRecipes);
+      console.log(`✅ Pre-cached ${allRecipes.length} recipes from TheMealDB`);
+
+      if (onProgress) {
+        onProgress({ completed: true, count: allRecipes.length });
+      }
+
+      return allRecipes;
+    } catch (error) {
+      console.error('❌ Error pre-caching recipes:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Check if recipes are already cached
+   */
+  async isCached() {
+    const cacheKey = `${CACHE_PREFIX}all_recipes`;
+    const cached = await this._getCached(cacheKey);
+    return cached !== null;
+  }
 }
 
 export default new FreeRecipeService();
