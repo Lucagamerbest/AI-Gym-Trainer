@@ -2,6 +2,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { detectIntent, executeAction } from './AIActions';
 import { initializeTools, ToolRegistry } from './tools';
 import AIDebugger, { ERROR_CATEGORIES } from './AIDebugger';
+import AI_TERMINOLOGY from '../../config/aiTerminology';
 
 class AIService {
   constructor() {
@@ -1504,7 +1505,9 @@ RULES:
 Examples:
 "Try **190x5**." (1 sentence)
 "**8oz chicken** (**56g P**, **2g F**, **280 cal**)." (1 sentence)
-"**185x5** → **205x5** (**+20 lbs**)." (1 sentence)`;
+"**185x5** → **205x5** (**+20 lbs**)." (1 sentence)
+
+${AI_TERMINOLOGY.getTerminologyPrompt()}`;
 
 
 

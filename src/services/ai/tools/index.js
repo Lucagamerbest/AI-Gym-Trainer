@@ -34,6 +34,8 @@ import {
   nutritionToolSchemas,
 } from './NutritionTools';
 
+import MealBalancingTool from './MealBalancingTool';
+
 import {
   addExerciseToWorkout,
   modifyActiveWorkout,
@@ -117,6 +119,9 @@ export function initializeTools() {
   ToolRegistry.registerTool('generateWeeklyMealPlan', nutritionToolSchemas[4], generateWeeklyMealPlan);
   ToolRegistry.registerTool('suggestNextMealForBalance', nutritionToolSchemas[5], suggestNextMealForBalance);
   ToolRegistry.registerTool('predictDailyMacroShortfall', nutritionToolSchemas[6], predictDailyMacroShortfall);
+
+  // Meal Balancing Tool (Smart meal recommendations)
+  ToolRegistry.registerTool(MealBalancingTool.name, MealBalancingTool, MealBalancingTool.execute);
 
   // CRUD Tools (Create, Read, Update, Delete)
   ToolRegistry.registerTool('addExerciseToWorkout', crudToolSchemas[0], addExerciseToWorkout);
