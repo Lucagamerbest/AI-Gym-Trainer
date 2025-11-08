@@ -18,13 +18,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import AIService from '../services/ai/AIService';
+import SmartTextInput from './SmartTextInput';
 import ContextManager from '../services/ai/ContextManager';
 import { useAuth } from '../context/AuthContext';
 import QuickSuggestions from './QuickSuggestions';
 import ThinkingAnimation from './ThinkingAnimation';
 import MacroStatsCard from './MacroStatsCard';
 
-export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
+export default function AIChatModal({ visible, onClose, initialMessage = '', screenName = 'AIScreen' }) {
   const { user } = useAuth(); // Get real user from AuthContext
   const navigation = useNavigation(); // For navigating to RecipesScreen
   const [messages, setMessages] = useState([]);
@@ -834,28 +835,18 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
 
           {/* Input */}
           <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              value={inputText}
-              onChangeText={setInputText}
-              placeholder="Ask me anything..."
-              placeholderTextColor={Colors.textMuted}
-              multiline
-              maxLength={500}
-              editable={!loading}
-              returnKeyType="send"
-              blurOnSubmit={false}
-              onFocus={() => {
-                // Scroll to bottom when input is focused
-                setTimeout(() => {
-                  flatListRef.current?.scrollToEnd({ animated: true });
-                }, 300);
-              }}
-              onContentSizeChange={() => {
-                // Scroll messages to bottom when input expands
-                flatListRef.current?.scrollToEnd({ animated: true });
-              }}
-            />
+            <View style={{flex: 1}}>
+              <SmartTextInput
+                value={inputText}
+                onChangeText={setInputText}
+                placeholder="Ask me anything..."
+                screenName={screenName}
+                multiline
+                style={styles.input}
+                editable={!loading}
+                maxLength={500}
+              />
+            </View>
             <TouchableOpacity
               style={[styles.sendButton, (!inputText.trim() || loading) && styles.sendButtonDisabled]}
               onPress={handleSend}

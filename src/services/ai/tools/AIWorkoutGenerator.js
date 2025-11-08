@@ -118,8 +118,18 @@ Your task: Generate a SCIENTIFICALLY-BACKED ${workoutTypeUpper} WORKOUT based on
 
 🚨 ABSOLUTE REQUIREMENTS - WORKOUT WILL BE REJECTED IF NOT FOLLOWED:
 
+1️⃣ **ONE EQUIPMENT TYPE PER EXERCISE (CRITICAL)**:
+   - Each exercise MUST use EXACTLY ONE equipment type
+   - ✅ CORRECT: "Barbell Bench Press" (equipment: "Barbell")
+   - ✅ CORRECT: "Dumbbell Shoulder Press" (equipment: "Dumbbell")
+   - ❌ WRONG: "Barbell, Dumbbell Bench Press" (equipment: "Barbell, Dumbbell")
+   - ❌ WRONG: Equipment field contains commas: "Cable Rope, EZ Bar"
+   - Pick the BEST equipment variant for the workout variation strategy
+   - NEVER list multiple equipment types separated by commas
+   - NEVER list multiple variations (Seated, Standing, etc.)
+
 ${dislikedExercises.length > 0 ? `
-**❌ BLACKLISTED EXERCISES (NEVER USE - USER EXPLICITLY HATES THESE):**
+2️⃣ **❌ BLACKLISTED EXERCISES (NEVER USE - USER EXPLICITLY HATES THESE):**
 ${dislikedExercises.map(ex => `- "${ex}" and ALL variations (e.g., if "Squat" → avoid: Back Squat, Front Squat, Goblet Squat, Hack Squat, Bulgarian Split Squat, Box Squat, Overhead Squat, etc.)`).join('\n')}
 
 ⚠️ CRITICAL: If you include ANY blacklisted exercise or variation, the workout will FAIL validation.
@@ -240,23 +250,25 @@ ${getVariationRequirement(variationIndex)}
 
 ✅ **YOUR TASK - GENERATE WORKOUT FOLLOWING THESE EXACT STEPS:**
 
-STEP 1: Select ${getExerciseCount(sessionDuration, workoutType)} exercises
-STEP 2: Order exercises correctly:
+STEP 1: Set workout name based on VARIATION strategy above (THIS IS MANDATORY - see variation section for exact format)
+STEP 2: Select ${getExerciseCount(sessionDuration, workoutType)} exercises
+STEP 3: Order exercises correctly:
    → START with compound/multi-joint (Squat, Press, Deadlift, Row)
    → FINISH with isolation/single-joint (Extension, Curl, Raise)
-STEP 3: Assign sets, reps, rest based on training goal:
+STEP 4: Assign sets, reps, rest based on training goal:
    → Powerlifting: 3-6 reps, 3-5min rest
    → Bodybuilding: 8-12 reps, 60-90s rest
    → General: 10-15 reps, 60s rest
-STEP 4: Double-check NO blacklisted exercises included
-STEP 5: Add brief form cues for safety
+STEP 5: Double-check NO blacklisted exercises included
+STEP 6: Add brief form cues for safety
 
 **OUTPUT FORMAT (JSON ONLY - NO MARKDOWN):**
 {
-  "name": "Descriptive workout name",
+  "name": "MUST follow the format specified in VARIATION section above for ${workoutTypeUpper} workout",
   "exercises": [
     {
-      "name": "Exact exercise name from list below",
+      "name": "Exercise name - CHOOSE EXACTLY ONE EQUIPMENT TYPE (e.g., 'Bench Press' NOT 'Barbell, Dumbbell, Machine Bench Press')",
+      "equipment": "ONE equipment type only (Barbell OR Dumbbell OR Machine OR Cable - NOT multiple)",
       "sets": 3-4,
       "reps": "6-10" or "8-12" or "12-15",
       "rest": "60s" or "90s" or "120s",
@@ -264,6 +276,15 @@ STEP 5: Add brief form cues for safety
     }
   ]
 }
+
+🚨 **CRITICAL RULES FOR EXERCISE NAMES:**
+1. Each exercise must use EXACTLY ONE equipment type
+2. Choose ONE variant: "Barbell Bench Press" OR "Dumbbell Bench Press" OR "Machine Bench Press"
+3. NEVER list multiple equipment types: ❌ "Barbell, Dumbbell Bench Press"
+4. NEVER list multiple variations: ❌ "Seated, Standing Shoulder Press"
+5. Pick the BEST equipment variant for the VARIATION strategy above
+6. Example CORRECT: "Dumbbell Shoulder Press" ✅
+7. Example WRONG: "Barbell, Dumbbell, Seated Shoulder Press" ❌
 
 **AVAILABLE EXERCISES (USE EXACT NAMES):**
 ${exerciseList}
@@ -503,9 +524,74 @@ UPPER PULL (1-2 exercises):
  */
 function getVariationRequirement(index) {
   const reqs = [
-    'Use the most common gym exercises (standard equipment)',
-    'Focus on heavier compound lifts with lower reps (strength focus)',
-    'Include more isolation work with moderate reps (hypertrophy focus)',
+    // Variation 1: Standard Mix
+    `**VARIATION 1 - Balanced Compound & Isolation Mix:**
+- Mix of barbell, dumbbell, and machine exercises
+- Start with 2-3 heavy compound movements
+- Follow with 3-4 isolation exercises
+- Standard gym equipment
+- Example exercises: "Barbell Bench Press", "Dumbbell Fly", "Cable Crossover"
+- CRITICAL: Each exercise ONE equipment type only - choose best variant for each
+- **Workout name must be**: "Balanced [MuscleGroup]" (e.g., "Balanced Push")
+- **NEVER write**: "Barbell, Dumbbell Bench Press" - pick ONE equipment`,
+
+    // Variation 2: Machine-Focused Hypertrophy
+    `**VARIATION 2 - Machine-Heavy Hypertrophy Focus:**
+- Prioritize MACHINES for safer high-rep training and constant tension
+- Use cable exercises for unique resistance curves
+- Include 1-2 compound movements (barbell/dumbbell)
+- Higher rep ranges (10-15 reps)
+- Example exercises: "Machine Chest Press", "Cable Fly", "Machine Shoulder Press"
+- CRITICAL: Each exercise ONE equipment type only - prefer "Machine" or "Cable" variants
+- GOAL: Maximum pump and metabolic stress
+- **Workout name must be**: "Machine [MuscleGroup]" (e.g., "Machine Push")
+- **NEVER write**: "Machine, Cable Fly" - pick ONE equipment`,
+
+    // Variation 3: Free Weight Strength & Power
+    `**VARIATION 3 - Free Weight Compound Emphasis:**
+- Emphasize BARBELLS and DUMBBELLS for maximum strength
+- Focus on heavy compound lifts with lower reps (6-10 reps)
+- Minimal machine work
+- Include Olympic lift variations if applicable
+- Example exercises: "Barbell Bench Press", "Barbell Row", "Dumbbell Overhead Press"
+- CRITICAL: Each exercise ONE equipment type only - prefer "Barbell" or "Dumbbell" variants
+- GOAL: Maximum strength and neural adaptation
+- **Workout name must be**: "Barbell [MuscleGroup]" or "Free Weight [MuscleGroup]" (e.g., "Barbell Push")
+- **NEVER write**: "Barbell, Dumbbell Bench Press" - pick ONE equipment`,
+
+    // Variation 4: Unilateral & Stability Focus
+    `**VARIATION 4 - Unilateral & Dumbbell Focus:**
+- Use DUMBBELLS ONLY and single-arm variations
+- Emphasize unilateral exercises for balance correction
+- Include stabilizer muscle activation
+- Example exercises: "Dumbbell Bench Press", "One Arm Dumbbell Row", "Single Arm Cable Press"
+- CRITICAL: Each exercise must use ONLY ONE equipment type - pick "Dumbbell" variant
+- GOAL: Fix imbalances and improve coordination
+- **Workout name must be**: "Dumbbell [MuscleGroup]" or "Unilateral [MuscleGroup]" (e.g., "Dumbbell Push")
+- **NEVER write**: "Barbell, Dumbbell Bench Press" - ONLY write "Dumbbell Bench Press"`,
+
+    // Variation 5: High-Intensity Techniques
+    `**VARIATION 5 - Advanced Techniques & Drop Sets:**
+- Include exercises suitable for drop sets and supersets
+- Prefer machines and cables for quick weight changes
+- Higher volume with moderate weight
+- Example exercises: "Machine Shoulder Press", "Cable Lateral Raise", "Machine Chest Press"
+- CRITICAL: Each exercise ONE equipment type only - prefer "Machine" or "Cable" variants
+- GOAL: Maximum metabolic stress and time under tension
+- **Workout name must be**: "High-Volume [MuscleGroup]" or "Drop Set [MuscleGroup]" (e.g., "High-Volume Push")
+- **NEVER write**: "Machine, Cable Lateral Raise" - pick ONE equipment`,
+
+    // Variation 6: Powerlifting Foundation
+    `**VARIATION 6 - Powerlifting Core Movements:**
+- Base workout around squat, bench press, deadlift variations
+- BARBELL-DOMINANT with heavy loads
+- Low rep ranges (3-6 reps) on main lifts
+- Minimal accessory work
+- Example exercises: "Barbell Back Squat", "Barbell Romanian Deadlift", "Barbell Bench Press"
+- CRITICAL: Each exercise ONE equipment type only - prefer "Barbell" variants
+- GOAL: Maximum strength and power development
+- **Workout name must be**: "Powerlifting [MuscleGroup]" or "Strength [MuscleGroup]" (e.g., "Powerlifting Push")
+- **NEVER write**: "Barbell, Smith Machine Bench Press" - pick ONE equipment`,
   ];
   return reqs[Math.min(index, reqs.length - 1)];
 }
@@ -525,6 +611,9 @@ function getExerciseCount(duration, type) {
  */
 function parseAIResponse(response, exerciseDatabase) {
   try {
+    // Log raw AI response for debugging
+    console.log('🔍 Raw AI response (first 800 chars):', response.substring(0, 800));
+
     // Remove markdown code blocks if present
     let jsonStr = response.trim();
     jsonStr = jsonStr.replace(/```json\s*/g, '').replace(/```\s*/g, '');
@@ -536,6 +625,7 @@ function parseAIResponse(response, exerciseDatabase) {
     }
 
     const parsed = JSON.parse(jsonStr);
+    console.log('🔍 Parsed JSON from AI:', JSON.stringify(parsed, null, 2));
 
     if (!parsed.exercises || !Array.isArray(parsed.exercises)) {
       throw new Error('No exercises array in response');
@@ -543,17 +633,102 @@ function parseAIResponse(response, exerciseDatabase) {
 
     // Match exercises to database
     const matchedExercises = parsed.exercises.map(aiEx => {
-      const dbExercise = findExerciseInDatabase(aiEx.name, exerciseDatabase);
+      // VALIDATION: Detect if AI returned multiple equipment types in name OR equipment field
+      // Example: "Barbell, Dumbbell Bench Press" → extract first equipment only
+      let cleanedName = aiEx.name;
+      let cleanedEquipment = aiEx.equipment;
 
-      return {
-        name: dbExercise?.name || aiEx.name,
-        equipment: dbExercise?.equipment || 'unknown',
+      // Check for comma-separated equipment in NAME field (AI mistake)
+      if (cleanedName && cleanedName.includes(',')) {
+        console.warn(`⚠️ AI returned multiple equipment types in NAME: "${cleanedName}"`);
+
+        // Extract first equipment type before comma
+        const firstPart = cleanedName.split(',')[0].trim();
+        cleanedName = firstPart;
+        console.log(`✅ Cleaned name to: "${cleanedName}"`);
+      }
+
+      // Check for comma-separated equipment in EQUIPMENT field (AI mistake)
+      if (cleanedEquipment && cleanedEquipment.includes(',')) {
+        console.warn(`⚠️ AI returned multiple equipment types in EQUIPMENT: "${cleanedEquipment}"`);
+
+        // Extract first equipment type before comma
+        const firstPart = cleanedEquipment.split(',')[0].trim();
+        cleanedEquipment = firstPart;
+        console.log(`✅ Cleaned equipment to: "${cleanedEquipment}"`);
+      }
+
+      // Also check for complex equipment names (e.g., "Cable Rope" → "Cable")
+      // Extract just the first word for equipment matching
+      const equipmentKeywords = ['cable', 'dumbbell', 'barbell', 'machine', 'band', 'kettlebell', 'ez bar', 'trap bar', 'smith machine'];
+      if (cleanedEquipment) {
+        const equipLower = cleanedEquipment.toLowerCase();
+        // Check if it matches a known equipment keyword
+        const matchedKeyword = equipmentKeywords.find(kw => equipLower.startsWith(kw));
+        if (matchedKeyword) {
+          cleanedEquipment = matchedKeyword;
+          console.log(`✅ Normalized equipment to: "${cleanedEquipment}"`);
+        } else {
+          // If no match, just take first word
+          const firstWord = cleanedEquipment.split(' ')[0];
+          if (firstWord !== cleanedEquipment) {
+            console.warn(`⚠️ Complex equipment "${cleanedEquipment}" → simplified to "${firstWord}"`);
+            cleanedEquipment = firstWord;
+          }
+        }
+      }
+
+      // Pass equipment to finder for smarter matching
+      const dbExercise = findExerciseInDatabase(cleanedName, exerciseDatabase, cleanedEquipment);
+
+      // Combine equipment + name to get full variant (e.g., "Dumbbell Bench Press")
+      let fullExerciseName = dbExercise?.name || cleanedName;
+      let equipment = cleanedEquipment || dbExercise?.equipment || 'unknown';
+
+      // CRITICAL FIX: If database exercise has comma-separated equipment,
+      // extract the specific variant that matches our target equipment
+      if (dbExercise?.equipment && dbExercise.equipment.includes(',')) {
+        console.warn(`⚠️ Database exercise has multiple equipment: "${dbExercise.equipment}"`);
+
+        // If we have target equipment, use it; otherwise extract first
+        if (cleanedEquipment) {
+          const equipmentLower = cleanedEquipment.toLowerCase();
+          const dbEquipments = dbExercise.equipment.split(',').map(e => e.trim());
+          const matchedEquip = dbEquipments.find(e => e.toLowerCase() === equipmentLower);
+          equipment = matchedEquip || cleanedEquipment;
+          console.log(`✅ Selected equipment variant: "${equipment}"`);
+        } else {
+          // No target equipment, take first variant
+          equipment = dbExercise.equipment.split(',')[0].trim();
+          console.log(`✅ Using first equipment variant: "${equipment}"`);
+        }
+      }
+
+      // If equipment exists and is not already in the name, prepend it
+      if (equipment && equipment !== 'unknown' && equipment !== 'bodyweight') {
+        const nameLower = fullExerciseName.toLowerCase();
+        const equipmentLower = equipment.toLowerCase();
+
+        // Only add equipment if it's not already in the name
+        if (!nameLower.includes(equipmentLower)) {
+          fullExerciseName = `${equipment} ${fullExerciseName}`.trim();
+        }
+      }
+
+      const finalExercise = {
+        name: fullExerciseName, // Now includes equipment!
+        equipment: equipment,
         primaryMuscles: dbExercise?.primaryMuscles || [],
         sets: parseInt(aiEx.sets) || 3,
         reps: aiEx.reps || '8-12',
         restPeriod: aiEx.rest || '90s',
         notes: aiEx.notes || '',
       };
+
+      // Log each parsed exercise for debugging
+      console.log(`✅ Parsed exercise: "${finalExercise.name}" (${finalExercise.equipment})`);
+
+      return finalExercise;
     });
 
     return {
@@ -570,23 +745,61 @@ function parseAIResponse(response, exerciseDatabase) {
 
 /**
  * Find exercise in database (fuzzy match)
+ * Now supports equipment-aware matching (e.g., "Dumbbell Bench Press")
  */
-function findExerciseInDatabase(name, database) {
+function findExerciseInDatabase(name, database, targetEquipment = null) {
   const nameLower = name.toLowerCase();
 
-  // Exact match
+  // SMART PARSING: Check if equipment is already in the name
+  // Example: "Dumbbell Bench Press" → equipment="Dumbbell", baseName="Bench Press"
+  const equipmentKeywords = [
+    'cable', 'dumbbell', 'barbell', 'machine', 'smith machine',
+    'ez bar', 'band', 'bodyweight', 'kettlebell', 'trap bar'
+  ];
+
+  let parsedEquipment = targetEquipment;
+  let parsedName = nameLower;
+
+  // Extract equipment from name if present
+  for (const eq of equipmentKeywords) {
+    if (nameLower.startsWith(eq + ' ') || nameLower.includes(' ' + eq + ' ')) {
+      parsedEquipment = eq;
+      parsedName = nameLower.replace(eq, '').trim().replace(/\s+/g, ' ');
+      break;
+    }
+  }
+
+  // Strategy 1: Exact match (name + equipment)
+  if (parsedEquipment) {
+    let match = database.find(ex =>
+      ex.name.toLowerCase() === parsedName &&
+      ex.equipment?.toLowerCase() === parsedEquipment.toLowerCase()
+    );
+    if (match) return match;
+  }
+
+  // Strategy 2: Exact name match (any equipment)
   let match = database.find(ex => ex.name.toLowerCase() === nameLower);
   if (match) return match;
 
-  // Partial match
+  // Strategy 3: Exact name match with target equipment
+  if (parsedEquipment) {
+    match = database.find(ex =>
+      ex.name.toLowerCase() === nameLower &&
+      ex.equipment?.toLowerCase() === parsedEquipment.toLowerCase()
+    );
+    if (match) return match;
+  }
+
+  // Strategy 4: Partial match (name contains or is contained)
   match = database.find(ex => {
     const exLower = ex.name.toLowerCase();
-    return exLower.includes(nameLower) || nameLower.includes(exLower);
+    return exLower.includes(parsedName) || parsedName.includes(exLower);
   });
   if (match) return match;
 
-  // Word overlap
-  const nameWords = nameLower.split(' ');
+  // Strategy 5: Word overlap (at least 2 words match)
+  const nameWords = parsedName.split(' ');
   match = database.find(ex => {
     const exWords = ex.name.toLowerCase().split(' ');
     const overlap = nameWords.filter(w => exWords.includes(w));
@@ -594,7 +807,7 @@ function findExerciseInDatabase(name, database) {
   });
 
   if (match) {
-    console.log(`🔄 Matched "${name}" → "${match.name}"`);
+    console.log(`🔄 Matched "${name}" → "${match.name}" (${match.equipment})`);
   }
 
   return match;

@@ -1,0 +1,342 @@
+[
+  {
+    "name": "Bench Press",
+    "equipment": "Barbell, Dumbbell, Smith Machine, Machine"
+  },
+  {
+    "name": "Incline Bench Press",
+    "equipment": "Barbell, Dumbbell, Smith Machine, Machine"
+  },
+  {
+    "name": "Decline Bench Press",
+    "equipment": "Barbell, Dumbbell, Smith Machine"
+  },
+  {
+    "name": "Chest Fly",
+    "equipment": "Dumbbell, Cable, Machine"
+  },
+  {
+    "name": "Cable Crossover",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Push-ups",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Chest Dips",
+    "equipment": "Bodyweight, Dip Belt, Assisted Machine"
+  },
+  {
+    "name": "Lat Pulldown",
+    "equipment": "Machine, Cable"
+  },
+  {
+    "name": "Cable Row",
+    "equipment": "Cable"
+  },
+  {
+    "name": "One Arm Row",
+    "equipment": "Dumbbell, Cable"
+  },
+  {
+    "name": "Pullover",
+    "equipment": "Cable, Dumbbell, Machine"
+  },
+  {
+    "name": "Band Assisted Pull-up",
+    "equipment": "Resistance Band, Pull-up Bar"
+  },
+  {
+    "name": "Cable Incline Pushdown",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Chin Up",
+    "equipment": "Pull-up Bar"
+  },
+  {
+    "name": "Muscle Up",
+    "equipment": "Pull-up Bar, Gymnastic Rings"
+  },
+  {
+    "name": "One Arm Lat Pulldown",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Pull Ups",
+    "equipment": "Pull-up Bar"
+  },
+  {
+    "name": "V Bar Pulldown",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Weighted Pull Ups",
+    "equipment": "Pull-up Bar, Weight Belt, Dumbbell, Weight Vest"
+  },
+  {
+    "name": "Shoulder Press",
+    "equipment": "Barbell, Dumbbell Seated, Dumbbell Standing, Machine, Smith Machine"
+  },
+  {
+    "name": "Lateral Raise",
+    "equipment": "Dumbbell, Cable Single, Cable Both, Machine"
+  },
+  {
+    "name": "Front Raise",
+    "equipment": "Barbell, Dumbbell, Cable, Plate"
+  },
+  {
+    "name": "Shrugs",
+    "equipment": "Barbell, Dumbbell, Smith Machine, Trap Bar"
+  },
+  {
+    "name": "Rear Delt Fly",
+    "equipment": "Cable Bent, Machine Pec Deck Reverse, Dumbbell Bent"
+  },
+  {
+    "name": "Upright Row",
+    "equipment": "Barbell, Dumbbell, Cable, EZ Bar"
+  },
+  {
+    "name": "Bicep Curl",
+    "equipment": "Incline Dumbbell, Barbell, EZ Bar, Dumbbell Standing"
+  },
+  {
+    "name": "One Arm Bicep Curl",
+    "equipment": "Dumbbell, Cable Low, Cable Mid"
+  },
+  {
+    "name": "Hammer Curl",
+    "equipment": "Cable Rope, Dumbbell, Dumbbell Seated"
+  },
+  {
+    "name": "Preacher Curl",
+    "equipment": "Machine, Dumbbell, Cable Single, Cable Rope, EZ Bar"
+  },
+  {
+    "name": "Concentration Curl",
+    "equipment": "Dumbbell Seated, Cable Kneeling, Cable Seated"
+  },
+  {
+    "name": "Cross Body Hammer Curl",
+    "equipment": "Dumbbell, Cable Low, Cable Rope"
+  },
+  {
+    "name": "High Cable Curl",
+    "equipment": "Double Cable, Single Cable"
+  },
+  {
+    "name": "Reverse Curl",
+    "equipment": "Barbell, EZ Bar, Dumbbell"
+  },
+  {
+    "name": "Spider Curl",
+    "equipment": "EZ Bar, Dumbbell, Cable"
+  },
+  {
+    "name": "Zottman Curl",
+    "equipment": "Dumbbell, Cable"
+  },
+  {
+    "name": "Tricep Pushdown",
+    "equipment": "Cable Rope, Straight Bar, V-Bar"
+  },
+  {
+    "name": "One Arm Tricep Pushdown",
+    "equipment": "Single Handle, Rope"
+  },
+  {
+    "name": "Overhead Tricep Extension",
+    "equipment": "Cable Rope, Dumbbell Two-Handed, EZ Bar"
+  },
+  {
+    "name": "One Arm Overhead Extension",
+    "equipment": "Dumbbell, Cable"
+  },
+  {
+    "name": "Skull Crusher",
+    "equipment": "EZ Bar, Barbell, Dumbbell"
+  },
+  {
+    "name": "Dips",
+    "equipment": "Parallel Bars, Assisted Machine, Bench Dips"
+  },
+  {
+    "name": "Close Grip Bench Press",
+    "equipment": "Barbell, Smith Machine, Dumbbell"
+  },
+  {
+    "name": "Cable Incline Tricep Extension",
+    "equipment": "Overhead Rope, Incline Bar"
+  },
+  {
+    "name": "Diamond Push-ups",
+    "equipment": "Bodyweight, Weight Vest, Elevated"
+  },
+  {
+    "name": "Weighted Dips",
+    "equipment": "Dip Belt, Dumbbell Between Legs, Weight Vest"
+  },
+  {
+    "name": "Crunches",
+    "equipment": "Bodyweight Floor, Cable Kneeling, Machine"
+  },
+  {
+    "name": "Plank",
+    "equipment": "Bodyweight, Weighted, Elevated Feet"
+  },
+  {
+    "name": "Leg Raises",
+    "equipment": "Hanging, Captain's Chair, Lying Floor"
+  },
+  {
+    "name": "Russian Twist",
+    "equipment": "Bodyweight, Medicine Ball, Dumbbell, Cable"
+  },
+  {
+    "name": "Cable Woodchop",
+    "equipment": "High to Low, Low to High"
+  },
+  {
+    "name": "Ab Wheel Rollout",
+    "equipment": "Knees, Standing, Barbell Rollout"
+  },
+  {
+    "name": "Bicycle Crunches",
+    "equipment": "Bodyweight, Weighted"
+  },
+  {
+    "name": "Mountain Climbers",
+    "equipment": "Bodyweight, Slider Discs"
+  },
+  {
+    "name": "Dead Bug",
+    "equipment": "Bodyweight, Resistance Band"
+  },
+  {
+    "name": "Sit-Ups",
+    "equipment": "Bodyweight Floor, Decline Bench, Weighted Plate"
+  },
+  {
+    "name": "Leg Extension",
+    "equipment": "Machine, Cable"
+  },
+  {
+    "name": "Leg Curl",
+    "equipment": "Lying Machine, Seated Machine, Standing Machine"
+  },
+  {
+    "name": "Standing Calf Raise",
+    "equipment": "Machine, Smith Machine, Barbell"
+  },
+  {
+    "name": "Squat",
+    "equipment": "Barbell Back, Smith Machine, Dumbbell Goblet"
+  },
+  {
+    "name": "Hip Abduction",
+    "equipment": "Machine, Cable"
+  },
+  {
+    "name": "Glute Kickback",
+    "equipment": "Cable, Machine, Bodyweight"
+  },
+  {
+    "name": "Hang Clean",
+    "equipment": "Barbell, Dumbbell"
+  },
+  {
+    "name": "Hip Thrust",
+    "equipment": "Barbell, Dumbbell, Machine"
+  },
+  {
+    "name": "Hack Squat",
+    "equipment": "Machine, Barbell Reverse"
+  },
+  {
+    "name": "Lunges",
+    "equipment": "Dumbbell Walking, Barbell Walking, Dumbbell Stationary"
+  },
+  {
+    "name": "Seated Calf Raise",
+    "equipment": "Machine, Dumbbell"
+  },
+  {
+    "name": "Deadlift",
+    "equipment": "Barbell Conventional, Barbell Sumo, Trap Bar, Dumbbell Romanian, Barbell Romanian"
+  },
+  {
+    "name": "Leg Press",
+    "equipment": "45° Machine, Horizontal Machine"
+  },
+  {
+    "name": "Bulgarian Split Squat",
+    "equipment": "Dumbbell, Barbell, Bodyweight"
+  },
+  {
+    "name": "Front Squat",
+    "equipment": "Barbell, Dumbbell, Smith Machine"
+  },
+  {
+    "name": "Step-Ups",
+    "equipment": "Dumbbell, Barbell, Bodyweight"
+  },
+  {
+    "name": "Hip Adduction",
+    "equipment": "Machine, Cable"
+  },
+  {
+    "name": "Glute Bridge",
+    "equipment": "Barbell, Dumbbell, Bodyweight"
+  },
+  {
+    "name": "Wrist Curl",
+    "equipment": "Barbell, Dumbbell, Cable"
+  },
+  {
+    "name": "Reverse Wrist Curl",
+    "equipment": "Barbell, Dumbbell, EZ Bar"
+  },
+  {
+    "name": "Farmer's Walk",
+    "equipment": "Dumbbell, Trap Bar, Kettlebell"
+  },
+  {
+    "name": "Plate Pinch",
+    "equipment": "Two Plates Smooth, Single Plate, Weight Plate Hold"
+  },
+  {
+    "name": "Wrist Roller",
+    "equipment": "Standing, Seated"
+  },
+  {
+    "name": "Treadmill",
+    "equipment": "Walking, Jogging, Running, Incline Walking, HIIT Intervals"
+  },
+  {
+    "name": "Stationary Bike",
+    "equipment": "Steady State, HIIT, Spin Class"
+  },
+  {
+    "name": "Rowing Machine",
+    "equipment": "Steady State, HIIT Intervals"
+  },
+  {
+    "name": "Elliptical",
+    "equipment": "Forward, Reverse, HIIT"
+  },
+  {
+    "name": "Jump Rope",
+    "equipment": "Regular Bounce, Double Unders, HIIT"
+  },
+  {
+    "name": "Stair Climber",
+    "equipment": "Steady Pace, HIIT, Skip-a-Step"
+  },
+  {
+    "name": "Burpees",
+    "equipment": "Bodyweight, Push-up Burpees, Box Jump Burpees"
+  }
+]

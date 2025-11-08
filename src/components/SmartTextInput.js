@@ -12,6 +12,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import SmartInputService from '../services/SmartInputService';
+import SmartInputSettings from './SmartInputSettings';
 
 /**
  * SmartTextInput
@@ -33,6 +34,7 @@ export default function SmartTextInput({
 }) {
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const inputRef = useRef(null);
 
@@ -50,10 +52,11 @@ export default function SmartTextInput({
           setSuggestions(newSuggestions);
           setShowSuggestions(true);
 
-          // Fade in animation
-          Animated.timing(fadeAnim, {
+          // Smooth spring animation for natural feel
+          Animated.spring(fadeAnim, {
             toValue: 1,
-            duration: 200,
+            friction: 8,
+            tension: 40,
             useNativeDriver: true,
           }).start();
         } else {
@@ -70,7 +73,7 @@ export default function SmartTextInput({
   const fadeOutSuggestions = () => {
     Animated.timing(fadeAnim, {
       toValue: 0,
-      duration: 150,
+      duration: 120, // Faster fade out
       useNativeDriver: true,
     }).start(() => {
       setShowSuggestions(false);
@@ -82,6 +85,7 @@ export default function SmartTextInput({
    * Handle suggestion chip tap
    * Replaces the last partial word with the full suggestion
    * Phase 3: Now tracks usage for learning!
+   * Phase 6: Smart handling for replace/swap patterns
    */
   const handleSuggestionPress = async (suggestion) => {
     if (!value) return;
@@ -90,11 +94,21 @@ export default function SmartTextInput({
     const trimmed = value.trim();
     const words = trimmed.split(/\s+/);
 
-    // Replace the last word with the suggestion
-    words[words.length - 1] = suggestion;
+    // SPECIAL CASE: Replace pattern detection
+    // If user typed "replace" or "swap" or "change" and only 1 word exists,
+    // APPEND the exercise instead of replacing the keyword
+    const replaceKeywords = ['replace', 'swap', 'change'];
+    const isReplacePattern = words.length === 1 && replaceKeywords.includes(words[0].toLowerCase());
 
-    // Join back and add trailing space
-    const newText = words.join(' ') + ' ';
+    let newText;
+    if (isReplacePattern) {
+      // APPEND: "replace" → "replace Dumbbell Bench Press "
+      newText = trimmed + ' ' + suggestion + ' ';
+    } else {
+      // REPLACE: Normal behavior - replace last word
+      words[words.length - 1] = suggestion;
+      newText = words.join(' ') + ' ';
+    }
 
     onChangeText(newText);
 
@@ -120,6 +134,49 @@ export default function SmartTextInput({
 
   return (
     <View style={styles.container}>
+      {/* Suggestions - Compact horizontal strip above input */}
+      {showSuggestions && suggestions.length > 0 && (
+        <Animated.View
+          style={[
+            styles.suggestionsWrapper,
+            {
+              opacity: fadeAnim,
+              transform: [{
+                translateY: fadeAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [-10, 0]
+                })
+              }]
+            }
+          ]}
+        >
+          <ScrollView
+            horizontal
+            style={styles.suggestionsScroll}
+            contentContainerStyle={styles.suggestionsContent}
+            showsHorizontalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            scrollEventThrottle={16}
+          >
+            {/* Subtle indicator */}
+            <View style={styles.suggestionIndicator}>
+              <Ionicons name="sparkles" size={12} color={Colors.primary} />
+            </View>
+
+            {suggestions.map((suggestion, index) => (
+              <TouchableOpacity
+                key={`${suggestion}-${index}`}
+                style={styles.suggestionChip}
+                onPress={() => handleSuggestionPress(suggestion)}
+                activeOpacity={0.6}
+              >
+                <Text style={styles.suggestionText}>{suggestion}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </Animated.View>
+      )}
+
       {/* Input Field */}
       <View style={styles.inputContainer}>
         <TextInput
@@ -148,45 +205,11 @@ export default function SmartTextInput({
         )}
       </View>
 
-      {/* Suggestions */}
-      {showSuggestions && suggestions.length > 0 && (
-        <Animated.View
-          style={[
-            styles.suggestionsWrapper,
-            { opacity: fadeAnim }
-          ]}
-        >
-          <View style={styles.suggestionsHeader}>
-            <Ionicons name="sparkles" size={14} color={Colors.primary} />
-            <Text style={styles.suggestionsHeaderText}>Smart Suggestions</Text>
-          </View>
-
-          <ScrollView
-            horizontal
-            style={styles.suggestionsScroll}
-            contentContainerStyle={styles.suggestionsContent}
-            showsHorizontalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
-            {suggestions.map((suggestion, index) => (
-              <TouchableOpacity
-                key={`${suggestion}-${index}`}
-                style={styles.suggestionChip}
-                onPress={() => handleSuggestionPress(suggestion)}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.suggestionText}>{suggestion}</Text>
-                <Ionicons
-                  name="arrow-forward"
-                  size={14}
-                  color={Colors.primary}
-                  style={styles.suggestionIcon}
-                />
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </Animated.View>
-      )}
+      {/* Settings Modal */}
+      <SmartInputSettings
+        visible={showSettings}
+        onClose={() => setShowSettings(false)}
+      />
     </View>
   );
 }
@@ -222,55 +245,54 @@ const styles = StyleSheet.create({
     padding: Spacing.xs,
   },
   suggestionsWrapper: {
-    marginTop: Spacing.sm,
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    borderColor: Colors.primary + '30',
+    marginBottom: Spacing.xs + 2, // Minimal spacing - tight integration with input
     overflow: 'hidden',
   },
-  suggestionsHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs,
-    backgroundColor: Colors.primary + '10',
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.primary + '20',
-  },
-  suggestionsHeaderText: {
-    fontSize: Typography.fontSize.xs,
-    fontWeight: '600',
-    color: Colors.primary,
-    marginLeft: Spacing.xs,
-  },
   suggestionsScroll: {
-    maxHeight: 48,
+    flexGrow: 0, // Don't expand
   },
   suggestionsContent: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.sm,
-    gap: Spacing.xs,
+    paddingHorizontal: 2,
+    paddingVertical: 4,
+    gap: 6,
+    alignItems: 'center',
+  },
+  suggestionIndicator: {
+    width: 24,
+    height: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 4,
+    opacity: 0.6,
   },
   suggestionChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.primary + '15',
+    backgroundColor: Colors.primary + '12',
     borderWidth: 1,
-    borderColor: Colors.primary + '40',
-    borderRadius: BorderRadius.lg,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs + 2,
-    marginRight: Spacing.xs,
-    height: 32,
+    borderColor: Colors.primary + '25',
+    borderRadius: 14, // More rounded for modern look
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    marginRight: 6,
+    height: 28, // Compact height
+    justifyContent: 'center',
+    alignItems: 'center',
+    // Subtle shadow for depth
+    ...Platform.select({
+      ios: {
+        shadowColor: Colors.primary,
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+      },
+      android: {
+        elevation: 1,
+      },
+    }),
   },
   suggestionText: {
     color: Colors.primary,
-    fontSize: Typography.fontSize.sm,
+    fontSize: 13, // Slightly smaller for compactness
     fontWeight: '600',
-    marginRight: Spacing.xs,
-  },
-  suggestionIcon: {
-    opacity: 0.7,
+    letterSpacing: 0.2,
   },
 });

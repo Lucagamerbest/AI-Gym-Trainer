@@ -52,11 +52,38 @@ const SYNONYMS_MAP = {
   'fb': 'full body',
   'ul': 'upper lower',
 
+  // Common request abbreviations (NEW!)
+  'rep': 'replace with',
+  'swp': 'swap with',
+  'chng': 'change to',
+  'rem': 'remove the',
+  'w/o': 'without the',
+  'w/': 'with',
+  'b4': 'for breakfast',
+  'bf': 'for breakfast',
+  'lnch': 'for lunch',
+  'din': 'for dinner',
+  'snk': 'for snack',
+  'veg': 'vegetarian',
+  'vgn': 'vegan',
+  'gf': 'gluten free',
+  'df': 'dairy free',
+  'np': 'no protein',
+  'lc': 'low carb',
+  'hp': 'high protein',
+  'noequip': 'no equipment',
+  'home': 'at home',
+  'gym': 'at the gym',
+
   // Common typos
   'benchpress': 'bench press',
   'deadlifts': 'deadlift',
   'pullups': 'pull ups',
   'chinups': 'chin ups',
+  'repalce': 'replace',
+  'repace': 'replace',
+  'recpie': 'recipe',
+  'recip': 'recipe',
 };
 
 // ============================================================

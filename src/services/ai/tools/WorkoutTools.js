@@ -78,11 +78,16 @@ export async function generateWorkoutPlan({ muscleGroups, experienceLevel, durat
     const workoutType = muscleGroups[0]?.toLowerCase() || 'full_body';
     console.log(`🎯 [WorkoutTools] Workout type: ${workoutType}`);
 
+    // Generate random variation index (0-5) for workout variety
+    // 6 different variation strategies to ensure diverse workouts
+    const variationIndex = Math.floor(Math.random() * 6);
+    console.log(`🎲 [WorkoutTools] Using variation index: ${variationIndex} (1-6)`);
+
     // Call NEW AI Generator with scientific principles
     const aiResult = await generateWorkoutWithAI({
       workoutType,
       userProfile,
-      variationIndex: 0,
+      variationIndex,
     });
 
     if (!aiResult.success) {
@@ -107,18 +112,29 @@ export async function generateWorkoutPlan({ muscleGroups, experienceLevel, durat
 
     console.log(`✅ [WorkoutTools] AI generated ${workoutExercises.length} exercises`);
 
+    const generatedWorkout = {
+      title: workout.name || generateWorkoutTitle(muscleGroups, goal),
+      muscleGroups,
+      goal,
+      estimatedDuration: duration,
+      exercises: workoutExercises,
+      totalExercises: workoutExercises.length,
+      generatedBy: 'Scientific AI',
+      generatedAt: workout.generatedAt,
+    };
+
+    // Store as last generated workout for replace function
+    try {
+      await AsyncStorage.setItem('@last_generated_workout', JSON.stringify(generatedWorkout));
+      console.log('💾 [WorkoutTools] Stored last generated workout for replacement');
+    } catch (storageError) {
+      console.warn('⚠️ [WorkoutTools] Failed to store workout for replacement:', storageError);
+      // Don't fail the whole operation if storage fails
+    }
+
     return {
       success: true,
-      workout: {
-        title: workout.name || generateWorkoutTitle(muscleGroups, goal),
-        muscleGroups,
-        goal,
-        estimatedDuration: duration,
-        exercises: workoutExercises,
-        totalExercises: workoutExercises.length,
-        generatedBy: 'Scientific AI',
-        generatedAt: workout.generatedAt,
-      }
+      workout: generatedWorkout
     };
 
   } catch (error) {
@@ -295,26 +311,136 @@ export async function replaceExerciseInWorkout({
   try {
     const allExercises = getAllExercises();
 
-    // Step 1: Find the old exercise
-    const oldExercise = allExercises.find(ex =>
-      ex.name.toLowerCase() === oldExerciseName.toLowerCase()
-    );
+    // Equipment keywords for parsing
+    const equipmentKeywords = [
+      'cable', 'dumbbell', 'barbell', 'machine', 'smith machine',
+      'ez bar', 'band', 'bodyweight', 'kettlebell', 'trap bar'
+    ];
+
+    // Step 1: Parse equipment from old exercise name
+    // Example: "Machine Chest Press" → baseName="Chest Press", equipment="Machine"
+    let oldExerciseBaseName = oldExerciseName.toLowerCase();
+    let oldExerciseEquipment = null;
+
+    for (const eq of equipmentKeywords) {
+      if (oldExerciseBaseName.includes(eq)) {
+        oldExerciseEquipment = eq;
+        oldExerciseBaseName = oldExerciseBaseName
+          .replace(eq, '')
+          .trim()
+          .replace(/\s+/g, ' ');
+        break;
+      }
+    }
+
+    // Step 1b: Find the old exercise in database (by base name)
+    const oldExercise = allExercises.find(ex => {
+      const exNameLower = ex.name.toLowerCase();
+      // Try exact match first
+      if (exNameLower === oldExerciseName.toLowerCase()) return true;
+      // Try base name match
+      if (exNameLower === oldExerciseBaseName) return true;
+      // Try if database name contains the search term
+      if (exNameLower.includes(oldExerciseBaseName)) return true;
+      return false;
+    });
 
     if (!oldExercise) {
       return {
         success: false,
-        error: `Exercise "${oldExerciseName}" not found`
+        error: `Exercise "${oldExerciseName}" not found in database`
       };
     }
 
+    console.log(`✅ Found old exercise: "${oldExercise.name}" (parsed from "${oldExerciseName}")`);
+
     let newExercise;
+    let requestedEquipment = equipment;
 
     // Step 2: Get the new exercise (either specified or auto-select best alternative)
     if (newExerciseName) {
       // User specified exact replacement
+
+      // SMART MATCHING: Try to extract equipment from exercise name
+      // Example: "Cable Lateral Raise" → exercise="Lateral Raise", equipment="Cable"
+      const equipmentKeywords = [
+        'cable', 'dumbbell', 'barbell', 'machine', 'smith machine',
+        'ez bar', 'band', 'bodyweight', 'kettlebell', 'trap bar'
+      ];
+
+      let parsedExerciseName = newExerciseName.toLowerCase();
+      let parsedEquipment = null;
+
+      // Check if exercise name contains equipment keyword
+      for (const eq of equipmentKeywords) {
+        if (parsedExerciseName.includes(eq)) {
+          parsedEquipment = eq;
+          // Remove equipment from name to get base exercise
+          parsedExerciseName = parsedExerciseName
+            .replace(eq, '')
+            .trim()
+            .replace(/\s+/g, ' '); // normalize spaces
+          break;
+        }
+      }
+
+      // Normalize for matching: handle hyphens, spaces, plurals
+      const normalize = (str) => str.toLowerCase()
+        .replace(/[-\s]/g, '') // Remove hyphens and spaces
+        .replace(/s$/i, '');    // Remove trailing 's'
+
+      const normalizedSearch = normalize(newExerciseName);
+
+      // Try exact match first
       newExercise = allExercises.find(ex =>
         ex.name.toLowerCase() === newExerciseName.toLowerCase()
       );
+
+      // Try normalized match (handles "push up" vs "push-ups")
+      if (!newExercise) {
+        newExercise = allExercises.find(ex =>
+          normalize(ex.name) === normalizedSearch
+        );
+      }
+
+      // If no exact match, try with parsed equipment
+      if (!newExercise && parsedEquipment) {
+        newExercise = allExercises.find(ex => {
+          const nameMatches = ex.name.toLowerCase() === parsedExerciseName;
+          const equipmentStr = ex.equipment?.toLowerCase() || '';
+          const equipmentMatches = equipmentStr.includes(parsedEquipment);
+          return nameMatches && equipmentMatches;
+        });
+
+        // If found, determine the specific equipment variant to use
+        if (newExercise) {
+          // Match the specific variant from the equipment string
+          // Example: equipment="Dumbbell, Cable Single, Cable Both" and parsedEquipment="cable"
+          // Should use "Cable Single" or "Cable Both"
+          const equipmentList = newExercise.equipment.split(',').map(e => e.trim());
+          const matchingVariant = equipmentList.find(eq =>
+            eq.toLowerCase().includes(parsedEquipment)
+          );
+          requestedEquipment = matchingVariant || parsedEquipment;
+        }
+      }
+
+      // Still no match? Try fuzzy matching on base name
+      if (!newExercise) {
+        newExercise = allExercises.find(ex => {
+          const exerciseNameLower = ex.name.toLowerCase();
+          // Check if the parsed name is contained in the exercise name
+          return exerciseNameLower.includes(parsedExerciseName) ||
+                 parsedExerciseName.includes(exerciseNameLower);
+        });
+
+        if (newExercise && parsedEquipment) {
+          // Verify equipment is available
+          if (newExercise.equipment?.toLowerCase().includes(parsedEquipment)) {
+            requestedEquipment = parsedEquipment;
+          }
+        }
+      }
 
       if (!newExercise) {
         return {
@@ -349,24 +475,69 @@ export async function replaceExerciseInWorkout({
     }
 
     // Step 3: Replace in workout
-    if (workoutType === 'active') {
-      // Replace in active workout
-      const activeWorkoutKey = '@active_workout';
-      const activeWorkoutStr = await AsyncStorage.getItem(activeWorkoutKey);
+    // Try last generated workout first (before starting), then active workout
+    let workoutData = null;
+    let workoutKey = null;
+    let isLastGenerated = false;
 
-      if (!activeWorkoutStr) {
-        return {
-          success: false,
-          error: "No active workout found. Start a workout first."
-        };
+    // Check last generated workout first
+    const lastGeneratedStr = await AsyncStorage.getItem('@last_generated_workout');
+    if (lastGeneratedStr) {
+      workoutData = JSON.parse(lastGeneratedStr);
+      workoutKey = '@last_generated_workout';
+      isLastGenerated = true;
+      console.log('🔄 [Replace] Using last generated workout');
+    }
+
+    // If no last generated, try active workout
+    if (!workoutData && workoutType === 'active') {
+      const activeWorkoutStr = await AsyncStorage.getItem('@active_workout');
+      if (activeWorkoutStr) {
+        workoutData = JSON.parse(activeWorkoutStr);
+        workoutKey = '@active_workout';
+        console.log('🔄 [Replace] Using active workout');
       }
+    }
 
-      const activeWorkout = JSON.parse(activeWorkoutStr);
+    if (!workoutData) {
+      return {
+        success: false,
+        error: "No workout found. Generate or start a workout first."
+      };
+    }
 
-      // Find and replace the exercise
-      const exerciseIndex = activeWorkout.exercises?.findIndex(ex =>
+    const activeWorkout = workoutData;
+
+      // SMART MATCHING: Find exercise in workout
+      // Try exact match first
+      let exerciseIndex = activeWorkout.exercises?.findIndex(ex =>
         ex.name.toLowerCase() === oldExerciseName.toLowerCase()
       );
+
+      // If no exact match, try partial match (e.g., "bench press" matches "Barbell Bench Press")
+      if (exerciseIndex === -1) {
+        const searchTerm = oldExerciseName.toLowerCase();
+        const matches = activeWorkout.exercises
+          .map((ex, idx) => ({ ex, idx }))
+          .filter(({ ex }) => ex.name.toLowerCase().includes(searchTerm));
+
+        if (matches.length === 1) {
+          // Only ONE match found - use it!
+          exerciseIndex = matches[0].idx;
+          console.log(`✅ Smart match: "${oldExerciseName}" → "${matches[0].ex.name}"`);
+        } else if (matches.length > 1) {
+          // Multiple matches - return structured data for UI to create quick reply buttons
+          const matchNames = matches.map(m => m.ex.name);
+          return {
+            success: false,
+            error: `"${oldExerciseName}" matches multiple exercises. Which one did you mean?`,
+            matches: matchNames, // Array of exercise names for quick reply buttons
+            clarificationNeeded: true,
+            originalRequest: oldExerciseName,
+            newExercise: newExerciseName
+          };
+        }
+      }
 
       if (exerciseIndex === -1) {
         return {
@@ -377,32 +548,49 @@ export async function replaceExerciseInWorkout({
 
       // Replace exercise while keeping sets data
       const oldExerciseData = activeWorkout.exercises[exerciseIndex];
+
+      // Use requested equipment if specified, otherwise use first available
+      let finalEquipment = requestedEquipment || equipment;
+      if (!finalEquipment && newExercise.equipment) {
+        // Use first equipment from the exercise's equipment list
+        const equipmentList = newExercise.equipment.split(',').map(e => e.trim());
+        finalEquipment = equipmentList[0];
+      }
+
+      // Build full exercise name with equipment (matching new format)
+      let fullExerciseName = newExercise.name;
+      if (finalEquipment) {
+        const equipmentNormalized = finalEquipment.charAt(0).toUpperCase() + finalEquipment.slice(1).toLowerCase();
+        const nameLower = fullExerciseName.toLowerCase();
+        const equipLower = equipmentNormalized.toLowerCase();
+
+        // Only add equipment if not already in name
+        if (!nameLower.includes(equipLower)) {
+          fullExerciseName = `${equipmentNormalized} ${fullExerciseName}`;
+        }
+      }
+
       activeWorkout.exercises[exerciseIndex] = {
         ...oldExerciseData,
-        name: newExercise.name,
-        equipment: newExercise.equipment,
+        name: fullExerciseName, // Now includes equipment!
+        equipment: finalEquipment || newExercise.equipment,
         primaryMuscles: newExercise.primaryMuscles,
         secondaryMuscles: newExercise.secondaryMuscles,
         instructions: newExercise.instructions,
       };
 
-      await AsyncStorage.setItem(activeWorkoutKey, JSON.stringify(activeWorkout));
+      await AsyncStorage.setItem(workoutKey, JSON.stringify(activeWorkout));
+
+      const displayName = fullExerciseName;
+      const workoutTypeMsg = isLastGenerated ? "generated workout" : "active workout";
 
       return {
         success: true,
-        message: `Replaced "${oldExerciseName}" with "${newExercise.name}" in active workout`,
+        message: `Replaced "${oldExerciseName}" with "${displayName}" in ${workoutTypeMsg}`,
         oldExercise: oldExerciseName,
-        newExercise: newExercise.name
+        newExercise: displayName,
+        workout: activeWorkout // Return updated workout so modal can refresh
       };
-
-    } else if (workoutType === 'planned') {
-      // Replace in planned workout
-      // TODO: Implement planned workout replacement
-      return {
-        success: false,
-        error: "Planned workout replacement not yet implemented. Use 'active' for now."
-      };
-    }
 
   } catch (error) {
     console.error('❌ replaceExerciseInWorkout error:', error);

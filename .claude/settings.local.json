@@ -41,7 +41,11 @@
       "Bash(findstr:*)",
       "Bash(/tmp/meal_suggestions_block.txt)",
       "Bash(awk:*)",
-      "Bash(npx react-native-logs)"
+      "Bash(npx react-native-logs)",
+      "Bash(exercise_names.json)",
+      "Bash(exercise_with_equipment.json)",
+      "Bash(exercise_keywords_output.txt)",
+      "Bash(del exercise_names.json exercise_with_equipment.json generate_exercise_keywords.js)"
     ],
     "deny": [],
     "ask": []

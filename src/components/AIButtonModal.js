@@ -48,6 +48,36 @@ export default function AIButtonModal({
   // Recipe source modal state
   const [showRecipeSourceModal, setShowRecipeSourceModal] = useState(false);
   const [showRecipeFilterModal, setShowRecipeFilterModal] = useState(false);
+
+  // Extract current workout exercises for smart input suggestions
+  const getCurrentWorkoutExercises = () => {
+    if (!lastToolResults || !Array.isArray(lastToolResults)) {
+      return [];
+    }
+
+    // Find workout tool result (either generateWorkoutPlan or replaceExerciseInWorkout)
+    const workoutTool = lastToolResults.find(tool =>
+      (tool.name === 'generateWorkoutPlan' || tool.name === 'replaceExerciseInWorkout') &&
+      tool.result?.workout?.exercises
+    );
+
+    if (workoutTool && workoutTool.result.workout.exercises) {
+      // Combine equipment + name to get full variant (e.g., "Machine Bench Press")
+      return workoutTool.result.workout.exercises.map(ex => {
+        const equipment = ex.equipment || '';
+        const name = ex.name || '';
+
+        // If equipment exists and is not already in the name, prepend it
+        if (equipment && !name.toLowerCase().includes(equipment.toLowerCase())) {
+          return `${equipment} ${name}`.trim();
+        }
+
+        return name;
+      });
+    }
+
+    return [];
+  };
   const [showRecipePreferencesModal, setShowRecipePreferencesModal] = useState(false);
   const [pendingRecipeButton, setPendingRecipeButton] = useState(null); // Store button while user chooses source
   const [currentRecipeIndex, setCurrentRecipeIndex] = useState(0); // For navigating database results
@@ -333,6 +363,36 @@ export default function AIButtonModal({
     ];
 
     return exerciseLogKeywords.some(keyword => {
+      if (keyword.includes('.*')) {
+        const regex = new RegExp(keyword);
+        return regex.test(lowerResponse);
+      }
+      return lowerResponse.includes(keyword);
+    });
+  };
+
+  /**
+   * Detect if AI is asking for clarification on exercise selection
+   * (when multiple exercises match a partial name)
+   */
+  const detectExerciseClarificationQuestion = (response) => {
+    if (!response) return false;
+
+    // Check if lastToolResults contains clarificationNeeded flag
+    if (lastToolResults?.some(tool => tool.result?.clarificationNeeded)) {
+      return true;
+    }
+
+    const lowerResponse = response.toLowerCase();
+    const clarificationKeywords = [
+      'which one did you mean',
+      'multiple exercises',
+      'matches multiple',
+      'which.*exercise',
+      'did you mean',
+    ];
+
+    return clarificationKeywords.some(keyword => {
       if (keyword.includes('.*')) {
         const regex = new RegExp(keyword);
         return regex.test(lowerResponse);
@@ -1185,6 +1245,13 @@ export default function AIButtonModal({
   /**
    * Handle custom text reply
    */
+  // Scroll to bottom when reply input is focused (keyboard opens)
+  const scrollToReplyInput = () => {
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 300); // Small delay to let keyboard animation start
+  };
+
   const handleSendReply = async () => {
     if (!replyText.trim()) return;
 
@@ -1263,6 +1330,7 @@ export default function AIButtonModal({
   const isSaveLocationQuestion = detectSaveLocationQuestion(lastResponse);
   const isMuscleGroupQuestion = detectMuscleGroupQuestion(lastResponse);
   const isExerciseLogQuestion = detectExerciseLogQuestion(lastResponse);
+  const isExerciseClarificationQuestion = detectExerciseClarificationQuestion(lastResponse);
   const isRPERequested = detectRPERequest(lastResponse);
   const isExerciseModificationQuestion = detectExerciseModificationQuestion(lastResponse);
   const isSetRemovalQuestion = detectSetRemovalQuestion(lastResponse);
@@ -1282,7 +1350,7 @@ export default function AIButtonModal({
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
         {/* Header */}
         <View style={styles.header}>
@@ -1483,7 +1551,13 @@ export default function AIButtonModal({
                         <Text style={styles.responseIcon}>💬</Text>
                         <Text style={styles.responseTitle}>AI Response</Text>
                       </View>
-                      <Text style={styles.responseText}>{lastResponse}</Text>
+                      <ScrollView
+                        style={styles.responseScrollView}
+                        nestedScrollEnabled={true}
+                        showsVerticalScrollIndicator={true}
+                      >
+                        <Text style={styles.responseText}>{lastResponse}</Text>
+                      </ScrollView>
                     </>
                   )}
 
@@ -1838,7 +1912,7 @@ export default function AIButtonModal({
                   {(isQuestion || isExerciseReorderQuestion || isReorderDirectionQuestion) && !selectedExercise && (
                     <View style={styles.quickReplyContainer}>
                       <Text style={styles.quickReplyLabel}>
-                        {isDaysQuestion ? 'Days per week:' : isSaveLocationQuestion ? 'Save to:' : isMuscleGroupQuestion ? 'Focus on:' : isExerciseLogQuestion ? 'Select exercise:' : isSetRemovalQuestion ? 'Tap a set to remove it:' : isExerciseReorderQuestion ? 'Select exercise to reorder:' : isReorderDirectionQuestion ? 'Choose direction:' : isExerciseModificationQuestion ? 'Remove exercise:' : isWorkoutRatingQuestion ? 'Rate workout:' : isRestDurationQuestion ? 'Rest duration:' : 'Quick Reply:'}
+                        {isDaysQuestion ? 'Days per week:' : isSaveLocationQuestion ? 'Save to:' : isMuscleGroupQuestion ? 'Focus on:' : isExerciseLogQuestion ? 'Select exercise:' : isExerciseClarificationQuestion ? 'Which exercise?' : isSetRemovalQuestion ? 'Tap a set to remove it:' : isExerciseReorderQuestion ? 'Select exercise to reorder:' : isReorderDirectionQuestion ? 'Choose direction:' : isExerciseModificationQuestion ? 'Remove exercise:' : isWorkoutRatingQuestion ? 'Rate workout:' : isRestDurationQuestion ? 'Rest duration:' : 'Quick Reply:'}
                       </Text>
                       <View style={styles.quickReplyButtons}>
                         {isExerciseLogQuestion ? (
@@ -1855,6 +1929,34 @@ export default function AIButtonModal({
                                 <Text style={styles.quickReplyText}>🏋️ {exerciseName}</Text>
                               </TouchableOpacity>
                             ))}
+                          </>
+                        ) : isExerciseClarificationQuestion ? (
+                          <>
+                            {/* Exercise Clarification Buttons - Show matching exercises */}
+                            {(() => {
+                              // Extract matches from tool results
+                              const toolWithMatches = lastToolResults?.find(tool => tool.result?.matches);
+                              const matches = toolWithMatches?.result?.matches || [];
+                              const originalRequest = toolWithMatches?.result?.originalRequest || '';
+                              const newExercise = toolWithMatches?.result?.newExercise || '';
+
+                              if (matches.length === 0) return null;
+
+                              return matches.map((exerciseName, index) => (
+                                <TouchableOpacity
+                                  key={index}
+                                  style={[styles.quickReplyButton, styles.exerciseButton]}
+                                  onPress={() => {
+                                    // User selects specific exercise - send replace command with full name
+                                    handleQuickReply(`Replace ${exerciseName} with ${newExercise}`);
+                                  }}
+                                  disabled={loadingButton !== null}
+                                  activeOpacity={0.7}
+                                >
+                                  <Text style={styles.quickReplyText}>🏋️ {exerciseName}</Text>
+                                </TouchableOpacity>
+                              ));
+                            })()}
                           </>
                         ) : isDaysQuestion ? (
                           <>
@@ -2200,16 +2302,23 @@ export default function AIButtonModal({
                   <View style={styles.replyInputContainer}>
                     <Text style={styles.replyInputLabel}>Continue conversation:</Text>
                     <View style={styles.replyInputRow}>
-                      <TextInput
-                        style={styles.replyInput}
-                        placeholder="Type your reply..."
-                        placeholderTextColor={Colors.textMuted}
-                        value={replyText}
-                        onChangeText={setReplyText}
-                        multiline
-                        maxLength={500}
-                        editable={loadingButton === null}
-                      />
+                      <View style={{flex: 1}}>
+                        <SmartTextInput
+                          value={replyText}
+                          onChangeText={setReplyText}
+                          placeholder="Type your reply..."
+                          screenName={screenName}
+                          screenParams={{
+                            ...screenParams,
+                            currentWorkoutExercises: getCurrentWorkoutExercises()
+                          }}
+                          multiline
+                          style={styles.replyInput}
+                          editable={loadingButton === null}
+                          maxLength={500}
+                          onFocus={scrollToReplyInput}
+                        />
+                      </View>
                       <TouchableOpacity
                         style={[
                           styles.sendButton,
@@ -2253,12 +2362,16 @@ export default function AIButtonModal({
                         onChangeText={setCustomInputText}
                         placeholder="Ask any question you have..."
                         screenName={screenName}
-                        screenParams={screenParams}
+                        screenParams={{
+                          ...screenParams,
+                          currentWorkoutExercises: getCurrentWorkoutExercises()
+                        }}
                         multiline
                         autoFocus
                         style={styles.customInput}
                         editable={loadingButton === null}
                         maxLength={500}
+                        onFocus={scrollToReplyInput}
                       />
                     </View>
                     <TouchableOpacity
@@ -2434,6 +2547,9 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.sm,
     fontWeight: '600',
     color: Colors.textSecondary,
+  },
+  responseScrollView: {
+    maxHeight: 300, // Limit response height so input is always visible
   },
   responseText: {
     fontSize: Typography.fontSize.md,
