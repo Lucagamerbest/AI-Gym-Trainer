@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
     borderTopLeftRadius: BorderRadius.xl,
     borderTopRightRadius: BorderRadius.xl,
-    maxHeight: '90%',
+    height: '90%',
     paddingBottom: Spacing.xl,
   },
   header: {
@@ -276,6 +276,7 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
     paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing.sm,
   },
   section: {
     marginTop: Spacing.xl,
