@@ -535,13 +535,8 @@ export const AI_SECTION_CONFIG = {
     {
       title: 'Recipe Generation',
       icon: 'sparkles',
+      hasSettings: true, // Show settings button next to section title
       buttons: [
-        {
-          icon: 'settings',
-          text: 'Recipe Preferences',
-          isSettings: true, // Special flag to open preferences modal
-          style: 'secondary', // Different visual style
-        },
         {
           icon: 'restaurant',
           text: 'Generate from ingredients',

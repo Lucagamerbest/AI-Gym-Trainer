@@ -29,6 +29,8 @@ export default function AIButtonSection({
   onToggle, // Callback for controlled state
   loading = false,
   emptyMessage = 'No actions available',
+  showSettingsButton = false, // New prop for settings button
+  onSettingsPress, // Callback for settings button
 }) {
   // Use controlled state if provided, otherwise use internal state
   const [internalExpanded, setInternalExpanded] = useState(defaultExpanded);
@@ -97,13 +99,31 @@ export default function AIButtonSection({
             </View>
           )}
         </View>
-        <Animated.View style={{ transform: [{ rotate: chevronRotation }] }}>
-          <Ionicons
-            name="chevron-down"
-            size={20}
-            color={Colors.textSecondary}
-          />
-        </Animated.View>
+        <View style={styles.headerRight}>
+          {showSettingsButton && (
+            <TouchableOpacity
+              style={styles.settingsButton}
+              onPress={(e) => {
+                e.stopPropagation(); // Prevent section toggle
+                onSettingsPress?.();
+              }}
+              activeOpacity={0.7}
+            >
+              <Ionicons
+                name="settings-outline"
+                size={20}
+                color={Colors.primary}
+              />
+            </TouchableOpacity>
+          )}
+          <Animated.View style={{ transform: [{ rotate: chevronRotation }] }}>
+            <Ionicons
+              name="chevron-down"
+              size={20}
+              color={Colors.textSecondary}
+            />
+          </Animated.View>
+        </View>
       </TouchableOpacity>
 
       {/* Section Content */}
@@ -170,6 +190,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
   },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
   headerIcon: {
     marginRight: Spacing.sm,
   },
@@ -190,6 +215,11 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.xs,
     fontWeight: '600',
     color: Colors.primary,
+  },
+  settingsButton: {
+    padding: Spacing.xs,
+    borderRadius: BorderRadius.sm,
+    backgroundColor: Colors.primary + '10',
   },
   content: {
     padding: Spacing.md,

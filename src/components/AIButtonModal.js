@@ -791,12 +791,6 @@ export default function AIButtonModal({
       ? button.text()
       : button.text;
 
-    // Check if this is the Recipe Preferences button
-    if (button.isSettings) {
-      setShowRecipePreferencesModal(true);
-      return;
-    }
-
     // Check if this is a recipe button - show source modal first
     const isRecipeButton = button.toolName && (
       button.toolName.includes('Recipe') ||
@@ -1311,6 +1305,8 @@ export default function AIButtonModal({
                   expanded={expandedSections[index] || false}
                   onToggle={() => toggleSection(index)}
                   loading={loadingButton !== null}
+                  showSettingsButton={section.hasSettings}
+                  onSettingsPress={() => setShowRecipePreferencesModal(true)}
                 />
               ))}
 
