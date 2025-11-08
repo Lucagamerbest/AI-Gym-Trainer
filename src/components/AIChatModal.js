@@ -21,7 +21,6 @@ import AIService from '../services/ai/AIService';
 import ContextManager from '../services/ai/ContextManager';
 import { useAuth } from '../context/AuthContext';
 import QuickSuggestions from './QuickSuggestions';
-import QuickAITests from './QuickAITests';
 import ThinkingAnimation from './ThinkingAnimation';
 import MacroStatsCard from './MacroStatsCard';
 
@@ -425,6 +424,12 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
       });
     } finally {
       setLoading(false);
+
+      // Automatically show suggestions again after AI responds
+      // This allows users to quickly ask follow-up questions
+      setTimeout(() => {
+        setShowSuggestions(true);
+      }, 300);
     }
   };
 
@@ -691,14 +696,11 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
 
   const handleSuggestionPress = (suggestionText) => {
     console.log('💬 Quick suggestion pressed:', suggestionText);
-    // Auto-fill and send the suggestion
-    setInputText(suggestionText);
     setShowSuggestions(false); // Hide suggestions after selection
-    // Auto-send the message
-    setTimeout(() => {
-      console.log('📤 Auto-sending suggestion...');
-      handleSendMessage(suggestionText);
-    }, 100);
+
+    // Send the message directly (don't set input text to avoid showing it in the box)
+    console.log('📤 Auto-sending suggestion...');
+    handleSendMessage(suggestionText);
   };
 
   const handleQuickTest = (query) => {
@@ -789,11 +791,6 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
             <View style={styles.loadingContainer}>
               <ThinkingAnimation showCoachingMessage={true} />
             </View>
-          )}
-
-          {/* Quick Test Buttons - DEVELOPMENT ONLY */}
-          {__DEV__ && (
-            <QuickAITests onTestQuery={handleQuickTest} />
           )}
 
           {/* Quick Suggestions - Only show when toggled on */}

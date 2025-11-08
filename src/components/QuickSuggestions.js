@@ -567,11 +567,14 @@ export default function QuickSuggestions({ screen, onSuggestionPress, userId = '
 
       default:
         return [
-          { icon: 'fitness', text: 'Am I overtraining?' },
-          { icon: 'trending-up', text: 'Why am I plateauing?' },
-          { icon: 'restaurant', text: 'Am I eating enough protein?' },
-          { icon: 'scale', text: 'Is my weight trend healthy?' },
-          { icon: 'flame', text: 'Keep me accountable' },
+          { icon: 'fitness', text: 'Am I overtraining?', query: 'Check my workout frequency and recovery over the past 2 weeks. Am I overtraining or do I have adequate rest days?' },
+          { icon: 'trending-up', text: 'Why am I plateauing?', query: 'Analyze my recent strength progression on main lifts. If I\'m stuck, explain why and suggest what to change.' },
+          { icon: 'restaurant', text: 'Hitting protein goals?', query: 'Am I consistently hitting my daily protein target this week? Is my intake sufficient for my goals?' },
+          { icon: 'scale', text: 'Weight trend healthy?', query: 'Analyze my weight changes this month. Is the rate appropriate for my goal? Should I adjust calories?' },
+          { icon: 'flame', text: 'Keep me accountable', query: 'Review my workout consistency this week. How many days did I train? Give me honest feedback on my discipline.' },
+          { icon: 'calendar', text: 'Recovery status?', query: 'Based on my recent training volume and rest days, am I recovering properly? Do I need more rest or can I train more?' },
+          { icon: 'body', text: 'Muscle balance check', query: 'Am I training all muscle groups evenly? Any imbalances like too much push vs pull, or neglecting legs?' },
+          { icon: 'bulb', text: 'What to improve?', query: 'Based on my training, nutrition, and consistency over the past 2 weeks, what\'s the #1 thing I should focus on improving?' },
         ];
     }
   };
@@ -653,7 +656,8 @@ export default function QuickSuggestions({ screen, onSuggestionPress, userId = '
     }
 
     // Handle final selection - send to AI
-    onSuggestionPress(suggestion.text);
+    // Use detailed query if available, otherwise fall back to text
+    onSuggestionPress(suggestion.query || suggestion.text);
   };
 
   return (
