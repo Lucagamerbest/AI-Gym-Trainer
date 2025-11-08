@@ -108,10 +108,11 @@ export default function AIButtonSection({
                 onSettingsPress?.();
               }}
               activeOpacity={0.7}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} // Increase tap area
             >
               <Ionicons
                 name="settings-outline"
-                size={20}
+                size={22}
                 color={Colors.primary}
               />
             </TouchableOpacity>
@@ -193,7 +194,7 @@ const styles = StyleSheet.create({
   headerRight: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.sm,
+    gap: Spacing.md, // Increased spacing between settings and chevron
   },
   headerIcon: {
     marginRight: Spacing.sm,
@@ -217,9 +218,10 @@ const styles = StyleSheet.create({
     color: Colors.primary,
   },
   settingsButton: {
-    padding: Spacing.xs,
-    borderRadius: BorderRadius.sm,
+    padding: Spacing.sm,
+    borderRadius: BorderRadius.md,
     backgroundColor: Colors.primary + '10',
+    marginRight: Spacing.xs, // Extra space from chevron
   },
   content: {
     padding: Spacing.md,
