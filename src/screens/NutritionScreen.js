@@ -892,7 +892,10 @@ export default function NutritionScreen({ navigation, route }) {
         <View style={styles.statsHeader}>
           <Text style={styles.statsTitle}>Daily Calories</Text>
           <View style={styles.headerButtons}>
-            <AIHeaderButton screenName="NutritionScreen" />
+            <AIHeaderButton
+              screenName="NutritionScreen"
+              onAIClose={loadDailyNutrition}
+            />
             <TouchableOpacity
               style={styles.editIndicator}
               onPress={() => setShowMacroModal(true)}

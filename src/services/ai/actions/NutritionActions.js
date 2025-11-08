@@ -6,6 +6,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ContextManager from '../ContextManager';
 import BackendService from '../../backend/BackendService';
+import { getMealRecommendation } from '../tools/MealBalancingTool';
 
 /**
  * Add food to nutrition log
@@ -34,67 +35,73 @@ export async function addFood(params, context) {
 
 /**
  * Suggest a meal based on remaining macros
+ * Uses MealBalancingTool to intelligently distribute remaining macros
+ * across remaining meals based on user's meal plan and time of day
+ * Returns multiple meal options for user to browse
  */
 export async function suggestMeal(params, context) {
   try {
     // Get user ID from Firebase Auth
     const userId = BackendService.getCurrentUserId() || 'guest';
 
-    // Get nutrition context to see what's left
-    const nutritionContext = await ContextManager.getNutritionContext(userId);
+    // Determine meal type (from params or auto-detect from time)
+    let mealType = params?.mealType;
 
-    const caloriesLeft = (nutritionContext.calories?.target || 2000) - (nutritionContext.calories?.consumed || 0);
-    const proteinLeft = (nutritionContext.protein?.target || 150) - (nutritionContext.protein?.consumed || 0);
-
-    // Meal suggestions based on remaining macros
-    const mealSuggestions = {
-      highProtein: [
-        'Grilled chicken breast (200g) with broccoli',
-        'Greek yogurt (200g) with berries and almonds',
-        'Salmon (150g) with quinoa and vegetables',
-        'Protein shake with banana and peanut butter'
-      ],
-      balanced: [
-        'Turkey sandwich on whole wheat with avocado',
-        'Chicken rice bowl with vegetables',
-        'Pasta with lean ground beef and tomato sauce',
-        'Stir fry with chicken, rice, and mixed vegetables'
-      ],
-      lowCalorie: [
-        'Vegetable omelette (3 eggs) with spinach',
-        'Tuna salad with olive oil dressing',
-        'Grilled chicken salad with balsamic vinaigrette',
-        'Protein smoothie with berries'
-      ]
-    };
-
-    let suggestion;
-    let category;
-
-    if (proteinLeft > 50) {
-      // High protein needed
-      category = 'highProtein';
-      suggestion = mealSuggestions.highProtein[Math.floor(Math.random() * mealSuggestions.highProtein.length)];
-    } else if (caloriesLeft > 600) {
-      // Balanced meal
-      category = 'balanced';
-      suggestion = mealSuggestions.balanced[Math.floor(Math.random() * mealSuggestions.balanced.length)];
-    } else {
-      // Low calorie
-      category = 'lowCalorie';
-      suggestion = mealSuggestions.lowCalorie[Math.floor(Math.random() * mealSuggestions.lowCalorie.length)];
+    if (!mealType) {
+      // Auto-detect meal type based on current time
+      const currentHour = new Date().getHours();
+      if (currentHour >= 5 && currentHour < 11) {
+        mealType = 'breakfast';
+      } else if (currentHour >= 11 && currentHour < 16) {
+        mealType = 'lunch';
+      } else if (currentHour >= 16 && currentHour < 22) {
+        mealType = 'dinner';
+      } else {
+        mealType = 'snack';
+      }
     }
+
+    // Use MealBalancingTool to get smart recommendation
+    const recommendation = await getMealRecommendation(userId, mealType);
+
+    if (!recommendation.success) {
+      throw new Error(recommendation.error || 'Failed to get meal recommendation');
+    }
+
+    const { recommended, remaining, mealsPerDay, mealsRemaining, bufferNote } = recommendation.data;
+
+    // Generate multiple meal options that fit the target macros
+    const mealOptions = generateMealOptions(mealType, recommended);
+
+    // Generate meal emoji
+    const mealEmoji = {
+      breakfast: '🌅',
+      lunch: '☀️',
+      dinner: '🌙',
+      snack: '🍿'
+    }[mealType] || '🍽️';
+
+    // Create short intro message (card shows all details)
+    let message = `${mealEmoji} **${mealType.charAt(0).toUpperCase() + mealType.slice(1)} Suggestions**\n\nBrowse through the options below:`;
 
     return {
       success: true,
       action: 'SUGGEST_MEAL',
       data: {
-        suggestion,
-        category,
-        caloriesLeft: Math.round(caloriesLeft),
-        proteinLeft: Math.round(proteinLeft)
+        mealType,
+        recommended,
+        remaining,
+        mealsPerDay,
+        mealsRemaining,
+        bufferNote,
+        mealOptions // Array of meal suggestions
       },
-      message: `Based on your remaining macros (${Math.round(caloriesLeft)} cal, ${Math.round(proteinLeft)}g protein), try:\n\n${suggestion}\n\nCheck the Recipes tab (📖) for saved meals!`
+      message,
+      toolResults: {
+        mealSuggestions: mealOptions,
+        source: 'generated',
+        targetMacros: recommended
+      }
     };
   } catch (error) {
     console.error('Error suggesting meal:', error);
@@ -104,6 +111,133 @@ export async function suggestMeal(params, context) {
       message: 'Unable to suggest a meal. Try a balanced meal with protein, carbs, and vegetables.'
     };
   }
+}
+
+/**
+ * Generate multiple meal options based on target macros
+ */
+function generateMealOptions(mealType, targetMacros) {
+  const { calories, protein, carbs, fat } = targetMacros;
+
+  // Define meal templates based on meal type
+  const mealTemplates = {
+    breakfast: [
+      {
+        name: 'Protein-Packed Breakfast Bowl',
+        description: 'Greek yogurt with granola, berries, and honey',
+        ingredients: ['Greek yogurt', 'Granola', 'Mixed berries', 'Honey', 'Almonds'],
+        prepTime: '5 min',
+        tags: ['Quick', 'High Protein', 'No Cooking']
+      },
+      {
+        name: 'Classic Eggs & Toast',
+        description: 'Scrambled eggs with whole grain toast and avocado',
+        ingredients: ['Eggs', 'Whole grain bread', 'Avocado', 'Butter', 'Salt & pepper'],
+        prepTime: '10 min',
+        tags: ['Classic', 'Filling', 'Easy']
+      },
+      {
+        name: 'Protein Smoothie Bowl',
+        description: 'Protein powder smoothie topped with fruits and nuts',
+        ingredients: ['Protein powder', 'Banana', 'Almond milk', 'Peanut butter', 'Toppings'],
+        prepTime: '5 min',
+        tags: ['Quick', 'High Protein', 'Refreshing']
+      }
+    ],
+    lunch: [
+      {
+        name: 'Grilled Chicken & Rice Bowl',
+        description: 'Seasoned grilled chicken breast with rice and vegetables',
+        ingredients: ['Chicken breast', 'Brown rice', 'Broccoli', 'Carrots', 'Soy sauce'],
+        prepTime: '25 min',
+        tags: ['High Protein', 'Balanced', 'Meal Prep']
+      },
+      {
+        name: 'Turkey & Avocado Wrap',
+        description: 'Whole wheat wrap with turkey, avocado, and veggies',
+        ingredients: ['Whole wheat tortilla', 'Turkey slices', 'Avocado', 'Lettuce', 'Tomato'],
+        prepTime: '10 min',
+        tags: ['Quick', 'Portable', 'Fresh']
+      },
+      {
+        name: 'Salmon with Quinoa',
+        description: 'Pan-seared salmon with quinoa and roasted vegetables',
+        ingredients: ['Salmon fillet', 'Quinoa', 'Asparagus', 'Bell peppers', 'Lemon'],
+        prepTime: '30 min',
+        tags: ['Healthy Fats', 'Omega-3', 'Gourmet']
+      }
+    ],
+    dinner: [
+      {
+        name: 'Lean Steak & Sweet Potato',
+        description: 'Grilled sirloin steak with baked sweet potato and green beans',
+        ingredients: ['Sirloin steak', 'Sweet potato', 'Green beans', 'Olive oil', 'Garlic'],
+        prepTime: '35 min',
+        tags: ['High Protein', 'Filling', 'Classic']
+      },
+      {
+        name: 'Chicken Stir-Fry',
+        description: 'Chicken breast stir-fried with vegetables and brown rice',
+        ingredients: ['Chicken breast', 'Mixed vegetables', 'Brown rice', 'Teriyaki sauce', 'Ginger'],
+        prepTime: '20 min',
+        tags: ['Quick', 'Asian-Inspired', 'Veggie-Packed']
+      },
+      {
+        name: 'Baked Cod with Veggies',
+        description: 'Oven-baked cod with roasted vegetables and quinoa',
+        ingredients: ['Cod fillet', 'Quinoa', 'Zucchini', 'Tomatoes', 'Herbs'],
+        prepTime: '30 min',
+        tags: ['Light', 'Lean Protein', 'Low-Fat']
+      }
+    ],
+    snack: [
+      {
+        name: 'Protein Shake',
+        description: 'Whey protein shake with banana and almond milk',
+        ingredients: ['Protein powder', 'Banana', 'Almond milk', 'Ice'],
+        prepTime: '2 min',
+        tags: ['Quick', 'High Protein', 'Post-Workout']
+      },
+      {
+        name: 'Greek Yogurt & Fruit',
+        description: 'Greek yogurt with mixed berries and nuts',
+        ingredients: ['Greek yogurt', 'Berries', 'Almonds', 'Honey'],
+        prepTime: '3 min',
+        tags: ['Quick', 'Protein-Rich', 'Fresh']
+      },
+      {
+        name: 'Protein Bar & Apple',
+        description: 'High-protein bar with a medium apple',
+        ingredients: ['Protein bar', 'Apple'],
+        prepTime: '1 min',
+        tags: ['Ultra Quick', 'Portable', 'Convenient']
+      }
+    ]
+  };
+
+  const templates = mealTemplates[mealType] || mealTemplates.lunch;
+
+  // Generate meals with adjusted macros
+  return templates.map((template, index) => {
+    // Add slight variation to macros (+/- 10%)
+    const variation = 0.9 + (index * 0.1);
+
+    return {
+      id: `meal_${mealType}_${index}`,
+      name: template.name,
+      description: template.description,
+      ingredients: template.ingredients,
+      prepTime: template.prepTime,
+      tags: template.tags,
+      nutrition: {
+        calories: Math.round(calories * variation),
+        protein: Math.round(protein * variation),
+        carbs: Math.round(carbs * variation),
+        fat: Math.round(fat * variation)
+      },
+      mealType
+    };
+  });
 }
 
 /**

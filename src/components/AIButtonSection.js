@@ -120,20 +120,27 @@ export default function AIButtonSection({
             </View>
           ) : (
             <View style={styles.buttonGrid}>
-              {buttons.map((button, index) => (
-                <AIActionButton
-                  key={index}
-                  icon={button.icon}
-                  text={button.text}
-                  onPress={() => onButtonPress?.(button)}
-                  variant={button.variant || 'primary'}
-                  loading={loading}
-                  size={button.size || 'medium'}
-                  disabled={button.disabled || false}
-                  subtitle={button.subtitle}
-                  fullWidth={button.fullWidth || false}
-                />
-              ))}
+              {buttons.map((button, index) => {
+                // Handle dynamic text (function that returns text based on time)
+                const buttonText = button.isDynamic && typeof button.text === 'function'
+                  ? button.text()
+                  : button.text;
+
+                return (
+                  <AIActionButton
+                    key={index}
+                    icon={button.icon}
+                    text={buttonText}
+                    onPress={() => onButtonPress?.(button)}
+                    variant={button.variant || 'primary'}
+                    loading={loading}
+                    size={button.size || 'medium'}
+                    disabled={button.disabled || false}
+                    subtitle={button.subtitle}
+                    fullWidth={button.fullWidth || false}
+                  />
+                );
+              })}
             </View>
           )}
         </View>

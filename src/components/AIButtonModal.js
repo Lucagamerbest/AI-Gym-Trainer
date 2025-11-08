@@ -49,6 +49,9 @@ export default function AIButtonModal({
   const [currentRecipeIndex, setCurrentRecipeIndex] = useState(0); // For navigating database results
   const [lastSearchFilters, setLastSearchFilters] = useState(null); // Store last filters for retry
 
+  // Meal suggestion navigation state
+  const [currentMealIndex, setCurrentMealIndex] = useState(0); // For navigating meal suggestions
+
   // Workout logging state
   const [selectedExercise, setSelectedExercise] = useState(null);
   const [weightInput, setWeightInput] = useState('');
@@ -494,6 +497,65 @@ export default function AIButtonModal({
     setLastResponse('Recipe discarded. Feel free to generate a new one!');
   };
 
+  const handleSaveMealToPlan = async (meal) => {
+    try {
+      console.log('💾 Attempting to save meal to planned meals:', meal.name);
+
+      // Get today's date
+      const today = new Date().toISOString().split('T')[0];
+
+      // Load existing meal plans
+      const existingPlans = await AsyncStorage.getItem('@meal_plans');
+      const mealPlans = existingPlans ? JSON.parse(existingPlans) : {};
+
+      // Initialize today's plan if needed
+      if (!mealPlans[today]) {
+        mealPlans[today] = {
+          planned: { breakfast: [], lunch: [], dinner: [], snacks: [] },
+          logged: { breakfast: [], lunch: [], dinner: [], snacks: [] }
+        };
+      }
+
+      // Determine meal type (breakfast, lunch, dinner, snacks)
+      const mealType = meal.mealType || 'lunch';
+
+      // Create planned meal object
+      const plannedMeal = {
+        name: meal.name,
+        calories: meal.nutrition.calories,
+        protein: meal.nutrition.protein,
+        carbs: meal.nutrition.carbs,
+        fat: meal.nutrition.fat,
+        description: meal.description,
+        ingredients: meal.ingredients,
+        prepTime: meal.prepTime,
+        tags: meal.tags,
+        addedAt: new Date().toISOString()
+      };
+
+      // Add to planned meals for the appropriate meal type
+      mealPlans[today].planned[mealType].push(plannedMeal);
+
+      // Save back to AsyncStorage
+      await AsyncStorage.setItem('@meal_plans', JSON.stringify(mealPlans));
+
+      // Clear the meal suggestions and show success message
+      setLastToolResults(null);
+      setCurrentMealIndex(0);
+      setLastResponse(`✅ "${meal.name}" saved to your planned ${mealType} meals for today! You can view it in the Nutrition screen.`);
+
+      // Auto-close modal after 2 seconds
+      setTimeout(() => {
+        if (onClose) {
+          onClose();
+        }
+      }, 2000);
+    } catch (error) {
+      console.error('❌ Error saving meal to plan:', error);
+      setLastResponse('❌ Failed to save meal. Please try again.');
+    }
+  };
+
   const handleRegenerateRecipe = async (recipeCard) => {
     try {
       // Clear current recipe and show loading
@@ -626,7 +688,12 @@ export default function AIButtonModal({
    */
   const handleAIRecipeGeneration = async (button) => {
     try {
-      setLoadingButton(button.text);
+      // Handle dynamic text (function that returns text based on time)
+      const buttonText = button.isDynamic && typeof button.text === 'function'
+        ? button.text()
+        : button.text;
+
+      setLoadingButton(buttonText);
       setLastResponse(null);
       setExpandedSections({});
 
@@ -637,7 +704,7 @@ export default function AIButtonModal({
       }
 
       // Build prompt from button
-      let messageToSend = button.prompt || button.text;
+      let messageToSend = button.prompt || buttonText;
 
       // Handle dynamic prompts (same logic as existing handleButtonPress)
       if (button.toolName === 'generateHighProteinRecipe' && screenParams?.mealType) {
@@ -693,11 +760,16 @@ export default function AIButtonModal({
    * Sends the button action to AI with context
    */
   const handleButtonPress = async (button) => {
+    // Handle dynamic text (function that returns text based on time)
+    const buttonText = button.isDynamic && typeof button.text === 'function'
+      ? button.text()
+      : button.text;
+
     // Check if this is a recipe button - show source modal first
     const isRecipeButton = button.toolName && (
       button.toolName.includes('Recipe') ||
       button.toolName.includes('recipe') ||
-      button.text.toLowerCase().includes('recipe')
+      buttonText.toLowerCase().includes('recipe')
     );
 
     if (isRecipeButton) {
@@ -769,7 +841,7 @@ export default function AIButtonModal({
     }
 
     try {
-      setLoadingButton(button.text);
+      setLoadingButton(buttonText);
       setLastResponse(null);
 
       // Collapse all sections
@@ -784,7 +856,7 @@ export default function AIButtonModal({
       }
 
       // Build prompt - check if we need to use recent ingredients
-      let messageToSend = button.prompt || button.text;
+      let messageToSend = button.prompt || buttonText;
 
       // Make high-protein recipe prompt dynamic based on meal type
       if (button.toolName === 'generateHighProteinRecipe' && screenParams?.mealType) {
@@ -828,12 +900,19 @@ export default function AIButtonModal({
         hasResponse: !!result.response,
         responseLength: result.response?.length,
         responsePreview: result.response?.substring(0, 100),
-        keys: Object.keys(result)
+        keys: Object.keys(result),
+        hasToolResults: !!result.toolResults,
+        toolResultsKeys: result.toolResults ? Object.keys(result.toolResults) : null,
+        hasMealSuggestions: !!result.toolResults?.mealSuggestions,
+        mealSuggestionsCount: result.toolResults?.mealSuggestions?.length,
+        source: result.toolResults?.source
       });
 
       // Store response and tool results
       setLastResponse(result.response);
       setLastToolResults(result.toolResults || null);
+
+      console.log('🔍 [AIButtonModal] lastToolResults set to:', result.toolResults);
 
       // Add to conversation history (use button.text for display, not the full prompt)
       setConversationHistory(prev => [
@@ -1343,11 +1422,16 @@ export default function AIButtonModal({
               {/* Response Display */}
               {lastResponse && (
                 <View style={styles.responseContainer}>
-                  <View style={styles.responseHeader}>
-                    <Text style={styles.responseIcon}>💬</Text>
-                    <Text style={styles.responseTitle}>AI Response</Text>
-                  </View>
-                  <Text style={styles.responseText}>{lastResponse}</Text>
+                  {/* Hide header and text when meal suggestions are shown */}
+                  {!(lastToolResults?.mealSuggestions && lastToolResults?.source === 'generated') && (
+                    <>
+                      <View style={styles.responseHeader}>
+                        <Text style={styles.responseIcon}>💬</Text>
+                        <Text style={styles.responseTitle}>AI Response</Text>
+                      </View>
+                      <Text style={styles.responseText}>{lastResponse}</Text>
+                    </>
+                  )}
 
                   {/* Recipe Card - Show when recipe is generated */}
                   {(() => {
@@ -1576,6 +1660,125 @@ export default function AIButtonModal({
                       </TouchableOpacity>
                     </View>
                   )}
+
+                  {/* Meal Suggestions - Show multiple meal options with navigation */}
+                  {(() => {
+                    if (lastToolResults?.mealSuggestions && lastToolResults?.source === 'generated') {
+                      const meals = lastToolResults.mealSuggestions;
+                      const currentMeal = meals[currentMealIndex];
+
+                      if (!currentMeal) return null;
+
+                      return (
+                        <View style={styles.recipeCard}>
+                          {/* Meal Counter */}
+                          <View style={styles.recipeCounter}>
+                            <Text style={styles.recipeCounterText}>
+                              Meal Option {currentMealIndex + 1} of {meals.length}
+                            </Text>
+                          </View>
+
+                          {/* Meal Header */}
+                          <Text style={styles.recipeTitle}>{currentMeal.name}</Text>
+
+                          {/* Macros Row */}
+                          <View style={styles.macrosRow}>
+                            <View style={styles.macroItem}>
+                              <Text style={styles.macroValue}>{currentMeal.nutrition.calories}</Text>
+                              <Text style={styles.macroLabel}>Calories</Text>
+                            </View>
+                            <View style={styles.macroItem}>
+                              <Text style={styles.macroValue}>{currentMeal.nutrition.protein}g</Text>
+                              <Text style={styles.macroLabel}>Protein</Text>
+                            </View>
+                            <View style={styles.macroItem}>
+                              <Text style={styles.macroValue}>{currentMeal.nutrition.carbs}g</Text>
+                              <Text style={styles.macroLabel}>Carbs</Text>
+                            </View>
+                            <View style={styles.macroItem}>
+                              <Text style={styles.macroValue}>{currentMeal.nutrition.fat}g</Text>
+                              <Text style={styles.macroLabel}>Fat</Text>
+                            </View>
+                          </View>
+
+                          {/* Meal Details */}
+                          <View style={styles.recipeDetails}>
+                            <Text style={styles.recipeDetail}>⏱️ {currentMeal.prepTime}</Text>
+                            {currentMeal.tags && currentMeal.tags.length > 0 && (
+                              <View style={styles.tagsContainer}>
+                                {currentMeal.tags.map((tag, index) => (
+                                  <View key={index} style={styles.tag}>
+                                    <Text style={styles.tagText}>{tag}</Text>
+                                  </View>
+                                ))}
+                              </View>
+                            )}
+                          </View>
+
+                          {/* Ingredients */}
+                          {currentMeal.ingredients && currentMeal.ingredients.length > 0 && (
+                            <View style={styles.ingredientsSection}>
+                              <Text style={styles.sectionTitle}>🥘 Main Ingredients:</Text>
+                              <View style={styles.ingredientsList}>
+                                {currentMeal.ingredients.map((ingredient, index) => (
+                                  <Text key={index} style={styles.ingredientItem}>
+                                    • {ingredient}
+                                  </Text>
+                                ))}
+                              </View>
+                            </View>
+                          )}
+
+                          {/* Navigation Buttons */}
+                          <View style={styles.navigationButtons}>
+                            <TouchableOpacity
+                              style={[styles.navButton, currentMealIndex === 0 && styles.navButtonDisabled]}
+                              onPress={() => setCurrentMealIndex(Math.max(0, currentMealIndex - 1))}
+                              disabled={currentMealIndex === 0}
+                            >
+                              <Ionicons name="chevron-back" size={24} color={currentMealIndex === 0 ? Colors.textMuted : Colors.white} />
+                              <Text style={[styles.navButtonText, currentMealIndex === 0 && styles.navButtonTextDisabled]}>Previous</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                              style={[styles.navButton, currentMealIndex === meals.length - 1 && styles.navButtonDisabled]}
+                              onPress={() => setCurrentMealIndex(Math.min(meals.length - 1, currentMealIndex + 1))}
+                              disabled={currentMealIndex === meals.length - 1}
+                            >
+                              <Text style={[styles.navButtonText, currentMealIndex === meals.length - 1 && styles.navButtonTextDisabled]}>Next</Text>
+                              <Ionicons name="chevron-forward" size={24} color={currentMealIndex === meals.length - 1 ? Colors.textMuted : Colors.white} />
+                            </TouchableOpacity>
+                          </View>
+
+                          {/* Action Buttons */}
+                          <View style={styles.recipeButtons}>
+                            <TouchableOpacity
+                              style={[styles.recipeButton, styles.saveButton]}
+                              onPress={() => {
+                                handleSaveMealToPlan(currentMeal);
+                              }}
+                              disabled={loadingButton !== null}
+                            >
+                              <Text style={styles.recipeButtonText}>💾 Save to Planned Meals</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                              style={[styles.recipeButton, styles.discardButton]}
+                              onPress={() => {
+                                setLastToolResults(null);
+                                setCurrentMealIndex(0);
+                                setLastResponse('Meal suggestions closed. Feel free to ask for more!');
+                              }}
+                              disabled={loadingButton !== null}
+                            >
+                              <Text style={styles.recipeButtonText}>❌ Close</Text>
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+                      );
+                    }
+                    return null;
+                  })()}
 
                   {/* Quick Reply Buttons - Show when AI asks a question OR for special UIs */}
                   {(isQuestion || isExerciseReorderQuestion || isReorderDirectionQuestion) && !selectedExercise && (
@@ -2548,12 +2751,19 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
     borderWidth: 1,
     borderColor: Colors.border,
+    maxWidth: '100%',
   },
   recipeTitle: {
     fontSize: Typography.fontSize.lg,
     fontWeight: 'bold',
     color: Colors.text,
     marginBottom: Spacing.md,
+  },
+  recipeDescription: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.md,
+    fontStyle: 'italic',
   },
   macrosRow: {
     flexDirection: 'row',
@@ -2583,6 +2793,44 @@ const styles = StyleSheet.create({
   recipeDetail: {
     fontSize: Typography.fontSize.sm,
     color: Colors.textSecondary,
+  },
+  tagsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.xs,
+    marginTop: Spacing.xs,
+  },
+  tag: {
+    backgroundColor: Colors.primary + '20',
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.sm,
+  },
+  tagText: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.primary,
+    fontWeight: '600',
+  },
+  ingredientsSection: {
+    marginTop: Spacing.md,
+    marginBottom: Spacing.md,
+    padding: Spacing.sm,
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.sm,
+  },
+  sectionTitle: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: Spacing.sm,
+  },
+  ingredientsList: {
+    gap: Spacing.xs,
+  },
+  ingredientItem: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+    lineHeight: 20,
   },
   recipeButtons: {
     gap: Spacing.sm,

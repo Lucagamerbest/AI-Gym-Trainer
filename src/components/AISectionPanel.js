@@ -44,20 +44,25 @@ export default function AISectionPanel({
    */
   const handleButtonPress = async (button) => {
     try {
-      setLoadingButton(button.text);
+      // Handle dynamic text (function that returns text based on time)
+      const buttonText = button.isDynamic && typeof button.text === 'function'
+        ? button.text()
+        : button.text;
+
+      setLoadingButton(buttonText);
       setLastResponse(null);
 
       // Build context for this screen
       const context = await ContextManager.buildContextForScreen(screenName, user?.uid);
 
       // Prepare AI request
-      let userMessage = button.text;
+      let userMessage = buttonText;
 
       // If button has a specific tool, we can optimize the request
       if (button.toolName) {
         // The AI should intelligently call the right tool based on the message
         // We trust the tool system to handle this
-        userMessage = button.text;
+        userMessage = buttonText;
       }
 
       // Send to AI with tools

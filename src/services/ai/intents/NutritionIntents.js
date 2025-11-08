@@ -36,14 +36,30 @@ export function detectNutritionIntents(message, screen) {
     };
   }
 
-  // SUGGEST_MEAL - "what should I eat" / "meal idea" / "suggest lunch"
+  // SUGGEST_MEAL - "what should I eat" / "meal idea" / "suggest lunch" / "what for dinner to balance macros"
   if ((msg.includes('what') && msg.includes('eat')) ||
       msg.includes('suggest') || msg.includes('meal idea') ||
-      msg.includes('what to eat') || msg.includes('food recommendation')) {
+      msg.includes('what to eat') || msg.includes('food recommendation') ||
+      msg.includes('balance') && (msg.includes('macro') || msg.includes('macros'))) {
+
+    // Detect specific meal type
+    let mealType = null;
+    if (msg.includes('breakfast')) {
+      mealType = 'breakfast';
+    } else if (msg.includes('lunch')) {
+      mealType = 'lunch';
+    } else if (msg.includes('dinner')) {
+      mealType = 'dinner';
+    } else if (msg.includes('snack')) {
+      mealType = 'snack';
+    }
+
     return {
       intent: 'SUGGEST_MEAL',
       confidence: 0.9,
-      parameters: {}
+      parameters: {
+        mealType
+      }
     };
   }
 

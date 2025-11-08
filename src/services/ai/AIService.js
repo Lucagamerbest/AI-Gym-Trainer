@@ -474,11 +474,25 @@ class AIService {
           toolNames: toolsUsedLog.map(t => t.name),
         });
 
+        // Extract toolResults from the last tool if it has any
+        let finalToolResults = null;
+        if (toolsUsedLog.length > 0) {
+          const lastTool = toolsUsedLog[toolsUsedLog.length - 1];
+          // Check if the tool result has a toolResults field (like suggestMeal)
+          if (lastTool.result?.toolResults) {
+            finalToolResults = lastTool.result.toolResults;
+          } else {
+            // Otherwise, pass the full toolsUsedLog for legacy rendering (recipes, etc.)
+            finalToolResults = toolsUsedLog;
+          }
+        }
+
         return {
           response: responseText,
           model: this.modelName,
           toolsUsed: functionCallCount,
-          toolResults: toolsUsedLog, // Return tool results for capturing workout data
+          toolResults: finalToolResults, // Return tool results for UI rendering (recipes, meals, etc.)
+          toolsUsedLog, // Keep full log for debugging
           estimatedTokens: Math.ceil((fullMessage.length + responseText.length) / 4),
         };
 

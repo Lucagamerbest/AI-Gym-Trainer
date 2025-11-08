@@ -18,6 +18,40 @@
  * }
  */
 
+/**
+ * Get dynamic meal suggestion text based on current time
+ */
+export function getDynamicMealSuggestionText() {
+  const currentHour = new Date().getHours();
+
+  if (currentHour >= 5 && currentHour < 11) {
+    return 'What to eat for breakfast?';
+  } else if (currentHour >= 11 && currentHour < 16) {
+    return 'What to eat for lunch?';
+  } else if (currentHour >= 16 && currentHour < 22) {
+    return 'What to eat for dinner?';
+  } else {
+    return 'What to eat for a snack?';
+  }
+}
+
+/**
+ * Get dynamic meal type based on current time
+ */
+export function getCurrentMealType() {
+  const currentHour = new Date().getHours();
+
+  if (currentHour >= 5 && currentHour < 11) {
+    return 'breakfast';
+  } else if (currentHour >= 11 && currentHour < 16) {
+    return 'lunch';
+  } else if (currentHour >= 16 && currentHour < 22) {
+    return 'dinner';
+  } else {
+    return 'snack';
+  }
+}
+
 // ============================================================
 // WORKOUT SCREENS
 // ============================================================
@@ -179,7 +213,7 @@ export const NutritionScreenSections = [
     buttons: [
       { icon: 'restaurant', text: 'High protein meal', toolName: 'suggestMeal', params: { highProtein: true } },
       { icon: 'flame', text: 'Low calorie meal', toolName: 'suggestMeal', params: { lowCalorie: true } },
-      { icon: 'leaf', text: 'What to eat for dinner?', toolName: 'suggestMeal' },
+      { icon: 'leaf', text: getDynamicMealSuggestionText, toolName: 'suggestMeal', isDynamic: true },
       { icon: 'restaurant', text: 'Hit protein goal', toolName: 'suggestMeal', params: { targetProtein: true } },
     ],
   },
@@ -395,9 +429,9 @@ export const MealsHistoryScreenSections = [
       },
       {
         icon: 'restaurant',
-        text: 'Suggest next meal',
+        text: getDynamicMealSuggestionText,
         toolName: 'suggestNextMealForBalance',
-        prompt: 'What should I eat for dinner to balance my macros?'
+        isDynamic: true
       },
     ],
   },

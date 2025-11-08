@@ -42,6 +42,38 @@ class ToolRegistry {
    * @returns {Promise<Object>} Tool execution result
    */
   async executeTool(name, args) {
+    // Redirect meal suggestion tools to suggestMeal action for browsable UI
+    if (name === 'getMealRecommendation' || name === 'suggestNextMealForBalance') {
+      console.log(`🔀 Redirecting ${name} to suggestMeal action for multiple browsable options`);
+
+      // Import suggestMeal action
+      const { suggestMeal } = require('../actions/NutritionActions');
+
+      // Determine meal type from args or auto-detect
+      let mealType = args.mealType;
+
+      // If no mealType specified, auto-detect from current time
+      if (!mealType) {
+        const currentHour = new Date().getHours();
+        if (currentHour >= 5 && currentHour < 11) {
+          mealType = 'breakfast';
+        } else if (currentHour >= 11 && currentHour < 16) {
+          mealType = 'lunch';
+        } else if (currentHour >= 16 && currentHour < 22) {
+          mealType = 'dinner';
+        } else {
+          mealType = 'snack';
+        }
+      }
+
+      // Call suggestMeal with the meal type
+      const result = await suggestMeal({ mealType }, {});
+      console.log('✅ suggestMeal action completed');
+
+      // Return in tool format with toolResults for UI rendering
+      return result;
+    }
+
     const tool = this.tools.get(name);
 
     if (!tool) {

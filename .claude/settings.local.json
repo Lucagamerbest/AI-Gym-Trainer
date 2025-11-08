@@ -38,7 +38,9 @@
       "Bash(npx expo start:*)",
       "Bash(C:UserslucarAI-Gym-Trainertemp_meals_part1.txt)",
       "Bash(netstat:*)",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(/tmp/meal_suggestions_block.txt)",
+      "Bash(awk:*)"
     ],
     "deny": [],
     "ask": []

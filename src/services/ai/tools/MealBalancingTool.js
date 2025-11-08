@@ -136,10 +136,19 @@ function estimateMealsRemaining(currentHour, mealsPerDay, requestedMeal) {
 
   const schedule = mealSchedule[mealsPerDay] || mealSchedule[3];
 
-  // Count meals that haven't happened yet
+  // Count meals that haven't happened yet (scheduled time > current hour)
   const upcomingMeals = schedule.filter(meal => meal.time > currentHour);
 
-  return Math.max(1, upcomingMeals.length);
+  // Check if the requested meal is in the upcoming list
+  const requestedMealInUpcoming = upcomingMeals.some(meal => meal.name === requestedMeal);
+
+  // If the requested meal is NOT in upcoming (meaning it's past its scheduled time but user hasn't eaten it),
+  // we should still include it in the count by adding 1
+  const mealsRemaining = requestedMealInUpcoming
+    ? upcomingMeals.length
+    : upcomingMeals.length + 1;
+
+  return Math.max(1, mealsRemaining);
 }
 
 /**
