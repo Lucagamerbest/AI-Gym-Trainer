@@ -537,6 +537,12 @@ export const AI_SECTION_CONFIG = {
       icon: 'sparkles',
       buttons: [
         {
+          icon: 'settings',
+          text: 'Recipe Preferences',
+          isSettings: true, // Special flag to open preferences modal
+          style: 'secondary', // Different visual style
+        },
+        {
           icon: 'restaurant',
           text: 'Generate from ingredients',
           toolName: 'generateRecipeFromIngredients',
@@ -547,7 +553,7 @@ export const AI_SECTION_CONFIG = {
           icon: 'fitness',
           text: 'High-protein recipe',
           toolName: 'generateHighProteinRecipe',
-          prompt: 'Generate a high-protein recipe with 50g protein and 500 calories. Focus on lean proteins and keep calories reasonable.'
+          usesPreferences: 'highProtein', // Uses user preferences
         },
         {
           icon: 'scale',
@@ -567,8 +573,20 @@ export const AI_SECTION_CONFIG = {
           toolName: 'suggestIngredientSubstitutions',
           prompt: 'I don\'t have chicken, what can I use?'
         },
-        { icon: 'restaurant', text: 'High protein recipe', toolName: 'suggestRecipe', params: { highProtein: true } },
-        { icon: 'flame', text: 'Low calorie recipe', toolName: 'suggestRecipe', params: { lowCalorie: true } },
+        {
+          icon: 'restaurant',
+          text: 'High protein recipe',
+          toolName: 'suggestRecipe',
+          params: { highProtein: true },
+          usesPreferences: 'highProtein'
+        },
+        {
+          icon: 'flame',
+          text: 'Low calorie recipe',
+          toolName: 'suggestRecipe',
+          params: { lowCalorie: true },
+          usesPreferences: 'lowCalorie'
+        },
       ],
     },
   ],

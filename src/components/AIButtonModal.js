@@ -8,6 +8,7 @@ import AIButtonSection from './AIButtonSection';
 import ThinkingAnimation from './ThinkingAnimation';
 import RecipeSourceModal from './RecipeSourceModal';
 import RecipeFilterModal from './RecipeFilterModal';
+import RecipePreferencesModal from './RecipePreferencesModal';
 import { getAISectionsForScreen, hasAISections } from '../config/aiSectionConfig';
 import AIService from '../services/ai/AIService';
 import ContextManager from '../services/ai/ContextManager';
@@ -15,6 +16,7 @@ import { useAuth } from '../context/AuthContext';
 import { getRecentFoods } from '../services/foodDatabase';
 import MacroStatsCard from './MacroStatsCard';
 import FreeRecipeService from '../services/FreeRecipeService';
+import { getRecipePreferences } from '../services/recipePreferencesService';
 
 /**
  * AIButtonModal
@@ -45,6 +47,7 @@ export default function AIButtonModal({
   // Recipe source modal state
   const [showRecipeSourceModal, setShowRecipeSourceModal] = useState(false);
   const [showRecipeFilterModal, setShowRecipeFilterModal] = useState(false);
+  const [showRecipePreferencesModal, setShowRecipePreferencesModal] = useState(false);
   const [pendingRecipeButton, setPendingRecipeButton] = useState(null); // Store button while user chooses source
   const [currentRecipeIndex, setCurrentRecipeIndex] = useState(0); // For navigating database results
   const [lastSearchFilters, setLastSearchFilters] = useState(null); // Store last filters for retry
@@ -706,8 +709,23 @@ export default function AIButtonModal({
       // Build prompt from button
       let messageToSend = button.prompt || buttonText;
 
+      // Apply user preferences if button uses them
+      if (button.usesPreferences) {
+        const preferences = await getRecipePreferences();
+        const prefType = button.usesPreferences; // 'highProtein', 'lowCalorie', 'balanced'
+        const userPrefs = preferences[prefType];
+
+        if (prefType === 'highProtein' && userPrefs) {
+          messageToSend = `Generate a high-protein recipe with ${userPrefs.protein}g protein and maximum ${userPrefs.calories} calories. Focus on lean proteins and keep calories reasonable.`;
+        } else if (prefType === 'lowCalorie' && userPrefs) {
+          messageToSend = `Generate a low-calorie recipe with maximum ${userPrefs.calories} calories. Keep it light and healthy.`;
+        } else if (prefType === 'balanced' && userPrefs) {
+          messageToSend = `Generate a balanced recipe with ${userPrefs.protein}g protein, ${userPrefs.carbs}g carbs, and ${userPrefs.fat}g fat.`;
+        }
+      }
+
       // Handle dynamic prompts (same logic as existing handleButtonPress)
-      if (button.toolName === 'generateHighProteinRecipe' && screenParams?.mealType) {
+      if (button.toolName === 'generateHighProteinRecipe' && screenParams?.mealType && !button.usesPreferences) {
         const mealType = screenParams.mealType;
         const calorieRanges = {
           breakfast: { min: 300, max: 600, ideal: 450 },
@@ -718,9 +736,17 @@ export default function AIButtonModal({
         };
 
         const range = calorieRanges[mealType] || { min: 300, max: 700, ideal: 500 };
-        const proteinAmount = Math.round((range.ideal * 0.35) / 4);
 
-        messageToSend = `Generate a high-protein ${mealType} with approximately ${proteinAmount}g protein and ${range.ideal} calories (max ${range.max} calories). Keep it appropriate for a ${mealType}.`;
+        // Use user preferences if available
+        if (button.usesPreferences === 'highProtein') {
+          const preferences = await getRecipePreferences();
+          const proteinTarget = preferences.highProtein?.protein || '50';
+          const caloriesMax = preferences.highProtein?.calories || range.max.toString();
+          messageToSend = `Generate a high-protein ${mealType} with ${proteinTarget}g protein and ${range.ideal} calories (max ${caloriesMax} calories). Keep it appropriate for a ${mealType}.`;
+        } else {
+          const proteinAmount = Math.round((range.ideal * 0.35) / 4);
+          messageToSend = `Generate a high-protein ${mealType} with approximately ${proteinAmount}g protein and ${range.ideal} calories (max ${range.max} calories). Keep it appropriate for a ${mealType}.`;
+        }
       }
 
       if (button.promptTemplate === 'recentIngredients') {
@@ -764,6 +790,12 @@ export default function AIButtonModal({
     const buttonText = button.isDynamic && typeof button.text === 'function'
       ? button.text()
       : button.text;
+
+    // Check if this is the Recipe Preferences button
+    if (button.isSettings) {
+      setShowRecipePreferencesModal(true);
+      return;
+    }
 
     // Check if this is a recipe button - show source modal first
     const isRecipeButton = button.toolName && (
@@ -2275,8 +2307,12 @@ export default function AIButtonModal({
           setPendingRecipeButton(null);
         }}
         buttonContext={pendingRecipeButton?.text?.toLowerCase() || 'high-protein'}
-        defaultMaxCalories={lastSearchFilters?.maxCalories || 600}
-        defaultMinProtein={lastSearchFilters?.minProtein || 30}
+      />
+
+      {/* Recipe Preferences Modal */}
+      <RecipePreferencesModal
+        visible={showRecipePreferencesModal}
+        onClose={() => setShowRecipePreferencesModal(false)}
       />
     </Modal>
   );
