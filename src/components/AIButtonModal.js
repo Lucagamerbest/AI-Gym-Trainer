@@ -9,6 +9,7 @@ import ThinkingAnimation from './ThinkingAnimation';
 import RecipeSourceModal from './RecipeSourceModal';
 import RecipeFilterModal from './RecipeFilterModal';
 import RecipePreferencesModal from './RecipePreferencesModal';
+import SmartTextInput from './SmartTextInput';
 import { getAISectionsForScreen, hasAISections } from '../config/aiSectionConfig';
 import AIService from '../services/ai/AIService';
 import ContextManager from '../services/ai/ContextManager';
@@ -2246,17 +2247,20 @@ export default function AIButtonModal({
                     </TouchableOpacity>
                   </View>
                   <View style={styles.customInputRow}>
-                    <TextInput
-                      style={styles.customInput}
-                      placeholder="Ask any question you have..."
-                      placeholderTextColor={Colors.textMuted}
-                      value={customInputText}
-                      onChangeText={setCustomInputText}
-                      multiline
-                      maxLength={500}
-                      editable={loadingButton === null}
-                      autoFocus
-                    />
+                    <View style={{flex: 1}}>
+                      <SmartTextInput
+                        value={customInputText}
+                        onChangeText={setCustomInputText}
+                        placeholder="Ask any question you have..."
+                        screenName={screenName}
+                        screenParams={screenParams}
+                        multiline
+                        autoFocus
+                        style={styles.customInput}
+                        editable={loadingButton === null}
+                        maxLength={500}
+                      />
+                    </View>
                     <TouchableOpacity
                       style={[
                         styles.sendButton,
