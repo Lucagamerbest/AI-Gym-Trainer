@@ -209,6 +209,52 @@ const VOCABULARY = {
     ]
   },
 
+  // Bar types and grip variations (for lat pulldown, rows, etc.)
+  barTypes: {
+    patterns: ['bar', 'grip', 'pulldown', 'row', 'curl', 'press'],
+    suggestions: [
+      // Lat pulldown bar variations
+      'wide grip lat pulldown',
+      'close grip lat pulldown',
+      'narrow grip lat pulldown',
+      'neutral grip lat pulldown',
+      'underhand lat pulldown',
+      'overhand lat pulldown',
+      'v-bar lat pulldown',
+      'rope lat pulldown',
+      'straight bar lat pulldown',
+
+      // Cable row bar variations
+      'wide grip cable row',
+      'close grip cable row',
+      'narrow grip cable row',
+      'v-bar cable row',
+      'rope cable row',
+      'straight bar cable row',
+
+      // Pulldown/row attachment types
+      'wide bar',
+      'close grip bar',
+      'v-bar',
+      'rope attachment',
+      'straight bar',
+      'ez bar',
+      'neutral grip bar',
+
+      // Grip variations for other exercises
+      'wide grip pull up',
+      'close grip pull up',
+      'neutral grip pull up',
+      'wide grip bench press',
+      'close grip bench press',
+      'neutral grip press',
+      'overhand grip',
+      'underhand grip',
+      'mixed grip',
+      'hook grip',
+    ]
+  },
+
   // Common user request phrases (high value!)
   commonRequests: {
     patterns: ['replace', 'instead', 'swap', 'change', 'remove', 'add', 'more', 'less'],
@@ -569,6 +615,7 @@ function getRelevantVocabularies(context) {
         ...VOCABULARY.commonRequests.suggestions,
         ...VOCABULARY.workoutTypes.suggestions,
         ...VOCABULARY.exercises.suggestions,
+        ...VOCABULARY.barTypes.suggestions,
         ...VOCABULARY.equipment.suggestions,
       ];
 
@@ -578,6 +625,7 @@ function getRelevantVocabularies(context) {
       return [
         ...VOCABULARY.commonRequests.suggestions,
         ...VOCABULARY.exercises.suggestions,
+        ...VOCABULARY.barTypes.suggestions,
         ...VOCABULARY.equipment.suggestions,
       ];
 
