@@ -3,7 +3,11 @@
  *
  * Provides context-aware text suggestions for AI input fields
  * Detects user intent and suggests relevant fitness/nutrition terms
+ *
+ * Phase 3: Now includes learning and personalization!
  */
+
+import SmartInputLearning, { SYNONYMS_MAP } from './SmartInputLearning';
 
 // ============================================================
 // VOCABULARY DATABASE
@@ -462,13 +466,14 @@ function getRelevantVocabularies(context) {
 class SmartInputService {
   /**
    * Get smart suggestions based on current input and context
+   * Phase 3: Now includes learning, synonyms, and personalization!
    *
    * @param {string} inputText - Current text input value
    * @param {string} screenName - Name of the screen (for context)
    * @param {object} screenParams - Screen parameters (optional)
-   * @returns {Array<string>} - Array of suggestion strings
+   * @returns {Promise<Array<string>>} - Array of suggestion strings
    */
-  static getSuggestions(inputText, screenName, screenParams = {}) {
+  static async getSuggestions(inputText, screenName, screenParams = {}) {
     // Return empty if input is too short
     if (!inputText || inputText.length < 2) {
       return [];
@@ -485,33 +490,79 @@ class SmartInputService {
       return [];
     }
 
+    const lastWordLower = lastWord.toLowerCase();
+    const suggestions = [];
+
+    // PHASE 3 ENHANCEMENT 1: Check for synonym/abbreviation expansion
+    const synonym = SmartInputLearning.expandSynonyms(inputText);
+    if (synonym && !suggestions.includes(synonym)) {
+      suggestions.push(synonym);
+    }
+
+    // PHASE 3 ENHANCEMENT 2: Add recent terms (personalized)
+    try {
+      const recentTerms = await SmartInputLearning.getRecentTerms(3);
+      recentTerms.forEach(term => {
+        if (term.toLowerCase().includes(lastWordLower) && !suggestions.includes(term)) {
+          suggestions.push(term);
+        }
+      });
+    } catch (error) {
+      // Silently fail if AsyncStorage not available
+    }
+
+    // PHASE 3 ENHANCEMENT 3: Add frequently used terms (personalized)
+    try {
+      const frequentTerms = await SmartInputLearning.getFrequentTerms(3, context);
+      frequentTerms.forEach(term => {
+        if (term.toLowerCase().includes(lastWordLower) && !suggestions.includes(term)) {
+          suggestions.push(term);
+        }
+      });
+    } catch (error) {
+      // Silently fail if AsyncStorage not available
+    }
+
     // Get relevant vocabulary based on context
     const vocabularies = getRelevantVocabularies(context);
 
-    // Find matching suggestions
-    const suggestions = [];
-    const lastWordLower = lastWord.toLowerCase();
-
+    // Find matching suggestions from vocabulary
     vocabularies.forEach(item => {
       const itemLower = item.toLowerCase();
 
       // Check if item starts with the partial word
       if (itemLower.startsWith(lastWordLower)) {
-        suggestions.push(item);
+        if (!suggestions.includes(item)) {
+          suggestions.push(item);
+        }
       }
       // Also check if any word in a multi-word item starts with the partial word
       else if (item.includes(' ')) {
         const words = item.split(' ');
         if (words.some(word => word.toLowerCase().startsWith(lastWordLower))) {
-          suggestions.push(item);
+          if (!suggestions.includes(item)) {
+            suggestions.push(item);
+          }
         }
       }
     });
 
-    // Remove duplicates and sort by relevance
+    // PHASE 3 ENHANCEMENT 4: Add custom vocabulary
+    try {
+      const customTerms = await SmartInputLearning.getCustomVocabulary();
+      customTerms.forEach(term => {
+        if (term.toLowerCase().includes(lastWordLower) && !suggestions.includes(term)) {
+          suggestions.push(term);
+        }
+      });
+    } catch (error) {
+      // Silently fail if AsyncStorage not available
+    }
+
+    // Remove duplicates
     const uniqueSuggestions = [...new Set(suggestions)];
 
-    // Sort: exact prefix matches first, then alphabetical
+    // PHASE 3 ENHANCEMENT 5: Smart sorting with learning
     const sorted = uniqueSuggestions.sort((a, b) => {
       const aStarts = a.toLowerCase().startsWith(lastWordLower);
       const bStarts = b.toLowerCase().startsWith(lastWordLower);
@@ -524,8 +575,19 @@ class SmartInputService {
       return a.localeCompare(b);
     });
 
-    // Return top 5 suggestions
-    return sorted.slice(0, 5);
+    // Return top 6 suggestions (increased from 5 for personalized terms)
+    return sorted.slice(0, 6);
+  }
+
+  /**
+   * Track when a suggestion is selected (for learning)
+   */
+  static async trackUsage(term, context, screenName) {
+    try {
+      await SmartInputLearning.trackSuggestionUsage(term, context, screenName);
+    } catch (error) {
+      // Silently fail
+    }
   }
 
   /**

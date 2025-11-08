@@ -38,29 +38,33 @@ export default function SmartTextInput({
 
   // Update suggestions when input changes
   useEffect(() => {
-    if (value && value.length >= 2) {
-      const newSuggestions = SmartInputService.getSuggestions(
-        value,
-        screenName,
-        screenParams
-      );
+    const fetchSuggestions = async () => {
+      if (value && value.length >= 2) {
+        const newSuggestions = await SmartInputService.getSuggestions(
+          value,
+          screenName,
+          screenParams
+        );
 
-      if (newSuggestions.length > 0) {
-        setSuggestions(newSuggestions);
-        setShowSuggestions(true);
+        if (newSuggestions.length > 0) {
+          setSuggestions(newSuggestions);
+          setShowSuggestions(true);
 
-        // Fade in animation
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 200,
-          useNativeDriver: true,
-        }).start();
+          // Fade in animation
+          Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 200,
+            useNativeDriver: true,
+          }).start();
+        } else {
+          fadeOutSuggestions();
+        }
       } else {
         fadeOutSuggestions();
       }
-    } else {
-      fadeOutSuggestions();
-    }
+    };
+
+    fetchSuggestions();
   }, [value, screenName, screenParams]);
 
   const fadeOutSuggestions = () => {
@@ -77,8 +81,9 @@ export default function SmartTextInput({
   /**
    * Handle suggestion chip tap
    * Replaces the last partial word with the full suggestion
+   * Phase 3: Now tracks usage for learning!
    */
-  const handleSuggestionPress = (suggestion) => {
+  const handleSuggestionPress = async (suggestion) => {
     if (!value) return;
 
     // Get the words from the input
@@ -92,6 +97,10 @@ export default function SmartTextInput({
     const newText = words.join(' ') + ' ';
 
     onChangeText(newText);
+
+    // PHASE 3: Track usage for learning
+    const context = SmartInputService.detectContext(value, screenName, screenParams);
+    await SmartInputService.trackUsage(suggestion, context, screenName);
 
     // Hide suggestions after selection
     fadeOutSuggestions();
