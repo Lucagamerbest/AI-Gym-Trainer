@@ -716,11 +716,11 @@ export default function AIButtonModal({
         const userPrefs = preferences[prefType];
 
         if (prefType === 'highProtein' && userPrefs) {
-          messageToSend = `Generate a high-protein recipe with ${userPrefs.protein}g protein and maximum ${userPrefs.calories} calories. Focus on lean proteins and keep calories reasonable.`;
+          messageToSend = `CRITICAL REQUIREMENTS - Must be followed exactly:\n- Minimum ${userPrefs.protein}g protein (cannot be less)\n- Maximum ${userPrefs.calories} calories (cannot exceed)\n\nGenerate a high-protein recipe that meets these EXACT requirements. Adjust portion sizes to hit these targets precisely.`;
         } else if (prefType === 'lowCalorie' && userPrefs) {
-          messageToSend = `Generate a low-calorie recipe with maximum ${userPrefs.calories} calories. Keep it light and healthy.`;
+          messageToSend = `CRITICAL REQUIREMENTS - Must be followed exactly:\n- Minimum ${userPrefs.protein}g protein (cannot be less)\n- Maximum ${userPrefs.calories} calories (cannot exceed)\n\nGenerate a low-calorie recipe that meets these EXACT requirements. Keep it light and healthy while hitting these precise targets.`;
         } else if (prefType === 'balanced' && userPrefs) {
-          messageToSend = `Generate a balanced recipe with ${userPrefs.protein}g protein, ${userPrefs.carbs}g carbs, and ${userPrefs.fat}g fat.`;
+          messageToSend = `CRITICAL REQUIREMENTS - Must be followed exactly:\n- Minimum ${userPrefs.protein}g protein (cannot be less)\n- Maximum ${userPrefs.calories} calories (cannot exceed)\n\nGenerate a balanced, nutritious recipe that meets these EXACT requirements. Focus on whole foods while hitting these precise macro targets.`;
         }
       }
 
@@ -884,8 +884,23 @@ export default function AIButtonModal({
       // Build prompt - check if we need to use recent ingredients
       let messageToSend = button.prompt || buttonText;
 
+      // Apply user preferences if button uses them
+      if (button.usesPreferences) {
+        const preferences = await getRecipePreferences();
+        const prefType = button.usesPreferences; // 'highProtein', 'lowCalorie', 'balanced'
+        const userPrefs = preferences[prefType];
+
+        if (prefType === 'highProtein' && userPrefs) {
+          messageToSend = `CRITICAL REQUIREMENTS - Must be followed exactly:\n- Minimum ${userPrefs.protein}g protein (cannot be less)\n- Maximum ${userPrefs.calories} calories (cannot exceed)\n\nGenerate a high-protein recipe that meets these EXACT requirements. Adjust portion sizes to hit these targets precisely.`;
+        } else if (prefType === 'lowCalorie' && userPrefs) {
+          messageToSend = `CRITICAL REQUIREMENTS - Must be followed exactly:\n- Minimum ${userPrefs.protein}g protein (cannot be less)\n- Maximum ${userPrefs.calories} calories (cannot exceed)\n\nGenerate a low-calorie recipe that meets these EXACT requirements. Keep it light and healthy while hitting these precise targets.`;
+        } else if (prefType === 'balanced' && userPrefs) {
+          messageToSend = `CRITICAL REQUIREMENTS - Must be followed exactly:\n- Minimum ${userPrefs.protein}g protein (cannot be less)\n- Maximum ${userPrefs.calories} calories (cannot exceed)\n\nGenerate a balanced, nutritious recipe that meets these EXACT requirements. Focus on whole foods while hitting these precise macro targets.`;
+        }
+      }
+
       // Make high-protein recipe prompt dynamic based on meal type
-      if (button.toolName === 'generateHighProteinRecipe' && screenParams?.mealType) {
+      if (button.toolName === 'generateHighProteinRecipe' && screenParams?.mealType && !button.usesPreferences) {
         const mealType = screenParams.mealType;
         const calorieRanges = {
           breakfast: { min: 300, max: 600, ideal: 450 },
@@ -899,7 +914,6 @@ export default function AIButtonModal({
         const proteinAmount = Math.round((range.ideal * 0.35) / 4); // 35% protein for high-protein meals
 
         messageToSend = `Generate a high-protein ${mealType} with approximately ${proteinAmount}g protein and ${range.ideal} calories (max ${range.max} calories). Keep it appropriate for a ${mealType}.`;
-        console.log(`🔧 Dynamic prompt for ${mealType}: ${messageToSend}`);
       }
 
       if (button.promptTemplate === 'recentIngredients') {
@@ -933,6 +947,17 @@ export default function AIButtonModal({
         mealSuggestionsCount: result.toolResults?.mealSuggestions?.length,
         source: result.toolResults?.source
       });
+
+      // Debug: Log meal macros if available
+      if (result.toolResults?.mealSuggestions?.length > 0) {
+        result.toolResults.mealSuggestions.forEach((meal, index) => {
+          console.log(`🔍 [MEAL DEBUG ${index + 1}] Name: ${meal.name}`);
+          console.log(`🔍 [MEAL DEBUG ${index + 1}] Calories: ${meal.calories}`);
+          console.log(`🔍 [MEAL DEBUG ${index + 1}] Protein: ${meal.protein}g`);
+          console.log(`🔍 [MEAL DEBUG ${index + 1}] Carbs: ${meal.carbs}g`);
+          console.log(`🔍 [MEAL DEBUG ${index + 1}] Fat: ${meal.fat}g`);
+        });
+      }
 
       // Store response and tool results
       setLastResponse(result.response);

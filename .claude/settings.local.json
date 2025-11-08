@@ -40,7 +40,8 @@
       "Bash(netstat:*)",
       "Bash(findstr:*)",
       "Bash(/tmp/meal_suggestions_block.txt)",
-      "Bash(awk:*)"
+      "Bash(awk:*)",
+      "Bash(npx react-native-logs)"
     ],
     "deny": [],
     "ask": []

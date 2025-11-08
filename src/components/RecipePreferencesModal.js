@@ -5,11 +5,12 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  TextInput,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import Slider from '@react-native-community/slider';
+import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -18,23 +19,23 @@ const RECIPE_PREFERENCES_KEY = '@recipe_preferences';
 /**
  * RecipePreferencesModal
  * Allows users to define their own criteria for recipe types:
- * - High-protein: protein target, calorie limit
- * - Low-calorie: calorie limit
- * - Balanced: protein/carbs/fat targets
+ * - High-protein: minimum protein (g), maximum calories
+ * - Low-calorie: minimum protein (g), maximum calories
+ * - Balanced: minimum protein (g), maximum calories
  */
 export default function RecipePreferencesModal({ visible, onClose }) {
   const [preferences, setPreferences] = useState({
     highProtein: {
-      protein: '50',
-      calories: '600',
+      protein: 50,
+      calories: 600,
     },
     lowCalorie: {
-      calories: '400',
+      protein: 30,
+      calories: 400,
     },
     balanced: {
-      protein: '40',
-      carbs: '50',
-      fat: '20',
+      protein: 40,
+      calories: 600,
     },
   });
 
@@ -53,9 +54,40 @@ export default function RecipePreferencesModal({ visible, onClose }) {
       if (saved) {
         const loadedPrefs = JSON.parse(saved);
         setPreferences(loadedPrefs);
+      } else {
+        // No saved preferences, use defaults
+        setPreferences({
+          highProtein: {
+            protein: 50,
+            calories: 600,
+          },
+          lowCalorie: {
+            protein: 30,
+            calories: 400,
+          },
+          balanced: {
+            protein: 40,
+            calories: 600,
+          },
+        });
       }
     } catch (error) {
       console.error('Error loading recipe preferences:', error);
+      // On error, set defaults
+      setPreferences({
+        highProtein: {
+          protein: 50,
+          calories: 600,
+        },
+        lowCalorie: {
+          protein: 30,
+          calories: 400,
+        },
+        balanced: {
+          protein: 40,
+          calories: 600,
+        },
+      });
     }
   };
 
@@ -97,140 +129,150 @@ export default function RecipePreferencesModal({ visible, onClose }) {
         <View style={styles.modalContent}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.title}>Recipe Preferences</Text>
-            <Text style={styles.subtitle}>
-              Define your own criteria for recipe types
-            </Text>
+            <View style={styles.headerContent}>
+              <View style={styles.headerTextContainer}>
+                <Text style={styles.title}>Recipe Preferences</Text>
+                <Text style={styles.subtitle}>
+                  Define your own criteria for recipe types
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={onClose}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Ionicons name="close" size={28} color={Colors.text} />
+              </TouchableOpacity>
+            </View>
           </View>
 
-          <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-            {/* High-Protein Recipe */}
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionIcon}>💪</Text>
-                <Text style={styles.sectionTitle}>High-Protein Recipe</Text>
+          <View style={styles.tableContainer}>
+            {/* Table Header */}
+            <View style={styles.tableHeader}>
+              <View style={styles.headerCellType}>
+                <Text style={styles.headerText}>Type</Text>
               </View>
-              <Text style={styles.sectionDescription}>
-                What does "high-protein" mean to you?
-              </Text>
+              <View style={styles.headerCellValue}>
+                <Text style={styles.headerText}>Min Protein (g)</Text>
+              </View>
+              <View style={styles.headerCellValue}>
+                <Text style={styles.headerText}>Max Calories</Text>
+              </View>
+            </View>
 
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Minimum Protein (g)</Text>
-                <TextInput
-                  style={styles.input}
-                  value={preferences.highProtein.protein}
-                  onChangeText={(value) => updatePreference('highProtein', 'protein', value)}
-                  keyboardType="numeric"
-                  placeholder="50"
-                  placeholderTextColor={Colors.textSecondary}
+            {/* High-Protein Row */}
+            <View style={styles.tableRow}>
+              <View style={styles.typeCell}>
+                <Text style={styles.typeIcon}>💪</Text>
+                <Text style={styles.typeText}>High{'\n'}Protein</Text>
+              </View>
+              <View style={styles.valueCell}>
+                <Text style={styles.valueText}>{preferences.highProtein.protein || 50}g</Text>
+                <Slider
+                  minimumValue={10}
+                  maximumValue={80}
+                  step={5}
+                  value={preferences.highProtein.protein || 50}
+                  onValueChange={(value) => updatePreference('highProtein', 'protein', value)}
+                  minimumTrackTintColor={Colors.primary}
+                  maximumTrackTintColor={Colors.border}
+                  thumbTintColor={Colors.primary}
+                  style={styles.slider}
                 />
               </View>
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Maximum Calories</Text>
-                <TextInput
-                  style={styles.input}
-                  value={preferences.highProtein.calories}
-                  onChangeText={(value) => updatePreference('highProtein', 'calories', value)}
-                  keyboardType="numeric"
-                  placeholder="600"
-                  placeholderTextColor={Colors.textSecondary}
+              <View style={styles.valueCell}>
+                <Text style={styles.valueText}>{preferences.highProtein.calories || 600}</Text>
+                <Slider
+                  minimumValue={100}
+                  maximumValue={1500}
+                  step={50}
+                  value={preferences.highProtein.calories || 600}
+                  onValueChange={(value) => updatePreference('highProtein', 'calories', value)}
+                  minimumTrackTintColor={Colors.primary}
+                  maximumTrackTintColor={Colors.border}
+                  thumbTintColor={Colors.primary}
+                  style={styles.slider}
                 />
               </View>
             </View>
 
-            {/* Low-Calorie Recipe */}
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionIcon}>🔥</Text>
-                <Text style={styles.sectionTitle}>Low-Calorie Recipe</Text>
+            {/* Low-Calorie Row */}
+            <View style={styles.tableRow}>
+              <View style={styles.typeCell}>
+                <Text style={styles.typeIcon}>🔥</Text>
+                <Text style={styles.typeText}>Low{'\n'}Calorie</Text>
               </View>
-              <Text style={styles.sectionDescription}>
-                What's your calorie limit for "low-calorie"?
-              </Text>
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Maximum Calories</Text>
-                <TextInput
-                  style={styles.input}
-                  value={preferences.lowCalorie.calories}
-                  onChangeText={(value) => updatePreference('lowCalorie', 'calories', value)}
-                  keyboardType="numeric"
-                  placeholder="400"
-                  placeholderTextColor={Colors.textSecondary}
+              <View style={styles.valueCell}>
+                <Text style={styles.valueText}>{preferences.lowCalorie.protein || 30}g</Text>
+                <Slider
+                  minimumValue={10}
+                  maximumValue={80}
+                  step={5}
+                  value={preferences.lowCalorie.protein || 30}
+                  onValueChange={(value) => updatePreference('lowCalorie', 'protein', value)}
+                  minimumTrackTintColor={Colors.primary}
+                  maximumTrackTintColor={Colors.border}
+                  thumbTintColor={Colors.primary}
+                  style={styles.slider}
+                />
+              </View>
+              <View style={styles.valueCell}>
+                <Text style={styles.valueText}>{preferences.lowCalorie.calories || 400}</Text>
+                <Slider
+                  minimumValue={100}
+                  maximumValue={1500}
+                  step={50}
+                  value={preferences.lowCalorie.calories || 400}
+                  onValueChange={(value) => updatePreference('lowCalorie', 'calories', value)}
+                  minimumTrackTintColor={Colors.primary}
+                  maximumTrackTintColor={Colors.border}
+                  thumbTintColor={Colors.primary}
+                  style={styles.slider}
                 />
               </View>
             </View>
 
-            {/* Balanced Recipe */}
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionIcon}>⚖️</Text>
-                <Text style={styles.sectionTitle}>Balanced Recipe</Text>
+            {/* Balanced Row */}
+            <View style={styles.tableRow}>
+              <View style={styles.typeCell}>
+                <Text style={styles.typeIcon}>⚖️</Text>
+                <Text style={styles.typeText} numberOfLines={1}>Balanced</Text>
               </View>
-              <Text style={styles.sectionDescription}>
-                Define your ideal macro balance
-              </Text>
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Protein (g)</Text>
-                <TextInput
-                  style={styles.input}
-                  value={preferences.balanced.protein}
-                  onChangeText={(value) => updatePreference('balanced', 'protein', value)}
-                  keyboardType="numeric"
-                  placeholder="40"
-                  placeholderTextColor={Colors.textSecondary}
+              <View style={styles.valueCell}>
+                <Text style={styles.valueText}>{preferences.balanced.protein || 40}g</Text>
+                <Slider
+                  minimumValue={10}
+                  maximumValue={80}
+                  step={5}
+                  value={preferences.balanced.protein || 40}
+                  onValueChange={(value) => updatePreference('balanced', 'protein', value)}
+                  minimumTrackTintColor={Colors.primary}
+                  maximumTrackTintColor={Colors.border}
+                  thumbTintColor={Colors.primary}
+                  style={styles.slider}
                 />
               </View>
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Carbs (g)</Text>
-                <TextInput
-                  style={styles.input}
-                  value={preferences.balanced.carbs}
-                  onChangeText={(value) => updatePreference('balanced', 'carbs', value)}
-                  keyboardType="numeric"
-                  placeholder="50"
-                  placeholderTextColor={Colors.textSecondary}
-                />
-              </View>
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Fat (g)</Text>
-                <TextInput
-                  style={styles.input}
-                  value={preferences.balanced.fat}
-                  onChangeText={(value) => updatePreference('balanced', 'fat', value)}
-                  keyboardType="numeric"
-                  placeholder="20"
-                  placeholderTextColor={Colors.textSecondary}
+              <View style={styles.valueCell}>
+                <Text style={styles.valueText}>{preferences.balanced.calories || 600}</Text>
+                <Slider
+                  minimumValue={100}
+                  maximumValue={1500}
+                  step={50}
+                  value={preferences.balanced.calories || 600}
+                  onValueChange={(value) => updatePreference('balanced', 'calories', value)}
+                  minimumTrackTintColor={Colors.primary}
+                  maximumTrackTintColor={Colors.border}
+                  thumbTintColor={Colors.primary}
+                  style={styles.slider}
                 />
               </View>
             </View>
-
-            {/* Info Box */}
-            <View style={styles.infoBox}>
-              <Text style={styles.infoIcon}>💡</Text>
-              <Text style={styles.infoText}>
-                These preferences will be used when you press recipe generation buttons like
-                "High-protein recipe" or "Low-calorie recipe"
-              </Text>
-            </View>
-          </ScrollView>
+          </View>
 
           {/* Action Buttons */}
           <View style={styles.actions}>
             <TouchableOpacity
-              style={[styles.button, styles.cancelButton]}
-              onPress={onClose}
-              disabled={saving}
-            >
-              <Text style={styles.cancelButtonText}>Cancel</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.button, styles.saveButton, saving && styles.buttonDisabled]}
+              style={[styles.saveButton, saving && styles.buttonDisabled]}
               onPress={handleSave}
               disabled={saving}
             >
@@ -263,6 +305,18 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
   },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+  },
+  headerTextContainer: {
+    flex: 1,
+    paddingRight: Spacing.md,
+  },
+  closeButton: {
+    padding: Spacing.xs,
+  },
   title: {
     fontSize: Typography.sizes.xxl,
     fontWeight: Typography.weights.bold,
@@ -273,99 +327,96 @@ const styles = StyleSheet.create({
     fontSize: Typography.sizes.sm,
     color: Colors.textSecondary,
   },
-  scrollView: {
+  tableContainer: {
     flex: 1,
-    paddingHorizontal: Spacing.xl,
-    paddingTop: Spacing.sm,
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.xl,
+    paddingBottom: Spacing.md,
   },
-  section: {
-    marginTop: Spacing.xl,
-    padding: Spacing.lg,
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.lg,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: Spacing.xs,
-  },
-  sectionIcon: {
-    fontSize: 24,
-    marginRight: Spacing.sm,
-  },
-  sectionTitle: {
-    fontSize: Typography.sizes.lg,
-    fontWeight: Typography.weights.semibold,
-    color: Colors.text,
-  },
-  sectionDescription: {
-    fontSize: Typography.sizes.sm,
-    color: Colors.textSecondary,
-    marginBottom: Spacing.md,
-  },
-  inputGroup: {
-    marginTop: Spacing.md,
-  },
-  inputLabel: {
-    fontSize: Typography.sizes.sm,
-    fontWeight: Typography.weights.medium,
-    color: Colors.text,
-    marginBottom: Spacing.xs,
-  },
-  input: {
-    backgroundColor: Colors.background,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: BorderRadius.md,
-    padding: Spacing.md,
-    fontSize: Typography.sizes.md,
-    color: Colors.text,
-  },
-  infoBox: {
+  tableHeader: {
     flexDirection: 'row',
     backgroundColor: Colors.primary + '15',
-    borderRadius: BorderRadius.md,
-    padding: Spacing.md,
-    marginTop: Spacing.xl,
-    marginBottom: Spacing.md,
+    borderTopLeftRadius: BorderRadius.md,
+    borderTopRightRadius: BorderRadius.md,
+    paddingVertical: Spacing.md,
+    borderBottomWidth: 2,
+    borderBottomColor: Colors.primary,
   },
-  infoIcon: {
-    fontSize: 20,
-    marginRight: Spacing.sm,
-  },
-  infoText: {
+  headerCellType: {
     flex: 1,
-    fontSize: Typography.sizes.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerCellValue: {
+    flex: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.xs,
+  },
+  headerText: {
+    fontSize: Typography.sizes.xs,
+    fontWeight: Typography.weights.bold,
     color: Colors.text,
-    lineHeight: 20,
+    textAlign: 'center',
+  },
+  tableRow: {
+    flexDirection: 'row',
+    backgroundColor: Colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    minHeight: 90,
+    paddingVertical: Spacing.md,
+  },
+  typeCell: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.xs,
+    backgroundColor: Colors.background,
+    borderRightWidth: 1,
+    borderRightColor: Colors.border,
+  },
+  typeIcon: {
+    fontSize: 20,
+  },
+  typeText: {
+    fontSize: Typography.sizes.xxs,
+    fontWeight: Typography.weights.semibold,
+    color: Colors.text,
+    textAlign: 'center',
+    marginTop: 2,
+  },
+  valueCell: {
+    flex: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+  },
+  naText: {
+    fontSize: Typography.sizes.md,
+    color: Colors.textSecondary,
+  },
+  valueText: {
+    fontSize: Typography.sizes.sm,
+    fontWeight: Typography.weights.bold,
+    color: Colors.primary,
+    marginBottom: 4,
+  },
+  slider: {
+    width: '100%',
+    height: 40,
   },
   actions: {
-    flexDirection: 'row',
-    gap: Spacing.md,
     paddingHorizontal: Spacing.xl,
     paddingTop: Spacing.lg,
   },
-  button: {
-    flex: 1,
+  saveButton: {
+    backgroundColor: Colors.primary,
     padding: Spacing.md,
     borderRadius: BorderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  cancelButton: {
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  cancelButtonText: {
-    fontSize: Typography.sizes.md,
-    fontWeight: Typography.weights.semibold,
-    color: Colors.text,
-  },
-  saveButton: {
-    backgroundColor: Colors.primary,
   },
   saveButtonText: {
     fontSize: Typography.sizes.md,

@@ -510,12 +510,19 @@ export async function generateHighProteinRecipe({
     let calorieNote = '';
 
     if (targetCalories) {
-      const calorieValidation = validateCaloriesForMealType(targetCalories, mealType);
-      if (!calorieValidation.valid) {
-        calorieNote = `\n\n⚠️ CALORIE WARNING: ${calorieValidation.reason}
+      // IMPORTANT: Do NOT validate/adjust if user explicitly set calories (from preferences)
+      // Only validate if calories seem unrealistic AND protein is default (meaning no user prefs)
+      const isUsingDefaults = (targetProtein === 40 && !targetCalories) || targetProtein === 40;
+
+      if (isUsingDefaults) {
+        const calorieValidation = validateCaloriesForMealType(targetCalories, mealType);
+        if (!calorieValidation.valid) {
+          calorieNote = `\n\n⚠️ CALORIE WARNING: ${calorieValidation.reason}
 Adjusted to ${calorieValidation.suggestion} calories to match ${mealType} requirements.`;
-        adjustedCalories = calorieValidation.suggestion;
+          adjustedCalories = calorieValidation.suggestion;
+        }
       }
+      // Otherwise respect user's explicit calorie preference
     } else {
       // No calories specified - use ideal for meal type
       adjustedCalories = ideal;
@@ -524,14 +531,21 @@ Adjusted to ${calorieValidation.suggestion} calories to match ${mealType} requir
     // Get recommended protein range for this meal type and calorie amount
     const proteinRange = getProteinRangeForMealType(mealType, adjustedCalories);
 
-    // If user's protein request is outside realistic range, adjust it
+    // IMPORTANT: Do NOT adjust protein if explicitly set by user (from preferences)
+    // Only adjust if it's using the default value
     let adjustedProtein = targetProtein;
-    if (targetProtein > proteinRange.max) {
-      adjustedProtein = proteinRange.max;
-      calorieNote += `\n\n⚠️ PROTEIN WARNING: ${targetProtein}g protein is too high for a ${adjustedCalories}-calorie ${mealType}. Adjusted to ${adjustedProtein}g (realistic max for this meal).`;
-    } else if (targetProtein < proteinRange.min) {
-      adjustedProtein = proteinRange.ideal;
+
+    // Only validate/adjust if using default value (40g) - otherwise respect user preference
+    if (targetProtein === 40) {
+      // This is the default, so we can adjust based on meal type
+      if (targetProtein > proteinRange.max) {
+        adjustedProtein = proteinRange.max;
+        calorieNote += `\n\n⚠️ PROTEIN WARNING: ${targetProtein}g protein is too high for a ${adjustedCalories}-calorie ${mealType}. Adjusted to ${adjustedProtein}g (realistic max for this meal).`;
+      } else if (targetProtein < proteinRange.min) {
+        adjustedProtein = proteinRange.ideal;
+      }
     }
+    // If user explicitly set a different value (from preferences), respect it completely
 
     // Calculate realistic macros for high-protein meal
     const realisticMacros = calculateRealisticMacros(adjustedCalories, 'high-protein');

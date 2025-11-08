@@ -551,10 +551,16 @@ export const AI_SECTION_CONFIG = {
           usesPreferences: 'highProtein', // Uses user preferences
         },
         {
-          icon: 'scale',
-          text: 'Adapt recipe to my macros',
-          toolName: 'adaptRecipeToMacros',
-          prompt: 'Adjust my last recipe to 500 calories and 45g protein'
+          icon: 'flame',
+          text: 'Low-calorie recipe',
+          toolName: 'generateLowCalorieRecipe',
+          usesPreferences: 'lowCalorie', // Uses user preferences
+        },
+        {
+          icon: 'leaf',
+          text: 'Balanced recipe',
+          toolName: 'generateBalancedRecipe',
+          usesPreferences: 'balanced', // Uses user preferences
         },
       ],
     },

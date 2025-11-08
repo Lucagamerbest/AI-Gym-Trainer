@@ -7,16 +7,16 @@ const RECIPE_PREFERENCES_KEY = '@recipe_preferences';
  */
 const DEFAULT_PREFERENCES = {
   highProtein: {
-    protein: '50',
-    calories: '600',
+    protein: 50,
+    calories: 600,
   },
   lowCalorie: {
-    calories: '400',
+    protein: 30,
+    calories: 400,
   },
   balanced: {
-    protein: '40',
-    carbs: '50',
-    fat: '20',
+    protein: 40,
+    calories: 600,
   },
 };
 

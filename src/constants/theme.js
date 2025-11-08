@@ -44,6 +44,7 @@ export const Typography = {
     bold: 'System',
   },
   fontSize: {
+    xxs: 10,
     xs: 12,
     sm: 14,
     md: 16,
@@ -53,6 +54,7 @@ export const Typography = {
     xxxl: 48,
   },
   sizes: { // Alias for fontSize
+    xxs: 10,
     xs: 12,
     sm: 14,
     md: 16,
