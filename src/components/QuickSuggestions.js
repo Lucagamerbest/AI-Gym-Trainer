@@ -567,20 +567,11 @@ export default function QuickSuggestions({ screen, onSuggestionPress, userId = '
 
       default:
         return [
-          {
-            icon: 'sparkles',
-            text: 'Create new program',
-            hasSubsections: true,
-            subsections: [
-              { icon: 'trending-up', text: '6-day PPL' },
-              { icon: 'barbell', text: '4-day Upper/Lower' },
-              { icon: 'sparkles', text: '5-day Bro Split' },
-            ]
-          },
-          { icon: 'bulb', text: 'Workout advice' },
-          { icon: 'restaurant', text: 'Help nutrition' },
-          { icon: 'bar-chart', text: 'Analyze progress' },
-          { icon: 'fitness', text: 'Review goals' },
+          { icon: 'fitness', text: 'Am I overtraining?' },
+          { icon: 'trending-up', text: 'Why am I plateauing?' },
+          { icon: 'restaurant', text: 'Am I eating enough protein?' },
+          { icon: 'scale', text: 'Is my weight trend healthy?' },
+          { icon: 'flame', text: 'Keep me accountable' },
         ];
     }
   };

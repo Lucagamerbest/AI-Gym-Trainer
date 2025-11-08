@@ -221,27 +221,6 @@ export default function AIScreen({ navigation }) {
     loadSuggestions();
   };
 
-  // Quick action handlers
-  const handleQuickAction = (actionType) => {
-    let message = '';
-    switch (actionType) {
-      case 'workout':
-        message = 'Create a workout for me today based on what I should train';
-        break;
-      case 'meal':
-        message = 'Suggest a meal that fits my remaining macros for today';
-        break;
-      case 'progress':
-        message = 'Analyze my progress this week and give me insights';
-        break;
-      case 'plan':
-        message = 'Help me create a weekly workout plan';
-        break;
-    }
-    setInitialMessage(message);
-    setChatVisible(true);
-  };
-
   // Calculate calorie progress percentage
   const calorieProgress = calorieGoal > 0 ? (consumedCalories / calorieGoal) * 100 : 0;
 
@@ -270,6 +249,24 @@ export default function AIScreen({ navigation }) {
                 <Text style={styles.welcomeText}>{greeting}, <Text style={styles.welcomeName}>{firstName}!</Text></Text>
               </View>
             </View>
+
+            {/* Chat Button - MOVED TO TOP - Primary Action */}
+            <TouchableOpacity
+              style={styles.chatButton}
+              onPress={() => setChatVisible(true)}
+              activeOpacity={0.95}
+            >
+              <View style={styles.chatButtonContent}>
+                <View style={styles.chatButtonIconContainer}>
+                  <Ionicons name="chatbubbles" size={24} color={Colors.primary} />
+                </View>
+                <View style={styles.chatButtonTextContainer}>
+                  <Text style={styles.chatButtonTitle}>Chat with Coach</Text>
+                  <Text style={styles.chatButtonSubtitle}>Get personalized advice</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={22} color={Colors.textSecondary} />
+              </View>
+            </TouchableOpacity>
 
             {/* Small Stats Grid - Calories and Last Workout */}
             <View style={styles.statsGrid}>
@@ -343,69 +340,11 @@ export default function AIScreen({ navigation }) {
               </TouchableOpacity>
             </View>
 
-            {/* Quick Actions - Compact 2x2 Grid - White with Green Border */}
-            <View style={styles.quickActionsGrid}>
-              <TouchableOpacity
-                style={styles.quickActionCard}
-                onPress={() => handleQuickAction('workout')}
-                activeOpacity={0.8}
-              >
-                <View style={styles.quickActionContent}>
-                  <Ionicons name="fitness" size={32} color={Colors.text} />
-                  <Text style={styles.quickActionText} numberOfLines={1} adjustsFontSizeToFit>Workout</Text>
-                </View>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.quickActionCard}
-                onPress={() => handleQuickAction('meal')}
-                activeOpacity={0.8}
-              >
-                <View style={styles.quickActionContent}>
-                  <Ionicons name="restaurant" size={32} color={Colors.text} />
-                  <Text style={styles.quickActionText} numberOfLines={1} adjustsFontSizeToFit>Meal</Text>
-                </View>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.quickActionCard}
-                onPress={() => handleQuickAction('progress')}
-                activeOpacity={0.8}
-              >
-                <View style={styles.quickActionContent}>
-                  <Ionicons name="stats-chart" size={32} color={Colors.text} />
-                  <Text style={styles.quickActionText} numberOfLines={1} adjustsFontSizeToFit>Progress</Text>
-                </View>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.quickActionCard}
-                onPress={() => handleQuickAction('plan')}
-                activeOpacity={0.8}
-              >
-                <View style={styles.quickActionContent}>
-                  <Ionicons name="calendar" size={32} color={Colors.text} />
-                  <Text style={styles.quickActionText} numberOfLines={1} adjustsFontSizeToFit>Plan</Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-
             {/* Motivational Quote - Primary Color Theme */}
             <View style={styles.motivationCard}>
               <Ionicons name="sparkles" size={22} color={Colors.primary} style={{ marginRight: 10 }} />
               <Text style={styles.motivationText} numberOfLines={2}>"{todayQuote.text}"</Text>
             </View>
-
-            {/* Chat Button - Simple */}
-            <TouchableOpacity
-              style={styles.chatButton}
-              onPress={() => setChatVisible(true)}
-              activeOpacity={0.8}
-            >
-              <Ionicons name="chatbubbles" size={26} color={Colors.text} style={{ marginRight: 12 }} />
-              <Text style={styles.chatButtonTitle}>Chat with Coach</Text>
-              <Ionicons name="arrow-forward-circle" size={28} color={Colors.primary} />
-            </TouchableOpacity>
           </Animated.View>
         </ScrollView>
       </ScreenLayout>
@@ -594,29 +533,45 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
 
-  // Chat Button - Simple white with green border
+  // Chat Button - Professional card design
   chatButton: {
-    marginBottom: Spacing.md,
-    borderRadius: 16,
+    marginBottom: Spacing.lg,
+    borderRadius: BorderRadius.lg,
     backgroundColor: Colors.card,
-    borderWidth: 2,
-    borderColor: Colors.primary,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+  },
+  chatButtonContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
     paddingVertical: Spacing.lg,
-    paddingHorizontal: Spacing.xl,
-    elevation: 2,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
+    paddingHorizontal: Spacing.lg,
+  },
+  chatButtonIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: `${Colors.primary}15`,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: Spacing.md,
+  },
+  chatButtonTextContainer: {
+    flex: 1,
   },
   chatButtonTitle: {
     fontSize: Typography.fontSize.lg,
-    fontWeight: 'bold',
+    fontWeight: '700',
     color: Colors.text,
-    flex: 1,
-    textAlign: 'center',
+    marginBottom: 2,
+  },
+  chatButtonSubtitle: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
   },
 });

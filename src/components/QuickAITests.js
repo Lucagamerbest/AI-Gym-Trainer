@@ -9,28 +9,17 @@ import { Colors, Spacing, Typography } from '../constants/theme';
 
 export default function QuickAITests({ onTestQuery }) {
   const testQueries = [
-    // Existing Read-Only Tools
-    { label: '💪 Generate Workout', query: 'Create a chest and triceps workout for hypertrophy' },
-    { label: '🔍 Search Exercises', query: 'Show me all back exercises with dumbbells' },
-    { label: '🧮 Calculate Macros', query: 'Calculate my macros for cutting at 80kg, 180cm, 25 years old' },
-    { label: '🔄 Find Alternative', query: 'Find an alternative to bench press' },
-    { label: '💡 Recommend', query: 'Recommend new exercises based on my training' },
-    { label: '📊 Analyze History', query: 'Analyze my workout patterns' },
-    { label: '🍽️ Meal Suggestion', query: 'Suggest a meal with 40g protein and 500 calories' },
-    { label: '📈 Exercise Stats', query: 'What is my bench press PR?' },
-
-    // NEW: CRUD Operations (Create, Read, Update, Delete)
-    { label: '🏋️ Start Workout', query: 'Start a new push workout' },
-    { label: '➕ Add Exercise', query: 'Add bench press to my workout' },
-    { label: '📝 Log Set', query: 'Log 185 pounds for 5 reps on bench press' },
-    { label: '📋 Recent Workouts', query: 'Show me my last 5 workouts' },
-    { label: '🍗 Log Meal', query: 'I ate 8oz grilled chicken breast' },
-    { label: '⚖️ Update Weight', query: 'Update my weight to 80kg' },
+    // Specific, contextual coaching questions
+    { label: '💪 Am I overtraining?', query: 'Based on my recent workouts, am I overtraining or recovering well?' },
+    { label: '📈 Why am I plateauing?', query: 'I feel like I\'m stuck on my lifts. What could be causing this plateau?' },
+    { label: '🍽️ Am I eating enough protein?', query: 'Based on my logged meals, am I hitting my protein targets consistently?' },
+    { label: '⚖️ Is my weight trend healthy?', query: 'Looking at my weight changes, is this a healthy rate of progress for my goals?' },
+    { label: '🔥 Keep me accountable', query: 'Review my consistency this week and give me honest feedback' },
   ];
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>🧪 Quick Tests</Text>
+      <Text style={styles.title}>💬 Quick Questions</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         {testQueries.map((test, index) => (
           <TouchableOpacity

@@ -267,20 +267,30 @@ export const ProgressScreenSections = [
 
 export const HomeScreenSections = [
   {
-    title: 'Quick Actions',
-    icon: 'flash',
+    title: 'Get Advice',
+    icon: 'chatbubbles',
     buttons: [
-      { icon: 'fitness', text: 'What to train today?', toolName: 'recommendWorkout' },
-      { icon: 'restaurant', text: 'What to eat?', toolName: 'suggestMeal' },
-      { icon: 'trophy', text: 'Recent PRs', toolName: 'getRecentPRs' },
+      { icon: 'bulb', text: 'How am I doing overall?', toolName: 'getDailySummary' },
+      { icon: 'fitness', text: 'Training advice', toolName: 'getMotivation' },
+      { icon: 'restaurant', text: 'Nutrition tips', toolName: 'getNutritionAdvice' },
+      { icon: 'help-circle', text: 'Answer a question', toolName: 'customInput', isCustomInput: true },
     ],
   },
   {
-    title: 'Motivation & Coaching',
-    icon: 'chatbubbles',
+    title: 'Check Progress',
+    icon: 'trending-up',
     buttons: [
-      { icon: 'bulb', text: 'Get workout advice', toolName: 'getMotivation' },
-      { icon: 'calendar', text: 'This week\'s progress', toolName: 'analyzeWeeklyProgress' },
+      { icon: 'calendar', text: 'This week\'s summary', toolName: 'analyzeWeeklyProgress' },
+      { icon: 'trophy', text: 'Recent achievements', toolName: 'getRecentPRs' },
+      { icon: 'stats-chart', text: 'Am I on track?', toolName: 'analyzeProgress' },
+    ],
+  },
+  {
+    title: 'Get Motivated',
+    icon: 'heart',
+    buttons: [
+      { icon: 'flame', text: 'Motivate me', toolName: 'getMotivation' },
+      { icon: 'chatbubble-ellipses', text: 'Coach\'s feedback', toolName: 'getCoachFeedback' },
     ],
   },
 ];
