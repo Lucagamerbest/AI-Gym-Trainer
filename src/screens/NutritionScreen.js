@@ -413,19 +413,22 @@ export default function NutritionScreen({ navigation, route }) {
         loadedPlannedMeals = data.plannedMeals || { breakfast: [], lunch: [], dinner: [], snacks: [] };
         loadedConsumedPlanned = data.consumedPlannedMeals || { breakfast: [], lunch: [], dinner: [], snacks: [] };
         savedSelectedMeal = data.selectedMeal || 'breakfast';
+      }
 
-        // MIGRATION: If plannedMeals doesn't exist in saved data, check if current meals came from today's plan
-        if (!data.plannedMeals) {
-          const todayKey = getLocalDateString();
-          const savedPlans = await AsyncStorage.getItem(MEAL_PLANS_KEY);
-          const mealPlans = savedPlans ? JSON.parse(savedPlans) : {};
-          const todayPlanned = mealPlans[todayKey]?.planned;
+      // ALWAYS check @meal_plans for today's planned meals
+      const todayKey = getLocalDateString();
+      const savedPlans = await AsyncStorage.getItem(MEAL_PLANS_KEY);
+      console.log('📅 [Nutrition] Checking meal plans for:', todayKey);
+      const mealPlans = savedPlans ? JSON.parse(savedPlans) : {};
+      const todayPlanned = mealPlans[todayKey]?.planned;
+      console.log('🍽️ [Nutrition] Today\'s planned meals:', todayPlanned);
 
-          // If there were planned meals for today that match current meals, move them to planned
-          if (todayPlanned && Object.values(todayPlanned).some(meals => meals && meals.length > 0)) {
-            loadedPlannedMeals = todayPlanned;
-          }
-        }
+      // If there are planned meals for today in @meal_plans, use them
+      if (todayPlanned && Object.values(todayPlanned).some(meals => meals && meals.length > 0)) {
+        loadedPlannedMeals = todayPlanned;
+        console.log('✅ [Nutrition] Loaded planned meals from @meal_plans');
+      } else {
+        console.log('❌ [Nutrition] No planned meals found in @meal_plans for today');
       }
 
       // Update meals state (consumed will auto-calculate from useMemo)
@@ -532,29 +535,85 @@ export default function NutritionScreen({ navigation, route }) {
         // Get the food item to delete (to access firebaseId)
         const foodToDelete = updatedMeals[mealType][foodIndex];
 
-        // Delete from Firebase first (if it has a Firebase ID)
-        if (user?.uid && user.uid !== 'guest' && foodToDelete.firebaseId) {
-          try {
-            await MealSyncService.deleteMeal(user.uid, foodToDelete.firebaseId);
-            console.log('✅ Meal deleted from Firebase');
-          } catch (error) {
-            console.log('⚠️ Failed to delete from Firebase:', error);
-            // Continue with local delete even if Firebase delete fails
+        // Check if this was originally a planned meal
+        if (foodToDelete.wasPlanned) {
+          console.log('🔄 Restoring planned meal instead of deleting');
+
+          // Delete from Firebase first (if it has a Firebase ID)
+          if (user?.uid && user.uid !== 'guest' && foodToDelete.firebaseId) {
+            try {
+              await MealSyncService.deleteMeal(user.uid, foodToDelete.firebaseId);
+              console.log('✅ Meal deleted from Firebase');
+            } catch (error) {
+              console.log('⚠️ Failed to delete from Firebase:', error);
+              // Continue with local restore even if Firebase delete fails
+            }
           }
+
+          // Remove from consumed meals
+          updatedMeals[mealType].splice(foodIndex, 1);
+          setMeals(updatedMeals);
+
+          // Restore to planned meals (remove wasPlanned and firebaseId flags)
+          const { wasPlanned, firebaseId, ...cleanFood } = foodToDelete;
+          const updatedPlannedMeals = { ...plannedMeals };
+          updatedPlannedMeals[mealType] = [...(plannedMeals[mealType] || []), cleanFood];
+          setPlannedMeals(updatedPlannedMeals);
+
+          // Update @meal_plans storage
+          try {
+            const todayKey = getLocalDateString();
+            const savedPlans = await AsyncStorage.getItem(MEAL_PLANS_KEY);
+            const mealPlans = savedPlans ? JSON.parse(savedPlans) : {};
+
+            if (!mealPlans[todayKey]) {
+              mealPlans[todayKey] = { planned: { breakfast: [], lunch: [], dinner: [], snacks: [] } };
+            }
+            if (!mealPlans[todayKey].planned) {
+              mealPlans[todayKey].planned = { breakfast: [], lunch: [], dinner: [], snacks: [] };
+            }
+
+            mealPlans[todayKey].planned[mealType] = updatedPlannedMeals[mealType];
+            await AsyncStorage.setItem(MEAL_PLANS_KEY, JSON.stringify(mealPlans));
+            console.log('✅ Restored meal to @meal_plans');
+          } catch (error) {
+            console.error('Failed to update @meal_plans:', error);
+          }
+
+          // Save consumed meals to storage
+          await saveDailyNutrition(updatedMeals, selectedMeal, updatedPlannedMeals);
+
+          // Also sync to calendar
+          await syncMealsToCalendar(updatedMeals);
+
+        } else {
+          // Normal delete flow for manually added meals
+          console.log('🗑️ Deleting manually added meal');
+
+          // Delete from Firebase first (if it has a Firebase ID)
+          if (user?.uid && user.uid !== 'guest' && foodToDelete.firebaseId) {
+            try {
+              await MealSyncService.deleteMeal(user.uid, foodToDelete.firebaseId);
+              console.log('✅ Meal deleted from Firebase');
+            } catch (error) {
+              console.log('⚠️ Failed to delete from Firebase:', error);
+              // Continue with local delete even if Firebase delete fails
+            }
+          }
+
+          // Delete from local state
+          updatedMeals[mealType].splice(foodIndex, 1);
+          setMeals(updatedMeals);
+
+          // Ensure plannedMeals has a default value
+          const currentPlannedMeals = plannedMeals || { breakfast: [], lunch: [], dinner: [], snacks: [] };
+
+          // Save to storage with plannedMeals
+          await saveDailyNutrition(updatedMeals, selectedMeal, currentPlannedMeals);
+
+          // Also sync to calendar
+          await syncMealsToCalendar(updatedMeals);
         }
-
-        // Delete from local state
-        updatedMeals[mealType].splice(foodIndex, 1);
-        setMeals(updatedMeals);
-
-        // Ensure plannedMeals has a default value
-        const currentPlannedMeals = plannedMeals || { breakfast: [], lunch: [], dinner: [], snacks: [] };
-
-        // Save to storage with plannedMeals
-        await saveDailyNutrition(updatedMeals, selectedMeal, currentPlannedMeals);
-
-        // Also sync to calendar
-        await syncMealsToCalendar(updatedMeals);
       }
     } catch (error) {
     }
@@ -653,6 +712,9 @@ export default function NutritionScreen({ navigation, route }) {
         }
       }
 
+      // Mark this meal as originally planned so we can restore it later if un-logged
+      plannedFood.wasPlanned = true;
+
       // Add to consumed meals
       const updatedMeals = {
         ...meals,
@@ -667,6 +729,22 @@ export default function NutritionScreen({ navigation, route }) {
       // Add to consumed planned meals history
       const updatedConsumedPlanned = { ...consumedPlannedMeals };
       updatedConsumedPlanned[mealType] = [...consumedPlannedMeals[mealType], plannedFood];
+
+      // IMPORTANT: Also remove from @meal_plans to prevent re-loading on page refresh
+      try {
+        const todayKey = getLocalDateString();
+        const savedPlans = await AsyncStorage.getItem(MEAL_PLANS_KEY);
+        if (savedPlans) {
+          const mealPlans = JSON.parse(savedPlans);
+          if (mealPlans[todayKey]?.planned?.[mealType]) {
+            mealPlans[todayKey].planned[mealType] = [...updatedPlannedMeals[mealType]];
+            await AsyncStorage.setItem(MEAL_PLANS_KEY, JSON.stringify(mealPlans));
+            console.log('✅ Updated @meal_plans to remove consumed planned meal');
+          }
+        }
+      } catch (error) {
+        console.error('Failed to update @meal_plans:', error);
+      }
 
       // Update state
       setMeals(updatedMeals);
@@ -684,6 +762,22 @@ export default function NutritionScreen({ navigation, route }) {
       const updatedPlannedMeals = { ...plannedMeals };
       updatedPlannedMeals[mealType] = [...plannedMeals[mealType]];
       updatedPlannedMeals[mealType].splice(foodIndex, 1);
+
+      // IMPORTANT: Also remove from @meal_plans to prevent re-loading on page refresh
+      try {
+        const todayKey = getLocalDateString();
+        const savedPlans = await AsyncStorage.getItem(MEAL_PLANS_KEY);
+        if (savedPlans) {
+          const mealPlans = JSON.parse(savedPlans);
+          if (mealPlans[todayKey]?.planned?.[mealType]) {
+            mealPlans[todayKey].planned[mealType] = [...updatedPlannedMeals[mealType]];
+            await AsyncStorage.setItem(MEAL_PLANS_KEY, JSON.stringify(mealPlans));
+            console.log('✅ Updated @meal_plans to remove deleted planned meal');
+          }
+        }
+      } catch (error) {
+        console.error('Failed to update @meal_plans:', error);
+      }
 
       setPlannedMeals(updatedPlannedMeals);
 

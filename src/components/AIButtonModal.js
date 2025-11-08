@@ -2025,7 +2025,8 @@ export default function AIButtonModal({
                 <ThinkingAnimation
                   text={typeof loadingButton === 'string' && loadingButton.length > 0 && loadingButton !== 'true'
                     ? loadingButton
-                    : "Thinking"}
+                    : undefined}
+                  showCoachingMessage={!(typeof loadingButton === 'string' && loadingButton.length > 0 && loadingButton !== 'true')}
                   style={styles.loadingContainer}
                 />
               )}

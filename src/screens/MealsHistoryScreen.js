@@ -170,7 +170,12 @@ export default function MealsHistoryScreen({ navigation, route }) {
 
         // Load today's meals from meal plans
         const today = getLocalDateString();
+        console.log('📆 [MealsHistory] Today is:', today);
         const todayData = plans[today];
+        console.log('📋 [MealsHistory] Today\'s data:', todayData);
+        console.log('📋 [MealsHistory] Today\'s logged meals:', todayData?.logged);
+        console.log('📅 [MealsHistory] Today\'s planned meals:', todayData?.planned);
+
         if (todayData?.logged) {
           setTodayMeals(todayData.logged);
         } else {
@@ -184,6 +189,7 @@ export default function MealsHistoryScreen({ navigation, route }) {
         }
       }
     } catch (error) {
+      console.error('[MealsHistory] Error loading meal data:', error);
     }
   };
 
@@ -286,7 +292,7 @@ export default function MealsHistoryScreen({ navigation, route }) {
     const dateKey = selectedDate.toISOString().split('T')[0];
     const todayKey = getLocalDateString();
 
-    // If it's today, use todayMeals state
+    // If it's today, use todayMeals state (logged meals only)
     if (dateKey === todayKey) {
       return todayMeals;
     }
@@ -302,6 +308,18 @@ export default function MealsHistoryScreen({ navigation, route }) {
     // For past dates, check logged meals
     if (dateMeals && dateMeals.logged) {
       return dateMeals.logged;
+    }
+
+    return { breakfast: [], lunch: [], dinner: [], snacks: [] };
+  };
+
+  // New function to get planned meals for the selected date
+  const getSelectedDatePlannedMeals = () => {
+    const dateKey = selectedDate.toISOString().split('T')[0];
+    const dateMeals = mealData[dateKey];
+
+    if (dateMeals?.planned) {
+      return dateMeals.planned;
     }
 
     return { breakfast: [], lunch: [], dinner: [], snacks: [] };
@@ -1269,6 +1287,7 @@ export default function MealsHistoryScreen({ navigation, route }) {
               </>
             ) : (
               <>
+                {/* Logged Meals */}
                 {Object.entries(getSelectedDateMeals()).map(([mealType, items]) => (
                   items.length > 0 && (
                     <View key={mealType} style={styles.modalMealSection}>
@@ -1295,6 +1314,35 @@ export default function MealsHistoryScreen({ navigation, route }) {
                   )
                 ))}
 
+                {/* Planned Meals for Today */}
+                {isToday(selectedDate) && Object.entries(getSelectedDatePlannedMeals()).map(([mealType, items]) => (
+                  items.length > 0 && (
+                    <View key={`planned-${mealType}`} style={[styles.modalMealSection, styles.modalMealSectionPlanned]}>
+                      <View style={styles.plannedMealHeader}>
+                        <View style={styles.modalMealTypeContainer}>
+                          <Text style={styles.modalMealType}>
+                            {mealType === 'breakfast' && '🌅 Breakfast'}
+                            {mealType === 'lunch' && '☀️ Lunch'}
+                            {mealType === 'dinner' && '🌙 Dinner'}
+                            {mealType === 'snacks' && '🍿 Snacks'}
+                          </Text>
+                          <View style={styles.plannedBadge}>
+                            <Text style={styles.plannedBadgeText}>📅 Planned</Text>
+                          </View>
+                        </View>
+                      </View>
+                      {items.map((item, index) => (
+                        <View key={index} style={styles.plannedFoodItemRow}>
+                          <View style={styles.plannedFoodInfo}>
+                            <Text style={styles.modalMealName}>{item.name}</Text>
+                            <Text style={styles.modalMealCalories}>{item.calories} cal</Text>
+                          </View>
+                        </View>
+                      ))}
+                    </View>
+                  )
+                ))}
+
                 {/* Show copy to future button if meals exist */}
                 {!Object.values(getSelectedDateMeals()).every(meals => meals.length === 0) && (
                   <TouchableOpacity
@@ -1309,7 +1357,8 @@ export default function MealsHistoryScreen({ navigation, route }) {
                   </TouchableOpacity>
                 )}
 
-                {Object.values(getSelectedDateMeals()).every(meals => meals.length === 0) && (
+                {Object.values(getSelectedDateMeals()).every(meals => meals.length === 0) &&
+                 Object.values(getSelectedDatePlannedMeals()).every(meals => meals.length === 0) && (
                   <View style={styles.emptyModalContainer}>
                     <Text style={styles.emptyModalText}>No meals logged</Text>
                     <Text style={styles.emptyModalSubtext}>
@@ -2009,6 +2058,17 @@ const styles = StyleSheet.create({
     height: 36,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  consumePlannedButton: {
+    backgroundColor: Colors.primary,
+    paddingVertical: Spacing.xs,
+    paddingHorizontal: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+  },
+  consumePlannedText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
   },
   addFoodSection: {
     backgroundColor: Colors.surface,

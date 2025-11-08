@@ -3,13 +3,36 @@
  *
  * A clean, professional animated indicator for AI processing states.
  * Shows pulsing dots to indicate the AI is thinking/processing.
+ * Includes contextual messages to make AI feel more like a coach.
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
 import { Colors, Typography, Spacing } from '../constants/theme';
 
-export default function ThinkingAnimation({ text = "Thinking", style, compact = false }) {
+const COACHING_MESSAGES = [
+  "Coach is thinking",
+  "Analyzing your data",
+  "Crafting your plan",
+  "Checking the science",
+  "Finding the best option",
+  "Working on it",
+];
+
+export default function ThinkingAnimation({
+  text,
+  style,
+  compact = false,
+  showCoachingMessage = true
+}) {
+  // If no text provided and coaching messages enabled, pick a random one
+  const [displayText] = useState(() => {
+    if (text) return text;
+    if (showCoachingMessage) {
+      return COACHING_MESSAGES[Math.floor(Math.random() * COACHING_MESSAGES.length)];
+    }
+    return "Thinking";
+  });
   // Create animated values for each dot
   const dot1Opacity = useRef(new Animated.Value(0.3)).current;
   const dot2Opacity = useRef(new Animated.Value(0.3)).current;
@@ -57,7 +80,7 @@ export default function ThinkingAnimation({ text = "Thinking", style, compact = 
       <View style={styles.contentWrapper}>
         {!compact && <Text style={styles.emoji}>💭</Text>}
         <View style={styles.textContainer}>
-          <Text style={[styles.text, compact && styles.compactText]}>{text}</Text>
+          <Text style={[styles.text, compact && styles.compactText]}>{displayText}</Text>
           <View style={styles.dotsContainer}>
             <Animated.View style={[styles.dot, compact && styles.compactDot, { opacity: dot1Opacity }]} />
             <Animated.View style={[styles.dot, compact && styles.compactDot, { opacity: dot2Opacity }]} />

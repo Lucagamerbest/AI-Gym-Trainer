@@ -174,16 +174,6 @@ export const ExerciseDetailScreenSections = [
 
 export const NutritionScreenSections = [
   {
-    title: 'Daily Tracking',
-    icon: 'stats-chart',
-    buttons: [
-      { icon: 'flame', text: 'Calories remaining?', toolName: 'getNutritionSummary' },
-      { icon: 'restaurant', text: 'Protein remaining?', toolName: 'getNutritionSummary' },
-      { icon: 'stats-chart', text: 'Today\'s macro breakdown', toolName: 'getNutritionSummary' },
-      { icon: 'checkmark-circle', text: 'Am I on track?', toolName: 'analyzeNutritionProgress' },
-    ],
-  },
-  {
     title: 'Meal Suggestions',
     icon: 'restaurant',
     buttons: [
@@ -194,13 +184,11 @@ export const NutritionScreenSections = [
     ],
   },
   {
-    title: 'Macro Calculations',
-    icon: 'calculator',
+    title: 'Nutrition Insights',
+    icon: 'bulb',
     buttons: [
-      { icon: 'calculator', text: 'Calculate my macros', toolName: 'calculateMacros' },
-      { icon: 'trending-down', text: 'Macros for cutting', toolName: 'calculateMacros', params: { goal: 'cutting' } },
-      { icon: 'trending-up', text: 'Macros for bulking', toolName: 'calculateMacros', params: { goal: 'bulking' } },
-      { icon: 'analytics', text: 'Adjust current macros', toolName: 'adjustMacros' },
+      { icon: 'bulb', text: 'Optimize my nutrition', toolName: 'analyzeNutritionProgress' },
+      { icon: 'analytics', text: 'Improve macro balance', toolName: 'analyzeMacroConsistency' },
     ],
   },
 ];
@@ -284,15 +272,14 @@ export const HomeScreenSections = [
     buttons: [
       { icon: 'fitness', text: 'What to train today?', toolName: 'recommendWorkout' },
       { icon: 'restaurant', text: 'What to eat?', toolName: 'suggestMeal' },
-      { icon: 'stats-chart', text: 'How am I doing?', toolName: 'getDailySummary' },
+      { icon: 'trophy', text: 'Recent PRs', toolName: 'getRecentPRs' },
     ],
   },
   {
-    title: 'Recent Activity',
-    icon: 'time',
+    title: 'Motivation & Coaching',
+    icon: 'chatbubbles',
     buttons: [
-      { icon: 'barbell', text: 'Last workout summary', toolName: 'getLastWorkout' },
-      { icon: 'trophy', text: 'Recent PRs', toolName: 'getRecentPRs' },
+      { icon: 'bulb', text: 'Get workout advice', toolName: 'getMotivation' },
       { icon: 'calendar', text: 'This week\'s progress', toolName: 'analyzeWeeklyProgress' },
     ],
   },
@@ -373,7 +360,6 @@ export const ProfileScreenSections = [
     title: 'Goal Setting',
     icon: 'flag',
     buttons: [
-      { icon: 'calculator', text: 'Calculate ideal macros', toolName: 'calculateMacros' },
       { icon: 'bulb', text: 'Suggest new goals', toolName: 'suggestGoals' },
       { icon: 'calendar', text: 'Create fitness plan', toolName: 'createFitnessPlan' },
     ],

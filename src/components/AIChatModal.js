@@ -109,14 +109,23 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
 
   const getWelcomeMessage = () => {
     const screen = ContextManager.currentScreen;
+    const hour = new Date().getHours();
+    const firstName = user?.displayName?.split(' ')[0] || 'Champion';
+
+    // Time-based greeting
+    let timeGreeting = 'Hey';
+    if (hour < 12) timeGreeting = 'Good morning';
+    else if (hour < 18) timeGreeting = 'Good afternoon';
+    else timeGreeting = 'Good evening';
+
     const welcomes = {
-      StartWorkoutScreen: "Hey! Ready to create a workout? I can help you plan the perfect session!",
-      WorkoutDetailScreen: "Hey! I'm here to help with your workout. How's it going?",
-      NutritionDashboard: "Hi! Ready to talk about your nutrition goals?",
-      ProgressScreen: "Hello! Let's review your progress together.",
-      WorkoutHistoryScreen: "Hi! Ready to plan your upcoming workouts or review your progress?",
-      PlannedWorkoutDetailScreen: "Hey! Let me help you optimize this planned workout.",
-      default: "Hi! I'm your AI fitness coach. How can I help you today?",
+      StartWorkoutScreen: `${timeGreeting}, ${firstName}! Ready to create a killer workout? I'll help you plan the perfect session! 💪`,
+      WorkoutDetailScreen: `${timeGreeting}! I'm Coach - here to help optimize your workout. How's it going?`,
+      NutritionDashboard: `${timeGreeting}, ${firstName}! Let's talk nutrition and hit those macro goals! 🥗`,
+      ProgressScreen: `${timeGreeting}! Ready to analyze your progress? Let's see how far you've come! 📈`,
+      WorkoutHistoryScreen: `${timeGreeting}! Want to plan your next workout or review your gains? I'm here to help!`,
+      PlannedWorkoutDetailScreen: `${timeGreeting}! Let me help you fine-tune this planned workout!`,
+      default: `${timeGreeting}, ${firstName}! I'm Coach - your AI fitness advisor. What can I help you with today? 🏋️`,
     };
     return welcomes[screen] || welcomes.default;
   };
@@ -775,10 +784,10 @@ export default function AIChatModal({ visible, onClose, initialMessage = '' }) {
             keyboardDismissMode="interactive"
           />
 
-          {/* Loading indicator - Enhanced visibility */}
+          {/* Loading indicator - Enhanced visibility with coaching messages */}
           {loading && (
             <View style={styles.loadingContainer}>
-              <ThinkingAnimation text="Thinking" />
+              <ThinkingAnimation showCoachingMessage={true} />
             </View>
           )}
 
