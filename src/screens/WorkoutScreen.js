@@ -5,6 +5,8 @@ import { Picker } from '@react-native-picker/picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
 import { Audio } from 'expo-av';
+import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import ScreenLayout from '../components/ScreenLayout';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -68,7 +70,7 @@ const isCardioExercise = (exercise) => {
 };
 
 // Exercise Card Component
-const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exerciseSets, onUpdateSet, onAddSet, onDeleteSet, onShowInfo, onSelectSetType, onPairSuperset, supersetPairIndex, fromProgram, rpeEnabled, onStartCardioTimer, onPauseCardioTimer, cardioTimers }) => {
+const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exerciseSets, onUpdateSet, onAddSet, onDeleteSet, onShowInfo, onSelectSetType, onPairSuperset, supersetPairIndex, fromProgram, rpeEnabled, onStartCardioTimer, onPauseCardioTimer, cardioTimers, onMoveUp, onMoveDown, canMoveUp, canMoveDown }) => {
 
   // Function to get set type color
   const getSetTypeColor = (type) => {
@@ -113,6 +115,40 @@ const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exercise
     >
         {/* Exercise Header */}
         <View style={styles.exerciseHeader}>
+          {/* Reorder Buttons */}
+          {onMoveUp && onMoveDown && (
+            <View style={styles.reorderButtons}>
+              <TouchableOpacity
+                onPress={() => onMoveUp(index)}
+                style={[
+                  styles.reorderButton,
+                  !canMoveUp && styles.reorderButtonDisabled
+                ]}
+                disabled={!canMoveUp}
+              >
+                <Ionicons
+                  name="chevron-up"
+                  size={20}
+                  color={canMoveUp ? Colors.primary : Colors.border}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => onMoveDown(index)}
+                style={[
+                  styles.reorderButton,
+                  !canMoveDown && styles.reorderButtonDisabled
+                ]}
+                disabled={!canMoveDown}
+              >
+                <Ionicons
+                  name="chevron-down"
+                  size={20}
+                  color={canMoveDown ? Colors.primary : Colors.border}
+                />
+              </TouchableOpacity>
+            </View>
+          )}
+
           <TouchableOpacity
             style={styles.exerciseMainContent}
             onPress={() => onPress(index)}
@@ -329,6 +365,10 @@ export default function WorkoutScreen({ navigation, route }) {
   const [showSetTypeModal, setShowSetTypeModal] = useState(false);
   const [selectedSetForType, setSelectedSetForType] = useState({ exerciseIndex: null, setIndex: null });
   const [rpeEnabled, setRpeEnabled] = useState(false);
+
+  // Exercise reordering state
+  const moveTimerRef = useRef(null);
+  const pendingMovesRef = useRef({ index: null, direction: null, count: 0 });
 
   // Superset pairing state
   const [supersetPairings, setSupersetPairings] = useState({}); // { exerciseIndex: pairedExerciseIndex }
@@ -556,6 +596,110 @@ export default function WorkoutScreen({ navigation, route }) {
   // Get workout data from context
   const workoutExercises = activeWorkout?.exercises || [];
   const workoutStartTime = activeWorkout?.startTime ? new Date(activeWorkout.startTime) : new Date();
+
+  // Execute batched exercise moves
+  const executePendingMoves = () => {
+    const moves = pendingMovesRef.current;
+    console.log('🔄 executePendingMoves called, pendingMoves:', moves);
+
+    if (moves.index === null || moves.count === 0) {
+      console.log('❌ No pending moves to execute');
+      return;
+    }
+
+    const { index, direction, count } = moves;
+    console.log(`✅ Executing move: index=${index}, direction=${direction}, count=${count}`);
+
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+    const updatedExercises = [...workoutExercises];
+    const exercise = updatedExercises[index];
+    console.log('📋 Current order:', updatedExercises.map((e, i) => `${i}: ${e.name}`));
+
+    // Calculate target position
+    let targetIndex = index;
+    if (direction === 'up') {
+      targetIndex = Math.max(0, index - count);
+    } else {
+      targetIndex = Math.min(updatedExercises.length - 1, index + count);
+    }
+    console.log(`🎯 Moving from index ${index} to ${targetIndex}`);
+
+    // Remove from old position and insert at new position
+    updatedExercises.splice(index, 1);
+    updatedExercises.splice(targetIndex, 0, exercise);
+    console.log('📋 New order:', updatedExercises.map((e, i) => `${i}: ${e.name}`));
+
+    // Update workout with new exercise order
+    updateWorkout({ exercises: updatedExercises });
+
+    // Reset pending moves
+    pendingMovesRef.current = { index: null, direction: null, count: 0 };
+  };
+
+  // Move exercise up with batching
+  const moveExerciseUp = (index) => {
+    console.log(`⬆️ moveExerciseUp called for index ${index}`);
+    if (index === 0) {
+      console.log('❌ Already at top, cannot move up');
+      return;
+    }
+
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+    // Clear existing timer
+    if (moveTimerRef.current) {
+      console.log('🔄 Clearing existing timer');
+      clearTimeout(moveTimerRef.current);
+    }
+
+    // Update pending moves
+    const current = pendingMovesRef.current;
+    const newState = current.index === index && current.direction === 'up'
+      ? { ...current, count: current.count + 1 }
+      : { index, direction: 'up', count: 1 };
+    pendingMovesRef.current = newState;
+    console.log('📝 Updated pendingMoves:', newState);
+
+    // Set timer to execute after delay
+    console.log('⏱️ Setting timer for 300ms');
+    moveTimerRef.current = setTimeout(() => {
+      console.log('⏰ Timer fired! Executing pending moves...');
+      executePendingMoves();
+    }, 300);
+  };
+
+  // Move exercise down with batching
+  const moveExerciseDown = (index) => {
+    console.log(`⬇️ moveExerciseDown called for index ${index}`);
+    if (index === workoutExercises.length - 1) {
+      console.log('❌ Already at bottom, cannot move down');
+      return;
+    }
+
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+    // Clear existing timer
+    if (moveTimerRef.current) {
+      console.log('🔄 Clearing existing timer');
+      clearTimeout(moveTimerRef.current);
+    }
+
+    // Update pending moves
+    const current = pendingMovesRef.current;
+    const newState = current.index === index && current.direction === 'down'
+      ? { ...current, count: current.count + 1 }
+      : { index, direction: 'down', count: 1 };
+    pendingMovesRef.current = newState;
+    console.log('📝 Updated pendingMoves:', newState);
+
+    // Set timer to execute after delay
+    console.log('⏱️ Setting timer for 300ms');
+    moveTimerRef.current = setTimeout(() => {
+      console.log('⏰ Timer fired! Executing pending moves...');
+      executePendingMoves();
+    }, 300);
+  };
 
   // Initialize exercise sets - add empty set for any new exercises
   useEffect(() => {
@@ -1582,6 +1726,10 @@ export default function WorkoutScreen({ navigation, route }) {
             onStartCardioTimer={startCardioTimer}
             onPauseCardioTimer={pauseCardioTimer}
             cardioTimers={cardioTimers}
+            onMoveUp={moveExerciseUp}
+            onMoveDown={moveExerciseDown}
+            canMoveUp={index > 0}
+            canMoveDown={index < workoutExercises.length - 1}
           />
         ))}
       </View>
@@ -2917,5 +3065,19 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
     marginTop: Spacing.xs,
     fontStyle: 'italic',
+  },
+  // Reorder button styles
+  reorderButtons: {
+    flexDirection: 'column',
+    marginRight: Spacing.sm,
+    gap: 2,
+  },
+  reorderButton: {
+    padding: 4,
+    borderRadius: 4,
+    backgroundColor: Colors.surface,
+  },
+  reorderButtonDisabled: {
+    opacity: 0.3,
   },
 });

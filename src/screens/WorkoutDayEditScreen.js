@@ -10,6 +10,8 @@ import {
   Modal,
   BackHandler,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import ScreenLayout from '../components/ScreenLayout';
 import StyledButton from '../components/StyledButton';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
@@ -307,6 +309,92 @@ export default function WorkoutDayEditScreen({ navigation, route }) {
         }
       ]
     );
+  };
+
+  // Pending move state for batched reordering
+  const moveTimerRef = useRef(null);
+  const pendingMovesRef = useRef({ index: null, direction: null, count: 0 });
+
+  // Execute batched moves after user stops tapping
+  const executePendingMoves = () => {
+    const moves = pendingMovesRef.current;
+    if (moves.index === null || moves.count === 0) return;
+
+    const { index, direction, count } = moves;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+    const updatedExercises = [...dayData.exercises];
+    const exercise = updatedExercises[index];
+
+    // Calculate target position
+    let targetIndex = index;
+    if (direction === 'up') {
+      targetIndex = Math.max(0, index - count);
+    } else {
+      targetIndex = Math.min(updatedExercises.length - 1, index + count);
+    }
+
+    // Remove from old position and insert at new position
+    updatedExercises.splice(index, 1);
+    updatedExercises.splice(targetIndex, 0, exercise);
+
+    const updatedDay = { ...dayData, exercises: updatedExercises };
+    setDayData(updatedDay);
+    saveChanges(updatedDay);
+    setHasUnsavedChanges(true);
+
+    // Reset pending moves
+    pendingMovesRef.current = { index: null, direction: null, count: 0 };
+  };
+
+  // Move exercise up with batching
+  const moveExerciseUp = (index) => {
+    if (index === 0) return;
+
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+    // Clear existing timer
+    if (moveTimerRef.current) {
+      clearTimeout(moveTimerRef.current);
+    }
+
+    // Update pending moves
+    const current = pendingMovesRef.current;
+    if (current.index === index && current.direction === 'up') {
+      pendingMovesRef.current = { ...current, count: current.count + 1 };
+    } else {
+      pendingMovesRef.current = { index, direction: 'up', count: 1 };
+    }
+
+    // Set timer to execute after delay
+    moveTimerRef.current = setTimeout(() => {
+      executePendingMoves();
+    }, 300);
+  };
+
+  // Move exercise down with batching
+  const moveExerciseDown = (index) => {
+    if (index === dayData.exercises.length - 1) return;
+
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+    // Clear existing timer
+    if (moveTimerRef.current) {
+      clearTimeout(moveTimerRef.current);
+    }
+
+    // Update pending moves
+    const current = pendingMovesRef.current;
+    if (current.index === index && current.direction === 'down') {
+      pendingMovesRef.current = { ...current, count: current.count + 1 };
+    } else {
+      pendingMovesRef.current = { index, direction: 'down', count: 1 };
+    }
+
+    // Set timer to execute after delay
+    moveTimerRef.current = setTimeout(() => {
+      executePendingMoves();
+    }, 300);
   };
 
   const getSetTypeColor = (type) => {
@@ -704,11 +792,43 @@ export default function WorkoutDayEditScreen({ navigation, route }) {
         ) : (
           <>
             {dayData.exercises.map((exercise, exerciseIndex) => (
-              <View key={exercise.uniqueId} style={[
+              <View key={exercise.uniqueId || `exercise-${exerciseIndex}`} style={[
                 styles.exerciseCard,
                 supersetPairings[exerciseIndex] !== undefined && styles.supersetPairedCard
               ]}>
                 <View style={styles.exerciseHeader}>
+                  {/* Reorder Buttons */}
+                  <View style={styles.reorderButtons}>
+                    <TouchableOpacity
+                      onPress={() => moveExerciseUp(exerciseIndex)}
+                      style={[
+                        styles.reorderButton,
+                        exerciseIndex === 0 && styles.reorderButtonDisabled
+                      ]}
+                      disabled={exerciseIndex === 0}
+                    >
+                      <Ionicons
+                        name="chevron-up"
+                        size={20}
+                        color={exerciseIndex === 0 ? Colors.border : Colors.primary}
+                      />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => moveExerciseDown(exerciseIndex)}
+                      style={[
+                        styles.reorderButton,
+                        exerciseIndex === dayData.exercises.length - 1 && styles.reorderButtonDisabled
+                      ]}
+                      disabled={exerciseIndex === dayData.exercises.length - 1}
+                    >
+                      <Ionicons
+                        name="chevron-down"
+                        size={20}
+                        color={exerciseIndex === dayData.exercises.length - 1 ? Colors.border : Colors.primary}
+                      />
+                    </TouchableOpacity>
+                  </View>
+
                   <View style={styles.exerciseTitleContainer}>
                     <Text style={styles.exerciseName}>{exercise.name}</Text>
                     <Text style={styles.exerciseMuscle}>
@@ -1084,6 +1204,19 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: Spacing.md,
+  },
+  reorderButtons: {
+    flexDirection: 'column',
+    marginRight: Spacing.sm,
+    gap: 2,
+  },
+  reorderButton: {
+    padding: 4,
+    borderRadius: 4,
+    backgroundColor: Colors.surface,
+  },
+  reorderButtonDisabled: {
+    opacity: 0.3,
   },
   exerciseTitleContainer: {
     flex: 1,
