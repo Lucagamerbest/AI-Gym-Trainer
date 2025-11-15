@@ -62,42 +62,48 @@
 
 ---
 
-## **🟢 PHASE 3: HOME AI SCREEN REFINEMENT**
+## **🟢 PHASE 3: HOME AI SCREEN REFINEMENT** ✅ **COMPLETE**
 
-9. **Redesign Home AI as "Coach" vs "Utility Agent"**
+9. **Redesign Home AI as "Coach" vs "Utility Agent"** ✅
    - Focus: Advice, motivation, questions
    - Not: "Calculate my macros" (user can see this faster in app)
    - Position as personal guide, not task executor
+   - **Status:** Already well-designed, verified working (Nov 6)
 
-10. **Remove low-value AI options**
+10. **Remove low-value AI options** ✅
     - Create list of tasks easier to do manually than via AI
     - Examples to remove:
       - "Calculate my macros" → Just show in UI
       - "Log today's weight" → Direct input faster
     - Keep only high-value conversational requests
+    - **Status:** AI Coach buttons are already high-value only (Nov 6)
 
-11. **Add "What should I eat for [meal] to balance macros?"**
+11. **Add "What should I eat for [meal] to balance macros?"** ✅
     - New button in Nutrition screen
     - AI calculates meal-specific calories based on:
       - Time of day (breakfast vs dinner)
       - User's meal plan (2 meals/day vs 6 meals/day)
       - Remaining daily calories
       - Buffer for snacks/tracking inaccuracies
+    - **Status:** Already implemented and working (Nov 6)
 
 ---
 
-## **🔵 PHASE 4: SMART TEXT INPUT ENHANCEMENTS**
+## **🔵 PHASE 4: SMART TEXT INPUT ENHANCEMENTS** ✅ **COMPLETE**
 
-12. **Implement contextual word suggestions** *(Advanced feature)*
+12. **Implement contextual word suggestions** ✅ *(Implemented via smart learning system)*
     - Similar to smartphone predictive text
     - Fitness/nutrition-specific vocabulary
     - Examples:
       - User types "chick" → suggests "chicken breast," "chicken thigh"
       - User types "create a recipe using" → suggests common ingredients
       - User types "replace bench" → suggests "dumbbell bench," "incline bench"
-    - **Note:** Only implement after finalizing text input policy (Phase 1B)
+    - **Status:** Implemented as smart text input learning system (Nov 6-14)
+      - Exercise keyword matching and clarification
+      - Equipment/grip variation suggestions
+      - Contextual exercise recommendations
 
-13. **Add parameter clarification modals for structured requests**
+13. **Add parameter clarification modals for structured requests** ✅
     - Example: "Create a high protein recipe" button
     - Opens modal asking:
       - Minimum protein (g)
@@ -106,6 +112,7 @@
       - Cooking time limit
     - Fills in AI request with user-defined parameters
     - Shows intentional design, not lazy text box
+    - **Status:** Implemented via RecipeSourceModal and AI button system (Nov 6)
 
 ---
 
@@ -258,13 +265,18 @@
 ---
 
 ### **Sprint 3 (Week 3: Nov 20-27): Smart Inputs & Polish**
-- [ ] Remove low-value AI options
-- [ ] Implement parameter clarification modals
-- [ ] Add predictive text suggestions (if text input stays)
+- [x] Remove low-value AI options ✅ (Already done - Nov 6)
+- [x] Implement parameter clarification modals ✅ (Already done - Nov 6)
+- [x] Add predictive text suggestions ✅ (Smart text input system - Nov 6-14)
+- [x] Exercise variants UI improvements ✅ (Equipment/grip selection - Nov 14)
 - [ ] Clean loading states when AI is thinking
-- [ ] Exercise variants UI improvements
 
 **Expected completion:** November 27, 2025
+**Progress Update:** 🎉 SPRINT 3 NEARLY COMPLETE (4/5 - 80%)
+- ✅ Phase 3 complete (Home AI refinement)
+- ✅ Phase 4 complete (Smart text input enhancements)
+- ✅ Exercise reordering with single-click (Nov 14)
+- ⏳ Only loading states remain for full completion
 
 ---
 
@@ -513,7 +525,30 @@ By November 27, 2025, we should have:
 
 ---
 
-**Last Updated:** November 6, 2025 (Late Evening)
-**Status:** ✅ SPRINT 1 COMPLETE (11/11 - 100%) + 2 Sprint 2 tasks done!
-**Bonus:** Started Sprint 2 early - Recipe optimization complete
-**Next Review:** November 12, 2025 (End of Sprint 1)
+### **November 14, 2025**
+**Focus:** Exercise reordering UX improvements
+
+**Completed:**
+
+1. **Fixed exercise reordering to work on single click**
+   - Issue: Required double-click due to stale state closure bug
+   - Root cause: `useState` with setTimeout captured old state values
+   - Solution: Changed from `useState` to `useRef` for pendingMoves
+   - Reduced delay from 500ms to 300ms for better responsiveness
+   - Affected: `src/screens/WorkoutScreen.js`, `src/screens/WorkoutDayEditScreen.js`
+
+**Files Modified:**
+- `src/screens/WorkoutScreen.js` (fixed moveExerciseUp/Down with useRef)
+- `src/screens/WorkoutDayEditScreen.js` (fixed moveExerciseUp/Down with useRef)
+
+**Commits:** 1 commit pushed to main
+- `d5a89f2` - fix: Exercise reordering now works on single click
+
+---
+
+**Last Updated:** November 14, 2025
+**Status:** ✅ SPRINT 1 COMPLETE (11/11 - 100%)
+         ✅ SPRINT 2 COMPLETE (5/5 - 100%)
+         🎉 SPRINT 3 NEARLY COMPLETE (4/5 - 80%)
+**Next:** Phase 5 features (Bodyweight exercises, loading states, etc.)
+**Next Review:** November 27, 2025 (End of Sprint 3)
