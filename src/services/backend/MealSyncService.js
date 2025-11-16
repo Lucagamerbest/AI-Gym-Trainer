@@ -1,5 +1,5 @@
 // MealSyncService - Handles synchronization of meal/nutrition data with Firebase
-import { db } from '../../config/firebase';
+import { db, auth } from '../../config/firebase';
 import {
   collection,
   doc,
@@ -17,6 +17,7 @@ import { getDailySummary, addToDaily } from '../foodDatabase.web';
 class MealSyncService {
   constructor() {
     this.db = db;
+    this.auth = auth;
   }
 
   // Upload a single daily consumption entry to Firebase
@@ -52,6 +53,11 @@ class MealSyncService {
   // Get meals for a specific date from Firebase
   async getMealsByDate(userId, date) {
     try {
+      // Don't access Firebase if not authenticated
+      if (!this.auth.currentUser) {
+        return [];
+      }
+
       if (!userId || userId === 'guest') {
         throw new Error('User not authenticated');
       }
@@ -81,8 +87,12 @@ class MealSyncService {
 
       return meals;
     } catch (error) {
+      // Silently fail on permission errors (happens during hot reload before auth completes)
+      if (error.code === 'permission-denied') {
+        return [];
+      }
       console.error('Error getting meals by date:', error);
-      throw error;
+      return [];
     }
   }
 

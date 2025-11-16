@@ -8,6 +8,7 @@ import StyledCard from '../components/StyledCard';
 import StyledButton from '../components/StyledButton';
 import CalendarView from '../components/CalendarView';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
+import { getCurrentMealType } from '../config/aiSectionConfig';
 
 const MEAL_PLANS_KEY = '@meal_plans';
 const DAILY_NUTRITION_KEY = '@daily_nutrition';
@@ -31,7 +32,7 @@ export default function MealHistoryTabs({ navigation, route, activeHistoryTab })
   const [showCopyModal, setShowCopyModal] = useState(false);
   const [copySourceDate, setCopySourceDate] = useState(null);
   const [selectedFutureDates, setSelectedFutureDates] = useState([]);
-  const [selectedMealTypeForAdd, setSelectedMealTypeForAdd] = useState('breakfast');
+  const [selectedMealTypeForAdd, setSelectedMealTypeForAdd] = useState(() => getCurrentMealType());
   const [todayMeals, setTodayMeals] = useState({
     breakfast: [],
     lunch: [],

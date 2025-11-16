@@ -1,6 +1,7 @@
 // SyncManager - Handles automatic synchronization of data with Firebase
 import NetInfo from '@react-native-community/netinfo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { auth } from '../../config/firebase';
 import WorkoutSyncService from './WorkoutSyncService';
 import MealSyncService from './MealSyncService';
 import ProgressSyncService from './ProgressSyncService';
@@ -118,8 +119,12 @@ class SyncManager {
 
   // Sync all pending operations
   async syncPendingOperations() {
-    if (this.isSyncing || !this.isOnline) {
+    // Don't sync if not authenticated
+    if (!auth.currentUser) {
+      return { success: false, reason: 'Not authenticated' };
+    }
 
+    if (this.isSyncing || !this.isOnline) {
       return { success: false, reason: this.isSyncing ? 'Already syncing' : 'Offline' };
     }
 

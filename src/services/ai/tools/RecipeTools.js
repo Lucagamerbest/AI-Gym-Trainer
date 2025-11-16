@@ -154,6 +154,9 @@ export async function generateRecipeFromIngredients({
   cuisine = null,
   dietaryRestrictions = [],
   mealType = 'any', // 'breakfast', 'lunch', 'dinner', 'snack', 'any'
+  maxPrepTime = null, // Filter for quick meals (in minutes)
+  minPrepTime = null, // Filter for full cooking meals (in minutes)
+  mealPrepFriendly = false, // Request meal prep-friendly recipe
   userId
 }) {
   try {
@@ -163,7 +166,10 @@ export async function generateRecipeFromIngredients({
       targetCalories,
       cuisine,
       dietaryRestrictions,
-      mealType
+      mealType,
+      maxPrepTime,
+      minPrepTime,
+      mealPrepFriendly
     });
 
     // Validate inputs
@@ -284,7 +290,19 @@ Requirements:
 - Provide exact measurements for all ingredients
 - Calculate nutritional information (calories, protein, carbs, fat per serving)
 - Make it realistic and easy to prepare
-- Specify number of servings`;
+- Specify number of servings
+
+MEAL PREP OPTIONS:
+- Include a "mealPrepFriendly" boolean field indicating if this recipe can be made in bulk
+- If meal prep friendly, add "mealPrepInstructions" with batch cooking tips and storage instructions
+- Add "componentBased" field - can this be made as separate components (protein + carb + veggie)?
+- If component-based, add "components" array breaking down the recipe into: protein source, carb source, vegetable, sauce/seasoning
+- Add "assemblyTime" field for quick assembly meals (e.g., "5 minutes" for pre-prepped components)
+- Include "storageInstructions" with how long each component lasts in the fridge
+
+${maxPrepTime ? `⚡ QUICK MEAL REQUIREMENT: Total time (prep + cook) must be under ${maxPrepTime} minutes! Focus on simple, fast recipes with minimal cooking.` : ''}
+${minPrepTime ? `🍳 FULL COOKING MEAL REQUIREMENT: Total time (prep + cook) should be at least ${minPrepTime} minutes. This is a proper cooking session, not a quick meal.` : ''}
+${mealPrepFriendly ? `📦 MEAL PREP FOCUS: This MUST be meal prep friendly! Make it suitable for batch cooking and storing for 4-5 days. Include detailed storage and reheating instructions.` : ''}`;
 
     if (targetProtein && adjustedCalories) {
       prompt += `\n- Aim for approximately ${targetProtein}g of protein and ${adjustedCalories} calories per serving`;
@@ -315,7 +333,11 @@ Requirements:
   "servings": 2,
   "prepTime": "15 minutes",
   "cookTime": "20 minutes",
+  "totalTime": "35 minutes",
   "difficulty": "easy/medium/hard",
+  "mealPrepFriendly": true,
+  "componentBased": true,
+  "assemblyTime": "5 minutes",
   "ingredients": [
     { "item": "ingredient name", "amount": "2 cups", "calories": 200, "protein": 10, "carbs": 20, "fat": 5 }
   ],
@@ -323,13 +345,21 @@ Requirements:
     "Step 1 description",
     "Step 2 description"
   ],
+  "components": [
+    { "type": "protein", "name": "Grilled chicken", "prepInstructions": "Season and grill for 6-7 min per side", "storageTime": "4 days" },
+    { "type": "carb", "name": "Brown rice", "prepInstructions": "Cook 1 cup rice with 2 cups water", "storageTime": "5 days" },
+    { "type": "vegetable", "name": "Roasted broccoli", "prepInstructions": "Toss with oil, roast at 425°F for 20 min", "storageTime": "3 days" },
+    { "type": "sauce", "name": "Lemon herb dressing", "prepInstructions": "Mix olive oil, lemon, herbs", "storageTime": "7 days" }
+  ],
+  "mealPrepInstructions": "Cook all components on Sunday. Store in separate containers. Reheat protein and carbs together for 2 min, add fresh vegetables.",
+  "storageInstructions": "Store each component in airtight containers in the refrigerator. Keeps for 3-5 days depending on component.",
   "nutrition": {
     "caloriesPerServing": 450,
     "proteinPerServing": 35,
     "carbsPerServing": 40,
     "fatPerServing": 12
   },
-  "tags": ["high-protein", "quick", "healthy"],
+  "tags": ["high-protein", "meal-prep", "quick-assembly", "healthy"],
   "tips": ["Optional cooking tip 1", "Optional cooking tip 2"]
 }`;
 
@@ -590,7 +620,15 @@ CRITICAL CALORIE REQUIREMENTS FOR ${mealType.toUpperCase()}:
 - Provide exact measurements for all ingredients
 - Calculate nutritional information (calories, protein, carbs, fat per serving)
 - Make it realistic and easy to prepare
-- Specify number of servings`;
+- Specify number of servings
+
+MEAL PREP OPTIONS:
+- Include "mealPrepFriendly" boolean - can this be made in bulk?
+- If meal prep friendly, add "mealPrepInstructions" with batch cooking and storage tips
+- Add "componentBased" boolean - can be made as protein + carb + veggie?
+- If component-based, add "components" array with breakdown
+- Add "assemblyTime" for quick assembly (e.g., "5 minutes")
+- Include "storageInstructions" with fridge life for each component`;
 
     if (cuisine) {
       prompt += `\n- Use ${cuisine} cuisine style`;
@@ -620,7 +658,11 @@ Format the response as JSON with this structure:
   "servings": 1,
   "prepTime": "15 minutes",
   "cookTime": "20 minutes",
+  "totalTime": "35 minutes",
   "difficulty": "easy/medium/hard",
+  "mealPrepFriendly": true,
+  "componentBased": true,
+  "assemblyTime": "5 minutes",
   "ingredients": [
     { "item": "ingredient name", "amount": "200g", "calories": 330, "protein": 62, "carbs": 0, "fat": 7 }
   ],
@@ -628,6 +670,13 @@ Format the response as JSON with this structure:
     "Step 1 description",
     "Step 2 description"
   ],
+  "components": [
+    { "type": "protein", "name": "Grilled chicken", "prepInstructions": "Season and grill", "storageTime": "4 days" },
+    { "type": "carb", "name": "Rice", "prepInstructions": "Cook rice", "storageTime": "5 days" },
+    { "type": "vegetable", "name": "Broccoli", "prepInstructions": "Steam or roast", "storageTime": "3 days" }
+  ],
+  "mealPrepInstructions": "Batch cook all components. Store separately.",
+  "storageInstructions": "Store in airtight containers for 3-5 days.",
   "nutrition": {
     "caloriesPerServing": ${adjustedCalories},
     "proteinPerServing": ${adjustedProtein},
@@ -1070,6 +1119,152 @@ ${recipe.instructions.map((inst, i) => `${i + 1}. ${inst}`).join('\n')}`;
   }
 }
 
+/**
+ * Generate mix-and-match meal components
+ * @param {Object} params - Component generation parameters
+ * @returns {Object} - Component options with prep instructions
+ */
+export async function generateMealComponents({
+  componentTypes = ['protein', 'carb', 'vegetable', 'sauce'],
+  optionsPerComponent = 3,
+  dietaryRestrictions = [],
+  cuisineStyle = 'any',
+  userId,
+}) {
+  try {
+    console.log('🍱 generateMealComponents called with:', {
+      componentTypes,
+      optionsPerComponent,
+      dietaryRestrictions,
+      cuisineStyle,
+      userId,
+    });
+
+    const prompt = `Generate ${optionsPerComponent} options for each of these meal components: ${componentTypes.join(', ')}.
+
+REQUIREMENTS:
+- Each component should be simple to prepare separately
+- Include prep instructions, cook time, and storage time for each option
+- All options should be meal prep friendly (can be stored 3-5 days)
+- Consider dietary restrictions: ${dietaryRestrictions.length > 0 ? dietaryRestrictions.join(', ') : 'none'}
+- Cuisine style: ${cuisineStyle}
+- Focus on variety within each component type
+- Include both quick-cook and batch-cook options
+
+COMPONENT TYPES TO GENERATE:
+${componentTypes.map(type => `- ${type.toUpperCase()}: ${optionsPerComponent} different options`).join('\n')}
+
+Return ONLY valid JSON in this exact format:
+{
+  "components": {
+    "protein": [
+      {
+        "name": "Grilled chicken breast",
+        "prepTime": "5 minutes",
+        "cookTime": "12 minutes",
+        "totalTime": "17 minutes",
+        "prepInstructions": "Season with salt, pepper, garlic powder. Grill 6-7 min per side until 165°F.",
+        "storageTime": "4 days",
+        "nutrition": {
+          "calories": 165,
+          "protein": 31,
+          "carbs": 0,
+          "fat": 3.6
+        }
+      }
+    ],
+    "carb": [
+      {
+        "name": "Brown rice",
+        "prepTime": "2 minutes",
+        "cookTime": "45 minutes",
+        "totalTime": "47 minutes",
+        "prepInstructions": "Rinse 1 cup rice. Cook with 2 cups water, bring to boil, simmer covered 45 min.",
+        "storageTime": "5 days",
+        "nutrition": {
+          "calories": 218,
+          "protein": 5,
+          "carbs": 46,
+          "fat": 1.6
+        }
+      }
+    ],
+    "vegetable": [
+      {
+        "name": "Roasted broccoli",
+        "prepTime": "5 minutes",
+        "cookTime": "20 minutes",
+        "totalTime": "25 minutes",
+        "prepInstructions": "Cut into florets, toss with olive oil, salt, pepper. Roast at 425°F for 20 min.",
+        "storageTime": "3 days",
+        "nutrition": {
+          "calories": 55,
+          "protein": 4,
+          "carbs": 11,
+          "fat": 0.6
+        }
+      }
+    ],
+    "sauce": [
+      {
+        "name": "Lemon herb dressing",
+        "prepTime": "5 minutes",
+        "cookTime": "0 minutes",
+        "totalTime": "5 minutes",
+        "prepInstructions": "Mix lemon juice, olive oil, minced garlic, fresh herbs, salt, pepper.",
+        "storageTime": "7 days",
+        "nutrition": {
+          "calories": 120,
+          "protein": 0,
+          "carbs": 2,
+          "fat": 14
+        }
+      }
+    ]
+  },
+  "mealPrepTips": [
+    "Cook all proteins on Sunday and store in separate containers",
+    "Prepare carbs in bulk and portion into containers",
+    "Roast vegetables fresh every 2-3 days for best texture",
+    "Keep sauces separate until serving to prevent sogginess"
+  ],
+  "assemblyInstructions": "Mix and match any protein + carb + vegetable + sauce for a complete meal in under 5 minutes"
+}
+
+IMPORTANT: Return ONLY the JSON object, no other text.`;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+
+    console.log('🤖 Gemini response:', text);
+
+    // Parse JSON response
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      throw new Error('No JSON found in response');
+    }
+
+    const componentsData = JSON.parse(jsonMatch[0]);
+
+    return {
+      success: true,
+      components: componentsData.components,
+      mealPrepTips: componentsData.mealPrepTips,
+      assemblyInstructions: componentsData.assemblyInstructions,
+      message: `Generated ${optionsPerComponent} options for each component type`,
+    };
+
+  } catch (error) {
+    console.error('❌ generateMealComponents error:', error);
+    return {
+      success: false,
+      error: error.message,
+      message: "Couldn't generate meal components. Please try again.",
+    };
+  }
+}
+
 // Export tool schemas for Gemini function calling
 export const recipeToolSchemas = [
   {
@@ -1104,6 +1299,18 @@ export const recipeToolSchemas = [
           type: 'string',
           enum: ['breakfast', 'lunch', 'dinner', 'snack', 'any'],
           description: 'Type of meal (optional, defaults to "any")',
+        },
+        maxPrepTime: {
+          type: 'number',
+          description: 'Maximum total time in minutes for quick meals (optional, e.g., 15 for quick meals)',
+        },
+        minPrepTime: {
+          type: 'number',
+          description: 'Minimum total time in minutes for full cooking meals (optional, e.g., 30 for proper cooking)',
+        },
+        mealPrepFriendly: {
+          type: 'boolean',
+          description: 'Whether the recipe should be meal prep friendly (optional, defaults to false)',
         },
         userId: {
           type: 'string',
@@ -1216,6 +1423,38 @@ export const recipeToolSchemas = [
         },
       },
       required: ['missingIngredient', 'userId'],
+    },
+  },
+  {
+    name: 'generateMealComponents',
+    description: 'Generate mix-and-match meal prep components (proteins, carbs, vegetables, sauces) that can be combined for flexible meal prep. Use when user wants meal prep options or wants to mix and match meal components.',
+    parameters: {
+      type: 'object',
+      properties: {
+        componentTypes: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Types of components to generate (e.g., ["protein", "carb", "vegetable", "sauce"]) (optional, defaults to all types)',
+        },
+        optionsPerComponent: {
+          type: 'number',
+          description: 'Number of options to generate for each component type (optional, default: 3)',
+        },
+        dietaryRestrictions: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Dietary restrictions or preferences (e.g., ["vegetarian", "gluten-free", "dairy-free"]) (optional)',
+        },
+        cuisineStyle: {
+          type: 'string',
+          description: 'Cuisine style preference (e.g., "Asian", "Mediterranean", "Mexican") (optional, defaults to "any")',
+        },
+        userId: {
+          type: 'string',
+          description: 'User ID',
+        },
+      },
+      required: ['userId'],
     },
   },
 ];

@@ -117,6 +117,11 @@ class BackendService {
    */
   async getUserProfile(userId) {
     try {
+      // Don't access Firebase if not authenticated
+      if (!this.auth.currentUser) {
+        return null;
+      }
+
       const userRef = doc(this.db, 'users', userId);
       const userDoc = await getDoc(userRef);
 
@@ -137,7 +142,12 @@ class BackendService {
 
       return null;
     } catch (error) {
-      throw error;
+      // Silently fail on permission errors (happens during hot reload before auth completes)
+      if (error.code === 'permission-denied') {
+        return null;
+      }
+      console.error('Error getting user profile:', error);
+      return null;
     }
   }
 

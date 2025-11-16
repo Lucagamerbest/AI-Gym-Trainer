@@ -69,6 +69,22 @@ const isCardioExercise = (exercise) => {
   return cardioKeywords.some(keyword => id.includes(keyword) || name.includes(keyword));
 };
 
+// Helper function to detect if exercise is bodyweight
+const isBodyweightExercise = (exercise) => {
+  if (!exercise) return false;
+  // Check if exercise has equipment field set to "Bodyweight"
+  if (exercise.equipment && typeof exercise.equipment === 'string') {
+    return exercise.equipment.toLowerCase().includes('bodyweight');
+  }
+  // Check variants if they exist
+  if (exercise.variants && Array.isArray(exercise.variants)) {
+    return exercise.variants.some(variant =>
+      variant.equipment && variant.equipment.toLowerCase() === 'bodyweight'
+    );
+  }
+  return false;
+};
+
 // Exercise Card Component
 const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exerciseSets, onUpdateSet, onAddSet, onDeleteSet, onShowInfo, onSelectSetType, onPairSuperset, supersetPairIndex, fromProgram, rpeEnabled, onStartCardioTimer, onPauseCardioTimer, cardioTimers, onMoveUp, onMoveDown, canMoveUp, canMoveDown }) => {
 
@@ -96,6 +112,9 @@ const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exercise
 
   // Check if this is a cardio exercise
   const isCardio = isCardioExercise(exercise);
+
+  // Check if this is a bodyweight exercise
+  const isBodyweight = isBodyweightExercise(exercise);
 
   // Format duration for cardio (seconds to MM:SS)
   const formatDuration = (seconds) => {
@@ -204,10 +223,10 @@ const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exercise
               </View>
             </>
           ) : (
-            // Regular Exercise - Show Set, Weight, Reps, RPE (if enabled)
+            // Regular Exercise - Show Set, Weight (if not bodyweight), Reps, RPE (if enabled)
             <View style={styles.setsHeader}>
               <Text style={styles.setHeaderText}>Set</Text>
-              <Text style={styles.setHeaderText}>Weight</Text>
+              {!isBodyweight && <Text style={styles.setHeaderText}>Weight</Text>}
               <Text style={styles.setHeaderText}>Reps</Text>
               {rpeEnabled && <Text style={styles.rpeHeaderText}>RPE</Text>}
             </View>
@@ -257,7 +276,7 @@ const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exercise
                   )}
                 </>
               ) : (
-                // Regular exercise set row: Set number | Weight | Reps | RPE
+                // Regular exercise set row: Set number | Weight (if not bodyweight) | Reps | RPE
                 <>
                   <TouchableOpacity
                     style={styles.setNumberContainer}
@@ -279,14 +298,16 @@ const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exercise
                     )}
                   </TouchableOpacity>
 
-                  <TextInput
-                    style={styles.setInput}
-                    value={set.weight}
-                    onChangeText={(value) => onUpdateSet(index, setIndex, 'weight', value)}
-                    placeholder="lbs"
-                    placeholderTextColor={Colors.textMuted}
-                    keyboardType="numeric"
-                  />
+                  {!isBodyweight && (
+                    <TextInput
+                      style={styles.setInput}
+                      value={set.weight}
+                      onChangeText={(value) => onUpdateSet(index, setIndex, 'weight', value)}
+                      placeholder="lbs"
+                      placeholderTextColor={Colors.textMuted}
+                      keyboardType="numeric"
+                    />
+                  )}
 
                   <TextInput
                     style={[
@@ -563,9 +584,12 @@ export default function WorkoutScreen({ navigation, route }) {
         activeWorkout.exercises?.forEach((ex, index) => {
           if (!restoredSets[index] || !Array.isArray(restoredSets[index]) || restoredSets[index].length === 0) {
             const isCardio = isCardioExercise(ex);
+            const isBodyweight = isBodyweightExercise(ex);
             restoredSets[index] = isCardio
               ? [{ duration: 0, completed: false }]
-              : [{ weight: '', reps: '', completed: false }];
+              : isBodyweight
+                ? [{ reps: '', completed: false }]
+                : [{ weight: '', reps: '', completed: false }];
             needsUpdate = true;
           }
         });
@@ -1138,9 +1162,10 @@ export default function WorkoutScreen({ navigation, route }) {
       newSets[exerciseIndex] = [];
     }
 
-    // Check if this is a cardio exercise to determine what fields to initialize
+    // Check if this is a cardio or bodyweight exercise to determine what fields to initialize
     const exercise = workoutExercises[exerciseIndex];
     const isCardio = isCardioExercise(exercise);
+    const isBodyweight = isBodyweightExercise(exercise);
 
     if (isCardio) {
       // For cardio: Stop and complete the previous set's timer
@@ -1178,6 +1203,9 @@ export default function WorkoutScreen({ navigation, route }) {
 
       // Add new set with duration instead of weight/reps
       newSets[exerciseIndex].push({ duration: 0, completed: true });
+    } else if (isBodyweight) {
+      // For bodyweight exercises: only reps (no weight)
+      newSets[exerciseIndex].push({ reps: '', rpe: '', completed: true });
     } else {
       // For regular exercises: weight, reps, rpe
       newSets[exerciseIndex].push({ weight: '', reps: '', rpe: '', completed: true });
@@ -1336,17 +1364,28 @@ export default function WorkoutScreen({ navigation, route }) {
 
     newSets[exerciseIndex][setIndex][field] = value;
 
-    // CRITICAL: Auto-mark as completed when both weight AND reps are filled
+    // CRITICAL: Auto-mark as completed based on exercise type
     const currentSet = newSets[exerciseIndex][setIndex];
+    const exercise = workoutExercises[exerciseIndex];
+    const isBodyweight = isBodyweightExercise(exercise);
+
     const hasWeight = currentSet.weight && currentSet.weight.toString().trim() !== '';
     const hasReps = currentSet.reps && currentSet.reps.toString().trim() !== '';
 
-    if (hasWeight && hasReps) {
-      // Both weight and reps are filled - mark as completed
-      newSets[exerciseIndex][setIndex].completed = true;
+    if (isBodyweight) {
+      // Bodyweight exercises: only need reps to be completed
+      if (hasReps) {
+        newSets[exerciseIndex][setIndex].completed = true;
+      } else {
+        newSets[exerciseIndex][setIndex].completed = false;
+      }
     } else {
-      // Either weight or reps is missing - not completed yet
-      newSets[exerciseIndex][setIndex].completed = false;
+      // Regular exercises: need both weight and reps
+      if (hasWeight && hasReps) {
+        newSets[exerciseIndex][setIndex].completed = true;
+      } else {
+        newSets[exerciseIndex][setIndex].completed = false;
+      }
     }
 
     setExerciseSets(newSets);

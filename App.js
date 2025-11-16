@@ -14,6 +14,7 @@ import AIBadge from './src/components/AIBadge';
 import ProactiveAIService from './src/services/ai/ProactiveAIService';
 import { navigationRef } from './src/services/NavigationService';
 import FreeRecipeService from './src/services/FreeRecipeService';
+import * as QuickActions from 'expo-quick-actions';
 
 // Import screens
 import SignInScreen from './src/screens/SignInScreen';
@@ -235,6 +236,52 @@ function AppNavigator() {
       subscription.remove();
     };
   }, [user]);
+
+  // Handle quick actions (3D Touch / long-press app icon shortcuts)
+  useEffect(() => {
+    // Set up quick actions
+    QuickActions.setItems([
+      {
+        id: 'scan_food',
+        title: 'Scan Food',
+        subtitle: 'Quick barcode scan',
+        icon: 'symbol:camera.fill',
+        params: { action: 'scan_food' }
+      },
+      {
+        id: 'log_workout',
+        title: 'Log Workout',
+        subtitle: 'Start tracking',
+        icon: 'symbol:figure.strengthtraining.traditional',
+        params: { action: 'log_workout' }
+      }
+    ]);
+
+    // Listen for quick action events
+    const subscription = QuickActions.addListener((action) => {
+      console.log('Quick action triggered:', action);
+
+      if (!navigationRef.current) {
+        console.warn('Navigation ref not ready');
+        return;
+      }
+
+      // Handle the action
+      if (action.params?.action === 'scan_food') {
+        // Navigate to barcode scanner
+        navigationRef.current.navigate('Camera', {
+          returnScreen: 'FoodScanning'
+        });
+      } else if (action.params?.action === 'log_workout') {
+        // Navigate to start workout
+        navigationRef.current.navigate('StartWorkout');
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   if (isLoading) {
     return (

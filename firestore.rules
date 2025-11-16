@@ -38,8 +38,8 @@ service cloud.firestore {
     /**
      * Validate timestamp is recent (within 1 hour)
      */
-    function isRecentTimestamp(timestamp) {
-      return timestamp > request.time - duration.value(1, 'h');
+    function isRecentTimestamp(ts) {
+      return ts > request.time - duration.value(1, 'h');
     }
 
     // ============================================
@@ -137,6 +137,25 @@ service cloud.firestore {
     }
 
     // ============================================
+    // USER PROFILES COLLECTION
+    // ============================================
+
+    /**
+     * userProfiles/{userId}
+     * - Users can read/write their own profile
+     * - Used for AI coach assessment and preferences
+     */
+    match /userProfiles/{userId} {
+      allow read: if isOwner(userId);
+
+      allow create: if isOwner(userId);
+
+      allow update: if isOwner(userId);
+
+      allow delete: if isOwner(userId);
+    }
+
+    // ============================================
     // GLOBAL COLLECTIONS (READ-ONLY)
     // ============================================
 
@@ -158,19 +177,6 @@ service cloud.firestore {
     match /foods/{foodId} {
       allow read: if isSignedIn();
       allow write: if false; // Only through Admin SDK
-    }
-
-    // ============================================
-    // TEST COLLECTION (FOR DEBUG/TESTING)
-    // ============================================
-
-    /**
-     * test/{document}
-     * - Allow anyone to write for testing backend connection
-     * - Remove this in production!
-     */
-    match /test/{document} {
-      allow read, write: if isSignedIn();
     }
 
     // ============================================

@@ -37,6 +37,7 @@ export function getDynamicMealSuggestionText() {
 
 /**
  * Get dynamic meal type based on current time
+ * Note: Snacks can happen anytime, so no specific snack time
  */
 export function getCurrentMealType() {
   const currentHour = new Date().getHours();
@@ -45,10 +46,9 @@ export function getCurrentMealType() {
     return 'breakfast';
   } else if (currentHour >= 11 && currentHour < 16) {
     return 'lunch';
-  } else if (currentHour >= 16 && currentHour < 22) {
-    return 'dinner';
   } else {
-    return 'snack';
+    // 4pm onwards = dinner (including late night)
+    return 'dinner';
   }
 }
 
@@ -215,6 +215,16 @@ export const NutritionScreenSections = [
       { icon: 'flame', text: 'Low calorie meal', toolName: 'suggestMeal', params: { lowCalorie: true } },
       { icon: 'leaf', text: getDynamicMealSuggestionText, toolName: 'suggestMeal', isDynamic: true },
       { icon: 'restaurant', text: 'Hit protein goal', toolName: 'suggestMeal', params: { targetProtein: true } },
+    ],
+  },
+  {
+    title: 'Meal Prep & Quick Options',
+    icon: 'time',
+    buttons: [
+      { icon: 'cube', text: 'Meal prep components', toolName: 'generateMealComponents' },
+      { icon: 'flash', text: 'Quick meal (<15 min)', toolName: 'generateRecipeFromIngredients', params: { maxPrepTime: 15 } },
+      { icon: 'pizza', text: 'Full cooking meal', toolName: 'generateRecipeFromIngredients', params: { minPrepTime: 30 } },
+      { icon: 'restaurant', text: 'Meal prep recipe', toolName: 'generateRecipeFromIngredients', params: { mealPrepFriendly: true } },
     ],
   },
   {

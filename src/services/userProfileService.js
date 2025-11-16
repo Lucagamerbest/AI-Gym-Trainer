@@ -79,7 +79,10 @@ export const getUserProfile = async (userId) => {
     // Return default profile if none exists
     return DEFAULT_PROFILE;
   } catch (error) {
-    console.error('Error loading user profile from Firebase:', error);
+    // Silently fail on permission errors (happens during hot reload before auth completes)
+    if (error.code !== 'permission-denied') {
+      console.error('Error loading user profile from Firebase:', error);
+    }
     return DEFAULT_PROFILE;
   }
 };

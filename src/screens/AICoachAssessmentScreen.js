@@ -721,12 +721,40 @@ const AICoachAssessmentScreen = ({ navigation }) => {
               Help me give better nutrition advice.
             </Text>
 
-            <Text style={styles.label}>Dietary Restrictions (Select all that apply)</Text>
+            <Text style={styles.label}>Dietary Restrictions & Allergies (Select all that apply)</Text>
+            <Text style={styles.sublabel}>This helps me avoid suggesting foods that don't work for you</Text>
             <View style={styles.multiSelectContainer}>
-              {['vegetarian', 'vegan', 'gluten-free', 'dairy-free', 'nut-free', 'halal', 'kosher', 'none'].map(restriction => (
+              {[
+                'vegetarian',
+                'vegan',
+                'pescatarian',
+                'low-carb',
+                'keto',
+                'paleo',
+                'halal',
+                'kosher',
+                'peanut-allergy',
+                'tree-nut-allergy',
+                'milk-allergy',
+                'egg-allergy',
+                'wheat-allergy',
+                'soy-allergy',
+                'fish-allergy',
+                'shellfish-allergy',
+                'sesame-allergy',
+                'gluten-free',
+                'dairy-free',
+                'lactose-intolerant',
+                'nut-free',
+                'sugar-free',
+                'low-sodium',
+                'no-red-meat',
+                'no-pork',
+                'none'
+              ].map(restriction => (
                 <MultiSelectButton
                   key={restriction}
-                  label={restriction.charAt(0).toUpperCase() + restriction.slice(1)}
+                  label={restriction.charAt(0).toUpperCase() + restriction.slice(1).replace(/-/g, ' ')}
                   selected={profileData.dietaryRestrictions?.includes(restriction)}
                   onPress={() => toggleArrayItem('dietaryRestrictions', restriction)}
                 />
@@ -1107,6 +1135,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.background,
     marginRight: 8,
+  },
+  sublabel: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    marginBottom: 12,
+    lineHeight: 18,
   },
 });
 

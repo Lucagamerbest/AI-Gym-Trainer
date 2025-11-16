@@ -104,6 +104,11 @@ class WorkoutSyncService {
    */
   async getAllWorkouts(limitCount = 100) {
     try {
+      // Don't access Firebase if not authenticated
+      if (!this.auth.currentUser) {
+        return [];
+      }
+
       const userId = this.auth.currentUser?.uid;
       if (!userId) {
         throw new Error('User not authenticated');
@@ -126,8 +131,12 @@ class WorkoutSyncService {
 
       return workouts;
     } catch (error) {
+      // Silently fail on permission errors (happens during hot reload before auth completes)
+      if (error.code === 'permission-denied') {
+        return [];
+      }
       console.error('❌ Error getting workouts from cloud:', error);
-      throw error;
+      return [];
     }
   }
 

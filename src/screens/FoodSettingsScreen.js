@@ -122,7 +122,44 @@ export default function FoodSettingsScreen({ navigation }) {
 
   // Predefined options
   const cuisineOptions = ['italian', 'asian', 'mexican', 'mediterranean', 'american', 'indian', 'thai', 'french'];
-  const restrictionOptions = ['vegetarian', 'vegan', 'gluten-free', 'dairy-free', 'nut-free', 'low-carb', 'keto'];
+
+  // Comprehensive dietary restrictions and allergens list
+  const restrictionOptions = [
+    // Common Dietary Patterns
+    'vegetarian',
+    'vegan',
+    'pescatarian',
+    'low-carb',
+    'keto',
+    'paleo',
+    'halal',
+    'kosher',
+
+    // Major Allergens (FDA Top 9)
+    'peanut-allergy',
+    'tree-nut-allergy',
+    'milk-allergy',
+    'egg-allergy',
+    'wheat-allergy',
+    'soy-allergy',
+    'fish-allergy',
+    'shellfish-allergy',
+    'sesame-allergy',
+
+    // Intolerances & Sensitivities
+    'gluten-free',
+    'dairy-free',
+    'lactose-intolerant',
+    'fodmap-sensitive',
+
+    // Other Common Restrictions
+    'nut-free',
+    'sugar-free',
+    'low-sodium',
+    'no-red-meat',
+    'no-pork',
+    'no-alcohol',
+  ];
 
   return (
     <ScreenLayout

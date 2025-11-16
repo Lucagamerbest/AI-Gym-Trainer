@@ -51,6 +51,41 @@
         {
           "color": "#4CAF50"
         }
+      ],
+      [
+        "expo-quick-actions",
+        {
+          "androidIcons": {
+            "scan_food": {
+              "foregroundImage": "./assets/icon.png",
+              "backgroundColor": "#4CAF50"
+            },
+            "log_workout": {
+              "foregroundImage": "./assets/icon.png",
+              "backgroundColor": "#2196F3"
+            }
+          },
+          "iosActions": [
+            {
+              "id": "scan_food",
+              "title": "Scan Food",
+              "subtitle": "Quick barcode scan",
+              "icon": "UIApplicationShortcutIconTypeCompose",
+              "params": {
+                "action": "scan_food"
+              }
+            },
+            {
+              "id": "log_workout",
+              "title": "Log Workout",
+              "subtitle": "Start tracking",
+              "icon": "UIApplicationShortcutIconTypeAdd",
+              "params": {
+                "action": "log_workout"
+              }
+            }
+          ]
+        }
       ]
     ],
     "notification": {

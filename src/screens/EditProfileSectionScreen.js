@@ -489,9 +489,36 @@ const EditProfileSectionScreen = ({ navigation, route }) => {
       case 'nutrition':
         return (
           <>
-            <Text style={styles.label}>Dietary Restrictions</Text>
+            <Text style={styles.label}>Dietary Restrictions & Allergies</Text>
             <View style={styles.multiSelectContainer}>
-              {['vegetarian', 'vegan', 'gluten-free', 'dairy-free', 'nut-free', 'halal', 'kosher', 'none'].map(restriction => (
+              {[
+                'vegetarian',
+                'vegan',
+                'pescatarian',
+                'low-carb',
+                'keto',
+                'paleo',
+                'halal',
+                'kosher',
+                'peanut-allergy',
+                'tree-nut-allergy',
+                'milk-allergy',
+                'egg-allergy',
+                'wheat-allergy',
+                'soy-allergy',
+                'fish-allergy',
+                'shellfish-allergy',
+                'sesame-allergy',
+                'gluten-free',
+                'dairy-free',
+                'lactose-intolerant',
+                'nut-free',
+                'sugar-free',
+                'low-sodium',
+                'no-red-meat',
+                'no-pork',
+                'none'
+              ].map(restriction => (
                 <TouchableOpacity
                   key={restriction}
                   style={[
@@ -504,7 +531,7 @@ const EditProfileSectionScreen = ({ navigation, route }) => {
                     styles.multiSelectText,
                     editedData.dietaryRestrictions?.includes(restriction) && styles.multiSelectTextActive
                   ]}>
-                    {restriction.charAt(0).toUpperCase() + restriction.slice(1)}
+                    {restriction.charAt(0).toUpperCase() + restriction.slice(1).replace(/-/g, ' ')}
                   </Text>
                 </TouchableOpacity>
               ))}

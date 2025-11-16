@@ -12,11 +12,13 @@ import { useAuth } from '../context/AuthContext';
 import { getNutritionGoals, updateNutritionGoals } from '../services/userProfileService';
 import MealSyncService from '../services/backend/MealSyncService';
 import MealHistoryTabs from '../components/MealHistoryTabs';
+import { getCurrentMealType } from '../config/aiSectionConfig';
 
 const MACROS_KEY = '@macro_goals';
 const DAILY_NUTRITION_KEY = '@daily_nutrition';
 const LAST_RESET_DATE_KEY = '@last_reset_date';
 const MEAL_PLANS_KEY = '@meal_plans';
+const MEAL_TYPE_MIGRATION_KEY = '@meal_type_migrated_v1';
 
 // Helper function to get local date string in YYYY-MM-DD format
 const getLocalDateString = (date = new Date()) => {
@@ -30,7 +32,7 @@ export default function NutritionScreen({ navigation, route }) {
   const { user } = useAuth();
   const [burned] = useState(0); // Will be updated when exercise tracking is implemented
   const [showMacroModal, setShowMacroModal] = useState(false);
-  const [selectedMeal, setSelectedMeal] = useState('breakfast');
+  const [selectedMeal, setSelectedMeal] = useState(() => getCurrentMealType());
   const [expandedMeal, setExpandedMeal] = useState(null);
   const [disableBack, setDisableBack] = useState(false); // Track if back should be disabled
   const [dataLoaded, setDataLoaded] = useState(false); // Track if data has been loaded
@@ -118,7 +120,7 @@ export default function NutritionScreen({ navigation, route }) {
       }
     };
     initializeData();
-  }, []);
+  }, [user]);
 
   // Reload data when screen is focused (e.g., coming back from CalorieBreakdown)
   // Skip reload if we're coming back with edit/delete/add params (handled by useEffect)
@@ -314,12 +316,12 @@ export default function NutritionScreen({ navigation, route }) {
           // Load planned meals separately (don't count toward nutrition yet)
           setPlannedMeals(todayPlanned);
           setMeals({ breakfast: [], lunch: [], dinner: [], snacks: [] });
-          setSelectedMeal('breakfast');
+          setSelectedMeal(getCurrentMealType());
         } else {
           // No planned meals, start fresh
           setMeals({ breakfast: [], lunch: [], dinner: [], snacks: [] });
           setPlannedMeals({ breakfast: [], lunch: [], dinner: [], snacks: [] });
-          setSelectedMeal('breakfast');
+          setSelectedMeal(getCurrentMealType());
         }
       }
     } catch (error) {
@@ -405,14 +407,20 @@ export default function NutritionScreen({ navigation, route }) {
       // Load planned meals and other UI state from AsyncStorage
       let loadedPlannedMeals = { breakfast: [], lunch: [], dinner: [], snacks: [] };
       let loadedConsumedPlanned = { breakfast: [], lunch: [], dinner: [], snacks: [] };
-      let savedSelectedMeal = 'breakfast';
+      let savedSelectedMeal = getCurrentMealType();
+
+      // TEMPORARY: Always use smart default until we confirm it works
+      // Then we'll add back saved meal type persistence
+      console.log('🍽️ Using smart meal type default:', getCurrentMealType());
+      savedSelectedMeal = getCurrentMealType();
 
       const saved = await AsyncStorage.getItem(DAILY_NUTRITION_KEY);
       if (saved) {
         const data = JSON.parse(saved);
         loadedPlannedMeals = data.plannedMeals || { breakfast: [], lunch: [], dinner: [], snacks: [] };
         loadedConsumedPlanned = data.consumedPlannedMeals || { breakfast: [], lunch: [], dinner: [], snacks: [] };
-        savedSelectedMeal = data.selectedMeal || 'breakfast';
+        // Temporarily ignore saved meal type
+        // savedSelectedMeal = data.selectedMeal || getCurrentMealType();
       }
 
       // ALWAYS check @meal_plans for today's planned meals
@@ -465,7 +473,7 @@ export default function NutritionScreen({ navigation, route }) {
       const data = {
         plannedMeals: safePlannedMeals,
         consumedPlannedMeals: safeConsumedPlanned,
-        selectedMeal: newSelectedMeal || 'breakfast',
+        selectedMeal: newSelectedMeal || getCurrentMealType(),
         lastUpdated: new Date().toISOString()
       };
 
