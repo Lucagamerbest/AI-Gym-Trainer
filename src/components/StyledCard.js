@@ -1,9 +1,10 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Spacing, Typography, BorderRadius, Shadows } from '../constants/theme';
+import { Spacing, Typography, BorderRadius, Shadows } from '../constants/theme';
+import { useColors } from '../context/ThemeContext';
 
-export default function StyledCard({ 
+export default function StyledCard({
   children,
   title,
   subtitle,
@@ -11,11 +12,14 @@ export default function StyledCard({
   onPress,
   style,
   variant = 'default', // default, elevated, primary
-  ...props 
+  ...props
 }) {
+  const Colors = useColors();
+  const styles = createDynamicStyles(Colors);
+
   const CardWrapper = onPress ? TouchableOpacity : View;
   const cardProps = onPress ? { onPress, activeOpacity: 0.8 } : {};
-  
+
   const getCardStyles = () => {
     const baseStyles = [styles.base];
     
@@ -68,25 +72,25 @@ export default function StyledCard({
   );
 }
 
-const styles = StyleSheet.create({
+const createDynamicStyles = (Colors) => StyleSheet.create({
   base: {
     padding: Spacing.lg,
     borderRadius: BorderRadius.lg,
     marginBottom: Spacing.md,
   },
-  
+
   default: {
     backgroundColor: Colors.card,
     borderWidth: 1,
     borderColor: Colors.border,
     ...Shadows.sm,
   },
-  
+
   elevated: {
     backgroundColor: Colors.card,
     ...Shadows.md,
   },
-  
+
   primary: {
     backgroundColor: Colors.primary,
     ...Shadows.md,

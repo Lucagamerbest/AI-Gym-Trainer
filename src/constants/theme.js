@@ -1,31 +1,133 @@
-export const Colors = {
-  // Softer, warmer color palette
-  primary: '#4ECCA3',  // Softer mint green
-  primaryDark: '#3BA77D',
-  primaryLight: '#6FE5C1',
-  
-  background: '#0A0E1A',  // Warm dark blue-black
-  surface: '#141823',  // Slightly lighter surface
-  card: '#1C2333',  // Card background
-  cardHover: '#252C3E',
-  
-  text: '#F5F5F7',  // Softer white
-  textSecondary: '#A8AEBF',  // Warmer gray
-  textMuted: '#6B7280',
-  
-  success: '#4ECCA3',
-  error: '#EF4444',
-  warning: '#F59E0B',
-  info: '#3B82F6',
-  
-  border: '#2A3244',
-  borderLight: '#374151',
-  
-  overlay: 'rgba(10, 14, 26, 0.85)',
-  
-  // Gradient colors for backgrounds
-  gradientStart: '#0A0E1A',
-  gradientEnd: '#1A1F2E',
+// Theme Palettes
+export const ThemePalettes = {
+  purple: {
+    name: 'Purple',
+    description: 'Premium & Modern',
+    primary: '#8B5CF6',
+    primaryDark: '#7C3AED',
+    primaryLight: '#A78BFA',
+
+    background: '#000000',
+    surface: '#1A1A1A',
+    card: '#242424',
+    cardHover: '#2E2E2E',
+
+    text: '#FFFFFF',
+    textSecondary: '#B0B0B0',
+    textMuted: '#737373',
+
+    success: '#10B981',
+    error: '#EF4444',
+    warning: '#F59E0B',
+    info: '#3B82F6',
+
+    border: '#2A2A2A',
+    borderLight: '#3A3A3A',
+
+    overlay: 'rgba(0, 0, 0, 0.9)',
+
+    gradientStart: '#000000',
+    gradientEnd: '#1A1A1A',
+  },
+
+  gold: {
+    name: 'Gold',
+    description: 'Ultra Premium',
+    primary: '#F59E0B',
+    primaryDark: '#D97706',
+    primaryLight: '#FBBF24',
+
+    background: '#000000',
+    surface: '#1A1A1A',
+    card: '#242424',
+    cardHover: '#2E2E2E',
+
+    text: '#FFFFFF',
+    textSecondary: '#A1A1A1',
+    textMuted: '#6B7280',
+
+    success: '#10B981',
+    error: '#EF4444',
+    warning: '#F59E0B',
+    info: '#3B82F6',
+
+    border: '#2A2A2A',
+    borderLight: '#3A3A3A',
+
+    overlay: 'rgba(0, 0, 0, 0.85)',
+
+    gradientStart: '#000000',
+    gradientEnd: '#1A1A1A',
+  },
+
+  blue: {
+    name: 'Blue',
+    description: 'Modern Tech',
+    primary: '#3B82F6',
+    primaryDark: '#2563EB',
+    primaryLight: '#60A5FA',
+
+    background: '#000000',
+    surface: '#1A1A1A',
+    card: '#242424',
+    cardHover: '#2E2E2E',
+
+    text: '#FFFFFF',
+    textSecondary: '#B0B0B0',
+    textMuted: '#737373',
+
+    success: '#10B981',
+    error: '#EF4444',
+    warning: '#F59E0B',
+    info: '#3B82F6',
+
+    border: '#2A2A2A',
+    borderLight: '#3A3A3A',
+
+    overlay: 'rgba(0, 0, 0, 0.9)',
+
+    gradientStart: '#000000',
+    gradientEnd: '#1A1A1A',
+  },
+
+  light: {
+    name: 'Light',
+    description: 'Clean & Bright',
+    primary: '#8B5CF6',
+    primaryDark: '#7C3AED',
+    primaryLight: '#A78BFA',
+
+    background: '#FFFFFF',
+    surface: '#F9FAFB',
+    card: '#FFFFFF',
+    cardHover: '#F3F4F6',
+
+    text: '#111827',
+    textSecondary: '#6B7280',
+    textMuted: '#9CA3AF',
+
+    success: '#10B981',
+    error: '#EF4444',
+    warning: '#F59E0B',
+    info: '#3B82F6',
+
+    border: '#E5E7EB',
+    borderLight: '#F3F4F6',
+
+    overlay: 'rgba(0, 0, 0, 0.5)',
+
+    gradientStart: '#FFFFFF',
+    gradientEnd: '#F9FAFB',
+  },
+};
+
+// Default theme (Purple) - this ensures backward compatibility
+// Screens that haven't been updated yet can still import Colors
+export let Colors = { ...ThemePalettes.purple };
+
+// Function to update the exported Colors (used by ThemeContext)
+export const updateGlobalColors = (newColors) => {
+  Object.assign(Colors, newColors);
 };
 
 export const Spacing = {

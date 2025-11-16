@@ -1,11 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ScreenLayout from '../components/ScreenLayout';
 import StyledCard from '../components/StyledCard';
-import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
+import { Spacing, Typography, BorderRadius } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 
 export default function SettingsScreen({ navigation }) {
+  const { currentTheme, changeTheme, availableThemes, colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   return (
     <ScreenLayout
       title="Settings"
@@ -60,9 +64,41 @@ export default function SettingsScreen({ navigation }) {
       </StyledCard>
 
       <StyledCard variant="elevated" style={styles.sectionCard}>
-        <Text style={styles.sectionTitle}>Preferences</Text>
-        <Text style={styles.sectionSubtitle}>Customize your app experience</Text>
-        {/* Add more preference settings here */}
+        <Text style={styles.sectionTitle}>Appearance</Text>
+        <Text style={styles.sectionSubtitle}>Choose your color theme</Text>
+
+        {/* Theme Picker */}
+        <View style={styles.themePicker}>
+          {availableThemes.map((theme) => (
+            <TouchableOpacity
+              key={theme.key}
+              style={[
+                styles.themeOption,
+                currentTheme === theme.key && styles.themeOptionSelected,
+              ]}
+              onPress={() => changeTheme(theme.key)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.themeColorPreview}>
+                <View style={[styles.themeColorDot, { backgroundColor: theme.colors.primary }]} />
+                <View style={[styles.themeColorDot, { backgroundColor: theme.colors.background }]} />
+                <View style={[styles.themeColorDot, { backgroundColor: theme.colors.surface }]} />
+              </View>
+              <View style={styles.themeInfo}>
+                <Text style={[
+                  styles.themeName,
+                  currentTheme === theme.key && styles.themeNameSelected
+                ]}>
+                  {theme.name}
+                </Text>
+                <Text style={styles.themeDescription}>{theme.description}</Text>
+              </View>
+              {currentTheme === theme.key && (
+                <Text style={styles.themeCheckmark}>✓</Text>
+              )}
+            </TouchableOpacity>
+          ))}
+        </View>
       </StyledCard>
 
       {/* Developer Tools (Dev Only) */}
@@ -115,7 +151,7 @@ export default function SettingsScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Colors) => StyleSheet.create({
   settingCard: {
     marginBottom: Spacing.lg,
     padding: Spacing.lg,
@@ -184,5 +220,56 @@ const styles = StyleSheet.create({
   devCard: {
     borderLeftWidth: 4,
     borderLeftColor: Colors.primary,
+  },
+  themePicker: {
+    marginTop: Spacing.md,
+  },
+  themeOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    marginBottom: Spacing.md,
+    backgroundColor: Colors.surface,
+  },
+  themeOptionSelected: {
+    borderColor: Colors.primary,
+    backgroundColor: Colors.primary + '15',
+  },
+  themeColorPreview: {
+    flexDirection: 'row',
+    gap: 6,
+    marginRight: Spacing.md,
+  },
+  themeColorDot: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  themeInfo: {
+    flex: 1,
+  },
+  themeName: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 2,
+  },
+  themeNameSelected: {
+    color: Colors.primary,
+  },
+  themeDescription: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+  },
+  themeCheckmark: {
+    fontSize: 24,
+    color: Colors.primary,
+    fontWeight: 'bold',
+    marginLeft: Spacing.sm,
   },
 });

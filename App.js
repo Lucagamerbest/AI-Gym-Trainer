@@ -5,8 +5,10 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'expo-status-bar';
 import { View, Text, ActivityIndicator, StyleSheet, AppState } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { WorkoutProvider } from './src/context/WorkoutContext';
+import { ThemeProvider } from './src/context/ThemeContext';
 import { Colors } from './src/constants/theme';
 import SyncManager from './src/services/backend/SyncManager';
 import { initializeGemini } from './src/config/gemini';
@@ -114,7 +116,7 @@ function TabNavigator() {
           paddingTop: 10,
         },
         tabBarActiveTintColor: Colors.primary,
-        tabBarInactiveTintColor: Colors.primary,
+        tabBarInactiveTintColor: Colors.textSecondary,
         headerShown: false,
       }}
     >
@@ -122,9 +124,14 @@ function TabNavigator() {
         name="AI"
         component={AIScreen}
         options={{
-          tabBarIcon: ({ color, size }) => (
+          tabBarLabel: 'AI Coach',
+          tabBarIcon: ({ focused }) => (
             <View>
-              <Text style={{ fontSize: 24, color: Colors.primary }}>🤖</Text>
+              <Ionicons
+                name="bulb"
+                size={24}
+                color={focused ? Colors.primary : '#8a8a8a'}
+              />
               <AIBadge count={aiSuggestionCount} visible={aiSuggestionCount > 0} />
             </View>
           ),
@@ -134,8 +141,13 @@ function TabNavigator() {
         name="Home"
         component={HomeScreen}
         options={{
-          tabBarIcon: ({ color, size }) => (
-            <Text style={{ fontSize: 24, color: Colors.primary }}>🏠</Text>
+          tabBarLabel: 'Home',
+          tabBarIcon: ({ focused }) => (
+            <Ionicons
+              name={focused ? "home" : "home-outline"}
+              size={24}
+              color={focused ? Colors.primary : '#8a8a8a'}
+            />
           ),
         }}
       />
@@ -143,8 +155,13 @@ function TabNavigator() {
         name="Profile"
         component={ProfileScreen}
         options={{
-          tabBarIcon: ({ color, size }) => (
-            <Text style={{ fontSize: 24, color: Colors.primary }}>👤</Text>
+          tabBarLabel: 'Profile',
+          tabBarIcon: ({ focused }) => (
+            <Ionicons
+              name={focused ? "person" : "person-outline"}
+              size={24}
+              color={focused ? Colors.primary : '#8a8a8a'}
+            />
           ),
         }}
       />
@@ -407,12 +424,14 @@ function AppNavigator() {
 export default function App() {
   return (
     <SafeAreaProvider>
-      <AuthProvider>
-        <WorkoutProvider>
-          <StatusBar style="light" />
-          <AppNavigator />
-        </WorkoutProvider>
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <WorkoutProvider>
+            <StatusBar style="light" />
+            <AppNavigator />
+          </WorkoutProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }

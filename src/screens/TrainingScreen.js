@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import ScreenLayout from '../components/ScreenLayout';
-import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
+import { Spacing, Typography, BorderRadius } from '../constants/theme';
+import { useColors } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function TrainingScreen({ navigation }) {
+  const Colors = useColors();
+  const styles = useMemo(() => createStyles(Colors), [Colors]);
   const [searchQuery, setSearchQuery] = useState('');
 
   const workoutTypes = [
@@ -113,7 +116,7 @@ export default function TrainingScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Colors) => StyleSheet.create({
   container: {
     flex: 1,
     padding: Spacing.lg,

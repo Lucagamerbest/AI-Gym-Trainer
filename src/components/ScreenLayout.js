@@ -5,7 +5,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AnimatedBackground from './AnimatedBackground';
 import ActiveWorkoutIndicator from './ActiveWorkoutIndicator';
 import AIHeaderButton from './AIHeaderButton';
-import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
+import { Spacing, Typography, BorderRadius } from '../constants/theme';
+import { useColors } from '../context/ThemeContext';
 
 export default function ScreenLayout({
   children,
@@ -23,6 +24,9 @@ export default function ScreenLayout({
   screenParams, // Screen route params (e.g., mealType for RecipesScreen)
   onAIClose // Callback when AI modal closes (e.g., to reload data)
 }) {
+  const Colors = useColors();
+  const styles = createDynamicStyles(Colors);
+
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
 
@@ -151,7 +155,7 @@ export default function ScreenLayout({
   );
 }
 
-const styles = StyleSheet.create({
+const createDynamicStyles = (Colors) => StyleSheet.create({
   container: {
     flex: 1,
   },

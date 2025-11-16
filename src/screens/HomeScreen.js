@@ -2,17 +2,28 @@ import React, { useMemo, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../context/AuthContext';
-import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
+import { Spacing, Typography, BorderRadius } from '../constants/theme';
+import { useColors } from '../context/ThemeContext';
 import Logo from '../components/Logo';
 import ActiveWorkoutIndicator from '../components/ActiveWorkoutIndicator';
 import { getNutritionGoals } from '../services/userProfileService';
 import MealSyncService from '../services/backend/MealSyncService';
+import { WorkoutStorageService } from '../services/workoutStorage';
 
 function HomeScreen({ navigation }) {
   const { user } = useAuth();
+  const Colors = useColors();
+  const styles = useMemo(() => createStyles(Colors), [Colors]);
   const firstName = useMemo(() => user?.displayName?.split(' ')[0] || 'Champion', [user]);
   const [remainingCalories, setRemainingCalories] = useState(2000);
+  const [consumedCalories, setConsumedCalories] = useState(0);
+  const [expandedWorkout, setExpandedWorkout] = useState(false);
+  const [expandedNutrition, setExpandedNutrition] = useState(false);
+  const [currentDay, setCurrentDay] = useState(1);
+  const [workoutsThisWeek, setWorkoutsThisWeek] = useState(0);
 
   // Disable swipe gesture on home screen to prevent accidental navigation
   useEffect(() => {
@@ -21,10 +32,11 @@ function HomeScreen({ navigation }) {
     });
   }, [navigation]);
 
-  // Load nutrition data when screen is focused
+  // Load nutrition and workout data when screen is focused
   useFocusEffect(
     React.useCallback(() => {
       loadNutritionData();
+      loadWorkoutStats();
     }, [user])
   );
 
@@ -38,27 +50,59 @@ function HomeScreen({ navigation }) {
       const calorieGoal = goals.calories || 2000;
 
       // Load consumed meals from Firebase
-      let consumedCalories = 0;
+      let consumedCals = 0;
       if (userId && userId !== 'guest') {
         try {
           const firebaseMeals = await MealSyncService.getMealsByDate(userId, today);
 
           // Calculate total consumed calories
           firebaseMeals.forEach(meal => {
-            consumedCalories += meal.calories_consumed || 0;
+            consumedCals += meal.calories_consumed || 0;
           });
         } catch (error) {
           console.log('⚠️ Could not load meals from Firebase:', error);
         }
       }
 
+      setConsumedCalories(consumedCals);
       // Calculate remaining calories (same as deficit in NutritionScreen)
-      const remaining = Math.round(calorieGoal - consumedCalories);
+      const remaining = Math.round(calorieGoal - consumedCals);
       setRemainingCalories(remaining);
     } catch (error) {
       console.error('Error loading nutrition data:', error);
     }
   };
+
+  const loadWorkoutStats = async () => {
+    try {
+      const userId = user?.uid || 'guest';
+
+      // Get all completed workouts
+      const allWorkouts = await WorkoutStorageService.getWorkoutHistory(userId);
+
+      // Calculate current day (days since first workout or account creation)
+      if (allWorkouts.length > 0) {
+        const firstWorkoutDate = new Date(allWorkouts[allWorkouts.length - 1].date);
+        const today = new Date();
+        const daysSinceStart = Math.floor((today - firstWorkoutDate) / (1000 * 60 * 60 * 24)) + 1;
+        setCurrentDay(daysSinceStart);
+      }
+
+      // Count workouts this week (last 7 days)
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+      const workoutsThisWeekCount = allWorkouts.filter(workout => {
+        const workoutDate = new Date(workout.date);
+        return workoutDate >= sevenDaysAgo;
+      }).length;
+
+      setWorkoutsThisWeek(workoutsThisWeekCount);
+    } catch (error) {
+      console.error('Error loading workout stats:', error);
+    }
+  };
+
 
   // Get greeting based on time of day
   const getGreeting = useMemo(() => {
@@ -68,141 +112,283 @@ function HomeScreen({ navigation }) {
     return 'Good evening';
   }, []);
 
-  const quickStats = useMemo(() => [
-    { label: 'Streak', value: '7', unit: 'days', icon: '🔥' },
-    { label: 'This Week', value: '4', unit: 'workouts', icon: '💪' },
-    { label: 'Calories', value: remainingCalories.toString(), unit: 'left today', icon: '⚡' },
-  ], [remainingCalories]);
-
   return (
     <View style={styles.container}>
-      {/* Background Design */}
-      <View style={styles.backgroundDesign}>
-        <View style={[styles.circle, styles.circle1]} />
-        <View style={[styles.circle, styles.circle2]} />
-        <View style={[styles.circle, styles.circle3]} />
-      </View>
-
       <ScrollView
         style={styles.scrollContainer}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {/* Header with Logo and Greeting */}
         <LinearGradient
-          colors={[Colors.primary, '#059669', '#10B981']}
+          colors={[Colors.primary, Colors.primaryDark, Colors.primaryLight]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.headerGradient}
         >
           <View style={styles.headerContent}>
-            <Logo size="large" showText={true} />
+            <Logo size="medium" showText={true} />
+            <Text style={styles.greeting}>{getGreeting}, {firstName}</Text>
+            <View style={styles.headerStats}>
+              <View style={styles.headerStat}>
+                <Ionicons name="flame-outline" size={16} color={Colors.background} />
+                <Text style={styles.headerStatText}>Day {currentDay}</Text>
+              </View>
+              <View style={styles.headerStatDivider} />
+              <View style={styles.headerStat}>
+                <Ionicons name="fitness-outline" size={16} color={Colors.background} />
+                <Text style={styles.headerStatText}>
+                  {workoutsThisWeek} {workoutsThisWeek === 1 ? 'workout' : 'workouts'} this week
+                </Text>
+              </View>
+            </View>
           </View>
         </LinearGradient>
 
         <View style={styles.content}>
-          {/* Quick Stats */}
-          <View style={styles.statsContainer}>
-            {quickStats.map((stat, index) => {
-              const isRemainingCalories = stat.label === 'Calories';
-
-              const content = (
+          {/* Calorie Stat Card (Non-clickable) */}
+          <View style={styles.calorieCard}>
+            <View style={styles.calorieHeader}>
+              <View style={styles.calorieIconCircle}>
+                <Ionicons name="flame" size={24} color={Colors.primary} />
+              </View>
+              <View style={styles.calorieTextContainer}>
+                <Text style={styles.calorieValue}>
+                  {Math.abs(remainingCalories)} kcal
+                </Text>
+                <Text style={styles.calorieLabel}>
+                  {remainingCalories < 0 ? 'over goal today' : 'remaining today'}
+                </Text>
+              </View>
+            </View>
+            {/* Progress Bar */}
+            <View style={styles.progressBarContainer}>
+              <View style={styles.progressBarBackground}>
                 <LinearGradient
-                  colors={['rgba(16, 185, 129, 0.1)', 'rgba(5, 150, 105, 0.05)']}
+                  colors={[Colors.primary, Colors.primaryDark]}
                   start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.statCardInner}
-                >
-                  <Text style={styles.statIcon}>{stat.icon}</Text>
-                  <Text style={styles.statValue}>{stat.value}</Text>
-                  <Text style={styles.statLabel}>{stat.label}</Text>
-                  <Text style={styles.statUnit}>{stat.unit}</Text>
-                </LinearGradient>
-              );
-
-              if (isRemainingCalories) {
-                return (
-                  <TouchableOpacity
-                    key={index}
-                    style={styles.statCard}
-                    onPress={() => navigation.getParent()?.navigate('Nutrition')}
-                    activeOpacity={0.7}
-                  >
-                    {content}
-                  </TouchableOpacity>
-                );
-              }
-
-              return (
-                <View key={index} style={styles.statCard}>
-                  {content}
-                </View>
-              );
-            })}
+                  end={{ x: 1, y: 0 }}
+                  style={[
+                    styles.progressBarFill,
+                    { width: `${Math.min((consumedCalories / (consumedCalories + remainingCalories)) * 100, 100)}%` }
+                  ]}
+                />
+              </View>
+              <Text style={styles.progressText}>
+                {consumedCalories} / {consumedCalories + remainingCalories} kcal
+              </Text>
+            </View>
           </View>
 
-          {/* Main Actions - Simple Two Buttons */}
-          <View style={styles.actionsSection}>
-            <TouchableOpacity 
-              style={styles.mainActionCard}
-              onPress={() => navigation.getParent()?.navigate('StartWorkout')}
-              activeOpacity={0.9}
-            >
-              <LinearGradient
-                colors={['rgba(16, 185, 129, 0.05)', 'rgba(5, 150, 105, 0.1)']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.actionGradient}
+          {/* Main Action Buttons */}
+          <View style={styles.mainActionsSection}>
+            {/* Workout Section */}
+            <View style={styles.expandableSection}>
+              <TouchableOpacity
+                style={styles.mainActionCard}
+                onPress={() => navigation.getParent()?.navigate('StartWorkout')}
+                onLongPress={() => setExpandedWorkout(!expandedWorkout)}
+                activeOpacity={0.9}
               >
-                <View style={styles.actionCardContent}>
-                  <View style={styles.iconContainer}>
-                    <LinearGradient
-                      colors={[Colors.primary, '#059669']}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                      style={styles.iconGradient}
+                <View style={styles.mainActionContent}>
+                  <View style={styles.mainActionLeft}>
+                    <View style={styles.mainActionIconCircle}>
+                      <Text style={styles.styledEmoji}>💪</Text>
+                    </View>
+                    <Text style={styles.mainActionText}>Workout</Text>
+                  </View>
+                  <View style={styles.mainActionRight}>
+                    <Ionicons name="arrow-forward" size={18} color={Colors.textSecondary} style={styles.arrowIcon} />
+                    <TouchableOpacity
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        setExpandedWorkout(!expandedWorkout);
+                      }}
+                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                      style={styles.chevronButton}
                     >
-                      <Text style={styles.actionIcon}>💪</Text>
-                    </LinearGradient>
+                      <Ionicons
+                        name={expandedWorkout ? "chevron-up" : "chevron-down"}
+                        size={24}
+                        color={Colors.primary}
+                      />
+                    </TouchableOpacity>
                   </View>
-                  <View style={styles.actionTextContainer}>
-                    <Text style={styles.actionTitle}>Start Workout</Text>
-                    <Text style={styles.actionSubtitle}>Begin your training session</Text>
-                  </View>
-                  <Text style={styles.actionArrow}>→</Text>
                 </View>
-              </LinearGradient>
-            </TouchableOpacity>
+              </TouchableOpacity>
 
-            <TouchableOpacity 
-              style={styles.mainActionCard}
-              onPress={() => navigation.getParent()?.navigate('Nutrition')}
-              activeOpacity={0.9}
-            >
-              <LinearGradient
-                colors={['rgba(16, 185, 129, 0.05)', 'rgba(5, 150, 105, 0.1)']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.actionGradient}
-              >
-                <View style={styles.actionCardContent}>
-                  <View style={styles.iconContainer}>
-                    <LinearGradient
-                      colors={[Colors.primary, '#059669']}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                      style={styles.iconGradient}
-                    >
-                      <Text style={styles.actionIcon}>🥗</Text>
-                    </LinearGradient>
-                  </View>
-                  <View style={styles.actionTextContainer}>
-                    <Text style={styles.actionTitle}>Track Nutrition</Text>
-                    <Text style={styles.actionSubtitle}>Log your meals & calories</Text>
-                  </View>
-                  <Text style={styles.actionArrow}>→</Text>
+              {/* Workout Dropdown Options */}
+              {expandedWorkout && (
+                <View style={styles.dropdownContainer}>
+                  <TouchableOpacity
+                    style={styles.dropdownItem}
+                    onPress={() => {
+                      setExpandedWorkout(false);
+                      navigation.getParent()?.navigate('WorkoutProgramsList');
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.dropdownIconContainer}>
+                      <Ionicons name="list" size={20} color={Colors.primary} />
+                    </View>
+                    <View style={styles.dropdownTextContainer}>
+                      <Text style={styles.dropdownTitle}>Workout Programs</Text>
+                      <Text style={styles.dropdownSubtitle}>Create or manage programs</Text>
+                    </View>
+                    <Ionicons name="arrow-forward" size={18} color={Colors.primary} />
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.dropdownItem}
+                    onPress={() => {
+                      setExpandedWorkout(false);
+                      navigation.getParent()?.navigate('WorkoutHistory');
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.dropdownIconContainer}>
+                      <Ionicons name="stats-chart" size={20} color={Colors.primary} />
+                    </View>
+                    <View style={styles.dropdownTextContainer}>
+                      <Text style={styles.dropdownTitle}>Workout History</Text>
+                      <Text style={styles.dropdownSubtitle}>View past sessions</Text>
+                    </View>
+                    <Ionicons name="arrow-forward" size={18} color={Colors.primary} />
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.dropdownItem, styles.dropdownItemLast]}
+                    onPress={() => {
+                      setExpandedWorkout(false);
+                      navigation.getParent()?.navigate('PlanWorkout');
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.dropdownIconContainer}>
+                      <Ionicons name="calendar" size={20} color={Colors.primary} />
+                    </View>
+                    <View style={styles.dropdownTextContainer}>
+                      <Text style={styles.dropdownTitle}>Plan Workout</Text>
+                      <Text style={styles.dropdownSubtitle}>Schedule for later</Text>
+                    </View>
+                    <Ionicons name="arrow-forward" size={18} color={Colors.primary} />
+                  </TouchableOpacity>
                 </View>
-              </LinearGradient>
-            </TouchableOpacity>
+              )}
+            </View>
+
+            {/* Nutrition Section */}
+            <View style={styles.expandableSection}>
+              <TouchableOpacity
+                style={styles.mainActionCard}
+                onPress={() => navigation.getParent()?.navigate('Nutrition')}
+                onLongPress={() => setExpandedNutrition(!expandedNutrition)}
+                activeOpacity={0.9}
+              >
+                <View style={styles.mainActionContent}>
+                  <View style={styles.mainActionLeft}>
+                    <View style={styles.mainActionIconCircle}>
+                      <Text style={styles.styledEmoji}>🥗</Text>
+                    </View>
+                    <Text style={styles.mainActionText}>Nutrition</Text>
+                  </View>
+                  <View style={styles.mainActionRight}>
+                    <Ionicons name="arrow-forward" size={18} color={Colors.textSecondary} style={styles.arrowIcon} />
+                    <TouchableOpacity
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        setExpandedNutrition(!expandedNutrition);
+                      }}
+                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                      style={styles.chevronButton}
+                    >
+                      <Ionicons
+                        name={expandedNutrition ? "chevron-up" : "chevron-down"}
+                        size={24}
+                        color={Colors.primary}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </TouchableOpacity>
+
+              {/* Nutrition Dropdown Options */}
+              {expandedNutrition && (
+                <View style={styles.dropdownContainer}>
+                  <TouchableOpacity
+                    style={styles.dropdownItem}
+                    onPress={() => {
+                      setExpandedNutrition(false);
+                      navigation.getParent()?.navigate('Camera', { returnScreen: 'FoodScanning' });
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.dropdownIconContainer}>
+                      <Ionicons name="camera" size={20} color={Colors.primary} />
+                    </View>
+                    <View style={styles.dropdownTextContainer}>
+                      <Text style={styles.dropdownTitle}>Scan Food</Text>
+                      <Text style={styles.dropdownSubtitle}>Barcode or camera scan</Text>
+                    </View>
+                    <Ionicons name="arrow-forward" size={18} color={Colors.primary} />
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.dropdownItem}
+                    onPress={() => {
+                      setExpandedNutrition(false);
+                      navigation.getParent()?.navigate('FoodSearch');
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.dropdownIconContainer}>
+                      <Ionicons name="search" size={20} color={Colors.primary} />
+                    </View>
+                    <View style={styles.dropdownTextContainer}>
+                      <Text style={styles.dropdownTitle}>Search Food</Text>
+                      <Text style={styles.dropdownSubtitle}>Quick food lookup</Text>
+                    </View>
+                    <Ionicons name="arrow-forward" size={18} color={Colors.primary} />
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.dropdownItem}
+                    onPress={() => {
+                      setExpandedNutrition(false);
+                      navigation.getParent()?.navigate('Recipes');
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.dropdownIconContainer}>
+                      <Ionicons name="book" size={20} color={Colors.primary} />
+                    </View>
+                    <View style={styles.dropdownTextContainer}>
+                      <Text style={styles.dropdownTitle}>Recipes</Text>
+                      <Text style={styles.dropdownSubtitle}>Browse meal ideas</Text>
+                    </View>
+                    <Ionicons name="arrow-forward" size={18} color={Colors.primary} />
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.dropdownItem, styles.dropdownItemLast]}
+                    onPress={() => {
+                      setExpandedNutrition(false);
+                      navigation.getParent()?.navigate('MealPlanTemplates');
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.dropdownIconContainer}>
+                      <Ionicons name="document-text" size={20} color={Colors.primary} />
+                    </View>
+                    <View style={styles.dropdownTextContainer}>
+                      <Text style={styles.dropdownTitle}>Meal Plans</Text>
+                      <Text style={styles.dropdownSubtitle}>Create meal templates</Text>
+                    </View>
+                    <Ionicons name="arrow-forward" size={18} color={Colors.primary} />
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
           </View>
         </View>
       </ScrollView>
@@ -213,184 +399,337 @@ function HomeScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Colors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
-  },
-  backgroundDesign: {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
-    overflow: 'hidden',
-  },
-  circle: {
-    position: 'absolute',
-    borderRadius: 999,
-    opacity: 0.1,
-  },
-  circle1: {
-    width: 300,
-    height: 300,
-    backgroundColor: Colors.primary,
-    top: -150,
-    right: -100,
-  },
-  circle2: {
-    width: 250,
-    height: 250,
-    backgroundColor: '#059669',
-    bottom: 100,
-    left: -125,
-  },
-  circle3: {
-    width: 200,
-    height: 200,
-    backgroundColor: '#10B981',
-    bottom: -100,
-    right: -50,
   },
   scrollContainer: {
     flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
+    paddingBottom: 100,
   },
   headerGradient: {
-    paddingTop: 60,
-    paddingBottom: 40,
+    paddingTop: 36,
+    paddingBottom: Spacing.sm,
     paddingHorizontal: Spacing.xl,
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
   },
   headerContent: {
     alignItems: 'center',
     justifyContent: 'center',
   },
-  logoContainer: {
+  greeting: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: '600',
+    color: Colors.background,
+    marginTop: Spacing.xs,
+    marginBottom: Spacing.sm,
+  },
+  headerStats: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.sm,
+    paddingHorizontal: Spacing.md,
   },
-  logo: {
-    fontSize: 40,
-    marginRight: 12,
+  headerStat: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
-  appName: {
-    fontSize: 32,
-    fontWeight: 'bold',
+  headerStatIcon: {
+    fontSize: 16,
+  },
+  headerStatText: {
+    fontSize: Typography.fontSize.xs,
     color: Colors.background,
-    textShadowColor: 'rgba(0, 0, 0, 0.2)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 3,
+    fontWeight: '500',
+  },
+  headerStatDivider: {
+    width: 1,
+    height: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    marginHorizontal: Spacing.md,
   },
   content: {
     paddingHorizontal: Spacing.lg,
-    paddingBottom: 100,
   },
-  statsContainer: {
+  section: {
+    marginTop: Spacing.xl,
+  },
+  sectionHeader: {
     flexDirection: 'row',
-    gap: 8,
-    marginTop: Spacing.md,
-    marginBottom: Spacing.xl,
-  },
-  statCard: {
-    flex: 1,
-  },
-  statCardInner: {
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
-    paddingVertical: Spacing.md,
+    justifyContent: 'space-between',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.2)',
-    backgroundColor: Colors.card,
+    marginBottom: Spacing.md,
   },
-  statIcon: {
-    fontSize: 24,
-    marginBottom: 4,
-  },
-  statValue: {
+  sectionTitle: {
     fontSize: Typography.fontSize.lg,
     fontWeight: 'bold',
+    color: Colors.text,
+    marginBottom: Spacing.md,
+  },
+  seeAllText: {
+    fontSize: Typography.fontSize.sm,
     color: Colors.primary,
-    textShadowColor: 'rgba(16, 185, 129, 0.3)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 8,
+    fontWeight: '600',
   },
-  statLabel: {
-    fontSize: Typography.fontSize.xs,
-    color: Colors.textMuted,
-    marginTop: 2,
-  },
-  statUnit: {
-    fontSize: Typography.fontSize.xs,
-    color: Colors.textSecondary,
-  },
-  actionsSection: {
-    marginTop: Spacing.lg,
-  },
-  mainActionCard: {
+
+  // Calorie Card (with progress bar)
+  calorieCard: {
+    marginTop: Spacing.md,
     marginBottom: Spacing.lg,
-    borderRadius: BorderRadius.lg,
-    overflow: 'hidden',
-    elevation: 4,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-  },
-  actionGradient: {
-    borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.3)',
-    borderRadius: BorderRadius.lg,
     backgroundColor: Colors.card,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: `${Colors.primary}30`,
+    padding: Spacing.lg,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 15 },
+    shadowOpacity: 0.07,
+    shadowRadius: 40,
+    elevation: 8,
   },
-  actionCardContent: {
+  calorieHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: Spacing.xl,
+    marginBottom: Spacing.md,
   },
-  iconContainer: {
-    marginRight: Spacing.lg,
-  },
-  iconGradient: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+  calorieIconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: `${Colors.primary}15`,
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 2,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
   },
-  actionIcon: {
-    fontSize: 30,
+  calorieTextContainer: {
+    flex: 1,
+    marginLeft: Spacing.md,
   },
-  actionTextContainer: {
+  calorieValue: {
+    fontSize: Typography.fontSize.xxxl,
+    fontWeight: 'bold',
+    color: Colors.primary,
+  },
+  calorieLabel: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+    marginTop: 2,
+  },
+  progressBarContainer: {
+    marginTop: Spacing.sm,
+  },
+  progressBarBackground: {
+    height: 6,
+    backgroundColor: `${Colors.primary}15`,
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  progressText: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textSecondary,
+    marginTop: Spacing.xs,
+    textAlign: 'center',
+  },
+
+  // Program Cards (shared style for workout programs and planned meals)
+  programCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    marginBottom: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  programIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: `${Colors.primary}20`,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: Spacing.md,
+  },
+  programIcon: {
+    fontSize: 20,
+  },
+  programInfo: {
     flex: 1,
   },
-  actionTitle: {
-    fontSize: Typography.fontSize.xl,
-    fontWeight: 'bold',
-    color: Colors.primary,
-    marginBottom: 4,
-  },
-  actionSubtitle: {
+  programTitle: {
     fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 2,
+  },
+  programDetails: {
+    fontSize: Typography.fontSize.sm,
     color: Colors.textSecondary,
   },
-  actionArrow: {
+
+  // Recent Workouts
+  recentWorkoutCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    marginBottom: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  recentWorkoutIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: `${Colors.primary}20`,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: Spacing.md,
+  },
+  recentWorkoutEmoji: {
+    fontSize: 20,
+  },
+  recentWorkoutInfo: {
+    flex: 1,
+  },
+  recentWorkoutTitle: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 2,
+  },
+  recentWorkoutDetails: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+  },
+
+  // Main Action Buttons
+  mainActionsSection: {
+    marginTop: 0,
+    marginBottom: Spacing.xl,
+  },
+  expandableSection: {
+    marginBottom: Spacing.md,
+  },
+  mainActionCard: {
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    overflow: 'hidden',
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.05,
+    shadowRadius: 25,
+    elevation: 4,
+  },
+  mainActionContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.lg,
+  },
+  mainActionLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  mainActionRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  arrowIcon: {
+    opacity: 0.6,
+  },
+  mainActionIconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: `${Colors.primary}15`,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: Spacing.md,
+  },
+  styledEmoji: {
+    fontSize: 28,
+    textShadowColor: 'rgba(0, 0, 0, 0.15)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
+  mainActionIcon: {
     fontSize: 24,
-    color: Colors.primary,
+  },
+  mainActionText: {
+    fontSize: Typography.fontSize.lg,
     fontWeight: 'bold',
+    color: Colors.text,
+  },
+  chevronButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: `${Colors.primary}15`,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  // Dropdown Styles
+  dropdownContainer: {
+    marginTop: Spacing.sm,
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: `${Colors.primary}30`,
+    overflow: 'hidden',
+  },
+  dropdownItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.md,
+    paddingVertical: Spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    backgroundColor: Colors.surface,
+  },
+  dropdownItemLast: {
+    borderBottomWidth: 0,
+  },
+  dropdownIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: `${Colors.primary}15`,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: Spacing.md,
+  },
+  dropdownTextContainer: {
+    flex: 1,
+  },
+  dropdownTitle: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 2,
+  },
+  dropdownSubtitle: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textSecondary,
   },
 });
 

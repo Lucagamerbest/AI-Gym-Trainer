@@ -6,9 +6,9 @@ export default function Logo({ size = 'medium', showText = true, style }) {
   const getSize = () => {
     switch(size) {
       case 'small': return { wave: 30, text: 16 };
-      case 'medium': return { wave: 50, text: 24 };
+      case 'medium': return { wave: 60, text: 28 };
       case 'large': return { wave: 72, text: 32 };
-      default: return { wave: 50, text: 24 };
+      default: return { wave: 60, text: 28 };
     }
   };
 

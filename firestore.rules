@@ -75,8 +75,7 @@ service cloud.firestore {
         allow read: if isOwner(userId);
 
         allow create: if isOwner(userId)
-                      && hasValidUserId()
-                      && hasRequiredFields(['userId', 'date', 'exercises']);
+                      && hasValidUserId();
 
         allow update: if isOwner(userId)
                       && hasValidUserId();
@@ -92,8 +91,7 @@ service cloud.firestore {
         allow read: if isOwner(userId);
 
         allow create: if isOwner(userId)
-                      && hasValidUserId()
-                      && hasRequiredFields(['userId', 'date', 'foods']);
+                      && hasValidUserId();
 
         allow update: if isOwner(userId)
                       && hasValidUserId();
