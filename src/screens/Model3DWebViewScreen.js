@@ -120,10 +120,10 @@ export default function Model3DWebViewScreen({ navigation }) {
 
         // Preset camera positions for different views
         const CAMERA_POSITIONS = {
-            front: { x: 0, y: -0.5, z: 3.8 },
-            back: { x: 0, y: -0.5, z: -3.8 },
-            left: { x: -3.8, y: -0.5, z: 0 },
-            right: { x: 3.8, y: -0.5, z: 0 }
+            front: { x: 0, y: -0.5, z: 4.5 },
+            back: { x: 0, y: -0.5, z: -4.5 },
+            left: { x: -4.5, y: -0.5, z: 0 },
+            right: { x: 4.5, y: -0.5, z: 0 }
         };
 
         // Determine muscle group based on 3D click position
@@ -426,7 +426,7 @@ export default function Model3DWebViewScreen({ navigation }) {
             scene.background = new THREE.Color(0x1a1a1a);
 
             camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(0, -0.5, 3.8);
+            camera.position.set(0, -0.5, 4.5);
 
             const canvas = document.getElementById('canvas');
             renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
@@ -511,7 +511,7 @@ export default function Model3DWebViewScreen({ navigation }) {
 
                     const size = box.getSize(new THREE.Vector3());
                     const maxDim = Math.max(size.x, size.y, size.z);
-                    const scale = 3.2 / maxDim;
+                    const scale = 4.8 / maxDim;
                     model.scale.setScalar(scale);
 
                     scene.add(model);
@@ -657,7 +657,7 @@ export default function Model3DWebViewScreen({ navigation }) {
                 } else if (data.command === 'reset') {
                     if (model) {
                         model.rotation.set(0, 0, 0);
-                        animateCameraToPosition({ x: 0, y: -0.5, z: 3.8 });
+                        animateCameraToPosition({ x: 0, y: -0.5, z: 4.5 });
                     }
                     selectedMuscleGroups.clear();
                     updateMuscleHighlights();
