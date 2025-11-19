@@ -522,7 +522,7 @@ export default function Model3DWebViewScreen({ navigation }) {
 
                     const size = box.getSize(new THREE.Vector3());
                     const maxDim = Math.max(size.x, size.y, size.z);
-                    const scale = 4.8 / maxDim;
+                    const scale = 3.6 / maxDim;
                     model.scale.setScalar(scale);
 
                     scene.add(model);
