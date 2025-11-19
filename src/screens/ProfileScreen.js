@@ -332,6 +332,22 @@ export default function ProfileScreen({ navigation }) {
         />
 
         <StyledCard
+          icon="cube"
+          title="3D Model Testing (Geometric)"
+          subtitle="Basic shapes prototype"
+          onPress={() => navigation.navigate('Model3DTest')}
+          style={styles.menuItem}
+        />
+
+        <StyledCard
+          icon="body"
+          title="3D Gray Muscle Model (WebView)"
+          subtitle="Real anatomy model - works with GLB!"
+          onPress={() => navigation.navigate('Model3DWebView')}
+          style={styles.menuItem}
+        />
+
+        <StyledCard
           icon="help-circle"
           title="Help & Support"
           subtitle="FAQs and contact"

@@ -6,26 +6,20 @@ import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 
 export default function Model3DWebViewScreen({ navigation }) {
   const webViewRef = useRef(null);
-  const [selectedMuscle, setSelectedMuscle] = useState(null);
+  const [selectedMuscleGroups, setSelectedMuscleGroups] = useState([]);
   const [autoRotate, setAutoRotate] = useState(false);
-  const [meshCount, setMeshCount] = useState(0);
 
   // Handle messages from WebView
   const handleMessage = (event) => {
     try {
       const data = JSON.parse(event.nativeEvent.data);
 
-      if (data.type === 'debug') {
-        console.log(`[WebView Debug] ${data.message}`, data.data || '');
-      } else if (data.type === 'error') {
+      if (data.type === 'error') {
         console.error('[WebView Error]', data.message);
       } else if (data.type === 'modelLoaded') {
-        console.log('✅ Model loaded in WebView!');
-        console.log('Mesh count:', data.meshCount);
         setMeshCount(data.meshCount);
-      } else if (data.type === 'meshClicked') {
-        console.log('Clicked mesh:', data.meshName);
-        setSelectedMuscle(data.selected ? data.meshName : null);
+      } else if (data.type === 'muscleGroupToggled') {
+        setSelectedMuscleGroups(data.selectedGroups);
       }
     } catch (error) {
       console.error('Error parsing WebView message:', error);
@@ -55,9 +49,13 @@ export default function Model3DWebViewScreen({ navigation }) {
   };
 
   const handleReset = () => {
-    setSelectedMuscle(null);
+    setSelectedMuscleGroups([]);
     setAutoRotate(false);
     sendCommand('reset');
+  };
+
+  const removeMuscleGroup = (group) => {
+    sendCommand('deselectGroup', { group });
   };
 
   // HTML content - inline to avoid path issues
@@ -96,56 +94,164 @@ export default function Model3DWebViewScreen({ navigation }) {
     <div id="loading">Loading 3D Model...<br/>Please wait...</div>
     <canvas id="canvas"></canvas>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" onerror="scriptLoadError('THREE.js')"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js" onerror="scriptLoadError('GLTFLoader')"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js" onerror="scriptLoadError('OrbitControls')"></script>
 
     <script>
-        // Debug logging helper
-        function debugLog(message, data) {
-            console.log('[3D Viewer]', message, data || '');
-            if (window.ReactNativeWebView) {
-                window.ReactNativeWebView.postMessage(JSON.stringify({
-                    type: 'debug',
-                    message: message,
-                    data: data
-                }));
+        try {
+            function scriptLoadError(scriptName) {
+                document.getElementById('loading').innerHTML = 'Error: Failed to load ' + scriptName;
+                document.getElementById('loading').style.color = 'red';
             }
-        }
-
-        debugLog('1. HTML loaded, starting initialization...');
 
         let scene, camera, renderer, model, controls;
-        let selectedMesh = null;
+        let selectedMuscleGroups = new Set();
+        let meshToGroup = {}; // Maps mesh names to muscle groups
+        let groupToMeshes = {}; // Maps muscle groups to mesh arrays
 
         const GRAY_COLOR = 0x808080;
-        const SELECTED_COLOR = 0xFFD700;
+        const SELECTED_COLOR = 0x4ADE80; // Nice green color for selected muscles
+
+        // Muscle group mapping - maps mesh name patterns to muscle groups
+        // UPDATED: More specific muscle groups based on anatomy
+        const muscleGroupPatterns = {
+            // Upper body
+            'chest': ['pect', 'chest', 'pectoral', 'body_low'], // Added body_low for testing
+            'abs': ['abdom', 'oblique', 'rectus_abdom'],
+
+            // Shoulders - separated front and back
+            'shoulder_front': ['anterior_delt', 'front_delt'],
+            'shoulder_back': ['posterior_delt', 'rear_delt'],
+            'shoulders': ['delt', 'shoulder'], // fallback for generic shoulder meshes
+
+            // Back - separated into regions
+            'lats': ['lat', 'latissimus'],
+            'lower_back': ['erector', 'lumbar'],
+            'middle_back': ['trapez', 'rhomb', 'thoracic'],
+            'back': ['dorsi'], // fallback for generic back meshes
+
+            // Arms
+            'biceps': ['bicep', 'brachii'],
+            'triceps': ['tricep'],
+            'forearms': ['forearm', 'brachio'],
+
+            // Legs - separated into regions
+            'quads': ['quad', 'vastus', 'rectus_fem'],
+            'hamstrings': ['hamstring', 'biceps_fem', 'semimem', 'semiten'],
+            'legs': ['femor'], // fallback for generic leg meshes
+
+            // Lower legs
+            'calves': ['gastro', 'soleus'],
+            'calves_rear': ['calf_rear', 'gastro_rear'],
+
+            // Glutes
+            'glutes': ['glut', 'maxim', 'medius', 'minim']
+        };
+
+        // Determine muscle group based on 3D click position
+        function getMuscleGroupFromPosition(position) {
+            const x = position.x;
+            const y = position.y;
+            const z = position.z;
+
+            // Check ARMS first (before shoulders) since they overlap in X range
+            // IMPORTANT: Check FOREARMS first because they're further out on X axis
+
+            // FOREARMS: Very far out on the sides (X >= 0.85)
+            if (y >= -1.4 && y <= -0.2 && Math.abs(x) >= 0.85) {
+                return 'forearms';
+            }
+
+            // BICEPS: Front/side of upper arm
+            if (y >= -0.7 && y <= -0.2 && Math.abs(x) >= 0.4 && Math.abs(x) < 0.85 && z >= -0.1) {
+                return 'biceps';
+            }
+
+            // TRICEPS: Back of upper arm
+            if (y >= -0.7 && y <= -0.2 && Math.abs(x) >= 0.4 && Math.abs(x) < 0.85 && z < -0.1) {
+                return 'triceps';
+            }
+
+            // SHOULDERS - traps and deltoids
+
+            // TRAPS/UPPER BACK: Center of upper back/neck area
+            if (y >= -0.25 && y <= 0.2 && (z <= 0.05)) {
+                return 'shoulders';
+            }
+
+            // SHOULDERS SIDES: Deltoids on the sides
+            if (y >= -0.25 && y <= 0.2 && Math.abs(x) >= 0.3) {
+                return 'shoulders';
+            }
+
+            // CHEST: Upper torso CENTER, front
+            if (y >= -0.6 && y <= 0.2 && z > 0.05 && Math.abs(x) < 0.3) {
+                return 'chest';
+            }
+
+            // ABS: Lower torso, front
+            if (y >= -1.0 && y < -0.6 && z > 0.05 && Math.abs(x) < 0.4) {
+                return 'abs';
+            }
+
+            // BACK: All back muscles
+            if (y >= -0.9 && y < -0.25 && z < 0) {
+                return 'back';
+            }
+
+            // LEGS: Full legs including glutes, quads, hamstrings, and calves
+
+            // Upper legs / Glutes area
+            if (y >= -1.3 && y < -0.9 && z < -0.05 && Math.abs(x) < 0.35) {
+                return 'legs';
+            }
+
+            // Mid legs (quads + hamstrings - thighs)
+            if (y >= -1.8 && y < -1.0 && Math.abs(x) < 0.5) {
+                return 'legs';
+            }
+
+            // Lower legs / Calves area
+            if (y >= -2.5 && y < -1.8 && Math.abs(x) < 0.3) {
+                return 'legs';
+            }
+
+            return null;
+        }
+
+        function getMuscleGroupFromMeshName(meshName) {
+            if (!meshName) return null;
+            const lowerName = meshName.toLowerCase();
+
+            for (const [group, patterns] of Object.entries(muscleGroupPatterns)) {
+                for (const pattern of patterns) {
+                    if (lowerName.includes(pattern)) {
+                        return group;
+                    }
+                }
+            }
+            return null;
+        }
 
         function init() {
-            debugLog('2. init() called');
-
-            debugLog('3. Checking THREE.js:', typeof THREE);
             if (typeof THREE === 'undefined') {
-                debugLog('ERROR: THREE.js not loaded!');
                 document.getElementById('loading').innerHTML = 'Error: THREE.js failed to load';
                 document.getElementById('loading').style.color = 'red';
                 return;
             }
 
-            debugLog('4. Checking GLTFLoader:', typeof THREE.GLTFLoader);
             if (typeof THREE.GLTFLoader === 'undefined') {
-                debugLog('ERROR: GLTFLoader not loaded!');
                 document.getElementById('loading').innerHTML = 'Error: GLTFLoader failed to load';
                 document.getElementById('loading').style.color = 'red';
                 return;
             }
 
-            debugLog('5. Creating scene...');
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x1a1a1a);
 
             camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(0, 0, 5);
+            camera.position.set(0, 0, 4);
 
             const canvas = document.getElementById('canvas');
             renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
@@ -163,38 +269,40 @@ export default function Model3DWebViewScreen({ navigation }) {
             directionalLight2.position.set(-5, -5, -5);
             scene.add(directionalLight2);
 
-            debugLog('6. Creating OrbitControls...');
             controls = new THREE.OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
             controls.dampingFactor = 0.05;
             controls.minDistance = 2;
-            controls.maxDistance = 10;
+            controls.maxDistance = 8;
             controls.autoRotate = false;
             controls.autoRotateSpeed = 1.0;
+            controls.target.set(0, 0, 0);
 
-            debugLog('7. Starting model load...');
             loadModel();
             window.addEventListener('resize', onWindowResize, false);
+
+            // For mobile: use touchend instead of click
+            canvas.addEventListener('touchend', function(e) {
+                e.preventDefault();
+                const touch = e.changedTouches[0];
+                onClick({ clientX: touch.clientX, clientY: touch.clientY });
+            }, false);
+
+            // Also support desktop clicks
+            canvas.addEventListener('click', onClick, false);
+
             animate();
         }
 
         function loadModel() {
-            debugLog('8. loadModel() called');
             const loader = new THREE.GLTFLoader();
-
-            // Try GitHub raw URL first (more reliable than jsDelivr for large files)
             const modelPath = 'https://raw.githubusercontent.com/Lucagamerbest/AI-Gym-Trainer/main/assets/models/human.glb';
-
-            debugLog('9. Model URL:', modelPath);
-            debugLog('10. Starting loader.load()...');
 
             loader.load(
                 modelPath,
                 function(gltf) {
-                    debugLog('11. SUCCESS! Model loaded from server');
                     model = gltf.scene;
 
-                    debugLog('12. Processing model meshes...');
                     let meshCount = 0;
                     model.traverse((child) => {
                         if (child.isMesh) {
@@ -206,10 +314,18 @@ export default function Model3DWebViewScreen({ navigation }) {
                             });
                             child.userData.originalColor = GRAY_COLOR;
                             child.userData.clickable = true;
-                            debugLog('Mesh found:', child.name);
+
+                            const muscleGroup = getMuscleGroupFromMeshName(child.name);
+                            if (muscleGroup) {
+                                meshToGroup[child.name] = muscleGroup;
+                                if (!groupToMeshes[muscleGroup]) {
+                                    groupToMeshes[muscleGroup] = [];
+                                }
+                                groupToMeshes[muscleGroup].push(child);
+                                child.userData.muscleGroup = muscleGroup;
+                            }
                         }
                     });
-                    debugLog('13. Total meshes processed:', meshCount);
 
                     const box = new THREE.Box3().setFromObject(model);
                     const center = box.getCenter(new THREE.Vector3());
@@ -217,13 +333,11 @@ export default function Model3DWebViewScreen({ navigation }) {
 
                     const size = box.getSize(new THREE.Vector3());
                     const maxDim = Math.max(size.x, size.y, size.z);
-                    const scale = 2.5 / maxDim;
+                    const scale = 3.2 / maxDim;
                     model.scale.setScalar(scale);
 
-                    debugLog('14. Adding model to scene...');
                     scene.add(model);
                     document.getElementById('loading').style.display = 'none';
-                    debugLog('15. ✅ Model fully loaded and displayed!');
 
                     if (window.ReactNativeWebView) {
                         window.ReactNativeWebView.postMessage(JSON.stringify({
@@ -234,11 +348,9 @@ export default function Model3DWebViewScreen({ navigation }) {
                 },
                 function(xhr) {
                     const percent = xhr.total ? (xhr.loaded / xhr.total * 100).toFixed(0) : 'unknown';
-                    debugLog('Loading progress:', percent + '%');
                     document.getElementById('loading').innerHTML = 'Loading... ' + percent + '%<br/>Please wait...';
                 },
                 function(error) {
-                    debugLog('ERROR loading model:', error.message || error);
                     console.error('Full error:', error);
                     document.getElementById('loading').innerHTML = 'Error loading model<br/>' + (error.message || 'Unknown error');
                     document.getElementById('loading').style.color = 'red';
@@ -278,41 +390,43 @@ export default function Model3DWebViewScreen({ navigation }) {
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
 
-        renderer.domElement.addEventListener('click', onClick, false);
-
         function onClick(event) {
             mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
             raycaster.setFromCamera(mouse, camera);
 
-            if (model) {
-                const intersects = raycaster.intersectObjects(model.children, true);
+            if (!model) return;
 
-                if (intersects.length > 0) {
-                    const clickedMesh = intersects[0].object;
+            const intersects = raycaster.intersectObjects(model.children, true);
 
-                    if (selectedMesh && selectedMesh !== clickedMesh) {
-                        selectedMesh.material.color.setHex(selectedMesh.userData.originalColor);
+            if (intersects.length > 0) {
+                const intersection = intersects[0];
+                const clickedMesh = intersection.object;
+                const clickPosition = intersection.point;
+                const muscleGroup = getMuscleGroupFromPosition(clickPosition);
+
+                if (muscleGroup) {
+                    if (selectedMuscleGroups.has(muscleGroup)) {
+                        selectedMuscleGroups.delete(muscleGroup);
+                    } else {
+                        selectedMuscleGroups.add(muscleGroup);
                     }
 
-                    if (selectedMesh === clickedMesh) {
-                        clickedMesh.material.color.setHex(GRAY_COLOR);
-                        selectedMesh = null;
-                    } else {
+                    if (selectedMuscleGroups.size > 0) {
                         clickedMesh.material.color.setHex(SELECTED_COLOR);
-                        selectedMesh = clickedMesh;
+                    } else {
+                        clickedMesh.material.color.setHex(GRAY_COLOR);
                     }
 
                     if (window.ReactNativeWebView) {
                         window.ReactNativeWebView.postMessage(JSON.stringify({
-                            type: 'meshClicked',
-                            meshName: clickedMesh.name,
-                            selected: selectedMesh === clickedMesh
+                            type: 'muscleGroupToggled',
+                            muscleGroup: muscleGroup,
+                            selected: selectedMuscleGroups.has(muscleGroup),
+                            selectedGroups: Array.from(selectedMuscleGroups)
                         }));
                     }
-
-                    console.log('Clicked:', clickedMesh.name);
                 }
             }
         }
@@ -327,23 +441,63 @@ export default function Model3DWebViewScreen({ navigation }) {
                     }
                 } else if (data.command === 'autoRotate') {
                     controls.autoRotate = data.enabled;
+                } else if (data.command === 'deselectGroup') {
+                    const group = data.group;
+                    if (selectedMuscleGroups.has(group)) {
+                        selectedMuscleGroups.delete(group);
+                        const meshes = groupToMeshes[group] || [];
+                        meshes.forEach(mesh => {
+                            mesh.material.color.setHex(GRAY_COLOR);
+                        });
+                        if (window.ReactNativeWebView) {
+                            window.ReactNativeWebView.postMessage(JSON.stringify({
+                                type: 'muscleGroupToggled',
+                                muscleGroup: group,
+                                selected: false,
+                                selectedGroups: Array.from(selectedMuscleGroups)
+                            }));
+                        }
+                    }
                 } else if (data.command === 'reset') {
                     if (model) {
                         model.rotation.set(0, 0, 0);
-                        camera.position.set(0, 0, 5);
+                        camera.position.set(0, 0, 4); // Reset to full body view
+                        controls.target.set(0, 0, 0);
                         controls.reset();
                     }
-                    if (selectedMesh) {
-                        selectedMesh.material.color.setHex(GRAY_COLOR);
-                        selectedMesh = null;
-                    }
+                    // Deselect all muscle groups
+                    selectedMuscleGroups.forEach(group => {
+                        const meshes = groupToMeshes[group] || [];
+                        meshes.forEach(mesh => {
+                            mesh.material.color.setHex(GRAY_COLOR);
+                        });
+                    });
+                    selectedMuscleGroups.clear();
                 }
             } catch (e) {
                 console.error('Error parsing message:', e);
             }
         });
 
-        init();
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(init, 100);
+            });
+        } else {
+            setTimeout(init, 100);
+        }
+
+        } catch (error) {
+            console.error('[3D Viewer] FATAL ERROR:', error);
+            if (window.ReactNativeWebView) {
+                window.ReactNativeWebView.postMessage(JSON.stringify({
+                    type: 'error',
+                    message: 'Script error: ' + error.message
+                }));
+            }
+            document.getElementById('loading').innerHTML = 'Script Error: ' + error.message;
+            document.getElementById('loading').style.color = 'red';
+        }
     </script>
 </body>
 </html>
@@ -383,86 +537,58 @@ export default function Model3DWebViewScreen({ navigation }) {
               const { nativeEvent } = syntheticEvent;
               console.error('HTTP error:', nativeEvent);
             }}
-            onLoadStart={() => console.log('WebView loading...')}
-            onLoadEnd={() => console.log('WebView loaded!')}
           />
         </View>
 
         {/* Selected Muscle Display */}
-        <View style={styles.selectionContainer}>
-          <Text style={styles.selectionLabel}>Selected Muscle:</Text>
-          <Text style={styles.selectionValue}>
-            {selectedMuscle || 'None - Tap on model'}
-          </Text>
-          {meshCount > 0 && (
-            <Text style={styles.meshCountText}>
-              {meshCount} clickable muscle meshes loaded
+        <View style={{
+          marginHorizontal: 16,
+          marginTop: 8,
+          minHeight: 50,
+          backgroundColor: selectedMuscleGroups.length > 0 ? '#4ADE80' : '#374151',
+          borderRadius: 12,
+          paddingVertical: 12,
+          paddingHorizontal: 16,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}>
+          {selectedMuscleGroups.length > 0 ? (
+            <>
+              <Text style={{
+                fontSize: 18,
+                fontWeight: 'bold',
+                color: '#000000',
+                flex: 1,
+              }}>
+                Selected: {selectedMuscleGroups.map(m => m.toUpperCase()).join(', ')}
+              </Text>
+              <TouchableOpacity
+                onPress={handleReset}
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 16,
+                  backgroundColor: 'rgba(0,0,0,0.2)',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Text style={{fontSize: 20, fontWeight: 'bold', color: '#000'}}>×</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <Text style={{
+              fontSize: 14,
+              color: '#9CA3AF',
+              textAlign: 'center',
+              flex: 1,
+            }}>
+              No muscle selected
             </Text>
           )}
         </View>
 
-        {/* Control Buttons */}
-        <View style={styles.controlsContainer}>
-          <View style={styles.rotationControls}>
-            <TouchableOpacity
-              style={styles.controlButton}
-              onPress={handleRotateLeft}
-            >
-              <Text style={styles.controlButtonText}>← Rotate Left</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.controlButton, autoRotate && styles.controlButtonActive]}
-              onPress={toggleAutoRotate}
-            >
-              <Text style={styles.controlButtonText}>
-                {autoRotate ? '⏸ Stop' : '▶ Auto Rotate'}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.controlButton}
-              onPress={handleRotateRight}
-            >
-              <Text style={styles.controlButtonText}>Rotate Right →</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.actionButtons}>
-            <TouchableOpacity
-              style={styles.resetButton}
-              onPress={handleReset}
-            >
-              <Text style={styles.resetButtonText}>Reset View</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Instructions */}
-        <View style={styles.instructionsContainer}>
-          <Text style={styles.instructionsTitle}>🎨 Gray Muscle Anatomy Model</Text>
-          <Text style={styles.instructionsText}>• All muscles rendered in gray (not skin tone)</Text>
-          <Text style={styles.instructionsText}>• Tap any muscle to select it (turns gold)</Text>
-          <Text style={styles.instructionsText}>• Rotate to see front/back muscles</Text>
-          <Text style={styles.instructionsText}>• Shows detailed muscle definition</Text>
-        </View>
-
-        {/* Model Info */}
-        <View style={styles.modelInfoContainer}>
-          <Text style={styles.modelInfoTitle}>📥 To Use Custom Model:</Text>
-          <Text style={styles.modelInfoText}>
-            1. Download "Male Base Muscular Anatomy" from Sketchfab
-          </Text>
-          <Text style={styles.modelInfoText}>
-            2. Place GLB file: assets/models/human.glb
-          </Text>
-          <Text style={styles.modelInfoText}>
-            3. Model will automatically load as GRAY
-          </Text>
-          <Text style={styles.modelInfoText}>
-            4. All skin tones converted to gray material
-          </Text>
-        </View>
       </View>
     </ScreenLayout>
   );
@@ -473,121 +599,103 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
+  selectedGroupsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#4ADE80',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 8,
+    borderRadius: 25,
+    alignSelf: 'flex-start',
+    zIndex: 1000,
+    elevation: 10,
+  },
+  muscleChipsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.xs,
+  },
+  muscleChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    gap: Spacing.xs,
+  },
+  muscleChipText: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+  },
+  muscleChipRemove: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: 'bold',
+    color: '#000',
+    marginLeft: Spacing.xs,
+  },
+  clearAllButton: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+  },
+  clearAllText: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.error,
+    fontWeight: '600',
+  },
   webviewContainer: {
-    height: 400,
+    height: 500,
     backgroundColor: '#1a1a1a',
     borderRadius: BorderRadius.lg,
     margin: Spacing.md,
     overflow: 'hidden',
+    zIndex: 1,
   },
   webview: {
     flex: 1,
     backgroundColor: 'transparent',
   },
-  selectionContainer: {
+  hintContainer: {
+    padding: Spacing.sm,
     marginHorizontal: Spacing.md,
     marginBottom: Spacing.md,
-    padding: Spacing.md,
     backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+  },
+  hintText: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+    fontStyle: 'italic',
+  },
+  debugContainer: {
+    backgroundColor: '#1a1a1a',
+    padding: Spacing.md,
+    marginHorizontal: Spacing.md,
+    marginBottom: Spacing.md,
     borderRadius: BorderRadius.md,
     borderWidth: 2,
-    borderColor: Colors.primary,
+    borderColor: '#FFD700',
   },
-  selectionLabel: {
+  debugTitle: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: 'bold',
+    color: '#FFD700',
+    marginBottom: Spacing.sm,
+  },
+  debugText: {
+    fontSize: Typography.fontSize.md,
+    fontFamily: 'monospace',
+    color: '#4ADE80',
+    marginBottom: Spacing.xs,
+  },
+  debugHint: {
     fontSize: Typography.fontSize.sm,
     color: Colors.textSecondary,
-    marginBottom: Spacing.xs,
-  },
-  selectionValue: {
-    fontSize: Typography.fontSize.lg,
-    fontWeight: 'bold',
-    color: Colors.primary,
-  },
-  meshCountText: {
-    fontSize: Typography.fontSize.xs,
-    color: Colors.textMuted,
-    marginTop: Spacing.xs,
-  },
-  controlsContainer: {
-    marginHorizontal: Spacing.md,
-    marginBottom: Spacing.md,
-  },
-  rotationControls: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-    marginBottom: Spacing.sm,
-  },
-  controlButton: {
-    flex: 1,
-    backgroundColor: Colors.surface,
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.sm,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    alignItems: 'center',
-  },
-  controlButtonActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-  controlButtonText: {
-    fontSize: Typography.fontSize.sm,
-    fontWeight: '600',
-    color: Colors.text,
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
-  resetButton: {
-    flex: 1,
-    backgroundColor: Colors.primary,
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.md,
-    alignItems: 'center',
-  },
-  resetButtonText: {
-    fontSize: Typography.fontSize.md,
-    fontWeight: 'bold',
-    color: Colors.background,
-  },
-  instructionsContainer: {
-    marginHorizontal: Spacing.md,
-    marginBottom: Spacing.md,
-    padding: Spacing.md,
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.md,
-    borderLeftWidth: 4,
-    borderLeftColor: Colors.primary,
-  },
-  instructionsTitle: {
-    fontSize: Typography.fontSize.md,
-    fontWeight: 'bold',
-    color: Colors.text,
-    marginBottom: Spacing.sm,
-  },
-  instructionsText: {
-    fontSize: Typography.fontSize.sm,
-    color: Colors.textSecondary,
-    marginBottom: Spacing.xs,
-  },
-  modelInfoContainer: {
-    marginHorizontal: Spacing.md,
-    marginBottom: Spacing.xl,
-    padding: Spacing.md,
-    backgroundColor: '#E3F2FD',
-    borderRadius: BorderRadius.md,
-  },
-  modelInfoTitle: {
-    fontSize: Typography.fontSize.md,
-    fontWeight: 'bold',
-    color: '#1565C0',
-    marginBottom: Spacing.sm,
-  },
-  modelInfoText: {
-    fontSize: Typography.fontSize.sm,
-    color: '#0D47A1',
-    marginBottom: Spacing.xs,
+    fontStyle: 'italic',
+    marginTop: Spacing.sm,
   },
 });

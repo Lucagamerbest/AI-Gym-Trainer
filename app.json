@@ -9,7 +9,7 @@
     "scheme": "workoutwave",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.workoutwave.app",
+      "bundleIdentifier": "com.rarau.workoutwave",
       "infoPlist": {
         "UIBackgroundModes": [
           "audio",
@@ -34,7 +34,7 @@
       "adaptiveIcon": {
         "backgroundColor": "#000000"
       },
-      "package": "com.workoutwave.app",
+      "package": "com.rarau.workoutwave",
       "permissions": [
         "VIBRATE",
         "POST_NOTIFICATIONS"
@@ -86,7 +86,8 @@
             }
           ]
         }
-      ]
+      ],
+      "expo-asset"
     ],
     "notification": {
       "color": "#4CAF50",

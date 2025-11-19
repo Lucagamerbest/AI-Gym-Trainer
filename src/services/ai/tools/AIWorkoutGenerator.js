@@ -8,8 +8,8 @@
  */
 
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { GOOGLE_GEMINI_API_KEY } from '@env';
 import { getAllExercises } from '../../../data/exerciseDatabase';
+import AIService from '../AIService';
 
 /**
  * Generate workout using AI thinking (takes 10-30 seconds, but SMART)
@@ -23,7 +23,10 @@ export async function generateWorkoutWithAI({
 
   try {
     // Initialize Gemini AI
-    const genAI = new GoogleGenerativeAI(GOOGLE_GEMINI_API_KEY);
+    if (!AIService.apiKey) {
+      throw new Error('Gemini API key not configured. Please restart the app.');
+    }
+    const genAI = new GoogleGenerativeAI(AIService.apiKey);
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
 
     // Get available exercises from database

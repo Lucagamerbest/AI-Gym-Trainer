@@ -61,7 +61,13 @@
       "Bash(start theme-preview.html)",
       "Bash(npm start -- --clear)",
       "Bash(firebase projects:list:*)",
-      "Bash(del nul)"
+      "Bash(del nul)",
+      "Bash(npx eas-cli:*)",
+      "Bash(npx eas env:create:*)",
+      "Bash(if not exist assets mkdir assets)",
+      "WebFetch(domain:sketchfab.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []

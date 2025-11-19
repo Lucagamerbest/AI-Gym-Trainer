@@ -73,6 +73,8 @@ import ImageViewerScreen from './src/screens/ImageViewerScreen';
 import AICoachAssessmentScreen from './src/screens/AICoachAssessmentScreen';
 import UserProfileScreen from './src/screens/UserProfileScreen';
 import EditProfileSectionScreen from './src/screens/EditProfileSectionScreen';
+import Model3DTestScreen from './src/screens/Model3DTestScreen';
+import Model3DWebViewScreen from './src/screens/Model3DWebViewScreen';
 
 // Automated Testing (Dev only)
 import AutomatedTestRunner from './src/components/AutomatedTestRunner';
@@ -394,6 +396,8 @@ function AppNavigator() {
             <Stack.Screen name="ProgressHub" component={ProgressHubScreen} />
             <Stack.Screen name="Progress" component={ProgressScreen} />
             <Stack.Screen name="Debug" component={DebugScreen} />
+            <Stack.Screen name="Model3DTest" component={Model3DTestScreen} />
+            <Stack.Screen name="Model3DWebView" component={Model3DWebViewScreen} />
             <Stack.Screen name="AICoachAssessment" component={AICoachAssessmentScreen} />
             <Stack.Screen name="UserProfile" component={UserProfileScreen} />
             <Stack.Screen name="EditProfileSection" component={EditProfileSectionScreen} />
