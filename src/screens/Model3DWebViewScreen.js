@@ -8,6 +8,7 @@ export default function Model3DWebViewScreen({ navigation }) {
   const webViewRef = useRef(null);
   const [selectedMuscleGroups, setSelectedMuscleGroups] = useState([]);
   const [autoRotate, setAutoRotate] = useState(false);
+  const [meshCount, setMeshCount] = useState(0);
 
   // Handle messages from WebView
   const handleMessage = (event) => {
@@ -107,47 +108,10 @@ export default function Model3DWebViewScreen({ navigation }) {
 
         let scene, camera, renderer, model, controls;
         let selectedMuscleGroups = new Set();
-        let meshToGroup = {}; // Maps mesh names to muscle groups
-        let groupToMeshes = {}; // Maps muscle groups to mesh arrays
+        let bodyMeshMaterial = null; // Custom shader material for highlighting
 
-        const GRAY_COLOR = 0x808080;
-        const SELECTED_COLOR = 0x4ADE80; // Nice green color for selected muscles
-
-        // Muscle group mapping - maps mesh name patterns to muscle groups
-        // UPDATED: More specific muscle groups based on anatomy
-        const muscleGroupPatterns = {
-            // Upper body
-            'chest': ['pect', 'chest', 'pectoral', 'body_low'], // Added body_low for testing
-            'abs': ['abdom', 'oblique', 'rectus_abdom'],
-
-            // Shoulders - separated front and back
-            'shoulder_front': ['anterior_delt', 'front_delt'],
-            'shoulder_back': ['posterior_delt', 'rear_delt'],
-            'shoulders': ['delt', 'shoulder'], // fallback for generic shoulder meshes
-
-            // Back - separated into regions
-            'lats': ['lat', 'latissimus'],
-            'lower_back': ['erector', 'lumbar'],
-            'middle_back': ['trapez', 'rhomb', 'thoracic'],
-            'back': ['dorsi'], // fallback for generic back meshes
-
-            // Arms
-            'biceps': ['bicep', 'brachii'],
-            'triceps': ['tricep'],
-            'forearms': ['forearm', 'brachio'],
-
-            // Legs - separated into regions
-            'quads': ['quad', 'vastus', 'rectus_fem'],
-            'hamstrings': ['hamstring', 'biceps_fem', 'semimem', 'semiten'],
-            'legs': ['femor'], // fallback for generic leg meshes
-
-            // Lower legs
-            'calves': ['gastro', 'soleus'],
-            'calves_rear': ['calf_rear', 'gastro_rear'],
-
-            // Glutes
-            'glutes': ['glut', 'maxim', 'medius', 'minim']
-        };
+        const GRAY_COLOR = new THREE.Color(0x808080);
+        const SELECTED_COLOR = new THREE.Color(0x4ADE80); // Nice green color for selected muscles
 
         // Determine muscle group based on 3D click position
         function getMuscleGroupFromPosition(position) {
@@ -155,38 +119,39 @@ export default function Model3DWebViewScreen({ navigation }) {
             const y = position.y;
             const z = position.z;
 
-            // Check ARMS first (before shoulders) since they overlap in X range
-            // IMPORTANT: Check FOREARMS first because they're further out on X axis
-
-            // FOREARMS: Very far out on the sides (X >= 0.85)
-            if (y >= -1.4 && y <= -0.2 && Math.abs(x) >= 0.85) {
+            // FOREARMS: Upper forearm/elbow area, exclude hands
+            if (y >= -0.65 && y < -0.22 && Math.abs(x) >= 0.90 && Math.abs(x) < 1.15) {
                 return 'forearms';
             }
 
-            // BICEPS: Front/side of upper arm
-            if (y >= -0.7 && y <= -0.2 && Math.abs(x) >= 0.4 && Math.abs(x) < 0.85 && z >= -0.1) {
+            // BICEPS: Front of upper arm - extended upward to cover entire bicep
+            if (y >= -0.75 && y <= -0.25 && Math.abs(x) >= 0.5 && Math.abs(x) < 0.9 && z > 0.0) {
                 return 'biceps';
             }
 
-            // TRICEPS: Back of upper arm
-            if (y >= -0.7 && y <= -0.2 && Math.abs(x) >= 0.4 && Math.abs(x) < 0.85 && z < -0.1) {
+            // TRICEPS: Back of upper arm (z <= 0), exclude shoulders
+            if (y >= -0.75 && y < -0.25 && Math.abs(x) >= 0.5 && Math.abs(x) < 0.9 && z <= 0.0) {
                 return 'triceps';
             }
 
-            // SHOULDERS - traps and deltoids
-
-            // TRAPS/UPPER BACK: Center of upper back/neck area
-            if (y >= -0.25 && y <= 0.2 && (z <= 0.05)) {
+            // SHOULDERS - precise deltoids and traps
+            // Traps (upper back/neck area)
+            if (y >= -0.2 && y < 0.05 && z < -0.08 && Math.abs(x) < 0.2) {
                 return 'shoulders';
             }
 
-            // SHOULDERS SIDES: Deltoids on the sides
-            if (y >= -0.25 && y <= 0.2 && Math.abs(x) >= 0.3) {
+            // Lateral deltoids (side shoulder caps)
+            if (y >= -0.35 && y < -0.05 && Math.abs(x) >= 0.3 && Math.abs(x) < 0.48 && z > -0.2 && z < 0.15) {
                 return 'shoulders';
             }
 
-            // CHEST: Upper torso CENTER, front
-            if (y >= -0.6 && y <= 0.2 && z > 0.05 && Math.abs(x) < 0.3) {
+            // Front deltoids (front of shoulder)
+            if (y >= -0.28 && y < -0.12 && z > 0.05 && Math.abs(x) >= 0.2 && Math.abs(x) < 0.35) {
+                return 'shoulders';
+            }
+
+            // CHEST: Upper torso CENTER, front, exclude face
+            if (y >= -0.6 && y <= -0.15 && z > 0.05 && Math.abs(x) < 0.3) {
                 return 'chest';
             }
 
@@ -195,43 +160,240 @@ export default function Model3DWebViewScreen({ navigation }) {
                 return 'abs';
             }
 
-            // BACK: All back muscles
-            if (y >= -0.9 && y < -0.25 && z < 0) {
+            // BACK: STRICT z < -0.05 to prevent showing on front
+            if (y >= -0.95 && y < -0.2 && z < -0.05 && Math.abs(x) < 0.35) {
                 return 'back';
             }
 
-            // LEGS: Full legs including glutes, quads, hamstrings, and calves
-
-            // Upper legs / Glutes area
-            if (y >= -1.3 && y < -0.9 && z < -0.05 && Math.abs(x) < 0.35) {
+            // LEGS: Exclude feet strictly (y >= -2.4)
+            // Upper legs / Glutes
+            if (y >= -1.4 && y < -0.95 && Math.abs(x) < 0.45) {
                 return 'legs';
             }
 
-            // Mid legs (quads + hamstrings - thighs)
-            if (y >= -1.8 && y < -1.0 && Math.abs(x) < 0.5) {
+            // Mid thighs
+            if (y >= -1.95 && y < -1.0 && Math.abs(x) < 0.55) {
                 return 'legs';
             }
 
-            // Lower legs / Calves area
-            if (y >= -2.5 && y < -1.8 && Math.abs(x) < 0.3) {
+            // Lower legs / Calves - STRICTLY exclude feet
+            if (y >= -2.4 && y < -1.8 && Math.abs(x) < 0.4) {
                 return 'legs';
             }
 
             return null;
         }
 
-        function getMuscleGroupFromMeshName(meshName) {
-            if (!meshName) return null;
-            const lowerName = meshName.toLowerCase();
+        // Create custom shader material that highlights specific muscle regions
+        function createMuscleShaderMaterial() {
+            const vertexShader = \`
+                varying vec3 vWorldPosition;
+                varying vec3 vNormal;
+                varying vec3 vViewPosition;
 
-            for (const [group, patterns] of Object.entries(muscleGroupPatterns)) {
-                for (const pattern of patterns) {
-                    if (lowerName.includes(pattern)) {
-                        return group;
-                    }
+                void main() {
+                    vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+                    vWorldPosition = worldPosition.xyz;
+
+                    vNormal = normalize(normalMatrix * normal);
+
+                    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                    vViewPosition = -mvPosition.xyz;
+
+                    gl_Position = projectionMatrix * mvPosition;
                 }
-            }
-            return null;
+            \`;
+
+            const fragmentShader = \`
+                uniform vec3 baseColor;
+                uniform vec3 selectedColor;
+                uniform float selectedMuscles[10]; // [chest, abs, shoulders, back, biceps, triceps, forearms, legs, quads, glutes]
+                uniform vec3 ambientLightColor;
+                uniform vec3 directionalLightColor;
+                uniform vec3 directionalLightDirection;
+
+                varying vec3 vWorldPosition;
+                varying vec3 vNormal;
+                varying vec3 vViewPosition;
+
+                void main() {
+                    float x = vWorldPosition.x;
+                    float y = vWorldPosition.y;
+                    float z = vWorldPosition.z;
+
+                    vec3 baseCol = baseColor;
+                    bool isSelected = false;
+
+                    // CHEST (index 0) - Exclude face by limiting upper y to -0.15
+                    if (selectedMuscles[0] > 0.5) {
+                        if (y >= -0.6 && y <= -0.15 && z > 0.05 && abs(x) < 0.3) {
+                            isSelected = true;
+                        }
+                    }
+
+                    // ABS (index 1) - Already good
+                    if (selectedMuscles[1] > 0.5) {
+                        if (y >= -1.0 && y < -0.6 && z > 0.05 && abs(x) < 0.4) {
+                            isSelected = true;
+                        }
+                    }
+
+                    // SHOULDERS (index 2) - Precise deltoids and traps
+                    if (selectedMuscles[2] > 0.5) {
+                        // Traps (upper back/neck area) - more precise
+                        if (y >= -0.2 && y < 0.05 && z < -0.08 && abs(x) < 0.2) {
+                            isSelected = true;
+                        }
+                        // Lateral deltoids (side shoulder caps) - most prominent part
+                        else if (y >= -0.35 && y < -0.05 && abs(x) >= 0.3 && abs(x) < 0.48 && z > -0.2 && z < 0.15) {
+                            isSelected = true;
+                        }
+                        // Front deltoids (smaller area, front of shoulder)
+                        else if (y >= -0.28 && y < -0.12 && z > 0.05 && abs(x) >= 0.2 && abs(x) < 0.35) {
+                            isSelected = true;
+                        }
+                    }
+
+                    // BACK (index 3) - STRICT z < -0.05 to prevent showing on front! SMOOTH EDGES
+                    if (selectedMuscles[3] > 0.5) {
+                        // Lats and middle back - MUST be behind (z < -0.05)
+                        if (y >= -0.95 && y < -0.2 && z < -0.05 && abs(x) < 0.35) {
+                            // Create smooth, organic edges instead of rectangle
+                            float xEdge = smoothstep(0.3, 0.35, abs(x));
+                            float yTopEdge = smoothstep(-0.25, -0.2, y);
+                            float yBottomEdge = smoothstep(-0.95, -0.9, y);
+
+                            // Only select if we're within the smooth boundaries
+                            if (xEdge < 0.5 && yTopEdge < 0.5 && yBottomEdge > 0.5) {
+                                isSelected = true;
+                            }
+                        }
+                    }
+
+                    // BICEPS (index 4) - Extended to cover entire bicep
+                    if (selectedMuscles[4] > 0.5) {
+                        if (y >= -0.75 && y <= -0.25 && abs(x) >= 0.5 && abs(x) < 0.9 && z > 0.0) {
+                            isSelected = true;
+                        }
+                    }
+
+                    // TRICEPS (index 5) - Match biceps range
+                    if (selectedMuscles[5] > 0.5) {
+                        if (y >= -0.75 && y < -0.25 && abs(x) >= 0.5 && abs(x) < 0.9 && z <= 0.0) {
+                            isSelected = true;
+                        }
+                    }
+
+                    // FOREARMS (index 6) - Upper forearm/elbow area, EXCLUDE HANDS, smooth edges
+                    if (selectedMuscles[6] > 0.5) {
+                        if (y >= -0.65 && y < -0.22 && abs(x) >= 0.90 && abs(x) < 1.15) {
+                            // Smooth edges at the boundaries
+                            float xInnerEdge = smoothstep(0.90, 0.95, abs(x));
+                            float xOuterEdge = smoothstep(1.15, 1.10, abs(x));
+                            float yTopEdge = smoothstep(-0.26, -0.22, y);
+                            float yBottomEdge = smoothstep(-0.65, -0.60, y);
+                            if (xInnerEdge > 0.3 && xOuterEdge > 0.3 && yTopEdge < 0.7 && yBottomEdge > 0.3) {
+                                isSelected = true;
+                            }
+                        }
+                    }
+
+                    // LEGS (index 7) - Exclude feet (y >= -2.4), smooth edges
+                    if (selectedMuscles[7] > 0.5) {
+                        // Upper legs / Glutes
+                        if (y >= -1.4 && y < -0.95 && abs(x) < 0.45) {
+                            float edgeFactor = smoothstep(0.4, 0.45, abs(x));
+                            if (edgeFactor < 0.5) {
+                                isSelected = true;
+                            }
+                        }
+                        // Mid thighs - wider
+                        else if (y >= -1.95 && y < -1.0 && abs(x) < 0.55) {
+                            float edgeFactor = smoothstep(0.5, 0.55, abs(x));
+                            if (edgeFactor < 0.5) {
+                                isSelected = true;
+                            }
+                        }
+                        // Lower legs / Calves - STRICTLY exclude feet (y >= -2.4)
+                        else if (y >= -2.4 && y < -1.8 && abs(x) < 0.4) {
+                            float edgeFactor = smoothstep(0.35, 0.4, abs(x));
+                            if (edgeFactor < 0.5) {
+                                isSelected = true;
+                            }
+                        }
+                    }
+
+                    if (isSelected) {
+                        baseCol = selectedColor;
+                    }
+
+                    // Lighting calculations
+                    vec3 normal = normalize(vNormal);
+                    vec3 viewDir = normalize(vViewPosition);
+
+                    // Ambient light
+                    vec3 ambient = ambientLightColor * baseCol;
+
+                    // Diffuse light (Lambertian)
+                    vec3 lightDir = normalize(directionalLightDirection);
+                    float diff = max(dot(normal, lightDir), 0.0);
+                    vec3 diffuse = directionalLightColor * diff * baseCol;
+
+                    // Specular light (Blinn-Phong)
+                    vec3 halfDir = normalize(lightDir + viewDir);
+                    float spec = pow(max(dot(normal, halfDir), 0.0), 32.0);
+                    vec3 specular = directionalLightColor * spec * 0.3;
+
+                    // Combine lighting
+                    vec3 finalColor = ambient + diffuse + specular;
+
+                    gl_FragColor = vec4(finalColor, 1.0);
+                }
+            \`;
+
+            return new THREE.ShaderMaterial({
+                uniforms: {
+                    baseColor: { value: GRAY_COLOR },
+                    selectedColor: { value: SELECTED_COLOR },
+                    selectedMuscles: { value: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    ambientLightColor: { value: new THREE.Color(0xffffff).multiplyScalar(0.6) },
+                    directionalLightColor: { value: new THREE.Color(0xffffff).multiplyScalar(0.8) },
+                    directionalLightDirection: { value: new THREE.Vector3(5, 5, 5).normalize() }
+                },
+                vertexShader: vertexShader,
+                fragmentShader: fragmentShader,
+                lights: false
+            });
+        }
+
+        function updateMuscleHighlights() {
+            if (!bodyMeshMaterial) return;
+
+            const muscleIndexMap = {
+                'chest': 0,
+                'abs': 1,
+                'shoulders': 2,
+                'back': 3,
+                'biceps': 4,
+                'triceps': 5,
+                'forearms': 6,
+                'legs': 7
+            };
+
+            const selectedArray = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+            selectedMuscleGroups.forEach(group => {
+                const index = muscleIndexMap[group];
+                if (index !== undefined) {
+                    selectedArray[index] = 1.0;
+                }
+            });
+
+            bodyMeshMaterial.uniforms.selectedMuscles.value = selectedArray;
+            bodyMeshMaterial.needsUpdate = true;
+
+            console.log('Updated shader with selected muscles:', Array.from(selectedMuscleGroups));
+            console.log('Shader array:', selectedArray);
         }
 
         function init() {
@@ -281,14 +443,12 @@ export default function Model3DWebViewScreen({ navigation }) {
             loadModel();
             window.addEventListener('resize', onWindowResize, false);
 
-            // For mobile: use touchend instead of click
             canvas.addEventListener('touchend', function(e) {
                 e.preventDefault();
                 const touch = e.changedTouches[0];
                 onClick({ clientX: touch.clientX, clientY: touch.clientY });
             }, false);
 
-            // Also support desktop clicks
             canvas.addEventListener('click', onClick, false);
 
             animate();
@@ -303,26 +463,26 @@ export default function Model3DWebViewScreen({ navigation }) {
                 function(gltf) {
                     model = gltf.scene;
 
+                    // Create the shader material once
+                    bodyMeshMaterial = createMuscleShaderMaterial();
+
                     let meshCount = 0;
                     model.traverse((child) => {
                         if (child.isMesh) {
                             meshCount++;
-                            child.material = new THREE.MeshStandardMaterial({
-                                color: GRAY_COLOR,
-                                roughness: 0.7,
-                                metalness: 0.1,
-                            });
-                            child.userData.originalColor = GRAY_COLOR;
-                            child.userData.clickable = true;
 
-                            const muscleGroup = getMuscleGroupFromMeshName(child.name);
-                            if (muscleGroup) {
-                                meshToGroup[child.name] = muscleGroup;
-                                if (!groupToMeshes[muscleGroup]) {
-                                    groupToMeshes[muscleGroup] = [];
-                                }
-                                groupToMeshes[muscleGroup].push(child);
-                                child.userData.muscleGroup = muscleGroup;
+                            // Skip eye meshes
+                            if (child.name.toLowerCase().includes('eye')) {
+                                child.material = new THREE.MeshStandardMaterial({
+                                    color: GRAY_COLOR,
+                                    roughness: 0.7,
+                                    metalness: 0.1,
+                                });
+                                console.log('Skipping eye mesh:', child.name);
+                            } else {
+                                // Apply shader material to body meshes
+                                child.material = bodyMeshMaterial;
+                                console.log('Applied shader material to body mesh:', child.name);
                             }
                         }
                     });
@@ -342,7 +502,7 @@ export default function Model3DWebViewScreen({ navigation }) {
                     if (window.ReactNativeWebView) {
                         window.ReactNativeWebView.postMessage(JSON.stringify({
                             type: 'modelLoaded',
-                            meshCount: getMeshCount()
+                            meshCount: meshCount
                         }));
                     }
                 },
@@ -363,16 +523,6 @@ export default function Model3DWebViewScreen({ navigation }) {
                     }
                 }
             );
-        }
-
-        function getMeshCount() {
-            let count = 0;
-            if (model) {
-                model.traverse((child) => {
-                    if (child.isMesh) count++;
-                });
-            }
-            return count;
         }
 
         function animate() {
@@ -402,7 +552,6 @@ export default function Model3DWebViewScreen({ navigation }) {
 
             if (intersects.length > 0) {
                 const intersection = intersects[0];
-                const clickedMesh = intersection.object;
                 const clickPosition = intersection.point;
                 const muscleGroup = getMuscleGroupFromPosition(clickPosition);
 
@@ -413,11 +562,7 @@ export default function Model3DWebViewScreen({ navigation }) {
                         selectedMuscleGroups.add(muscleGroup);
                     }
 
-                    if (selectedMuscleGroups.size > 0) {
-                        clickedMesh.material.color.setHex(SELECTED_COLOR);
-                    } else {
-                        clickedMesh.material.color.setHex(GRAY_COLOR);
-                    }
+                    updateMuscleHighlights();
 
                     if (window.ReactNativeWebView) {
                         window.ReactNativeWebView.postMessage(JSON.stringify({
@@ -441,38 +586,15 @@ export default function Model3DWebViewScreen({ navigation }) {
                     }
                 } else if (data.command === 'autoRotate') {
                     controls.autoRotate = data.enabled;
-                } else if (data.command === 'deselectGroup') {
-                    const group = data.group;
-                    if (selectedMuscleGroups.has(group)) {
-                        selectedMuscleGroups.delete(group);
-                        const meshes = groupToMeshes[group] || [];
-                        meshes.forEach(mesh => {
-                            mesh.material.color.setHex(GRAY_COLOR);
-                        });
-                        if (window.ReactNativeWebView) {
-                            window.ReactNativeWebView.postMessage(JSON.stringify({
-                                type: 'muscleGroupToggled',
-                                muscleGroup: group,
-                                selected: false,
-                                selectedGroups: Array.from(selectedMuscleGroups)
-                            }));
-                        }
-                    }
                 } else if (data.command === 'reset') {
                     if (model) {
                         model.rotation.set(0, 0, 0);
-                        camera.position.set(0, 0, 4); // Reset to full body view
+                        camera.position.set(0, 0, 4);
                         controls.target.set(0, 0, 0);
                         controls.reset();
                     }
-                    // Deselect all muscle groups
-                    selectedMuscleGroups.forEach(group => {
-                        const meshes = groupToMeshes[group] || [];
-                        meshes.forEach(mesh => {
-                            mesh.material.color.setHex(GRAY_COLOR);
-                        });
-                    });
                     selectedMuscleGroups.clear();
+                    updateMuscleHighlights();
                 }
             } catch (e) {
                 console.error('Error parsing message:', e);
@@ -599,53 +721,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  selectedGroupsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#4ADE80',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginHorizontal: 16,
-    marginTop: 8,
-    marginBottom: 8,
-    borderRadius: 25,
-    alignSelf: 'flex-start',
-    zIndex: 1000,
-    elevation: 10,
-  },
-  muscleChipsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.xs,
-  },
-  muscleChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    gap: Spacing.xs,
-  },
-  muscleChipText: {
-    fontSize: Typography.fontSize.md,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
-  },
-  muscleChipRemove: {
-    fontSize: Typography.fontSize.lg,
-    fontWeight: 'bold',
-    color: '#000',
-    marginLeft: Spacing.xs,
-  },
-  clearAllButton: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs,
-  },
-  clearAllText: {
-    fontSize: Typography.fontSize.sm,
-    color: Colors.error,
-    fontWeight: '600',
-  },
   webviewContainer: {
     height: 500,
     backgroundColor: '#1a1a1a',
@@ -657,45 +732,5 @@ const styles = StyleSheet.create({
   webview: {
     flex: 1,
     backgroundColor: 'transparent',
-  },
-  hintContainer: {
-    padding: Spacing.sm,
-    marginHorizontal: Spacing.md,
-    marginBottom: Spacing.md,
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.md,
-    alignItems: 'center',
-  },
-  hintText: {
-    fontSize: Typography.fontSize.sm,
-    color: Colors.textSecondary,
-    fontStyle: 'italic',
-  },
-  debugContainer: {
-    backgroundColor: '#1a1a1a',
-    padding: Spacing.md,
-    marginHorizontal: Spacing.md,
-    marginBottom: Spacing.md,
-    borderRadius: BorderRadius.md,
-    borderWidth: 2,
-    borderColor: '#FFD700',
-  },
-  debugTitle: {
-    fontSize: Typography.fontSize.md,
-    fontWeight: 'bold',
-    color: '#FFD700',
-    marginBottom: Spacing.sm,
-  },
-  debugText: {
-    fontSize: Typography.fontSize.md,
-    fontFamily: 'monospace',
-    color: '#4ADE80',
-    marginBottom: Spacing.xs,
-  },
-  debugHint: {
-    fontSize: Typography.fontSize.sm,
-    color: Colors.textSecondary,
-    fontStyle: 'italic',
-    marginTop: Spacing.sm,
   },
 });
