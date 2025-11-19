@@ -120,10 +120,10 @@ export default function Model3DWebViewScreen({ navigation }) {
 
         // Preset camera positions for different views
         const CAMERA_POSITIONS = {
-            front: { x: 0, y: 0, z: 4 },
-            back: { x: 0, y: 0, z: -4 },
-            left: { x: -4, y: 0, z: 0 },
-            right: { x: 4, y: 0, z: 0 }
+            front: { x: 0, y: -0.3, z: 5.5 },
+            back: { x: 0, y: -0.3, z: -5.5 },
+            left: { x: -5.5, y: -0.3, z: 0 },
+            right: { x: 5.5, y: -0.3, z: 0 }
         };
 
         // Determine muscle group based on 3D click position
@@ -426,7 +426,7 @@ export default function Model3DWebViewScreen({ navigation }) {
             scene.background = new THREE.Color(0x1a1a1a);
 
             camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(0, 0, 4);
+            camera.position.set(0, -0.3, 5.5);
 
             const canvas = document.getElementById('canvas');
             renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
@@ -657,7 +657,7 @@ export default function Model3DWebViewScreen({ navigation }) {
                 } else if (data.command === 'reset') {
                     if (model) {
                         model.rotation.set(0, 0, 0);
-                        animateCameraToPosition({ x: 0, y: 0, z: 4 });
+                        animateCameraToPosition({ x: 0, y: -0.3, z: 5.5 });
                     }
                     selectedMuscleGroups.clear();
                     updateMuscleHighlights();
@@ -819,7 +819,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   webviewContainer: {
-    height: 680,
+    height: 520,
     backgroundColor: '#1a1a1a',
     borderRadius: BorderRadius.lg,
     margin: Spacing.md,
