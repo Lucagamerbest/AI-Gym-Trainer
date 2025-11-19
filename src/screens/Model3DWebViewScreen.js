@@ -24,6 +24,14 @@ export default function Model3DWebViewScreen({ navigation }) {
         setSelectedMuscleGroups(data.selectedGroups);
       } else if (data.type === 'boundingBox') {
         setBoundingBox(data.box);
+        console.log('=== MODEL BOUNDING BOX ===');
+        console.log('Left (min X):', data.box.min.x.toFixed(2));
+        console.log('Right (max X):', data.box.max.x.toFixed(2));
+        console.log('Bottom (min Y):', data.box.min.y.toFixed(2));
+        console.log('Top (max Y):', data.box.max.y.toFixed(2));
+        console.log('Back (min Z):', data.box.min.z.toFixed(2));
+        console.log('Front (max Z):', data.box.max.z.toFixed(2));
+        console.log('========================');
       }
     } catch (error) {
       console.error('Error parsing WebView message:', error);
