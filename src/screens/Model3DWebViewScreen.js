@@ -9,6 +9,7 @@ export default function Model3DWebViewScreen({ navigation }) {
   const [selectedMuscleGroups, setSelectedMuscleGroups] = useState([]);
   const [autoRotate, setAutoRotate] = useState(false);
   const [meshCount, setMeshCount] = useState(0);
+  const [boundingBox, setBoundingBox] = useState(null);
 
   // Handle messages from WebView
   const handleMessage = (event) => {
@@ -21,6 +22,8 @@ export default function Model3DWebViewScreen({ navigation }) {
         setMeshCount(data.meshCount);
       } else if (data.type === 'muscleGroupToggled') {
         setSelectedMuscleGroups(data.selectedGroups);
+      } else if (data.type === 'boundingBox') {
+        setBoundingBox(data.box);
       }
     } catch (error) {
       console.error('Error parsing WebView message:', error);
@@ -515,12 +518,25 @@ export default function Model3DWebViewScreen({ navigation }) {
                     model.scale.setScalar(scale);
 
                     scene.add(model);
+
+                    // Calculate bounding box after scaling and centering
+                    const finalBox = new THREE.Box3().setFromObject(model);
+                    const boundingBoxData = {
+                        min: { x: finalBox.min.x, y: finalBox.min.y, z: finalBox.min.z },
+                        max: { x: finalBox.max.x, y: finalBox.max.y, z: finalBox.max.z }
+                    };
+
                     document.getElementById('loading').style.display = 'none';
 
                     if (window.ReactNativeWebView) {
                         window.ReactNativeWebView.postMessage(JSON.stringify({
                             type: 'modelLoaded',
                             meshCount: meshCount
+                        }));
+
+                        window.ReactNativeWebView.postMessage(JSON.stringify({
+                            type: 'boundingBox',
+                            box: boundingBoxData
                         }));
                     }
                 },
@@ -807,6 +823,45 @@ export default function Model3DWebViewScreen({ navigation }) {
             </Text>
           )}
         </View>
+
+        {/* Bounding Box Debug Info */}
+        {boundingBox && (
+          <View style={{
+            marginHorizontal: 16,
+            marginTop: 8,
+            backgroundColor: '#1F2937',
+            borderRadius: 12,
+            paddingVertical: 12,
+            paddingHorizontal: 16,
+          }}>
+            <Text style={{
+              fontSize: 16,
+              fontWeight: 'bold',
+              color: '#FFFFFF',
+              marginBottom: 8,
+            }}>
+              Model Bounding Box (Debug)
+            </Text>
+            <Text style={{ fontSize: 12, color: '#9CA3AF' }}>
+              Left (min X): {boundingBox.min.x.toFixed(2)}
+            </Text>
+            <Text style={{ fontSize: 12, color: '#9CA3AF' }}>
+              Right (max X): {boundingBox.max.x.toFixed(2)}
+            </Text>
+            <Text style={{ fontSize: 12, color: '#9CA3AF' }}>
+              Bottom (min Y): {boundingBox.min.y.toFixed(2)}
+            </Text>
+            <Text style={{ fontSize: 12, color: '#9CA3AF' }}>
+              Top (max Y): {boundingBox.max.y.toFixed(2)}
+            </Text>
+            <Text style={{ fontSize: 12, color: '#9CA3AF' }}>
+              Back (min Z): {boundingBox.min.z.toFixed(2)}
+            </Text>
+            <Text style={{ fontSize: 12, color: '#9CA3AF' }}>
+              Front (max Z): {boundingBox.max.z.toFixed(2)}
+            </Text>
+          </View>
+        )}
 
       </View>
     </ScreenLayout>
