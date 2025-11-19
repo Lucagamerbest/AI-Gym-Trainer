@@ -59,6 +59,10 @@ export default function Model3DWebViewScreen({ navigation }) {
     sendCommand('deselectGroup', { group });
   };
 
+  const setView = (viewName) => {
+    sendCommand('setView', { view: viewName });
+  };
+
   // HTML content - inline to avoid path issues
   const htmlContent = `
 <!DOCTYPE html>
@@ -109,9 +113,18 @@ export default function Model3DWebViewScreen({ navigation }) {
         let scene, camera, renderer, model, controls;
         let selectedMuscleGroups = new Set();
         let bodyMeshMaterial = null; // Custom shader material for highlighting
+        let isAnimating = false;
 
         const GRAY_COLOR = new THREE.Color(0x808080);
         const SELECTED_COLOR = new THREE.Color(0x4ADE80); // Nice green color for selected muscles
+
+        // Preset camera positions for different views
+        const CAMERA_POSITIONS = {
+            front: { x: 0, y: 0, z: 4 },
+            back: { x: 0, y: 0, z: -4 },
+            left: { x: -4, y: 0, z: 0 },
+            right: { x: 4, y: 0, z: 0 }
+        };
 
         // Determine muscle group based on 3D click position
         function getMuscleGroupFromPosition(position) {
@@ -440,6 +453,11 @@ export default function Model3DWebViewScreen({ navigation }) {
             controls.autoRotateSpeed = 1.0;
             controls.target.set(0, 0, 0);
 
+            // CONSTRAIN ROTATION - Prevent weird angles (no looking from feet or above head)
+            controls.minPolarAngle = Math.PI / 6;     // 30° - can't look from too high
+            controls.maxPolarAngle = Math.PI * 5 / 6; // 150° - can't look from below feet
+            controls.enablePan = false; // Disable panning for cleaner experience
+
             loadModel();
             window.addEventListener('resize', onWindowResize, false);
 
@@ -537,6 +555,54 @@ export default function Model3DWebViewScreen({ navigation }) {
             renderer.setSize(window.innerWidth, window.innerHeight);
         }
 
+        // Smooth camera animation to preset view
+        function animateCameraToPosition(targetPos, duration = 1000) {
+            if (isAnimating) return;
+            isAnimating = true;
+
+            const startPos = {
+                x: camera.position.x,
+                y: camera.position.y,
+                z: camera.position.z
+            };
+
+            const startTime = Date.now();
+
+            function animateStep() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+
+                // Ease-in-out function for smooth animation
+                const eased = progress < 0.5
+                    ? 2 * progress * progress
+                    : -1 + (4 - 2 * progress) * progress;
+
+                camera.position.x = startPos.x + (targetPos.x - startPos.x) * eased;
+                camera.position.y = startPos.y + (targetPos.y - startPos.y) * eased;
+                camera.position.z = startPos.z + (targetPos.z - startPos.z) * eased;
+
+                camera.lookAt(0, 0, 0);
+                controls.update();
+
+                if (progress < 1) {
+                    requestAnimationFrame(animateStep);
+                } else {
+                    isAnimating = false;
+                }
+            }
+
+            animateStep();
+        }
+
+        // Set camera to preset view
+        function setPresetView(viewName) {
+            const targetPos = CAMERA_POSITIONS[viewName];
+            if (targetPos) {
+                animateCameraToPosition(targetPos);
+                console.log('Switching to', viewName, 'view');
+            }
+        }
+
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
 
@@ -586,12 +652,12 @@ export default function Model3DWebViewScreen({ navigation }) {
                     }
                 } else if (data.command === 'autoRotate') {
                     controls.autoRotate = data.enabled;
+                } else if (data.command === 'setView') {
+                    setPresetView(data.view);
                 } else if (data.command === 'reset') {
                     if (model) {
                         model.rotation.set(0, 0, 0);
-                        camera.position.set(0, 0, 4);
-                        controls.target.set(0, 0, 0);
-                        controls.reset();
+                        animateCameraToPosition({ x: 0, y: 0, z: 4 });
                     }
                     selectedMuscleGroups.clear();
                     updateMuscleHighlights();
@@ -662,6 +728,37 @@ export default function Model3DWebViewScreen({ navigation }) {
           />
         </View>
 
+        {/* Preset View Buttons */}
+        <View style={styles.viewButtonsContainer}>
+          <TouchableOpacity
+            style={styles.viewButton}
+            onPress={() => setView('front')}
+          >
+            <Text style={styles.viewButtonText}>Front</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.viewButton}
+            onPress={() => setView('back')}
+          >
+            <Text style={styles.viewButtonText}>Back</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.viewButton}
+            onPress={() => setView('left')}
+          >
+            <Text style={styles.viewButtonText}>Left</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.viewButton}
+            onPress={() => setView('right')}
+          >
+            <Text style={styles.viewButtonText}>Right</Text>
+          </TouchableOpacity>
+        </View>
+
         {/* Selected Muscle Display */}
         <View style={{
           marginHorizontal: 16,
@@ -722,7 +819,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   webviewContainer: {
-    height: 500,
+    height: 680,
     backgroundColor: '#1a1a1a',
     borderRadius: BorderRadius.lg,
     margin: Spacing.md,
@@ -732,5 +829,26 @@ const styles = StyleSheet.create({
   webview: {
     flex: 1,
     backgroundColor: 'transparent',
+  },
+  viewButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginHorizontal: Spacing.md,
+    marginTop: Spacing.sm,
+    gap: Spacing.sm,
+  },
+  viewButton: {
+    flex: 1,
+    backgroundColor: '#374151',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  viewButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
