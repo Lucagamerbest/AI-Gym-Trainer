@@ -462,7 +462,7 @@ export default function Model3DWebViewScreen({ navigation }) {
             controls.maxDistance = 8;
             controls.autoRotate = false;
             controls.autoRotateSpeed = 1.0;
-            controls.target.set(0, 0, 0);
+            controls.target.set(0, -0.5, 0);
 
             // LOCK VERTICAL ROTATION - Only allow left/right rotation
             controls.minPolarAngle = Math.PI / 2;     // 90° - locked horizontal
