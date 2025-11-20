@@ -143,65 +143,65 @@ export default function Model3DWebViewScreen({ navigation }) {
             const y = position.y;
             const z = position.z;
 
-            // FOREARMS: Upper forearm/elbow area, exclude hands
-            if (y >= -0.65 && y < -0.22 && Math.abs(x) >= 0.90 && Math.abs(x) < 1.15) {
+            // FOREARMS: Lower arm, exclude hands
+            if (y >= -1.4 && y < -0.85 && Math.abs(x) >= 0.65 && Math.abs(x) < 1.15) {
                 return 'forearms';
             }
 
-            // BICEPS: Front of upper arm - extended upward to cover entire bicep
-            if (y >= -0.75 && y <= -0.25 && Math.abs(x) >= 0.5 && Math.abs(x) < 0.9 && z > 0.0) {
+            // BICEPS: Front of upper arm
+            if (y >= -0.85 && y < -0.4 && Math.abs(x) >= 0.45 && Math.abs(x) < 0.75 && z > -0.05) {
                 return 'biceps';
             }
 
-            // TRICEPS: Back of upper arm (z <= 0), exclude shoulders
-            if (y >= -0.75 && y < -0.25 && Math.abs(x) >= 0.5 && Math.abs(x) < 0.9 && z <= 0.0) {
+            // TRICEPS: Back of upper arm
+            if (y >= -0.85 && y < -0.4 && Math.abs(x) >= 0.45 && Math.abs(x) < 0.75 && z <= -0.05) {
                 return 'triceps';
             }
 
-            // SHOULDERS - precise deltoids and traps
-            // Traps (upper back/neck area)
-            if (y >= -0.2 && y < 0.05 && z < -0.08 && Math.abs(x) < 0.2) {
+            // SHOULDERS - Deltoids covering shoulder caps
+            // Upper traps (neck/upper back)
+            if (y >= -0.15 && y < 0.1 && z < -0.08 && Math.abs(x) < 0.2) {
                 return 'shoulders';
             }
 
-            // Lateral deltoids (side shoulder caps)
-            if (y >= -0.35 && y < -0.05 && Math.abs(x) >= 0.3 && Math.abs(x) < 0.48 && z > -0.2 && z < 0.15) {
+            // Side deltoids (shoulder caps) - most prominent
+            if (y >= -0.4 && y < -0.1 && Math.abs(x) >= 0.25 && Math.abs(x) < 0.5) {
                 return 'shoulders';
             }
 
-            // Front deltoids (front of shoulder)
-            if (y >= -0.28 && y < -0.12 && z > 0.05 && Math.abs(x) >= 0.2 && Math.abs(x) < 0.35) {
+            // Front deltoids
+            if (y >= -0.35 && y < -0.15 && z > 0.08 && Math.abs(x) >= 0.15 && Math.abs(x) < 0.35) {
                 return 'shoulders';
             }
 
-            // CHEST: Upper torso CENTER, front, exclude face
-            if (y >= -0.6 && y <= -0.15 && z > 0.05 && Math.abs(x) < 0.3) {
+            // CHEST: Pectorals - upper/mid torso, front
+            if (y >= -0.55 && y < -0.15 && z > 0.08 && Math.abs(x) < 0.28) {
                 return 'chest';
             }
 
-            // ABS: Lower torso, front
-            if (y >= -1.0 && y < -0.6 && z > 0.05 && Math.abs(x) < 0.4) {
+            // ABS: Abdominals - lower torso, front
+            if (y >= -1.0 && y < -0.55 && z > 0.05 && Math.abs(x) < 0.35) {
                 return 'abs';
             }
 
-            // BACK: STRICT z < -0.05 to prevent showing on front
-            if (y >= -0.95 && y < -0.2 && z < -0.05 && Math.abs(x) < 0.35) {
+            // BACK: Lats and mid back - behind only
+            if (y >= -1.0 && y < -0.15 && z < -0.08 && Math.abs(x) < 0.4) {
                 return 'back';
             }
 
-            // LEGS: Exclude feet strictly (y >= -2.4)
+            // LEGS: Upper to lower legs, exclude feet
             // Upper legs / Glutes
-            if (y >= -1.4 && y < -0.95 && Math.abs(x) < 0.45) {
+            if (y >= -1.5 && y < -1.0 && Math.abs(x) < 0.45) {
                 return 'legs';
             }
 
             // Mid thighs
-            if (y >= -1.95 && y < -1.0 && Math.abs(x) < 0.55) {
+            if (y >= -2.1 && y < -1.5 && Math.abs(x) < 0.5) {
                 return 'legs';
             }
 
-            // Lower legs / Calves - STRICTLY exclude feet
-            if (y >= -2.4 && y < -1.8 && Math.abs(x) < 0.4) {
+            // Lower legs / Calves - exclude feet (y > -2.7)
+            if (y >= -2.7 && y < -2.1 && Math.abs(x) < 0.38) {
                 return 'legs';
             }
 
@@ -248,100 +248,113 @@ export default function Model3DWebViewScreen({ navigation }) {
                     vec3 baseCol = baseColor;
                     bool isSelected = false;
 
-                    // CHEST (index 0) - Exclude face by limiting upper y to -0.15
+                    // CHEST (index 0) - Pectorals, upper/mid torso front
                     if (selectedMuscles[0] > 0.5) {
-                        if (y >= -0.6 && y <= -0.15 && z > 0.05 && abs(x) < 0.3) {
-                            isSelected = true;
+                        if (y >= -0.55 && y < -0.15 && z > 0.08 && abs(x) < 0.28) {
+                            float xEdge = smoothstep(0.24, 0.28, abs(x));
+                            if (xEdge < 0.7) {
+                                isSelected = true;
+                            }
                         }
                     }
 
-                    // ABS (index 1) - Already good
+                    // ABS (index 1) - Abdominals, lower torso front
                     if (selectedMuscles[1] > 0.5) {
-                        if (y >= -1.0 && y < -0.6 && z > 0.05 && abs(x) < 0.4) {
-                            isSelected = true;
-                        }
-                    }
-
-                    // SHOULDERS (index 2) - Precise deltoids and traps
-                    if (selectedMuscles[2] > 0.5) {
-                        // Traps (upper back/neck area) - more precise
-                        if (y >= -0.2 && y < 0.05 && z < -0.08 && abs(x) < 0.2) {
-                            isSelected = true;
-                        }
-                        // Lateral deltoids (side shoulder caps) - most prominent part
-                        else if (y >= -0.35 && y < -0.05 && abs(x) >= 0.3 && abs(x) < 0.48 && z > -0.2 && z < 0.15) {
-                            isSelected = true;
-                        }
-                        // Front deltoids (smaller area, front of shoulder)
-                        else if (y >= -0.28 && y < -0.12 && z > 0.05 && abs(x) >= 0.2 && abs(x) < 0.35) {
-                            isSelected = true;
-                        }
-                    }
-
-                    // BACK (index 3) - STRICT z < -0.05 to prevent showing on front! SMOOTH EDGES
-                    if (selectedMuscles[3] > 0.5) {
-                        // Lats and middle back - MUST be behind (z < -0.05)
-                        if (y >= -0.95 && y < -0.2 && z < -0.05 && abs(x) < 0.35) {
-                            // Create smooth, organic edges instead of rectangle
+                        if (y >= -1.0 && y < -0.55 && z > 0.05 && abs(x) < 0.35) {
                             float xEdge = smoothstep(0.3, 0.35, abs(x));
-                            float yTopEdge = smoothstep(-0.25, -0.2, y);
-                            float yBottomEdge = smoothstep(-0.95, -0.9, y);
-
-                            // Only select if we're within the smooth boundaries
-                            if (xEdge < 0.5 && yTopEdge < 0.5 && yBottomEdge > 0.5) {
+                            if (xEdge < 0.7) {
                                 isSelected = true;
                             }
                         }
                     }
 
-                    // BICEPS (index 4) - Extended to cover entire bicep
+                    // SHOULDERS (index 2) - Deltoids covering shoulder caps
+                    if (selectedMuscles[2] > 0.5) {
+                        // Upper traps (neck/upper back)
+                        if (y >= -0.15 && y < 0.1 && z < -0.08 && abs(x) < 0.2) {
+                            isSelected = true;
+                        }
+                        // Side deltoids (shoulder caps) - most prominent
+                        else if (y >= -0.4 && y < -0.1 && abs(x) >= 0.25 && abs(x) < 0.5) {
+                            float xInner = smoothstep(0.25, 0.28, abs(x));
+                            float xOuter = smoothstep(0.5, 0.47, abs(x));
+                            if (xInner > 0.3 && xOuter > 0.3) {
+                                isSelected = true;
+                            }
+                        }
+                        // Front deltoids
+                        else if (y >= -0.35 && y < -0.15 && z > 0.08 && abs(x) >= 0.15 && abs(x) < 0.35) {
+                            isSelected = true;
+                        }
+                    }
+
+                    // BACK (index 3) - Lats and mid back, behind only
+                    if (selectedMuscles[3] > 0.5) {
+                        if (y >= -1.0 && y < -0.15 && z < -0.08 && abs(x) < 0.4) {
+                            float xEdge = smoothstep(0.35, 0.4, abs(x));
+                            float yTopEdge = smoothstep(-0.2, -0.15, y);
+                            float yBottomEdge = smoothstep(-1.0, -0.95, y);
+                            if (xEdge < 0.6 && yTopEdge < 0.6 && yBottomEdge > 0.4) {
+                                isSelected = true;
+                            }
+                        }
+                    }
+
+                    // BICEPS (index 4) - Front of upper arm
                     if (selectedMuscles[4] > 0.5) {
-                        if (y >= -0.75 && y <= -0.25 && abs(x) >= 0.5 && abs(x) < 0.9 && z > 0.0) {
-                            isSelected = true;
-                        }
-                    }
-
-                    // TRICEPS (index 5) - Match biceps range
-                    if (selectedMuscles[5] > 0.5) {
-                        if (y >= -0.75 && y < -0.25 && abs(x) >= 0.5 && abs(x) < 0.9 && z <= 0.0) {
-                            isSelected = true;
-                        }
-                    }
-
-                    // FOREARMS (index 6) - Upper forearm/elbow area, EXCLUDE HANDS, smooth edges
-                    if (selectedMuscles[6] > 0.5) {
-                        if (y >= -0.65 && y < -0.22 && abs(x) >= 0.90 && abs(x) < 1.15) {
-                            // Smooth edges at the boundaries
-                            float xInnerEdge = smoothstep(0.90, 0.95, abs(x));
-                            float xOuterEdge = smoothstep(1.15, 1.10, abs(x));
-                            float yTopEdge = smoothstep(-0.26, -0.22, y);
-                            float yBottomEdge = smoothstep(-0.65, -0.60, y);
-                            if (xInnerEdge > 0.3 && xOuterEdge > 0.3 && yTopEdge < 0.7 && yBottomEdge > 0.3) {
+                        if (y >= -0.85 && y < -0.4 && abs(x) >= 0.45 && abs(x) < 0.75 && z > -0.05) {
+                            float xInner = smoothstep(0.45, 0.48, abs(x));
+                            float xOuter = smoothstep(0.75, 0.72, abs(x));
+                            if (xInner > 0.3 && xOuter > 0.3) {
                                 isSelected = true;
                             }
                         }
                     }
 
-                    // LEGS (index 7) - Exclude feet (y >= -2.4), smooth edges
+                    // TRICEPS (index 5) - Back of upper arm
+                    if (selectedMuscles[5] > 0.5) {
+                        if (y >= -0.85 && y < -0.4 && abs(x) >= 0.45 && abs(x) < 0.75 && z <= -0.05) {
+                            float xInner = smoothstep(0.45, 0.48, abs(x));
+                            float xOuter = smoothstep(0.75, 0.72, abs(x));
+                            if (xInner > 0.3 && xOuter > 0.3) {
+                                isSelected = true;
+                            }
+                        }
+                    }
+
+                    // FOREARMS (index 6) - Lower arm, exclude hands
+                    if (selectedMuscles[6] > 0.5) {
+                        if (y >= -1.4 && y < -0.85 && abs(x) >= 0.65 && abs(x) < 1.15) {
+                            float xInner = smoothstep(0.65, 0.68, abs(x));
+                            float xOuter = smoothstep(1.15, 1.12, abs(x));
+                            float yTop = smoothstep(-0.88, -0.85, y);
+                            float yBottom = smoothstep(-1.4, -1.37, y);
+                            if (xInner > 0.3 && xOuter > 0.3 && yTop < 0.7 && yBottom > 0.3) {
+                                isSelected = true;
+                            }
+                        }
+                    }
+
+                    // LEGS (index 7) - Upper to lower legs, exclude feet
                     if (selectedMuscles[7] > 0.5) {
                         // Upper legs / Glutes
-                        if (y >= -1.4 && y < -0.95 && abs(x) < 0.45) {
+                        if (y >= -1.5 && y < -1.0 && abs(x) < 0.45) {
                             float edgeFactor = smoothstep(0.4, 0.45, abs(x));
-                            if (edgeFactor < 0.5) {
+                            if (edgeFactor < 0.6) {
                                 isSelected = true;
                             }
                         }
-                        // Mid thighs - wider
-                        else if (y >= -1.95 && y < -1.0 && abs(x) < 0.55) {
-                            float edgeFactor = smoothstep(0.5, 0.55, abs(x));
-                            if (edgeFactor < 0.5) {
+                        // Mid thighs
+                        else if (y >= -2.1 && y < -1.5 && abs(x) < 0.5) {
+                            float edgeFactor = smoothstep(0.45, 0.5, abs(x));
+                            if (edgeFactor < 0.6) {
                                 isSelected = true;
                             }
                         }
-                        // Lower legs / Calves - STRICTLY exclude feet (y >= -2.4)
-                        else if (y >= -2.4 && y < -1.8 && abs(x) < 0.4) {
-                            float edgeFactor = smoothstep(0.35, 0.4, abs(x));
-                            if (edgeFactor < 0.5) {
+                        // Lower legs / Calves - exclude feet (y > -2.7)
+                        else if (y >= -2.7 && y < -2.1 && abs(x) < 0.38) {
+                            float edgeFactor = smoothstep(0.33, 0.38, abs(x));
+                            if (edgeFactor < 0.6) {
                                 isSelected = true;
                             }
                         }
