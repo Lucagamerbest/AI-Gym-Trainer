@@ -143,9 +143,67 @@ export default function Model3DWebViewScreen({ navigation }) {
             const y = position.y;
             const z = position.z;
 
-            // FOREARMS: Lower arm, exclude hands
-            if (y >= -1.4 && y < -0.85 && Math.abs(x) >= 0.65 && Math.abs(x) < 1.15) {
-                return 'forearms';
+            // NECK: Front and back of neck
+            if (y >= 0.05 && y < 0.35 && Math.abs(x) < 0.18) {
+                return 'neck';
+            }
+
+            // REAR DELTS: Back of shoulders
+            if (y >= -0.4 && y < -0.15 && Math.abs(x) >= 0.25 && Math.abs(x) < 0.5 && z < -0.05) {
+                return 'rear_delts';
+            }
+
+            // SHOULDERS (Front/Side Deltoids)
+            if (y >= -0.4 && y < -0.1 && Math.abs(x) >= 0.25 && Math.abs(x) < 0.5 && z >= -0.05) {
+                return 'shoulders';
+            }
+            if (y >= -0.35 && y < -0.15 && z > 0.08 && Math.abs(x) >= 0.15 && Math.abs(x) < 0.35) {
+                return 'shoulders';
+            }
+
+            // UPPER BACK / TRAPS
+            if (y >= -0.4 && y < 0.1 && z < -0.08 && Math.abs(x) < 0.35) {
+                return 'upper_back';
+            }
+
+            // UPPER CHEST
+            if (y >= -0.35 && y < -0.15 && z > 0.08 && Math.abs(x) < 0.28) {
+                return 'upper_chest';
+            }
+
+            // CHEST (Mid/Lower Pectorals)
+            if (y >= -0.55 && y < -0.35 && z > 0.08 && Math.abs(x) < 0.28) {
+                return 'chest';
+            }
+
+            // SERRATUS (Side ribs under chest)
+            if (y >= -0.65 && y < -0.35 && z > -0.05 && z < 0.08 && Math.abs(x) >= 0.25 && Math.abs(x) < 0.42) {
+                return 'serratus';
+            }
+
+            // ABS (Upper abdominals)
+            if (y >= -0.8 && y < -0.55 && z > 0.05 && Math.abs(x) < 0.3) {
+                return 'abs';
+            }
+
+            // LOWER ABS
+            if (y >= -1.0 && y < -0.8 && z > 0.05 && Math.abs(x) < 0.3) {
+                return 'lower_abs';
+            }
+
+            // OBLIQUES (Side abs)
+            if (y >= -0.95 && y < -0.55 && z >= -0.05 && z <= 0.08 && Math.abs(x) >= 0.28 && Math.abs(x) < 0.42) {
+                return 'obliques';
+            }
+
+            // BACK (Mid lats)
+            if (y >= -0.7 && y < -0.4 && z < -0.08 && Math.abs(x) >= 0.2 && Math.abs(x) < 0.45) {
+                return 'back';
+            }
+
+            // LOWER BACK
+            if (y >= -1.05 && y < -0.7 && z < -0.08 && Math.abs(x) < 0.35) {
+                return 'lower_back';
             }
 
             // BICEPS: Front of upper arm
@@ -158,51 +216,39 @@ export default function Model3DWebViewScreen({ navigation }) {
                 return 'triceps';
             }
 
-            // SHOULDERS - Deltoids covering shoulder caps
-            // Upper traps (neck/upper back)
-            if (y >= -0.15 && y < 0.1 && z < -0.08 && Math.abs(x) < 0.2) {
-                return 'shoulders';
+            // FOREARMS: Lower arm, exclude hands
+            if (y >= -1.4 && y < -0.85 && Math.abs(x) >= 0.65 && Math.abs(x) < 1.15) {
+                return 'forearms';
             }
 
-            // Side deltoids (shoulder caps) - most prominent
-            if (y >= -0.4 && y < -0.1 && Math.abs(x) >= 0.25 && Math.abs(x) < 0.5) {
-                return 'shoulders';
+            // GLUTES: Buttocks region
+            if (y >= -1.25 && y < -1.0 && z < -0.05 && Math.abs(x) < 0.35) {
+                return 'glutes';
             }
 
-            // Front deltoids
-            if (y >= -0.35 && y < -0.15 && z > 0.08 && Math.abs(x) >= 0.15 && Math.abs(x) < 0.35) {
-                return 'shoulders';
+            // QUADS: Front of thighs
+            if (y >= -1.8 && y < -1.0 && z > -0.05 && Math.abs(x) < 0.42) {
+                return 'quads';
             }
 
-            // CHEST: Pectorals - upper/mid torso, front
-            if (y >= -0.55 && y < -0.15 && z > 0.08 && Math.abs(x) < 0.28) {
-                return 'chest';
+            // HAMSTRINGS: Back of thighs
+            if (y >= -1.8 && y < -1.0 && z <= -0.05 && Math.abs(x) < 0.42) {
+                return 'hamstrings';
             }
 
-            // ABS: Abdominals - lower torso, front
-            if (y >= -1.0 && y < -0.55 && z > 0.05 && Math.abs(x) < 0.35) {
-                return 'abs';
+            // ADDUCTORS: Inner thighs
+            if (y >= -1.7 && y < -1.1 && Math.abs(x) < 0.2) {
+                return 'adductors';
             }
 
-            // BACK: Lats and mid back - behind only
-            if (y >= -1.0 && y < -0.15 && z < -0.08 && Math.abs(x) < 0.4) {
-                return 'back';
+            // CALVES: Back of lower legs
+            if (y >= -2.7 && y < -1.8 && z < -0.02 && Math.abs(x) < 0.38) {
+                return 'calves';
             }
 
-            // LEGS: Upper to lower legs, exclude feet
-            // Upper legs / Glutes
-            if (y >= -1.5 && y < -1.0 && Math.abs(x) < 0.45) {
-                return 'legs';
-            }
-
-            // Mid thighs
-            if (y >= -2.1 && y < -1.5 && Math.abs(x) < 0.5) {
-                return 'legs';
-            }
-
-            // Lower legs / Calves - exclude feet (y > -2.7)
-            if (y >= -2.7 && y < -2.1 && Math.abs(x) < 0.38) {
-                return 'legs';
+            // SHINS: Front of lower legs
+            if (y >= -2.7 && y < -1.8 && z >= -0.02 && Math.abs(x) < 0.35) {
+                return 'shins';
             }
 
             return null;
@@ -231,7 +277,7 @@ export default function Model3DWebViewScreen({ navigation }) {
             const fragmentShader = \`
                 uniform vec3 baseColor;
                 uniform vec3 selectedColor;
-                uniform float selectedMuscles[10]; // [chest, abs, shoulders, back, biceps, triceps, forearms, legs, quads, glutes]
+                uniform float selectedMuscles[25]; // Expanded for all muscle groups
                 uniform vec3 ambientLightColor;
                 uniform vec3 directionalLightColor;
                 uniform vec3 directionalLightDirection;
@@ -248,116 +294,117 @@ export default function Model3DWebViewScreen({ navigation }) {
                     vec3 baseCol = baseColor;
                     bool isSelected = false;
 
-                    // CHEST (index 0) - Pectorals, upper/mid torso front
-                    if (selectedMuscles[0] > 0.5) {
-                        if (y >= -0.55 && y < -0.15 && z > 0.08 && abs(x) < 0.28) {
-                            float xEdge = smoothstep(0.24, 0.28, abs(x));
-                            if (xEdge < 0.7) {
-                                isSelected = true;
-                            }
-                        }
+                    // CHEST (0) - Mid/Lower Pectorals
+                    if (selectedMuscles[0] > 0.5 && y >= -0.55 && y < -0.35 && z > 0.08 && abs(x) < 0.28) {
+                        isSelected = true;
                     }
 
-                    // ABS (index 1) - Abdominals, lower torso front
-                    if (selectedMuscles[1] > 0.5) {
-                        if (y >= -1.0 && y < -0.55 && z > 0.05 && abs(x) < 0.35) {
-                            float xEdge = smoothstep(0.3, 0.35, abs(x));
-                            if (xEdge < 0.7) {
-                                isSelected = true;
-                            }
-                        }
+                    // ABS (1) - Upper abdominals
+                    if (selectedMuscles[1] > 0.5 && y >= -0.8 && y < -0.55 && z > 0.05 && abs(x) < 0.3) {
+                        isSelected = true;
                     }
 
-                    // SHOULDERS (index 2) - Deltoids covering shoulder caps
+                    // SHOULDERS (2) - Front/Side Deltoids
                     if (selectedMuscles[2] > 0.5) {
-                        // Upper traps (neck/upper back)
-                        if (y >= -0.15 && y < 0.1 && z < -0.08 && abs(x) < 0.2) {
-                            isSelected = true;
-                        }
-                        // Side deltoids (shoulder caps) - most prominent
-                        else if (y >= -0.4 && y < -0.1 && abs(x) >= 0.25 && abs(x) < 0.5) {
-                            float xInner = smoothstep(0.25, 0.28, abs(x));
-                            float xOuter = smoothstep(0.5, 0.47, abs(x));
-                            if (xInner > 0.3 && xOuter > 0.3) {
-                                isSelected = true;
-                            }
-                        }
-                        // Front deltoids
-                        else if (y >= -0.35 && y < -0.15 && z > 0.08 && abs(x) >= 0.15 && abs(x) < 0.35) {
+                        if ((y >= -0.4 && y < -0.1 && abs(x) >= 0.25 && abs(x) < 0.5 && z >= -0.05) ||
+                            (y >= -0.35 && y < -0.15 && z > 0.08 && abs(x) >= 0.15 && abs(x) < 0.35)) {
                             isSelected = true;
                         }
                     }
 
-                    // BACK (index 3) - Lats and mid back, behind only
-                    if (selectedMuscles[3] > 0.5) {
-                        if (y >= -1.0 && y < -0.15 && z < -0.08 && abs(x) < 0.4) {
-                            float xEdge = smoothstep(0.35, 0.4, abs(x));
-                            float yTopEdge = smoothstep(-0.2, -0.15, y);
-                            float yBottomEdge = smoothstep(-1.0, -0.95, y);
-                            if (xEdge < 0.6 && yTopEdge < 0.6 && yBottomEdge > 0.4) {
-                                isSelected = true;
-                            }
-                        }
+                    // BACK (3) - Mid lats
+                    if (selectedMuscles[3] > 0.5 && y >= -0.7 && y < -0.4 && z < -0.08 && abs(x) >= 0.2 && abs(x) < 0.45) {
+                        isSelected = true;
                     }
 
-                    // BICEPS (index 4) - Front of upper arm
-                    if (selectedMuscles[4] > 0.5) {
-                        if (y >= -0.85 && y < -0.4 && abs(x) >= 0.45 && abs(x) < 0.75 && z > -0.05) {
-                            float xInner = smoothstep(0.45, 0.48, abs(x));
-                            float xOuter = smoothstep(0.75, 0.72, abs(x));
-                            if (xInner > 0.3 && xOuter > 0.3) {
-                                isSelected = true;
-                            }
-                        }
+                    // BICEPS (4)
+                    if (selectedMuscles[4] > 0.5 && y >= -0.85 && y < -0.4 && abs(x) >= 0.45 && abs(x) < 0.75 && z > -0.05) {
+                        isSelected = true;
                     }
 
-                    // TRICEPS (index 5) - Back of upper arm
-                    if (selectedMuscles[5] > 0.5) {
-                        if (y >= -0.85 && y < -0.4 && abs(x) >= 0.45 && abs(x) < 0.75 && z <= -0.05) {
-                            float xInner = smoothstep(0.45, 0.48, abs(x));
-                            float xOuter = smoothstep(0.75, 0.72, abs(x));
-                            if (xInner > 0.3 && xOuter > 0.3) {
-                                isSelected = true;
-                            }
-                        }
+                    // TRICEPS (5)
+                    if (selectedMuscles[5] > 0.5 && y >= -0.85 && y < -0.4 && abs(x) >= 0.45 && abs(x) < 0.75 && z <= -0.05) {
+                        isSelected = true;
                     }
 
-                    // FOREARMS (index 6) - Lower arm, exclude hands
-                    if (selectedMuscles[6] > 0.5) {
-                        if (y >= -1.4 && y < -0.85 && abs(x) >= 0.65 && abs(x) < 1.15) {
-                            float xInner = smoothstep(0.65, 0.68, abs(x));
-                            float xOuter = smoothstep(1.15, 1.12, abs(x));
-                            float yTop = smoothstep(-0.88, -0.85, y);
-                            float yBottom = smoothstep(-1.4, -1.37, y);
-                            if (xInner > 0.3 && xOuter > 0.3 && yTop < 0.7 && yBottom > 0.3) {
-                                isSelected = true;
-                            }
-                        }
+                    // FOREARMS (6)
+                    if (selectedMuscles[6] > 0.5 && y >= -1.4 && y < -0.85 && abs(x) >= 0.65 && abs(x) < 1.15) {
+                        isSelected = true;
                     }
 
-                    // LEGS (index 7) - Upper to lower legs, exclude feet
-                    if (selectedMuscles[7] > 0.5) {
-                        // Upper legs / Glutes
-                        if (y >= -1.5 && y < -1.0 && abs(x) < 0.45) {
-                            float edgeFactor = smoothstep(0.4, 0.45, abs(x));
-                            if (edgeFactor < 0.6) {
-                                isSelected = true;
-                            }
-                        }
-                        // Mid thighs
-                        else if (y >= -2.1 && y < -1.5 && abs(x) < 0.5) {
-                            float edgeFactor = smoothstep(0.45, 0.5, abs(x));
-                            if (edgeFactor < 0.6) {
-                                isSelected = true;
-                            }
-                        }
-                        // Lower legs / Calves - exclude feet (y > -2.7)
-                        else if (y >= -2.7 && y < -2.1 && abs(x) < 0.38) {
-                            float edgeFactor = smoothstep(0.33, 0.38, abs(x));
-                            if (edgeFactor < 0.6) {
-                                isSelected = true;
-                            }
-                        }
+                    // LEGS (7) - General legs (kept for backwards compatibility)
+                    if (selectedMuscles[7] > 0.5 && y >= -2.7 && y < -1.0 && abs(x) < 0.5) {
+                        isSelected = true;
+                    }
+
+                    // UPPER CHEST (8)
+                    if (selectedMuscles[8] > 0.5 && y >= -0.35 && y < -0.15 && z > 0.08 && abs(x) < 0.28) {
+                        isSelected = true;
+                    }
+
+                    // LOWER ABS (9)
+                    if (selectedMuscles[9] > 0.5 && y >= -1.0 && y < -0.8 && z > 0.05 && abs(x) < 0.3) {
+                        isSelected = true;
+                    }
+
+                    // OBLIQUES (10)
+                    if (selectedMuscles[10] > 0.5 && y >= -0.95 && y < -0.55 && z >= -0.05 && z <= 0.08 && abs(x) >= 0.28 && abs(x) < 0.42) {
+                        isSelected = true;
+                    }
+
+                    // SERRATUS (11)
+                    if (selectedMuscles[11] > 0.5 && y >= -0.65 && y < -0.35 && z > -0.05 && z < 0.08 && abs(x) >= 0.25 && abs(x) < 0.42) {
+                        isSelected = true;
+                    }
+
+                    // UPPER BACK / TRAPS (12)
+                    if (selectedMuscles[12] > 0.5 && y >= -0.4 && y < 0.1 && z < -0.08 && abs(x) < 0.35) {
+                        isSelected = true;
+                    }
+
+                    // LOWER BACK (13)
+                    if (selectedMuscles[13] > 0.5 && y >= -1.05 && y < -0.7 && z < -0.08 && abs(x) < 0.35) {
+                        isSelected = true;
+                    }
+
+                    // REAR DELTS (14)
+                    if (selectedMuscles[14] > 0.5 && y >= -0.4 && y < -0.15 && abs(x) >= 0.25 && abs(x) < 0.5 && z < -0.05) {
+                        isSelected = true;
+                    }
+
+                    // GLUTES (15)
+                    if (selectedMuscles[15] > 0.5 && y >= -1.25 && y < -1.0 && z < -0.05 && abs(x) < 0.35) {
+                        isSelected = true;
+                    }
+
+                    // QUADS (16)
+                    if (selectedMuscles[16] > 0.5 && y >= -1.8 && y < -1.0 && z > -0.05 && abs(x) < 0.42) {
+                        isSelected = true;
+                    }
+
+                    // HAMSTRINGS (17)
+                    if (selectedMuscles[17] > 0.5 && y >= -1.8 && y < -1.0 && z <= -0.05 && abs(x) < 0.42) {
+                        isSelected = true;
+                    }
+
+                    // CALVES (18)
+                    if (selectedMuscles[18] > 0.5 && y >= -2.7 && y < -1.8 && z < -0.02 && abs(x) < 0.38) {
+                        isSelected = true;
+                    }
+
+                    // SHINS (19)
+                    if (selectedMuscles[19] > 0.5 && y >= -2.7 && y < -1.8 && z >= -0.02 && abs(x) < 0.35) {
+                        isSelected = true;
+                    }
+
+                    // ADDUCTORS (20)
+                    if (selectedMuscles[20] > 0.5 && y >= -1.7 && y < -1.1 && abs(x) < 0.2) {
+                        isSelected = true;
+                    }
+
+                    // NECK (21)
+                    if (selectedMuscles[21] > 0.5 && y >= 0.05 && y < 0.35 && abs(x) < 0.18) {
+                        isSelected = true;
                     }
 
                     if (isSelected) {
@@ -392,7 +439,7 @@ export default function Model3DWebViewScreen({ navigation }) {
                 uniforms: {
                     baseColor: { value: GRAY_COLOR },
                     selectedColor: { value: SELECTED_COLOR },
-                    selectedMuscles: { value: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    selectedMuscles: { value: Array(25).fill(0) },
                     ambientLightColor: { value: new THREE.Color(0xffffff).multiplyScalar(0.6) },
                     directionalLightColor: { value: new THREE.Color(0xffffff).multiplyScalar(0.8) },
                     directionalLightDirection: { value: new THREE.Vector3(5, 5, 5).normalize() }
@@ -414,10 +461,24 @@ export default function Model3DWebViewScreen({ navigation }) {
                 'biceps': 4,
                 'triceps': 5,
                 'forearms': 6,
-                'legs': 7
+                'legs': 7,
+                'upper_chest': 8,
+                'lower_abs': 9,
+                'obliques': 10,
+                'serratus': 11,
+                'upper_back': 12,
+                'lower_back': 13,
+                'rear_delts': 14,
+                'glutes': 15,
+                'quads': 16,
+                'hamstrings': 17,
+                'calves': 18,
+                'shins': 19,
+                'adductors': 20,
+                'neck': 21
             };
 
-            const selectedArray = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+            const selectedArray = Array(25).fill(0);
 
             selectedMuscleGroups.forEach(group => {
                 const index = muscleIndexMap[group];
