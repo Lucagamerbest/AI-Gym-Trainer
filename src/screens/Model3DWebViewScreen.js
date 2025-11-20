@@ -464,9 +464,9 @@ export default function Model3DWebViewScreen({ navigation }) {
             controls.autoRotateSpeed = 1.0;
             controls.target.set(0, 0, 0);
 
-            // CONSTRAIN ROTATION - Prevent weird angles (no looking from feet or above head)
-            controls.minPolarAngle = Math.PI / 6;     // 30° - can't look from too high
-            controls.maxPolarAngle = Math.PI * 5 / 6; // 150° - can't look from below feet
+            // LOCK VERTICAL ROTATION - Only allow left/right rotation
+            controls.minPolarAngle = Math.PI / 2;     // 90° - locked horizontal
+            controls.maxPolarAngle = Math.PI / 2;     // 90° - locked horizontal
             controls.enablePan = false; // Disable panning for cleaner experience
 
             loadModel();
