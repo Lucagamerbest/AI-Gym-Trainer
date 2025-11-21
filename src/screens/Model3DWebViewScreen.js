@@ -735,7 +735,7 @@ export default function Model3DWebViewScreen({ navigation }) {
       subtitle="Gray anatomy model with muscle definition"
       navigation={navigation}
       showBack={true}
-      scrollable={false}
+      scrollable={true}
     >
       <View style={styles.container}>
         {/* 3D WebView */}
