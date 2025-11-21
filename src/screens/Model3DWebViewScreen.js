@@ -10,6 +10,9 @@ export default function Model3DWebViewScreen({ navigation }) {
   const [autoRotate, setAutoRotate] = useState(false);
   const [meshCount, setMeshCount] = useState(0);
   const [boundingBox, setBoundingBox] = useState(null);
+  const [debugMode, setDebugMode] = useState(false);
+  const [currentDebugMuscle, setCurrentDebugMuscle] = useState('chest');
+  const [debugClicks, setDebugClicks] = useState([]);
 
   // Handle messages from WebView
   const handleMessage = (event) => {
@@ -32,6 +35,11 @@ export default function Model3DWebViewScreen({ navigation }) {
         console.log('Back (min Z):', data.box.min.z.toFixed(2));
         console.log('Front (max Z):', data.box.max.z.toFixed(2));
         console.log('========================');
+      } else if (data.type === 'debugClick') {
+        const click = data.position;
+        setDebugClicks(prev => [...prev, click]);
+        console.log(`=== ${currentDebugMuscle.toUpperCase()} CLICK #${debugClicks.length + 1} ===`);
+        console.log(`X: ${click.x.toFixed(3)}, Y: ${click.y.toFixed(3)}, Z: ${click.z.toFixed(3)}`);
       }
     } catch (error) {
       console.error('Error parsing WebView message:', error);
@@ -72,6 +80,40 @@ export default function Model3DWebViewScreen({ navigation }) {
 
   const setView = (viewName) => {
     sendCommand('setView', { view: viewName });
+  };
+
+  const toggleDebugMode = () => {
+    const newMode = !debugMode;
+    setDebugMode(newMode);
+    sendCommand('setDebugMode', { enabled: newMode, muscle: currentDebugMuscle });
+  };
+
+  const clearDebugClicks = () => {
+    setDebugClicks([]);
+    console.log(`=== CLEARED ${currentDebugMuscle.toUpperCase()} CLICKS ===`);
+  };
+
+  const nextMuscle = () => {
+    const muscles = ['chest', 'shoulders', 'biceps', 'triceps', 'forearms', 'back', 'abs', 'obliques', 'legs', 'neck'];
+    const currentIndex = muscles.indexOf(currentDebugMuscle);
+    const nextIndex = (currentIndex + 1) % muscles.length;
+    const nextMuscle = muscles[nextIndex];
+
+    // Log summary of current muscle
+    if (debugClicks.length > 0) {
+      const xVals = debugClicks.map(c => c.x);
+      const yVals = debugClicks.map(c => c.y);
+      const zVals = debugClicks.map(c => c.z);
+      console.log(`\n=== ${currentDebugMuscle.toUpperCase()} SUMMARY (${debugClicks.length} clicks) ===`);
+      console.log(`X range: ${Math.min(...xVals).toFixed(3)} to ${Math.max(...xVals).toFixed(3)}`);
+      console.log(`Y range: ${Math.min(...yVals).toFixed(3)} to ${Math.max(...yVals).toFixed(3)}`);
+      console.log(`Z range: ${Math.min(...zVals).toFixed(3)} to ${Math.max(...zVals).toFixed(3)}`);
+      console.log('================\n');
+    }
+
+    setCurrentDebugMuscle(nextMuscle);
+    setDebugClicks([]);
+    sendCommand('setDebugMode', { enabled: true, muscle: nextMuscle });
   };
 
   // HTML content - inline to avoid path issues
@@ -125,6 +167,8 @@ export default function Model3DWebViewScreen({ navigation }) {
         let selectedMuscleGroups = new Set();
         let bodyMeshMaterial = null; // Custom shader material for highlighting
         let isAnimating = false;
+        let debugMode = false;
+        let currentDebugMuscle = 'chest';
 
         const GRAY_COLOR = new THREE.Color(0x808080);
         const SELECTED_COLOR = new THREE.Color(0x4ADE80); // Nice green color for selected muscles
@@ -590,6 +634,23 @@ export default function Model3DWebViewScreen({ navigation }) {
             if (intersects.length > 0) {
                 const intersection = intersects[0];
                 const clickPosition = intersection.point;
+
+                // DEBUG MODE: Send coordinates instead of toggling muscles
+                if (debugMode) {
+                    if (window.ReactNativeWebView) {
+                        window.ReactNativeWebView.postMessage(JSON.stringify({
+                            type: 'debugClick',
+                            position: {
+                                x: clickPosition.x,
+                                y: clickPosition.y,
+                                z: clickPosition.z
+                            }
+                        }));
+                    }
+                    return;
+                }
+
+                // NORMAL MODE: Toggle muscle selection
                 const muscleGroup = getMuscleGroupFromPosition(clickPosition);
 
                 if (muscleGroup) {
@@ -625,6 +686,10 @@ export default function Model3DWebViewScreen({ navigation }) {
                     controls.autoRotate = data.enabled;
                 } else if (data.command === 'setView') {
                     setPresetView(data.view);
+                } else if (data.command === 'setDebugMode') {
+                    debugMode = data.enabled;
+                    currentDebugMuscle = data.muscle || 'chest';
+                    console.log('Debug mode:', debugMode ? 'ON' : 'OFF', '| Current muscle:', currentDebugMuscle);
                 } else if (data.command === 'reset') {
                     if (model) {
                         model.rotation.set(0, 0, 0);
@@ -728,6 +793,45 @@ export default function Model3DWebViewScreen({ navigation }) {
           >
             <Text style={styles.viewButtonText}>Right</Text>
           </TouchableOpacity>
+        </View>
+
+        {/* Debug Controls */}
+        <View style={styles.debugContainer}>
+          <TouchableOpacity
+            style={[styles.debugButton, debugMode && styles.debugButtonActive]}
+            onPress={toggleDebugMode}
+          >
+            <Text style={styles.debugButtonText}>
+              {debugMode ? '🔍 DEBUG ON' : 'Debug Mode'}
+            </Text>
+          </TouchableOpacity>
+
+          {debugMode && (
+            <>
+              <View style={styles.debugInfo}>
+                <Text style={styles.debugInfoText}>
+                  Defining: {currentDebugMuscle.toUpperCase()}
+                </Text>
+                <Text style={styles.debugInfoText}>
+                  Clicks: {debugClicks.length}
+                </Text>
+              </View>
+              <View style={styles.debugActions}>
+                <TouchableOpacity
+                  style={styles.debugActionButton}
+                  onPress={clearDebugClicks}
+                >
+                  <Text style={styles.debugActionText}>Clear</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.debugActionButton, styles.nextButton]}
+                  onPress={nextMuscle}
+                >
+                  <Text style={styles.debugActionText}>Next Muscle</Text>
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
         </View>
 
         {/* Selected Muscle Display */}
@@ -857,6 +961,59 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   viewButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  debugContainer: {
+    marginHorizontal: Spacing.md,
+    marginTop: Spacing.sm,
+  },
+  debugButton: {
+    backgroundColor: '#374151',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+  },
+  debugButtonActive: {
+    backgroundColor: '#EF4444',
+  },
+  debugButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  debugInfo: {
+    marginTop: Spacing.sm,
+    backgroundColor: '#1F2937',
+    padding: 12,
+    borderRadius: BorderRadius.md,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  debugInfoText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  debugActions: {
+    marginTop: Spacing.sm,
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  debugActionButton: {
+    flex: 1,
+    backgroundColor: '#6B7280',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+  },
+  nextButton: {
+    backgroundColor: '#10B981',
+  },
+  debugActionText: {
     color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600',
