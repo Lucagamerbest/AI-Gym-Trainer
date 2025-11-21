@@ -202,17 +202,17 @@
                 if (intersects.length > 0) {
                     const clickedMesh = intersects[0].object;
 
-                    // Deselect previous
-                    if (selectedMesh && selectedMesh !== clickedMesh) {
-                        selectedMesh.material.color.setHex(selectedMesh.userData.originalColor);
-                    }
-
-                    // Select new
+                    // Toggle selection
                     if (selectedMesh === clickedMesh) {
                         // Deselect if clicking same mesh
                         clickedMesh.material.color.setHex(GRAY_COLOR);
                         selectedMesh = null;
                     } else {
+                        // Deselect previous mesh
+                        if (selectedMesh) {
+                            selectedMesh.material.color.setHex(GRAY_COLOR);
+                        }
+
                         // Select new mesh
                         clickedMesh.material.color.setHex(SELECTED_COLOR);
                         selectedMesh = clickedMesh;

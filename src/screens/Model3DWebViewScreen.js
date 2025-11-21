@@ -7,12 +7,6 @@ import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 export default function Model3DWebViewScreen({ navigation }) {
   const webViewRef = useRef(null);
   const [selectedMuscleGroups, setSelectedMuscleGroups] = useState([]);
-  const [autoRotate, setAutoRotate] = useState(false);
-  const [meshCount, setMeshCount] = useState(0);
-  const [boundingBox, setBoundingBox] = useState(null);
-  const [debugMode, setDebugMode] = useState(false);
-  const [currentDebugMuscle, setCurrentDebugMuscle] = useState('chest');
-  const [debugClicks, setDebugClicks] = useState([]);
 
   // Handle messages from WebView
   const handleMessage = (event) => {
@@ -21,25 +15,8 @@ export default function Model3DWebViewScreen({ navigation }) {
 
       if (data.type === 'error') {
         console.error('[WebView Error]', data.message);
-      } else if (data.type === 'modelLoaded') {
-        setMeshCount(data.meshCount);
       } else if (data.type === 'muscleGroupToggled') {
         setSelectedMuscleGroups(data.selectedGroups);
-      } else if (data.type === 'boundingBox') {
-        setBoundingBox(data.box);
-        console.log('=== MODEL BOUNDING BOX ===');
-        console.log('Left (min X):', data.box.min.x.toFixed(2));
-        console.log('Right (max X):', data.box.max.x.toFixed(2));
-        console.log('Bottom (min Y):', data.box.min.y.toFixed(2));
-        console.log('Top (max Y):', data.box.max.y.toFixed(2));
-        console.log('Back (min Z):', data.box.min.z.toFixed(2));
-        console.log('Front (max Z):', data.box.max.z.toFixed(2));
-        console.log('========================');
-      } else if (data.type === 'debugClick') {
-        const click = data.position;
-        setDebugClicks(prev => [...prev, click]);
-        console.log(`=== ${currentDebugMuscle.toUpperCase()} CLICK #${debugClicks.length + 1} ===`);
-        console.log(`X: ${click.x.toFixed(3)}, Y: ${click.y.toFixed(3)}, Z: ${click.z.toFixed(3)}`);
       }
     } catch (error) {
       console.error('Error parsing WebView message:', error);
@@ -54,66 +31,13 @@ export default function Model3DWebViewScreen({ navigation }) {
     }
   };
 
-  const handleRotateLeft = () => {
-    sendCommand('rotate', { amount: -0.3 });
-  };
-
-  const handleRotateRight = () => {
-    sendCommand('rotate', { amount: 0.3 });
-  };
-
-  const toggleAutoRotate = () => {
-    const newState = !autoRotate;
-    setAutoRotate(newState);
-    sendCommand('autoRotate', { enabled: newState });
-  };
-
   const handleReset = () => {
     setSelectedMuscleGroups([]);
-    setAutoRotate(false);
     sendCommand('reset');
-  };
-
-  const removeMuscleGroup = (group) => {
-    sendCommand('deselectGroup', { group });
   };
 
   const setView = (viewName) => {
     sendCommand('setView', { view: viewName });
-  };
-
-  const toggleDebugMode = () => {
-    const newMode = !debugMode;
-    setDebugMode(newMode);
-    sendCommand('setDebugMode', { enabled: newMode, muscle: currentDebugMuscle });
-  };
-
-  const clearDebugClicks = () => {
-    setDebugClicks([]);
-    console.log(`=== CLEARED ${currentDebugMuscle.toUpperCase()} CLICKS ===`);
-  };
-
-  const nextMuscle = () => {
-    const muscles = ['chest', 'shoulders', 'biceps', 'triceps', 'forearms', 'back', 'abs', 'obliques', 'legs', 'neck'];
-    const currentIndex = muscles.indexOf(currentDebugMuscle);
-    const nextIndex = (currentIndex + 1) % muscles.length;
-    const nextMuscle = muscles[nextIndex];
-
-    // Log summary of current muscle
-    if (debugClicks.length > 0) {
-      const xVals = debugClicks.map(c => c.x);
-      const yVals = debugClicks.map(c => c.y);
-      const zVals = debugClicks.map(c => c.z);
-      console.log(`\n=== ${currentDebugMuscle.toUpperCase()} SUMMARY (${debugClicks.length} clicks) ===`);
-      console.log(`X range: ${Math.min(...xVals).toFixed(3)} to ${Math.max(...xVals).toFixed(3)}`);
-      console.log(`Y range: ${Math.min(...yVals).toFixed(3)} to ${Math.max(...yVals).toFixed(3)}`);
-      console.log(`Z range: ${Math.min(...zVals).toFixed(3)} to ${Math.max(...zVals).toFixed(3)}`);
-      console.log('================\n');
-    }
-
-    setCurrentDebugMuscle(nextMuscle);
-    setDebugClicks([]);
-    sendCommand('setDebugMode', { enabled: true, muscle: nextMuscle });
   };
 
   // HTML content - inline to avoid path issues
@@ -167,19 +91,14 @@ export default function Model3DWebViewScreen({ navigation }) {
         let selectedMuscleGroups = new Set();
         let bodyMeshMaterial = null; // Custom shader material for highlighting
         let isAnimating = false;
-        let debugMode = false;
-        let currentDebugMuscle = 'chest';
+        let currentView = 'front'; // Track current view: 'front' or 'back'
 
         const GRAY_COLOR = new THREE.Color(0x808080);
         const SELECTED_COLOR = new THREE.Color(0x4ADE80); // Nice green color for selected muscles
 
-        // Preset camera positions for different views
-        const CAMERA_POSITIONS = {
-            front: { x: 0, y: -1.3, z: 5.0 },
-            back: { x: 0, y: -1.3, z: -5.0 },
-            left: { x: -5.0, y: -1.3, z: 0 },
-            right: { x: 5.0, y: -1.3, z: 0 }
-        };
+        // Camera position - centered on model
+        const CAMERA_POSITION = { x: 0, y: -1.2, z: 4.8 };
+        const CAMERA_TARGET = { x: 0, y: -1.2, z: 0 };
 
         // Determine muscle group based on 3D click position
         function getMuscleGroupFromPosition(position) {
@@ -192,50 +111,65 @@ export default function Model3DWebViewScreen({ navigation }) {
                 return 'neck';
             }
 
-            // SHOULDERS: All deltoids (front, side, rear)
-            if (y >= -0.4 && y < -0.1 && Math.abs(x) >= 0.25 && Math.abs(x) < 0.5) {
+            // SHOULDERS: Deltoids + Traps (shoulder caps and upper back)
+            // Front/side deltoids
+            if (y >= -0.5 && y < -0.1 && Math.abs(x) >= 0.25 && Math.abs(x) < 0.55 && z > -0.1) {
                 return 'shoulders';
             }
-            if (y >= -0.35 && y < -0.15 && z > 0.08 && Math.abs(x) >= 0.15 && Math.abs(x) < 0.35) {
+            // Front deltoids
+            if (y >= -0.4 && y < -0.15 && z > 0.05 && Math.abs(x) >= 0.15 && Math.abs(x) < 0.35) {
+                return 'shoulders';
+            }
+            // Rear deltoids (back of shoulders)
+            if (y >= -0.5 && y < -0.1 && Math.abs(x) >= 0.3 && Math.abs(x) < 0.55 && z >= -0.25 && z <= -0.05) {
+                return 'shoulders';
+            }
+            // Traps (upper back, centered on spine)
+            if (y >= -0.5 && y < 0.05 && z < -0.05 && Math.abs(x) < 0.25) {
                 return 'shoulders';
             }
 
-            // CHEST: All pectorals
+            // CHEST: All pectorals - keep original good detection
             if (y >= -0.55 && y < -0.15 && z > 0.08 && Math.abs(x) < 0.28) {
                 return 'chest';
             }
 
-            // ABS: Entire core front (upper, lower, center)
+            // ABS: Entire core front - keep original good detection
             if (y >= -1.0 && y < -0.55 && z > 0.05 && Math.abs(x) < 0.35) {
                 return 'abs';
             }
 
-            // OBLIQUES: Side torso/ribs
-            if (y >= -1.0 && y < -0.35 && z >= -0.05 && z <= 0.08 && Math.abs(x) >= 0.25 && Math.abs(x) < 0.45) {
+            // OBLIQUES: Side torso/ribs (tightened to avoid shoulder overlap)
+            if (y >= -1.0 && y < -0.5 && z >= -0.05 && z <= 0.08 && Math.abs(x) >= 0.3 && Math.abs(x) < 0.45) {
                 return 'obliques';
             }
 
-            // BACK: ENTIRE back (traps, lats, lower back, everything behind)
-            if (y >= -1.1 && y < 0.1 && z < -0.05 && Math.abs(x) < 0.45) {
+            // BACK: Lats and lower back
+            // Back side lats (below traps)
+            if (y >= -0.88 && y < -0.5 && z < -0.13 && Math.abs(x) < 0.4) {
+                return 'back';
+            }
+            // Front side lats (same zone as obliques - sides of torso)
+            if (y >= -1.0 && y < -0.5 && z >= -0.05 && z <= 0.08 && Math.abs(x) >= 0.3 && Math.abs(x) < 0.45) {
                 return 'back';
             }
 
-            // BICEPS: Front of upper arm
-            if (y >= -0.85 && y < -0.4 && Math.abs(x) >= 0.45 && Math.abs(x) < 0.75 && z > -0.05) {
+            // BICEPS: Front of upper arm - improved positioning
+            if (y >= -1.0 && y < -0.35 && Math.abs(x) >= 0.4 && Math.abs(x) < 0.85 && z > -0.04) {
                 return 'biceps';
             }
 
-            // TRICEPS: Back of upper arm
-            if (y >= -0.85 && y < -0.4 && Math.abs(x) >= 0.45 && Math.abs(x) < 0.75 && z <= -0.05) {
+            // TRICEPS: Back of upper arm - improved positioning
+            if (y >= -0.85 && y < -0.4 && Math.abs(x) >= 0.45 && Math.abs(x) < 0.7 && z <= -0.15) {
                 return 'triceps';
             }
 
-            // FOREARMS: Lower arm, exclude hands (hands are below -1.4)
-            if (y >= -1.4 && y < -0.85 && Math.abs(x) >= 0.65 && Math.abs(x) < 1.2) {
+            // FOREARMS: Lower arm (user-defined, bilateral, excluding hands)
+            if (y >= -0.59 && y < -0.36 && z >= -0.21 && z <= 0.14 && Math.abs(x) >= 1.0 && Math.abs(x) < 1.55) {
                 return 'forearms';
             }
 
-            // LEGS: ENTIRE legs (quads, hamstrings, calves, everything), exclude feet (below -2.7)
+            // LEGS: Entire legs - keep original good detection
             if (y >= -2.7 && y < -1.0 && Math.abs(x) < 0.52) {
                 return 'legs';
             }
@@ -283,56 +217,67 @@ export default function Model3DWebViewScreen({ navigation }) {
                     vec3 baseCol = baseColor;
                     bool isSelected = false;
 
-                    // CHEST (0) - All pectorals
+                    // CHEST (0) - All pectorals (kept original)
                     if (selectedMuscles[0] > 0.5 && y >= -0.55 && y < -0.15 && z > 0.08 && abs(x) < 0.28) {
                         isSelected = true;
                     }
 
-                    // ABS (1) - Entire core front
+                    // ABS (1) - Entire core front (kept original)
                     if (selectedMuscles[1] > 0.5 && y >= -1.0 && y < -0.55 && z > 0.05 && abs(x) < 0.35) {
                         isSelected = true;
                     }
 
-                    // SHOULDERS (2) - All deltoids (front, side, rear)
+                    // SHOULDERS (2) - Deltoids + Traps
                     if (selectedMuscles[2] > 0.5) {
-                        if ((y >= -0.4 && y < -0.1 && abs(x) >= 0.25 && abs(x) < 0.5) ||
-                            (y >= -0.35 && y < -0.15 && z > 0.08 && abs(x) >= 0.15 && abs(x) < 0.35)) {
+                        // Front/side deltoids
+                        if ((y >= -0.5 && y < -0.1 && abs(x) >= 0.25 && abs(x) < 0.55 && z > -0.1) ||
+                            // Front deltoids
+                            (y >= -0.4 && y < -0.15 && z > 0.05 && abs(x) >= 0.15 && abs(x) < 0.35) ||
+                            // Rear deltoids (back of shoulders)
+                            (y >= -0.5 && y < -0.1 && abs(x) >= 0.3 && abs(x) < 0.55 && z >= -0.25 && z <= -0.05) ||
+                            // Traps (upper back)
+                            (y >= -0.5 && y < 0.05 && z < -0.05 && abs(x) < 0.25)) {
                             isSelected = true;
                         }
                     }
 
-                    // BACK (3) - ENTIRE back (traps, lats, lower back, everything)
-                    if (selectedMuscles[3] > 0.5 && y >= -1.1 && y < 0.1 && z < -0.05 && abs(x) < 0.45) {
+                    // BACK (3) - Lats and lower back
+                    if (selectedMuscles[3] > 0.5) {
+                        // Back side lats
+                        if ((y >= -0.88 && y < -0.5 && z < -0.13 && abs(x) < 0.4) ||
+                            // Front side lats (same zone as obliques)
+                            (y >= -1.0 && y < -0.5 && z >= -0.05 && z <= 0.08 && abs(x) >= 0.3 && abs(x) < 0.45)) {
+                            isSelected = true;
+                        }
+                    }
+
+                    // BICEPS (4) - Front of upper arm (improved)
+                    if (selectedMuscles[4] > 0.5 && y >= -1.0 && y < -0.35 && abs(x) >= 0.4 && abs(x) < 0.85 && z > -0.04) {
                         isSelected = true;
                     }
 
-                    // BICEPS (4)
-                    if (selectedMuscles[4] > 0.5 && y >= -0.85 && y < -0.4 && abs(x) >= 0.45 && abs(x) < 0.75 && z > -0.05) {
+                    // TRICEPS (5) - Back of upper arm (improved)
+                    if (selectedMuscles[5] > 0.5 && y >= -0.85 && y < -0.4 && abs(x) >= 0.45 && abs(x) < 0.7 && z <= -0.15) {
                         isSelected = true;
                     }
 
-                    // TRICEPS (5)
-                    if (selectedMuscles[5] > 0.5 && y >= -0.85 && y < -0.4 && abs(x) >= 0.45 && abs(x) < 0.75 && z <= -0.05) {
+                    // FOREARMS (6) - Lower arm (user-defined, bilateral, excluding hands)
+                    if (selectedMuscles[6] > 0.5 && y >= -0.59 && y < -0.36 && z >= -0.21 && z <= 0.14 && abs(x) >= 1.0 && abs(x) < 1.55) {
                         isSelected = true;
                     }
 
-                    // FOREARMS (6) - Exclude hands
-                    if (selectedMuscles[6] > 0.5 && y >= -1.4 && y < -0.85 && abs(x) >= 0.65 && abs(x) < 1.2) {
-                        isSelected = true;
-                    }
-
-                    // LEGS (7) - ENTIRE legs (quads, hamstrings, calves), exclude feet
+                    // LEGS (7) - Entire legs (kept original)
                     if (selectedMuscles[7] > 0.5 && y >= -2.7 && y < -1.0 && abs(x) < 0.52) {
                         isSelected = true;
                     }
 
-                    // NECK (8)
+                    // NECK (8) - Front and back of neck
                     if (selectedMuscles[8] > 0.5 && y >= 0.05 && y < 0.35 && abs(x) < 0.18) {
                         isSelected = true;
                     }
 
-                    // OBLIQUES (9) - Side torso/ribs
-                    if (selectedMuscles[9] > 0.5 && y >= -1.0 && y < -0.35 && z >= -0.05 && z <= 0.08 && abs(x) >= 0.25 && abs(x) < 0.45) {
+                    // OBLIQUES (9) - Side torso/ribs (tightened)
+                    if (selectedMuscles[9] > 0.5 && y >= -1.0 && y < -0.5 && z >= -0.05 && z <= 0.08 && abs(x) >= 0.3 && abs(x) < 0.45) {
                         isSelected = true;
                     }
 
@@ -428,7 +373,8 @@ export default function Model3DWebViewScreen({ navigation }) {
             scene.background = new THREE.Color(0x1a1a1a);
 
             camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(0, -1.3, 5.0);
+            camera.position.set(0, -1.2, 4.8);
+            camera.lookAt(0, -1.2, 0);
 
             const canvas = document.getElementById('canvas');
             renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
@@ -447,29 +393,38 @@ export default function Model3DWebViewScreen({ navigation }) {
             scene.add(directionalLight2);
 
             controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableRotate = true; // Enable rotation
+            controls.enablePan = false; // Disable panning
+            controls.enableZoom = true; // Enable pinch to zoom
             controls.enableDamping = true;
-            controls.dampingFactor = 0.05;
-            controls.minDistance = 2;
-            controls.maxDistance = 8;
-            controls.autoRotate = false;
-            controls.autoRotateSpeed = 1.0;
-            controls.target.set(0, -0.5, 0);
-
-            // LOCK VERTICAL ROTATION - Only allow left/right rotation
-            controls.minPolarAngle = Math.PI / 2;     // 90° - locked horizontal
-            controls.maxPolarAngle = Math.PI / 2;     // 90° - locked horizontal
-            controls.enablePan = false; // Disable panning for cleaner experience
+            controls.dampingFactor = 0.1;
+            controls.minDistance = 3.5;
+            controls.maxDistance = 8.0;
+            controls.target.set(0, -1.2, 0);
+            // Lock vertical rotation - only horizontal
+            controls.minPolarAngle = Math.PI / 2;
+            controls.maxPolarAngle = Math.PI / 2;
 
             loadModel();
             window.addEventListener('resize', onWindowResize, false);
 
+            // Touch handling - prevent double-firing of click events
+            let lastTouchTime = 0;
+
             canvas.addEventListener('touchend', function(e) {
-                e.preventDefault();
+                e.preventDefault(); // Prevent synthetic click event
+                lastTouchTime = Date.now();
                 const touch = e.changedTouches[0];
                 onClick({ clientX: touch.clientX, clientY: touch.clientY });
-            }, false);
+            }, { passive: false });
 
-            canvas.addEventListener('click', onClick, false);
+            canvas.addEventListener('click', function(e) {
+                // Ignore click if it came right after a touch (prevents double-firing)
+                if (Date.now() - lastTouchTime < 500) {
+                    return;
+                }
+                onClick(e);
+            }, false);
 
             animate();
         }
@@ -518,26 +473,8 @@ export default function Model3DWebViewScreen({ navigation }) {
 
                     scene.add(model);
 
-                    // Calculate bounding box after scaling and centering
-                    const finalBox = new THREE.Box3().setFromObject(model);
-                    const boundingBoxData = {
-                        min: { x: finalBox.min.x, y: finalBox.min.y, z: finalBox.min.z },
-                        max: { x: finalBox.max.x, y: finalBox.max.y, z: finalBox.max.z }
-                    };
-
                     document.getElementById('loading').style.display = 'none';
-
-                    if (window.ReactNativeWebView) {
-                        window.ReactNativeWebView.postMessage(JSON.stringify({
-                            type: 'modelLoaded',
-                            meshCount: meshCount
-                        }));
-
-                        window.ReactNativeWebView.postMessage(JSON.stringify({
-                            type: 'boundingBox',
-                            box: boundingBoxData
-                        }));
-                    }
+                    console.log('Model loaded successfully with', meshCount, 'meshes');
                 },
                 function(xhr) {
                     const percent = xhr.total ? (xhr.loaded / xhr.total * 100).toFixed(0) : 'unknown';
@@ -570,52 +507,38 @@ export default function Model3DWebViewScreen({ navigation }) {
             renderer.setSize(window.innerWidth, window.innerHeight);
         }
 
-        // Smooth camera animation to preset view
-        function animateCameraToPosition(targetPos, duration = 1000) {
-            if (isAnimating) return;
+        // Set view by moving camera (not rotating model - keeps coordinates stable)
+        function setPresetView(viewName) {
+            if (!model || isAnimating) return;
             isAnimating = true;
 
-            const startPos = {
-                x: camera.position.x,
-                y: camera.position.y,
-                z: camera.position.z
-            };
-
+            const targetZ = viewName === 'front' ? CAMERA_POSITION.z : -CAMERA_POSITION.z;
+            const startZ = camera.position.z;
             const startTime = Date.now();
+            const duration = 600;
 
             function animateStep() {
                 const elapsed = Date.now() - startTime;
                 const progress = Math.min(elapsed / duration, 1);
 
-                // Ease-in-out function for smooth animation
+                // Ease-in-out
                 const eased = progress < 0.5
                     ? 2 * progress * progress
                     : -1 + (4 - 2 * progress) * progress;
 
-                camera.position.x = startPos.x + (targetPos.x - startPos.x) * eased;
-                camera.position.y = startPos.y + (targetPos.y - startPos.y) * eased;
-                camera.position.z = startPos.z + (targetPos.z - startPos.z) * eased;
-
-                camera.lookAt(0, 0, 0);
-                controls.update();
+                camera.position.z = startZ + (targetZ - startZ) * eased;
+                camera.lookAt(0, -1.2, 0);
 
                 if (progress < 1) {
                     requestAnimationFrame(animateStep);
                 } else {
+                    camera.position.z = targetZ;
+                    currentView = viewName;
                     isAnimating = false;
                 }
             }
 
             animateStep();
-        }
-
-        // Set camera to preset view
-        function setPresetView(viewName) {
-            const targetPos = CAMERA_POSITIONS[viewName];
-            if (targetPos) {
-                animateCameraToPosition(targetPos);
-                console.log('Switching to', viewName, 'view');
-            }
         }
 
         const raycaster = new THREE.Raycaster();
@@ -635,22 +558,7 @@ export default function Model3DWebViewScreen({ navigation }) {
                 const intersection = intersects[0];
                 const clickPosition = intersection.point;
 
-                // DEBUG MODE: Send coordinates instead of toggling muscles
-                if (debugMode) {
-                    if (window.ReactNativeWebView) {
-                        window.ReactNativeWebView.postMessage(JSON.stringify({
-                            type: 'debugClick',
-                            position: {
-                                x: clickPosition.x,
-                                y: clickPosition.y,
-                                z: clickPosition.z
-                            }
-                        }));
-                    }
-                    return;
-                }
-
-                // NORMAL MODE: Toggle muscle selection
+                // Toggle muscle selection
                 const muscleGroup = getMuscleGroupFromPosition(clickPosition);
 
                 if (muscleGroup) {
@@ -678,22 +586,12 @@ export default function Model3DWebViewScreen({ navigation }) {
             try {
                 const data = JSON.parse(event.data);
 
-                if (data.command === 'rotate') {
-                    if (model) {
-                        model.rotation.y += data.amount;
-                    }
-                } else if (data.command === 'autoRotate') {
-                    controls.autoRotate = data.enabled;
-                } else if (data.command === 'setView') {
+                if (data.command === 'setView') {
                     setPresetView(data.view);
-                } else if (data.command === 'setDebugMode') {
-                    debugMode = data.enabled;
-                    currentDebugMuscle = data.muscle || 'chest';
-                    console.log('Debug mode:', debugMode ? 'ON' : 'OFF', '| Current muscle:', currentDebugMuscle);
                 } else if (data.command === 'reset') {
                     if (model) {
                         model.rotation.set(0, 0, 0);
-                        animateCameraToPosition({ x: 0, y: -1.3, z: 5.0 });
+                        currentView = 'front';
                     }
                     selectedMuscleGroups.clear();
                     updateMuscleHighlights();
@@ -731,40 +629,59 @@ export default function Model3DWebViewScreen({ navigation }) {
 
   return (
     <ScreenLayout
-      title="3D Muscle Model (WebView)"
-      subtitle="Gray anatomy model with muscle definition"
+      title="Select Muscles"
       navigation={navigation}
       showBack={true}
       scrollable={true}
     >
       <View style={styles.container}>
-        {/* 3D WebView */}
-        <View style={styles.webviewContainer}>
-          <WebView
-            ref={webViewRef}
-            source={htmlSource}
-            style={styles.webview}
-            onMessage={handleMessage}
-            javaScriptEnabled={true}
-            domStorageEnabled={true}
-            allowFileAccess={true}
-            allowFileAccessFromFileURLs={true}
-            allowUniversalAccessFromFileURLs={true}
-            mixedContentMode="always"
-            originWhitelist={['*']}
-            baseUrl={Platform.OS === 'android' ? 'file:///android_asset/' : ''}
-            onError={(syntheticEvent) => {
-              const { nativeEvent } = syntheticEvent;
-              console.error('WebView error:', nativeEvent);
-            }}
-            onHttpError={(syntheticEvent) => {
-              const { nativeEvent } = syntheticEvent;
-              console.error('HTTP error:', nativeEvent);
-            }}
-          />
+        {/* 3D WebView with overlay */}
+        <View style={styles.webviewWrapper}>
+          <View style={styles.webviewContainer}>
+            <WebView
+              ref={webViewRef}
+              source={htmlSource}
+              style={styles.webview}
+              onMessage={handleMessage}
+              javaScriptEnabled={true}
+              domStorageEnabled={true}
+              allowFileAccess={true}
+              allowFileAccessFromFileURLs={true}
+              allowUniversalAccessFromFileURLs={true}
+              mixedContentMode="always"
+              originWhitelist={['*']}
+              baseUrl={Platform.OS === 'android' ? 'file:///android_asset/' : ''}
+              onError={(syntheticEvent) => {
+                const { nativeEvent } = syntheticEvent;
+                console.error('WebView error:', nativeEvent);
+              }}
+              onHttpError={(syntheticEvent) => {
+                const { nativeEvent } = syntheticEvent;
+                console.error('HTTP error:', nativeEvent);
+              }}
+            />
+          </View>
+
+          {/* Selected Muscles Overlay - Always visible at bottom of model */}
+          <View style={styles.muscleOverlay}>
+            {selectedMuscleGroups.length > 0 ? (
+              <View style={styles.muscleChipsContainer}>
+                {selectedMuscleGroups.map((muscle, index) => (
+                  <View key={index} style={styles.muscleChip}>
+                    <Text style={styles.muscleChipText}>{muscle.toUpperCase()}</Text>
+                  </View>
+                ))}
+                <TouchableOpacity onPress={handleReset} style={styles.clearChip}>
+                  <Text style={styles.clearChipText}>✕</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <Text style={styles.hintText}>Tap muscles to select</Text>
+            )}
+          </View>
         </View>
 
-        {/* Preset View Buttons */}
+        {/* View Toggle Buttons */}
         <View style={styles.viewButtonsContainer}>
           <TouchableOpacity
             style={styles.viewButton}
@@ -779,148 +696,7 @@ export default function Model3DWebViewScreen({ navigation }) {
           >
             <Text style={styles.viewButtonText}>Back</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.viewButton}
-            onPress={() => setView('left')}
-          >
-            <Text style={styles.viewButtonText}>Left</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.viewButton}
-            onPress={() => setView('right')}
-          >
-            <Text style={styles.viewButtonText}>Right</Text>
-          </TouchableOpacity>
         </View>
-
-        {/* Debug Controls */}
-        <View style={styles.debugContainer}>
-          <TouchableOpacity
-            style={[styles.debugButton, debugMode && styles.debugButtonActive]}
-            onPress={toggleDebugMode}
-          >
-            <Text style={styles.debugButtonText}>
-              {debugMode ? '🔍 DEBUG ON' : 'Debug Mode'}
-            </Text>
-          </TouchableOpacity>
-
-          {debugMode && (
-            <>
-              <View style={styles.debugInfo}>
-                <Text style={styles.debugInfoText}>
-                  Defining: {currentDebugMuscle.toUpperCase()}
-                </Text>
-                <Text style={styles.debugInfoText}>
-                  Clicks: {debugClicks.length}
-                </Text>
-              </View>
-              <View style={styles.debugActions}>
-                <TouchableOpacity
-                  style={styles.debugActionButton}
-                  onPress={clearDebugClicks}
-                >
-                  <Text style={styles.debugActionText}>Clear</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.debugActionButton, styles.nextButton]}
-                  onPress={nextMuscle}
-                >
-                  <Text style={styles.debugActionText}>Next Muscle</Text>
-                </TouchableOpacity>
-              </View>
-            </>
-          )}
-        </View>
-
-        {/* Selected Muscle Display */}
-        <View style={{
-          marginHorizontal: 16,
-          marginTop: 8,
-          minHeight: 50,
-          backgroundColor: selectedMuscleGroups.length > 0 ? '#4ADE80' : '#374151',
-          borderRadius: 12,
-          paddingVertical: 12,
-          paddingHorizontal: 16,
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}>
-          {selectedMuscleGroups.length > 0 ? (
-            <>
-              <Text style={{
-                fontSize: 18,
-                fontWeight: 'bold',
-                color: '#000000',
-                flex: 1,
-              }}>
-                Selected: {selectedMuscleGroups.map(m => m.toUpperCase()).join(', ')}
-              </Text>
-              <TouchableOpacity
-                onPress={handleReset}
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 16,
-                  backgroundColor: 'rgba(0,0,0,0.2)',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Text style={{fontSize: 20, fontWeight: 'bold', color: '#000'}}>×</Text>
-              </TouchableOpacity>
-            </>
-          ) : (
-            <Text style={{
-              fontSize: 14,
-              color: '#9CA3AF',
-              textAlign: 'center',
-              flex: 1,
-            }}>
-              No muscle selected
-            </Text>
-          )}
-        </View>
-
-        {/* Bounding Box Debug Info */}
-        {boundingBox && (
-          <View style={{
-            marginHorizontal: 16,
-            marginTop: 8,
-            backgroundColor: '#1F2937',
-            borderRadius: 12,
-            paddingVertical: 12,
-            paddingHorizontal: 16,
-          }}>
-            <Text style={{
-              fontSize: 16,
-              fontWeight: 'bold',
-              color: '#FFFFFF',
-              marginBottom: 8,
-            }}>
-              Model Bounding Box (Debug)
-            </Text>
-            <Text style={{ fontSize: 12, color: '#9CA3AF' }}>
-              Left (min X): {boundingBox.min.x.toFixed(2)}
-            </Text>
-            <Text style={{ fontSize: 12, color: '#9CA3AF' }}>
-              Right (max X): {boundingBox.max.x.toFixed(2)}
-            </Text>
-            <Text style={{ fontSize: 12, color: '#9CA3AF' }}>
-              Bottom (min Y): {boundingBox.min.y.toFixed(2)}
-            </Text>
-            <Text style={{ fontSize: 12, color: '#9CA3AF' }}>
-              Top (max Y): {boundingBox.max.y.toFixed(2)}
-            </Text>
-            <Text style={{ fontSize: 12, color: '#9CA3AF' }}>
-              Back (min Z): {boundingBox.min.z.toFixed(2)}
-            </Text>
-            <Text style={{ fontSize: 12, color: '#9CA3AF' }}>
-              Front (max Z): {boundingBox.max.z.toFixed(2)}
-            </Text>
-          </View>
-        )}
 
       </View>
     </ScreenLayout>
@@ -932,90 +708,84 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
+  webviewWrapper: {
+    position: 'relative',
+    marginHorizontal: Spacing.xs,
+  },
   webviewContainer: {
-    height: 520,
+    height: 560,
     backgroundColor: '#1a1a1a',
-    borderRadius: BorderRadius.lg,
-    margin: Spacing.md,
+    borderRadius: BorderRadius.md,
     overflow: 'hidden',
-    zIndex: 1,
   },
   webview: {
     flex: 1,
     backgroundColor: 'transparent',
   },
+  muscleOverlay: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    right: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: BorderRadius.md,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    minHeight: 40,
+    justifyContent: 'center',
+  },
+  muscleChipsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: 10,
+  },
+  muscleChip: {
+    backgroundColor: Colors.primary,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+  },
+  muscleChipText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  clearChip: {
+    backgroundColor: '#EF4444',
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  clearChipText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  hintText: {
+    color: '#9CA3AF',
+    fontSize: 13,
+    textAlign: 'center',
+  },
   viewButtonsContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginHorizontal: Spacing.md,
-    marginTop: Spacing.sm,
     gap: Spacing.sm,
+    marginHorizontal: Spacing.sm,
+    marginTop: Spacing.sm,
   },
   viewButton: {
     flex: 1,
-    backgroundColor: '#374151',
+    backgroundColor: '#4ADE80',
     paddingVertical: 12,
-    paddingHorizontal: 16,
     borderRadius: BorderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
   },
   viewButtonText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  debugContainer: {
-    marginHorizontal: Spacing.md,
-    marginTop: Spacing.sm,
-  },
-  debugButton: {
-    backgroundColor: '#374151',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: BorderRadius.md,
-    alignItems: 'center',
-  },
-  debugButtonActive: {
-    backgroundColor: '#EF4444',
-  },
-  debugButtonText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  debugInfo: {
-    marginTop: Spacing.sm,
-    backgroundColor: '#1F2937',
-    padding: 12,
-    borderRadius: BorderRadius.md,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  debugInfoText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  debugActions: {
-    marginTop: Spacing.sm,
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
-  debugActionButton: {
-    flex: 1,
-    backgroundColor: '#6B7280',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: BorderRadius.md,
-    alignItems: 'center',
-  },
-  nextButton: {
-    backgroundColor: '#10B981',
-  },
-  debugActionText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '600',
+    color: '#000000',
+    fontSize: 15,
+    fontWeight: '700',
   },
 });
