@@ -366,7 +366,8 @@ function AppNavigator() {
             <Stack.Screen name="ProgramDaySelection" component={ProgramDaySelectionScreen} />
             <Stack.Screen name="WorkoutDayEdit" component={WorkoutDayEditScreen} />
             <Stack.Screen name="CreateExercise" component={CreateExerciseScreen} />
-            <Stack.Screen name="MuscleGroupSelection" component={MuscleGroupSelectionScreen} />
+            <Stack.Screen name="MuscleGroupSelection" component={Model3DWebViewScreen} />
+            <Stack.Screen name="MuscleGroupSelectionClassic" component={MuscleGroupSelectionScreen} />
             <Stack.Screen name="ExerciseList" component={ExerciseListScreen} />
             <Stack.Screen name="EquipmentVariantSelection" component={EquipmentVariantSelectionScreen} />
             <Stack.Screen name="ExerciseDetail" component={ExerciseDetailScreen} />

@@ -4,9 +4,15 @@ import WebView from 'react-native-webview';
 import ScreenLayout from '../components/ScreenLayout';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 
-export default function Model3DWebViewScreen({ navigation }) {
+export default function Model3DWebViewScreen({ navigation, route }) {
   const webViewRef = useRef(null);
   const [selectedMuscleGroups, setSelectedMuscleGroups] = useState([]);
+
+  // Get navigation params (for passing through to ExerciseList)
+  const { fromWorkout, currentWorkoutExercises, workoutStartTime, existingExerciseSets, fromLibrary, fromProgramCreation, fromProgramDayEdit, programDayIndex } = route.params || {};
+
+  // All muscle groups available in the 3D model
+  const allMuscleGroups = ['chest', 'abs', 'shoulders', 'back', 'biceps', 'triceps', 'forearms', 'legs'];
 
   // Handle messages from WebView
   const handleMessage = (event) => {
@@ -36,8 +42,60 @@ export default function Model3DWebViewScreen({ navigation }) {
     sendCommand('reset');
   };
 
+  const handleDeselectMuscle = (muscleToRemove) => {
+    const updatedMuscles = selectedMuscleGroups.filter(muscle => muscle !== muscleToRemove);
+    setSelectedMuscleGroups(updatedMuscles);
+    sendCommand('deselectMuscle', { muscle: muscleToRemove });
+  };
+
+  const handleListView = () => {
+    // Navigate to traditional muscle group selection screen
+    navigation.navigate('MuscleGroupSelectionClassic', {
+      fromWorkout,
+      currentWorkoutExercises,
+      workoutStartTime,
+      existingExerciseSets,
+      fromLibrary,
+      fromProgramCreation,
+      fromProgramDayEdit,
+      programDayIndex
+    });
+  };
+
   const setView = (viewName) => {
     sendCommand('setView', { view: viewName });
+  };
+
+  const handleSelectAll = () => {
+    if (selectedMuscleGroups.length === allMuscleGroups.length) {
+      // Deselect all
+      sendCommand('selectAll', { selected: false });
+      setSelectedMuscleGroups([]);
+    } else {
+      // Select all
+      sendCommand('selectAll', { selected: true });
+      setSelectedMuscleGroups([...allMuscleGroups]);
+    }
+  };
+
+  const handleContinue = () => {
+    if (selectedMuscleGroups.length === 0) {
+      return; // Don't continue if no muscle groups selected
+    }
+
+    // Navigate to ExerciseList with selected muscles
+    navigation.navigate('ExerciseList', {
+      selectedMuscleGroups,
+      fromWorkout: fromWorkout,
+      currentWorkoutExercises: currentWorkoutExercises,
+      workoutStartTime: workoutStartTime,
+      existingExerciseSets: existingExerciseSets,
+      fromMuscleSelection: true,
+      fromLibrary: fromLibrary,
+      fromProgramCreation: fromProgramCreation,
+      fromProgramDayEdit: fromProgramDayEdit,
+      programDayIndex: programDayIndex
+    });
   };
 
   // HTML content - inline to avoid path issues
@@ -106,11 +164,6 @@ export default function Model3DWebViewScreen({ navigation }) {
             const y = position.y;
             const z = position.z;
 
-            // NECK: Front and back of neck (above shoulders)
-            if (y >= 0.05 && y < 0.35 && Math.abs(x) < 0.18) {
-                return 'neck';
-            }
-
             // SHOULDERS: Deltoids + Traps (shoulder caps and upper back)
             // Front/side deltoids
             if (y >= -0.5 && y < -0.1 && Math.abs(x) >= 0.25 && Math.abs(x) < 0.55 && z > -0.1) {
@@ -139,17 +192,12 @@ export default function Model3DWebViewScreen({ navigation }) {
                 return 'abs';
             }
 
-            // OBLIQUES: Side torso/ribs (tightened to avoid shoulder overlap)
-            if (y >= -1.0 && y < -0.5 && z >= -0.05 && z <= 0.08 && Math.abs(x) >= 0.3 && Math.abs(x) < 0.45) {
-                return 'obliques';
-            }
-
-            // BACK: Lats and lower back
+            // BACK: Lats, lower back, and obliques (side torso)
             // Back side lats (below traps)
             if (y >= -0.88 && y < -0.5 && z < -0.13 && Math.abs(x) < 0.4) {
                 return 'back';
             }
-            // Front side lats (same zone as obliques - sides of torso)
+            // Side lats/obliques (sides of torso) - now part of back
             if (y >= -1.0 && y < -0.5 && z >= -0.05 && z <= 0.08 && Math.abs(x) >= 0.3 && Math.abs(x) < 0.45) {
                 return 'back';
             }
@@ -200,7 +248,7 @@ export default function Model3DWebViewScreen({ navigation }) {
             const fragmentShader = \`
                 uniform vec3 baseColor;
                 uniform vec3 selectedColor;
-                uniform float selectedMuscles[10]; // Simplified muscle groups
+                uniform float selectedMuscles[8]; // 8 muscle groups
                 uniform vec3 ambientLightColor;
                 uniform vec3 directionalLightColor;
                 uniform vec3 directionalLightDirection;
@@ -217,12 +265,12 @@ export default function Model3DWebViewScreen({ navigation }) {
                     vec3 baseCol = baseColor;
                     bool isSelected = false;
 
-                    // CHEST (0) - All pectorals (kept original)
+                    // CHEST (0) - All pectorals
                     if (selectedMuscles[0] > 0.5 && y >= -0.55 && y < -0.15 && z > 0.08 && abs(x) < 0.28) {
                         isSelected = true;
                     }
 
-                    // ABS (1) - Entire core front (kept original)
+                    // ABS (1) - Entire core front
                     if (selectedMuscles[1] > 0.5 && y >= -1.0 && y < -0.55 && z > 0.05 && abs(x) < 0.35) {
                         isSelected = true;
                     }
@@ -241,43 +289,33 @@ export default function Model3DWebViewScreen({ navigation }) {
                         }
                     }
 
-                    // BACK (3) - Lats and lower back
+                    // BACK (3) - Lats, lower back, and obliques
                     if (selectedMuscles[3] > 0.5) {
                         // Back side lats
                         if ((y >= -0.88 && y < -0.5 && z < -0.13 && abs(x) < 0.4) ||
-                            // Front side lats (same zone as obliques)
+                            // Side lats/obliques (sides of torso) - now part of back
                             (y >= -1.0 && y < -0.5 && z >= -0.05 && z <= 0.08 && abs(x) >= 0.3 && abs(x) < 0.45)) {
                             isSelected = true;
                         }
                     }
 
-                    // BICEPS (4) - Front of upper arm (improved)
+                    // BICEPS (4) - Front of upper arm
                     if (selectedMuscles[4] > 0.5 && y >= -1.0 && y < -0.35 && abs(x) >= 0.4 && abs(x) < 0.85 && z > -0.04) {
                         isSelected = true;
                     }
 
-                    // TRICEPS (5) - Back of upper arm (improved)
+                    // TRICEPS (5) - Back of upper arm
                     if (selectedMuscles[5] > 0.5 && y >= -0.85 && y < -0.4 && abs(x) >= 0.45 && abs(x) < 0.7 && z <= -0.15) {
                         isSelected = true;
                     }
 
-                    // FOREARMS (6) - Lower arm (user-defined, bilateral, excluding hands)
+                    // FOREARMS (6) - Lower arm (bilateral, excluding hands)
                     if (selectedMuscles[6] > 0.5 && y >= -0.59 && y < -0.36 && z >= -0.21 && z <= 0.14 && abs(x) >= 1.0 && abs(x) < 1.55) {
                         isSelected = true;
                     }
 
-                    // LEGS (7) - Entire legs (kept original)
+                    // LEGS (7) - Entire legs
                     if (selectedMuscles[7] > 0.5 && y >= -2.7 && y < -1.0 && abs(x) < 0.52) {
-                        isSelected = true;
-                    }
-
-                    // NECK (8) - Front and back of neck
-                    if (selectedMuscles[8] > 0.5 && y >= 0.05 && y < 0.35 && abs(x) < 0.18) {
-                        isSelected = true;
-                    }
-
-                    // OBLIQUES (9) - Side torso/ribs (tightened)
-                    if (selectedMuscles[9] > 0.5 && y >= -1.0 && y < -0.5 && z >= -0.05 && z <= 0.08 && abs(x) >= 0.3 && abs(x) < 0.45) {
                         isSelected = true;
                     }
 
@@ -313,7 +351,7 @@ export default function Model3DWebViewScreen({ navigation }) {
                 uniforms: {
                     baseColor: { value: GRAY_COLOR },
                     selectedColor: { value: SELECTED_COLOR },
-                    selectedMuscles: { value: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                    selectedMuscles: { value: [0, 0, 0, 0, 0, 0, 0, 0] },
                     ambientLightColor: { value: new THREE.Color(0xffffff).multiplyScalar(0.6) },
                     directionalLightColor: { value: new THREE.Color(0xffffff).multiplyScalar(0.8) },
                     directionalLightDirection: { value: new THREE.Vector3(5, 5, 5).normalize() }
@@ -335,12 +373,10 @@ export default function Model3DWebViewScreen({ navigation }) {
                 'biceps': 4,
                 'triceps': 5,
                 'forearms': 6,
-                'legs': 7,
-                'neck': 8,
-                'obliques': 9
+                'legs': 7
             };
 
-            const selectedArray = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+            const selectedArray = [0, 0, 0, 0, 0, 0, 0, 0];
 
             selectedMuscleGroups.forEach(group => {
                 const index = muscleIndexMap[group];
@@ -398,7 +434,7 @@ export default function Model3DWebViewScreen({ navigation }) {
             controls.enableZoom = true; // Enable pinch to zoom
             controls.enableDamping = true;
             controls.dampingFactor = 0.1;
-            controls.minDistance = 3.5;
+            controls.minDistance = 4.5;
             controls.maxDistance = 8.0;
             controls.target.set(0, -1.2, 0);
             // Lock vertical rotation - only horizontal
@@ -595,6 +631,50 @@ export default function Model3DWebViewScreen({ navigation }) {
                     }
                     selectedMuscleGroups.clear();
                     updateMuscleHighlights();
+                } else if (data.command === 'selectAll') {
+                    const allGroups = ['chest', 'abs', 'shoulders', 'back', 'biceps', 'triceps', 'forearms', 'legs'];
+
+                    if (data.selected) {
+                        // Select all muscles
+                        selectedMuscleGroups.clear();
+                        allGroups.forEach(group => selectedMuscleGroups.add(group));
+                    } else {
+                        // Deselect all muscles
+                        selectedMuscleGroups.clear();
+                    }
+
+                    updateMuscleHighlights();
+
+                    if (window.ReactNativeWebView) {
+                        window.ReactNativeWebView.postMessage(JSON.stringify({
+                            type: 'muscleGroupToggled',
+                            selectedGroups: Array.from(selectedMuscleGroups)
+                        }));
+                    }
+                } else if (data.command === 'deselectMuscle') {
+                    // Deselect a specific muscle
+                    selectedMuscleGroups.delete(data.muscle);
+
+                    updateMuscleHighlights();
+
+                    if (window.ReactNativeWebView) {
+                        window.ReactNativeWebView.postMessage(JSON.stringify({
+                            type: 'muscleGroupToggled',
+                            selectedGroups: Array.from(selectedMuscleGroups)
+                        }));
+                    }
+                } else if (data.command === 'selectMuscle') {
+                    // Select a specific muscle
+                    selectedMuscleGroups.add(data.muscle);
+
+                    updateMuscleHighlights();
+
+                    if (window.ReactNativeWebView) {
+                        window.ReactNativeWebView.postMessage(JSON.stringify({
+                            type: 'muscleGroupToggled',
+                            selectedGroups: Array.from(selectedMuscleGroups)
+                        }));
+                    }
                 }
             } catch (e) {
                 console.error('Error parsing message:', e);
@@ -635,6 +715,32 @@ export default function Model3DWebViewScreen({ navigation }) {
       scrollable={true}
     >
       <View style={styles.container}>
+        {/* List View Button - Top */}
+        <TouchableOpacity
+          style={styles.listViewButton}
+          onPress={handleListView}
+          activeOpacity={0.9}
+        >
+          <Text style={styles.listViewButtonText}>List View</Text>
+        </TouchableOpacity>
+
+        {/* View Toggle Buttons - Moved above model */}
+        <View style={styles.viewToggleContainer}>
+          <TouchableOpacity
+            style={[styles.viewToggleButton, styles.viewToggleLeft]}
+            onPress={() => setView('front')}
+          >
+            <Text style={styles.viewToggleText}>Front</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.viewToggleButton, styles.viewToggleRight]}
+            onPress={() => setView('back')}
+          >
+            <Text style={styles.viewToggleText}>Back</Text>
+          </TouchableOpacity>
+        </View>
+
         {/* 3D WebView with overlay */}
         <View style={styles.webviewWrapper}>
           <View style={styles.webviewContainer}>
@@ -662,18 +768,20 @@ export default function Model3DWebViewScreen({ navigation }) {
             />
           </View>
 
-          {/* Selected Muscles Overlay - Always visible at bottom of model */}
+          {/* Selected Muscles Overlay - Shows all selected muscles */}
           <View style={styles.muscleOverlay}>
             {selectedMuscleGroups.length > 0 ? (
               <View style={styles.muscleChipsContainer}>
-                {selectedMuscleGroups.map((muscle, index) => (
-                  <View key={index} style={styles.muscleChip}>
+                {selectedMuscleGroups.map((muscle) => (
+                  <TouchableOpacity
+                    key={muscle}
+                    style={styles.muscleChip}
+                    onPress={() => handleDeselectMuscle(muscle)}
+                    activeOpacity={0.7}
+                  >
                     <Text style={styles.muscleChipText}>{muscle.toUpperCase()}</Text>
-                  </View>
+                  </TouchableOpacity>
                 ))}
-                <TouchableOpacity onPress={handleReset} style={styles.clearChip}>
-                  <Text style={styles.clearChipText}>✕</Text>
-                </TouchableOpacity>
               </View>
             ) : (
               <Text style={styles.hintText}>Tap muscles to select</Text>
@@ -681,20 +789,30 @@ export default function Model3DWebViewScreen({ navigation }) {
           </View>
         </View>
 
-        {/* View Toggle Buttons */}
-        <View style={styles.viewButtonsContainer}>
+        {/* Primary Action Buttons - Below 3D Model */}
+        <View style={styles.bottomButtonsRow}>
           <TouchableOpacity
-            style={styles.viewButton}
-            onPress={() => setView('front')}
+            style={styles.deselectButton}
+            onPress={handleSelectAll}
+            activeOpacity={0.9}
           >
-            <Text style={styles.viewButtonText}>Front</Text>
+            <Text style={styles.deselectButtonText}>
+              {selectedMuscleGroups.length === allMuscleGroups.length ? 'Deselect All' : 'Select All'}
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.viewButton}
-            onPress={() => setView('back')}
+            style={[
+              styles.continueButtonPrimary,
+              selectedMuscleGroups.length === 0 && styles.disabledButton
+            ]}
+            onPress={handleContinue}
+            disabled={selectedMuscleGroups.length === 0}
+            activeOpacity={0.9}
           >
-            <Text style={styles.viewButtonText}>Back</Text>
+            <Text style={styles.continueButtonPrimaryText}>
+              Continue ({selectedMuscleGroups.length})
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -707,13 +825,100 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
+    padding: Spacing.sm,
+  },
+  listViewButton: {
+    backgroundColor: Colors.surface,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
+  listViewButtonText: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  bottomButtonsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: Spacing.md,
+  },
+  deselectButton: {
+    flex: 1,
+    backgroundColor: Colors.surface,
+    paddingVertical: 16,
+    paddingHorizontal: Spacing.md,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  deselectButtonText: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+    color: Colors.primary,
+  },
+  continueButtonPrimary: {
+    flex: 1.5,
+    backgroundColor: Colors.primary,
+    paddingVertical: 18,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 8,
+  },
+  continueButtonPrimaryText: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '700',
+    color: Colors.background,
+  },
+  disabledButton: {
+    opacity: 0.5,
+  },
+  viewToggleContainer: {
+    flexDirection: 'row',
+    marginBottom: Spacing.md,
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    overflow: 'hidden',
+  },
+  viewToggleButton: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.surface,
+  },
+  viewToggleLeft: {
+    borderRightWidth: 0.5,
+    borderRightColor: Colors.border,
+  },
+  viewToggleRight: {
+    borderLeftWidth: 0.5,
+    borderLeftColor: Colors.border,
+  },
+  viewToggleText: {
+    color: Colors.text,
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
   },
   webviewWrapper: {
     position: 'relative',
-    marginHorizontal: Spacing.xs,
   },
   webviewContainer: {
-    height: 560,
+    height: 500,
     backgroundColor: '#1a1a1a',
     borderRadius: BorderRadius.md,
     overflow: 'hidden',
@@ -727,65 +932,48 @@ const styles = StyleSheet.create({
     top: 8,
     left: 8,
     right: 8,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
     borderRadius: BorderRadius.md,
     paddingVertical: 8,
-    paddingHorizontal: 12,
-    minHeight: 40,
+    paddingHorizontal: 10,
+    maxHeight: 80,
     justifyContent: 'center',
   },
   muscleChipsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     alignItems: 'center',
-    gap: 10,
+    gap: 5,
+    rowGap: 5,
   },
   muscleChip: {
     backgroundColor: Colors.primary,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 12,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 8,
   },
   muscleChipText: {
-    color: '#FFFFFF',
-    fontSize: 12,
+    color: Colors.background,
+    fontSize: 10,
     fontWeight: '700',
   },
   clearChip: {
     backgroundColor: '#EF4444',
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     alignItems: 'center',
     justifyContent: 'center',
+    marginLeft: 2,
   },
   clearChipText: {
     color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '700',
   },
   hintText: {
-    color: '#9CA3AF',
-    fontSize: 13,
+    color: Colors.textMuted,
+    fontSize: Typography.fontSize.sm,
     textAlign: 'center',
-  },
-  viewButtonsContainer: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-    marginHorizontal: Spacing.sm,
-    marginTop: Spacing.sm,
-  },
-  viewButton: {
-    flex: 1,
-    backgroundColor: '#4ADE80',
-    paddingVertical: 12,
-    borderRadius: BorderRadius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  viewButtonText: {
-    color: '#000000',
-    fontSize: 15,
-    fontWeight: '700',
   },
 });
