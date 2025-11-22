@@ -828,19 +828,19 @@ const styles = StyleSheet.create({
     padding: Spacing.sm,
   },
   listViewButton: {
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.primary,
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.md,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.primary,
     alignItems: 'center',
     marginBottom: Spacing.md,
   },
   listViewButtonText: {
     fontSize: Typography.fontSize.sm,
     fontWeight: '600',
-    color: Colors.text,
+    color: Colors.background,
   },
   bottomButtonsRow: {
     flexDirection: 'row',
