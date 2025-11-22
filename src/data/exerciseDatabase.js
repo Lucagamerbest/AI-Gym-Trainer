@@ -962,78 +962,33 @@ export const exerciseDatabase = {
       "muscleGroup": "Back",
       "primaryMuscles": ["Lats", "Upper Back"],
       "secondaryMuscles": ["Biceps", "Rear Deltoids", "Core"],
-      "equipment": "Resistance Band, Pull-up Bar",
+      "equipment": "Resistance Band",
       "difficulty": "Beginner",
       "instructions": "A progression tool for building towards unassisted pull-ups. The resistance band provides assistance at the bottom of the movement where you're weakest, allowing you to perform full range pull-ups and build the necessary strength.",
       "variants": [
         {
-          "equipment": "Heavy Band",
+          "equipment": "Resistance Band",
           "difficulty": "Beginner",
           "pros": [
-            "Perfect for complete beginners to pull-ups",
-            "Provides 40-80 lbs of assistance",
+            "Perfect for beginners building towards unassisted pull-ups",
             "Allows full range of motion practice",
-            "Builds strength in proper pull-up pattern",
-            "More effective than assisted pull-up machines"
+            "More effective than assisted pull-up machines",
+            "Adjustable resistance by changing band thickness",
+            "Helps groove proper pulling mechanics"
           ],
           "cons": [
-            "Provides most help at bottom where you need it least",
             "Can become a crutch if not progressed properly",
             "Band may snap if worn or misused",
+            "Band tension varies throughout movement",
             "Awkward to get into and out of band"
           ],
           "setupTips": [
-            "Loop heavy band (1.75-2.5 inch) over pull-up bar",
-            "Pull one end through the other to secure",
+            "Loop resistance band over pull-up bar and secure",
+            "Choose band thickness based on your strength level",
             "Place knee or foot in band loop",
             "Grip bar slightly wider than shoulders",
-            "Pull chin over bar, lower with control to full hang"
-          ]
-        },
-        {
-          "equipment": "Medium Band",
-          "difficulty": "Beginner",
-          "pros": [
-            "Good for intermediate progression (25-40 lbs assistance)",
-            "Still provides enough help to complete quality reps",
-            "Easier to get in and out of than heavy band",
-            "Helps groove proper pulling mechanics",
-            "Can mix with unassisted reps for extra volume"
-          ],
-          "cons": [
-            "May still provide too much assistance for some",
-            "Need to purchase multiple bands for progression",
-            "Band tension varies throughout movement"
-          ],
-          "setupTips": [
-            "Use medium band (1.25-1.75 inch width)",
-            "Secure band and place knee in loop",
-            "Focus on pulling with back, not just arms",
-            "Pull chest to bar, not just chin over",
-            "Practice negative reps after assisted sets"
-          ]
-        },
-        {
-          "equipment": "Light Band",
-          "difficulty": "Intermediate",
-          "pros": [
-            "Minimal assistance (15-25 lbs) for near-unassisted practice",
-            "Final step before full bodyweight pull-ups",
-            "Allows higher volume training",
-            "Confidence builder for transition to unassisted",
-            "Good for adding reps when fatigued"
-          ],
-          "cons": [
-            "May not provide enough help if you're not ready",
-            "Easy to rely on band instead of progressing",
-            "Thinner bands can be uncomfortable on feet"
-          ],
-          "setupTips": [
-            "Use light band (0.5-1.25 inch width)",
-            "Consider placing band under one foot instead of knee",
-            "Focus on explosive pull and controlled descent",
-            "Try unassisted reps first, then use band",
-            "Track reps to monitor progression"
+            "Pull chin over bar, lower with control to full hang",
+            "Progress by using thinner bands over time"
           ]
         }
       ]
@@ -1490,7 +1445,7 @@ export const exerciseDatabase = {
       "muscleGroup": "Shoulders",
       "primaryMuscles": ["Front Deltoids", "Side Deltoids"],
       "secondaryMuscles": ["Triceps", "Upper Chest"],
-      "equipment": "Barbell, Dumbbell Seated, Dumbbell Standing, Machine, Smith Machine",
+      "equipment": "Barbell, Dumbbell Seated, Machine, Smith Machine",
       "difficulty": "Intermediate",
       "instructions": "A fundamental compound movement for building shoulder mass and strength. Press weight overhead from shoulder level, focusing on deltoid contraction. Can be performed seated or standing with various equipment options.",
       "variants": [
@@ -1536,28 +1491,6 @@ export const exerciseDatabase = {
             "Keep wrists neutral, not bent back",
             "Press up and slightly together at top",
             "Lower with control to shoulder level"
-          ]
-        },
-        {
-          "equipment": "Dumbbell Standing",
-          "difficulty": "Advanced",
-          "pros": [
-            "Maximum core and stabilizer engagement",
-            "Most functional overhead pressing variation",
-            "Builds full-body strength and coordination",
-            "Can use momentum for heavier weight (push press)"
-          ],
-          "cons": [
-            "Requires excellent core stability",
-            "Easy to cheat with leg drive",
-            "More fatigue from stabilization demands"
-          ],
-          "setupTips": [
-            "Stand with feet shoulder-width apart",
-            "Clean dumbbells to shoulders",
-            "Keep core braced throughout movement",
-            "Avoid excessive back lean",
-            "Control the eccentric phase"
           ]
         },
         {
@@ -3937,62 +3870,6 @@ export const exerciseDatabase = {
             "Hold handle with both hands at chest",
             "Rotate away from machine against cable resistance",
             "Return with control and repeat both sides"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "abs-5",
-      "name": "Cable Woodchop",
-      "muscleGroup": "Abs",
-      "primaryMuscles": ["Obliques", "Core"],
-      "secondaryMuscles": ["Abdominals", "Front Deltoids"],
-      "equipment": "High to Low, Low to High",
-      "difficulty": "Intermediate",
-      "instructions": "A dynamic rotational movement performed with a cable. High to low mimics a chopping motion and emphasizes the obliques, while low to high is a lifting motion that also targets the core. Rotate through your torso while keeping arms relatively straight.",
-      "variants": [
-        {
-          "equipment": "High to Low",
-          "difficulty": "Intermediate",
-          "pros": [
-            "Excellent for oblique development",
-            "Mimics natural chopping motion",
-            "Constant tension from cable",
-            "Builds rotational power"
-          ],
-          "cons": [
-            "Requires cable machine access",
-            "Can be confusing to learn initially",
-            "May encourage using too much arm rather than core"
-          ],
-          "setupTips": [
-            "Set cable to high position, stand perpendicular to machine",
-            "Grasp handle with both hands above shoulder",
-            "Rotate and pull cable down across body to opposite hip",
-            "Pivot back foot and rotate through hips and core",
-            "Control return and complete reps before switching sides"
-          ]
-        },
-        {
-          "equipment": "Low to High",
-          "difficulty": "Intermediate",
-          "pros": [
-            "Targets obliques from different angle",
-            "Mimics lifting motion for functional strength",
-            "Constant cable tension",
-            "Works core through full rotation"
-          ],
-          "cons": [
-            "Requires cable machine",
-            "Technique must be mastered for safety",
-            "Can stress lower back if done incorrectly"
-          ],
-          "setupTips": [
-            "Set cable to low position, stand perpendicular",
-            "Grasp handle with both hands near hip",
-            "Rotate and pull cable up and across to opposite shoulder",
-            "Pivot feet and rotate through hips and core",
-            "Keep arms relatively straight, drive motion from torso"
           ]
         }
       ]

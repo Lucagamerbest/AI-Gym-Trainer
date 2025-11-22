@@ -39,6 +39,9 @@ export default function ExerciseListScreen({ navigation, route }) {
   const [showFullScreenImage, setShowFullScreenImage] = useState(false);
   const [selectedImageUri, setSelectedImageUri] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [debugMode, setDebugMode] = useState(false); // Debug mode disabled for clean UI
+  const [debugLogs, setDebugLogs] = useState([]);
+  const [hideVariations, setHideVariations] = useState(true); // Variations hidden for cleaner display
   // Active muscle filters - initialized from selectedMuscleGroups or default to all
   const [activeMuscleFilters, setActiveMuscleFilters] = useState(
     selectedMuscleGroups && selectedMuscleGroups.length > 0
@@ -284,13 +287,140 @@ export default function ExerciseListScreen({ navigation, route }) {
     }
   };
 
+  const getEquipmentLabel = (equipment) => {
+    if (!equipment) return 'Bodyweight';
+    const equipmentStr = String(equipment);
+    // Normalize common variations
+    if (equipmentStr.toLowerCase() === 'cable machine') return 'Cable';
+    if (equipmentStr.toLowerCase() === 'none' || equipmentStr === '') return 'Bodyweight';
+    return equipmentStr;
+  };
+
+  const getDifficultyLabel = (difficulty) => {
+    if (!difficulty) return 'Intermediate';
+    return String(difficulty);
+  };
+
   const getDifficultyColor = (difficulty) => {
     switch (difficulty) {
-      case 'Beginner': return '#4CAF50';
-      case 'Intermediate': return '#FF9800';
-      case 'Advanced': return '#F44336';
+      case 'Beginner': return 'rgba(34, 197, 94, 0.3)';
+      case 'Intermediate': return 'rgba(249, 115, 22, 0.3)';
+      case 'Advanced': return 'rgba(239, 68, 68, 0.3)';
+      default: return 'rgba(138, 43, 226, 0.3)';
+    }
+  };
+
+  const getDifficultyTextColor = (difficulty) => {
+    switch (difficulty) {
+      case 'Beginner': return '#22c55e';
+      case 'Intermediate': return '#f97316';
+      case 'Advanced': return '#ef4444';
       default: return Colors.primary;
     }
+  };
+
+  const getMuscleGroupLabel = (muscleGroup) => {
+    if (!muscleGroup) return '';
+    const str = String(muscleGroup);
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+  };
+
+  const getMuscleGroupColor = (muscleGroup) => {
+    if (!muscleGroup) return 'rgba(138, 43, 226, 0.2)';
+    const muscle = String(muscleGroup).toLowerCase();
+    switch (muscle) {
+      case 'chest': return 'rgba(239, 68, 68, 0.2)';
+      case 'back': return 'rgba(59, 130, 246, 0.2)';
+      case 'legs': return 'rgba(34, 197, 94, 0.2)';
+      case 'shoulders': return 'rgba(251, 146, 60, 0.2)';
+      case 'biceps': return 'rgba(168, 85, 247, 0.2)';
+      case 'triceps': return 'rgba(236, 72, 153, 0.2)';
+      case 'abs': return 'rgba(245, 158, 11, 0.2)';
+      case 'forearms': return 'rgba(148, 163, 184, 0.2)';
+      case 'cardio': return 'rgba(20, 184, 166, 0.2)';
+      default: return 'rgba(138, 43, 226, 0.2)';
+    }
+  };
+
+  const getMuscleGroupTextColor = (muscleGroup) => {
+    if (!muscleGroup) return Colors.primary;
+    const muscle = String(muscleGroup).toLowerCase();
+    switch (muscle) {
+      case 'chest': return '#ef4444';
+      case 'back': return '#3b82f6';
+      case 'legs': return '#22c55e';
+      case 'shoulders': return '#fb923c';
+      case 'biceps': return '#a855f7';
+      case 'triceps': return '#ec4899';
+      case 'abs': return '#f59e0b';
+      case 'forearms': return '#94a3b8';
+      case 'cardio': return '#14b8a6';
+      default: return Colors.primary;
+    }
+  };
+
+  const logDebug = (message, data = null) => {
+    if (debugMode) {
+      const logEntry = data ? `${message}: ${JSON.stringify(data)}` : message;
+      console.log(logEntry);
+      setDebugLogs(prev => [...prev.slice(-19), logEntry]); // Keep last 20 logs
+    }
+  };
+
+  const logAllExercises = () => {
+    setDebugLogs([]); // Clear previous logs
+    logDebug('=== EXERCISE VARIATION ANALYSIS ===');
+
+    let withVariations = 0;
+    let withoutVariations = 0;
+
+    exercises.forEach((exercise, idx) => {
+      const validVariants = getValidVariants(exercise);
+      const hasVariants = validVariants && validVariants.length > 0;
+
+      if (hasVariants) {
+        withVariations++;
+        const equipmentList = validVariants.map(v => v.equipment).join(', ');
+        logDebug(`✓ ${idx + 1}. ${exercise.name}`, `HAS ${validVariants.length} VARIANTS: ${equipmentList}`);
+      } else {
+        withoutVariations++;
+        const equipment = exercise.equipment || 'No equipment';
+        logDebug(`✗ ${idx + 1}. ${exercise.name}`, `NO VARIANTS (single: ${equipment})`);
+      }
+    });
+
+    logDebug('=== SUMMARY ===');
+    logDebug(`Total exercises: ${exercises.length}`);
+    logDebug(`With variations: ${withVariations}`);
+    logDebug(`Without variations: ${withoutVariations}`);
+    logDebug('=== END ANALYSIS ===');
+  };
+
+  const getValidVariants = (exercise) => {
+    if (!exercise.variants || exercise.variants.length === 0) {
+      return null;
+    }
+
+    // Filter out variants with empty/invalid equipment
+    const validVariants = exercise.variants.filter(variant => {
+      const equipment = variant.equipment;
+      return equipment &&
+             equipment !== '' &&
+             equipment !== 'undefined' &&
+             equipment !== 'null' &&
+             String(equipment).trim().length > 0;
+    });
+
+    if (validVariants.length === 0) {
+      return null;
+    }
+
+    // Remove duplicates
+    const uniqueVariants = validVariants.filter((variant, index, self) =>
+      index === self.findIndex(v => v.equipment === variant.equipment)
+    );
+
+    return uniqueVariants;
   };
 
   const openFullScreenImage = (imageUri) => {
@@ -545,26 +675,55 @@ export default function ExerciseListScreen({ navigation, route }) {
 
                 {/* Exercise Meta */}
                 <View style={styles.exerciseMeta}>
-                  <View style={styles.equipmentTagRow}>
-                    {item.variants && item.variants.length > 0 ? (
-                      item.variants.map((variant, idx) => (
-                        <Text key={idx} style={styles.equipmentIconOnly}>
-                          {getEquipmentIcon(variant.equipment)}
-                        </Text>
-                      ))
-                    ) : (
-                      <Text style={styles.equipmentIconOnly}>{getEquipmentIcon(item.equipment)}</Text>
-                    )}
+                  {/* Equipment badges */}
+                  <View style={styles.metaBadgesContainer}>
+                    {(() => {
+                      const validVariants = getValidVariants(item);
+
+                      // If there are multiple variants, show count in detailed view too
+                      if (validVariants && validVariants.length > 1) {
+                        return (
+                          <View style={styles.equipmentBadge}>
+                            <Text style={styles.equipmentBadgeText} numberOfLines={1} ellipsizeMode="tail">
+                              {validVariants.length} variations
+                            </Text>
+                          </View>
+                        );
+                      }
+
+                      // Single variant or no variants - show equipment type
+                      const equipment = (validVariants && validVariants.length === 1)
+                        ? validVariants[0].equipment
+                        : item.equipment;
+
+                      if (equipment && String(equipment).trim().length > 0) {
+                        return (
+                          <View style={styles.equipmentBadge}>
+                            <Text style={styles.equipmentBadgeText} numberOfLines={1} ellipsizeMode="tail">
+                              {getEquipmentLabel(equipment)}
+                            </Text>
+                          </View>
+                        );
+                      }
+                      return null;
+                    })()}
                   </View>
-                  {item.difficulty === 'Beginner' && (
-                    <View style={[styles.difficultyShape, styles.beginnerCircle]} />
+
+                  {/* Muscle Group badge */}
+                  {item.muscleGroup && (
+                    <View style={[styles.muscleGroupBadge, { backgroundColor: getMuscleGroupColor(item.muscleGroup) }]}>
+                      <Text style={[styles.muscleGroupBadgeText, { color: getMuscleGroupTextColor(item.muscleGroup) }]}>
+                        {getMuscleGroupLabel(item.muscleGroup)}
+                      </Text>
+                    </View>
                   )}
-                  {item.difficulty === 'Intermediate' && (
-                    <View style={[styles.difficultyShape, styles.intermediateTriangle]} />
-                  )}
-                  {item.difficulty === 'Advanced' && (
-                    <View style={[styles.difficultyShape, styles.advancedSquare]} />
-                  )}
+
+                  {/* Difficulty badge */}
+                  <View style={[styles.difficultyBadge, { backgroundColor: getDifficultyColor(item.difficulty) }]}>
+                    <Text style={[styles.difficultyBadgeText, { color: getDifficultyTextColor(item.difficulty) }]}>
+                      {getDifficultyLabel(item.difficulty)}
+                    </Text>
+                  </View>
                 </View>
 
                 {/* Instructions - Removed to save space */}
@@ -594,7 +753,10 @@ export default function ExerciseListScreen({ navigation, route }) {
 
             // Default compact view
             return (
-              <View style={styles.exerciseCard}>
+              <View style={[
+                styles.exerciseCard,
+                debugMode && { borderWidth: 2, borderColor: '#ff00ff' }
+              ]}>
                 {/* Exercise Image - Small thumbnail for compact view */}
                 {item.image && (
                   <TouchableOpacity
@@ -609,51 +771,102 @@ export default function ExerciseListScreen({ navigation, route }) {
                     />
                   </TouchableOpacity>
                 )}
-                <View style={styles.exerciseContent}>
-                  {/* Exercise Name */}
-                  {item.isCustom && <Text style={styles.customBadge}>⭐ CUSTOM</Text>}
-                  <Text style={styles.exerciseName} numberOfLines={2} ellipsizeMode="tail">{item.name}</Text>
-
-                  {/* Exercise Meta */}
-                  <View style={styles.exerciseMeta}>
-                    <View style={styles.equipmentTagRow}>
-                      {item.variants && item.variants.length > 0 ? (
-                        item.variants.map((variant, idx) => (
-                          <Text key={idx} style={styles.equipmentIconOnly}>
-                            {getEquipmentIcon(variant.equipment)}
-                          </Text>
-                        ))
-                      ) : (
-                        <Text style={styles.equipmentIconOnly}>{getEquipmentIcon(item.equipment)}</Text>
-                      )}
-                    </View>
-                    {item.difficulty === 'Beginner' && (
-                      <View style={[styles.difficultyShape, styles.beginnerCircle]} />
-                    )}
-                    {item.difficulty === 'Intermediate' && (
-                      <View style={[styles.difficultyShape, styles.intermediateTriangle]} />
-                    )}
-                    {item.difficulty === 'Advanced' && (
-                      <View style={[styles.difficultyShape, styles.advancedSquare]} />
-                    )}
+                <View style={[
+                  styles.exerciseContent,
+                  debugMode && { borderWidth: 1, borderColor: '#00ff00' }
+                ]}>
+                  {/* Title Zone */}
+                  <View style={styles.titleZone}>
+                    {item.isCustom && <Text style={styles.customBadge}>⭐ CUSTOM</Text>}
+                    <Text style={styles.exerciseName} numberOfLines={2} ellipsizeMode="tail">{item.name}</Text>
                   </View>
 
-                  {/* Action Buttons */}
-                  <View style={styles.actionButtons}>
+                  {/* Tag Zone - Fixed height area for badges */}
+                  <View style={[
+                    styles.tagZone,
+                    debugMode && { borderWidth: 1, borderColor: '#ffff00' }
+                  ]}>
+                    <View style={styles.exerciseMeta}>
+                    {/* Equipment badges */}
+                    <View style={styles.metaBadgesContainer}>
+                      {(() => {
+                        const validVariants = getValidVariants(item);
+
+                        // If there are multiple variants, show count instead of listing all
+                        if (validVariants && validVariants.length > 1) {
+                          return (
+                            <View style={styles.equipmentBadge}>
+                              <Text style={styles.equipmentBadgeText} numberOfLines={1} ellipsizeMode="tail">
+                                {validVariants.length} variations
+                              </Text>
+                            </View>
+                          );
+                        }
+
+                        // Single variant or no variants - show equipment type
+                        const equipment = (validVariants && validVariants.length === 1)
+                          ? validVariants[0].equipment
+                          : item.equipment;
+
+                        if (equipment && String(equipment).trim().length > 0) {
+                          return (
+                            <View style={styles.equipmentBadge}>
+                              <Text style={styles.equipmentBadgeText} numberOfLines={1} ellipsizeMode="tail">
+                                {getEquipmentLabel(equipment)}
+                              </Text>
+                            </View>
+                          );
+                        }
+                        return null;
+                      })()}
+                    </View>
+
+                      {/* Muscle Group badge */}
+                      {item.muscleGroup && (
+                        <View style={[styles.muscleGroupBadge, { backgroundColor: getMuscleGroupColor(item.muscleGroup) }]}>
+                          <Text style={[styles.muscleGroupBadgeText, { color: getMuscleGroupTextColor(item.muscleGroup) }]}>
+                            {getMuscleGroupLabel(item.muscleGroup)}
+                          </Text>
+                        </View>
+                      )}
+
+                      {/* Difficulty badge */}
+                      <View style={[styles.difficultyBadge, { backgroundColor: getDifficultyColor(item.difficulty) }]}>
+                        <Text style={[styles.difficultyBadgeText, { color: getDifficultyTextColor(item.difficulty) }]}>
+                          {getDifficultyLabel(item.difficulty)}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+
+                  {/* Spacer - Fills remaining space */}
+                  <View style={styles.cardSpacer} />
+
+                  {/* Action Buttons - Anchored at bottom */}
+                  <View style={[
+                    styles.actionButtons,
+                    debugMode && { borderWidth: 1, borderColor: '#00ffff' }
+                  ]}>
                     <TouchableOpacity
-                      style={styles.infoButton}
+                      style={[
+                        styles.infoButton,
+                        debugMode && { borderWidth: 1, borderColor: '#ff0000' }
+                      ]}
                       onPress={() => showInfoForExercise(item)}
                     >
-                      <Text style={styles.infoButtonText}>Info</Text>
+                      <Text style={styles.infoButtonText} numberOfLines={1} ellipsizeMode="tail">Info</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                      style={styles.addButton}
+                      style={[
+                        styles.addButton,
+                        debugMode && { borderWidth: 1, borderColor: '#0000ff' }
+                      ]}
                       onPress={() => startWorkoutWithExercise(item)}
                     >
-                      <Text style={styles.addButtonText}>
-                      {fromProgramCreation ? 'Add' : (fromWorkout || isWorkoutActive() ? 'Add Exercise' : 'Start')}
-                    </Text>
+                      <Text style={styles.addButtonText} numberOfLines={1} ellipsizeMode="tail">
+                        {fromProgramCreation ? 'Add' : (fromWorkout || isWorkoutActive() ? 'Add' : 'Start')}
+                      </Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -748,21 +961,22 @@ const styles = StyleSheet.create({
   searchBarRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: Spacing.md,
-    paddingTop: Spacing.sm,
-    paddingBottom: Spacing.xs,
-    gap: Spacing.sm,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 12,
+    gap: 10,
   },
   searchContainer: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    minHeight: 46,
   },
   searchIcon: {
     fontSize: 16,
@@ -785,17 +999,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
     borderWidth: 1,
-    borderColor: Colors.border,
-    gap: Spacing.xs,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    gap: 6,
+    minHeight: 46,
+    justifyContent: 'center',
   },
   filterToggleButtonActive: {
-    backgroundColor: Colors.surface,
+    backgroundColor: 'rgba(138, 43, 226, 0.15)',
     borderColor: Colors.primary,
-    borderWidth: 2,
+    borderWidth: 1,
   },
   filterToggleIcon: {
     fontSize: 16,
@@ -804,6 +1020,94 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.sm,
     fontWeight: '600',
     color: Colors.textSecondary,
+  },
+  debugToggleButton: {
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    minHeight: 46,
+    minWidth: 46,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  debugToggleButtonActive: {
+    backgroundColor: 'rgba(255, 0, 0, 0.15)',
+    borderColor: '#ff0000',
+    borderWidth: 1,
+  },
+  debugToggleText: {
+    fontSize: 18,
+  },
+  debugConsole: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.95)',
+    borderTopWidth: 2,
+    borderTopColor: '#ff0000',
+    maxHeight: 200,
+    zIndex: 9999,
+  },
+  debugHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ff0000',
+  },
+  debugTitle: {
+    color: '#ff0000',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  debugButtonRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  debugActionButton: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  debugActionButtonText: {
+    color: '#ffaa00',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  debugActiveButton: {
+    backgroundColor: 'rgba(255, 170, 0, 0.2)',
+    borderRadius: 4,
+  },
+  debugActiveButtonText: {
+    color: '#ffdd00',
+  },
+  debugClearButton: {
+    color: '#ff6666',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  debugLogContainer: {
+    maxHeight: 150,
+    padding: 8,
+  },
+  debugLogText: {
+    color: '#00ff00',
+    fontSize: 10,
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+    marginBottom: 4,
+  },
+  debugEmptyState: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  debugEmptyText: {
+    color: '#666',
+    fontSize: 12,
+    fontStyle: 'italic',
   },
   filtersContainer: {
     paddingHorizontal: Spacing.md,
@@ -863,58 +1167,140 @@ const styles = StyleSheet.create({
   },
   exerciseCard: {
     backgroundColor: Colors.surface,
-    marginBottom: Spacing.md,
-    borderRadius: BorderRadius.lg,
+    marginBottom: 14,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: Colors.border,
-    padding: Spacing.sm,
-    height: 140,
-    flex: 1,
-    marginHorizontal: Spacing.sm,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    padding: 16,
+    minHeight: 230,
+    height: 230, // Fixed height for all cards
+    width: '47%', // Fixed width for consistency
+    shadowColor: '#FFFFFF',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 3,
+    justifyContent: 'space-between', // Distribute content evenly
   },
   gridRow: {
     justifyContent: 'space-between',
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: 14, // Consistent horizontal padding
+    marginBottom: 0,
   },
   gridContainer: {
     paddingBottom: Spacing.xxl,
+    paddingTop: 8,
   },
   exerciseContent: {
     flex: 1,
+    flexDirection: 'column',
+    justifyContent: 'flex-start', // Changed from space-between to control spacing manually
+  },
+  // Title zone
+  titleZone: {
+    marginBottom: 8,
+  },
+  // Tag zone with fixed height
+  tagZone: {
+    minHeight: 68, // Increased height to accommodate more badges (allows 3 rows)
+    marginBottom: 8,
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
+  },
+  // Spacer to push buttons to bottom
+  cardSpacer: {
+    minHeight: 8,
   },
   exerciseName: {
-    fontSize: Typography.fontSize.md,
-    fontWeight: 'bold',
+    fontSize: 16,
+    fontWeight: '700',
     color: Colors.text,
-    marginBottom: Spacing.xs,
-    lineHeight: 18,
+    lineHeight: 20,
+    letterSpacing: -0.3,
   },
   actionButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 'auto',
-    gap: Spacing.xs,
+    gap: 8,
+    width: '100%',
+    marginTop: 0, // Removed auto since card handles spacing
   },
   infoButton: {
-    backgroundColor: Colors.primary,
-    paddingHorizontal: Spacing.xs,
-    paddingVertical: 6,
-    borderRadius: BorderRadius.sm,
-    flex: 1,
+    backgroundColor: 'rgba(138, 43, 226, 0.25)',
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    borderRadius: 10,
+    flexBasis: '35%',
+    flexShrink: 0,
     alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(138, 43, 226, 0.4)',
+    minHeight: 38,
   },
   infoButtonText: {
-    color: Colors.background,
-    fontWeight: 'bold',
-    fontSize: Typography.fontSize.sm,
+    color: '#c9a0ff',
+    fontWeight: '600',
+    fontSize: 13,
+    textAlign: 'center',
+    flexShrink: 0, // Prevent text from shrinking/wrapping
   },
   exerciseMeta: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: 6,
+    width: '100%',
+  },
+  metaBadgesContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: Spacing.sm,
-    minHeight: 24,
+    gap: 6,
+    width: '100%',
+    flexWrap: 'wrap',
   },
+  equipmentBadge: {
+    backgroundColor: 'rgba(138, 43, 226, 0.2)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
+    borderWidth: 0,
+    flexShrink: 0,
+    alignSelf: 'flex-start',
+    maxWidth: '100%', // Allow badge to use full available width
+  },
+  equipmentBadgeText: {
+    fontSize: 10,
+    color: '#c9a0ff',
+    fontWeight: '500',
+    letterSpacing: 0,
+    lineHeight: 14,
+  },
+  difficultyBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  difficultyBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  muscleGroupBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginRight: 6,
+  },
+  muscleGroupBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  // Legacy styles - kept for compatibility
   equipmentTag: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1009,16 +1395,22 @@ const styles = StyleSheet.create({
   },
   addButton: {
     backgroundColor: Colors.primary,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.md,
-    flex: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    borderRadius: 10,
+    flexBasis: '60%',
+    flexShrink: 0,
     alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 38,
   },
   addButtonText: {
-    color: Colors.background,
-    fontWeight: 'bold',
-    fontSize: Typography.fontSize.md,
+    color: '#FFFFFF',
+    fontWeight: '700',
+    fontSize: 13,
+    textAlign: 'center',
+    letterSpacing: 0.3,
+    flexShrink: 0, // Prevent text from shrinking/wrapping
   },
 
   // Detailed View Styles

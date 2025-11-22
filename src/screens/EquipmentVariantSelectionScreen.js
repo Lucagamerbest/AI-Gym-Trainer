@@ -5,9 +5,12 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Image,
+  ActivityIndicator,
 } from 'react-native';
 import ScreenLayout from '../components/ScreenLayout';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
+import { getVariantImage } from '../utils/exerciseImages';
 
 /**
  * Full-screen Equipment Variant Selection
@@ -26,6 +29,10 @@ export default function EquipmentVariantSelectionScreen({ navigation, route }) {
 
   // Track which variant is expanded
   const [expandedVariantIndex, setExpandedVariantIndex] = React.useState(null);
+
+  // Track image loading states
+  const [imageLoadingStates, setImageLoadingStates] = React.useState({});
+  const [imageErrorStates, setImageErrorStates] = React.useState({});
 
   const toggleVariant = (index) => {
     setExpandedVariantIndex(expandedVariantIndex === index ? null : index);
@@ -126,6 +133,9 @@ export default function EquipmentVariantSelectionScreen({ navigation, route }) {
           const difficultyColor = getDifficultyColor(variant.difficulty);
           const equipmentIcon = getEquipmentIcon(variant.equipment);
           const isExpanded = expandedVariantIndex === index;
+          const imageUrl = getVariantImage(exercise.name, variant.equipment, 0);
+          const isImageLoading = imageLoadingStates[index];
+          const hasImageError = imageErrorStates[index];
 
           return (
             <View
@@ -141,9 +151,40 @@ export default function EquipmentVariantSelectionScreen({ navigation, route }) {
                 onPress={() => toggleVariant(index)}
                 activeOpacity={0.7}
               >
+                {/* Exercise Image Thumbnail */}
+                <View style={styles.imageThumbnailContainer}>
+                  {imageUrl && !hasImageError ? (
+                    <>
+                      <Image
+                        source={{ uri: imageUrl }}
+                        style={styles.imageThumbnail}
+                        resizeMode="cover"
+                        onLoadStart={() => {
+                          setImageLoadingStates(prev => ({ ...prev, [index]: true }));
+                        }}
+                        onLoadEnd={() => {
+                          setImageLoadingStates(prev => ({ ...prev, [index]: false }));
+                        }}
+                        onError={() => {
+                          setImageErrorStates(prev => ({ ...prev, [index]: true }));
+                          setImageLoadingStates(prev => ({ ...prev, [index]: false }));
+                        }}
+                      />
+                      {isImageLoading && (
+                        <View style={styles.imageLoadingOverlay}>
+                          <ActivityIndicator size="small" color={Colors.primary} />
+                        </View>
+                      )}
+                    </>
+                  ) : (
+                    <View style={styles.imagePlaceholder}>
+                      <Text style={styles.equipmentIconLarge}>{equipmentIcon}</Text>
+                    </View>
+                  )}
+                </View>
+
                 <View style={styles.equipmentRow}>
-                  <Text style={styles.equipmentIcon}>{equipmentIcon}</Text>
-                  <Text style={styles.equipmentName} numberOfLines={1} ellipsizeMode="tail">{variant.equipment}</Text>
+                  <Text style={styles.equipmentName} numberOfLines={2} ellipsizeMode="tail">{variant.equipment}</Text>
                 </View>
                 <View style={styles.headerRight}>
                   {variant.difficulty === 'Beginner' && (
@@ -306,6 +347,39 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: Spacing.lg,
+    gap: Spacing.md,
+  },
+  imageThumbnailContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: BorderRadius.md,
+    overflow: 'hidden',
+    backgroundColor: Colors.border,
+    flexShrink: 0,
+  },
+  imageThumbnail: {
+    width: '100%',
+    height: '100%',
+  },
+  imageLoadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  imagePlaceholder: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+  },
+  equipmentIconLarge: {
+    fontSize: 40,
   },
   headerRight: {
     flexDirection: 'row',
@@ -325,20 +399,20 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.md,
   },
   equipmentRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: 'column',
+    justifyContent: 'center',
     flex: 1,
-    marginRight: Spacing.sm,
   },
   equipmentIcon: {
     fontSize: 24,
     marginRight: Spacing.sm,
+    flexShrink: 0,
   },
   equipmentName: {
     fontSize: Typography.fontSize.lg,
     fontWeight: 'bold',
     color: Colors.text,
-    flex: 1,
+    flexWrap: 'wrap',
   },
   difficultyBadge: {
     paddingHorizontal: Spacing.md,
