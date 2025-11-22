@@ -61,6 +61,7 @@ export default function EquipmentVariantSelectionScreen({ navigation, route }) {
       selectedVariant: variant,
       equipment: variant.equipment,
       difficulty: variant.difficulty,
+      image: getVariantImage(exercise.name, variant.equipment, 0),
       _originalExercise: exercise,
     };
 

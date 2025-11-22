@@ -228,14 +228,16 @@ export default function ExerciseDetailScreen({ navigation, route }) {
             </View>
           )}
 
-          {/* Exercise Image - Show for custom exercises or if available */}
-          {(exercise?.image || exercise?.isCustom) && exercise?.image && (
+          {/* Exercise Image - Show if available */}
+          {exercise?.image && (
             <TouchableOpacity
               style={{
                 alignSelf: 'center',
                 marginBottom: getResponsiveSpacing(1),
                 borderRadius: BorderRadius.lg,
                 overflow: 'hidden',
+                width: '100%',
+                alignItems: 'center',
               }}
               onPress={() => setShowFullScreenImage(true)}
               activeOpacity={0.8}
@@ -243,12 +245,20 @@ export default function ExerciseDetailScreen({ navigation, route }) {
               <Image
                 source={{ uri: exercise.image }}
                 style={{
-                  width: getResponsiveSize(200, 250, 300),
-                  height: getResponsiveSize(150, 180, 200),
+                  width: screenWidth * 0.85,
+                  height: screenWidth * 0.85 * 0.75,
                   borderRadius: BorderRadius.lg,
                 }}
                 resizeMode="cover"
               />
+              <Text style={{
+                fontSize: getResponsiveFontSize(Typography.fontSize.xs),
+                color: Colors.textMuted,
+                marginTop: getResponsiveSpacing(0.5),
+                fontStyle: 'italic',
+              }}>
+                Tap to view full size
+              </Text>
             </TouchableOpacity>
           )}
 
