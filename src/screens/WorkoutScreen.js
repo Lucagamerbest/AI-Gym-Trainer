@@ -176,7 +176,7 @@ const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exercise
               <Text style={styles.exerciseListNumber}>
                 {index + 1}
               </Text>
-              <Text style={styles.exerciseListName} numberOfLines={1} ellipsizeMode="tail">
+              <Text style={styles.exerciseListName} numberOfLines={2} ellipsizeMode="tail">
                 {exercise.name}
               </Text>
             </View>
@@ -192,21 +192,21 @@ const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exercise
               style={styles.actionIconButton}
               onPress={() => onShowInfo(exercise)}
             >
-              <Text style={styles.actionIconText}>ℹ️</Text>
+              <Ionicons name="information-circle-outline" size={20} color={Colors.primary} />
             </TouchableOpacity>
 
             <TouchableOpacity
               style={[styles.actionIconButton, supersetPairIndex !== null && supersetPairIndex !== undefined && styles.pairButtonActive]}
               onPress={() => onPairSuperset(index)}
             >
-              <Text style={styles.actionIconText}>🔗</Text>
+              <Ionicons name="link-outline" size={20} color={supersetPairIndex !== null && supersetPairIndex !== undefined ? '#3498DB' : Colors.text} />
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.actionIconButton}
+              style={[styles.actionIconButton, styles.deleteIconButton]}
               onPress={() => onDelete(index)}
             >
-              <Text style={styles.actionIconText}>✕</Text>
+              <Ionicons name="close" size={22} color={Colors.error} />
             </TouchableOpacity>
           </View>
         </View>
@@ -381,6 +381,7 @@ export default function WorkoutScreen({ navigation, route }) {
   const [showTimerPicker, setShowTimerPicker] = useState(false);
   const [pickerMinutes, setPickerMinutes] = useState(1);
   const [pickerSeconds, setPickerSeconds] = useState(0);
+  const [showRestTimerModal, setShowRestTimerModal] = useState(false);
   const [showFinishConfirmation, setShowFinishConfirmation] = useState(false);
   const [showAIAssistant, setShowAIAssistant] = useState(false);
   const [showSetTypeModal, setShowSetTypeModal] = useState(false);
@@ -1058,11 +1059,13 @@ export default function WorkoutScreen({ navigation, route }) {
     setShowTimerPicker(true);
   };
 
-  // Apply picker selection
+  // Apply picker selection and auto-start timer
   const applyTimerSelection = () => {
     const totalSeconds = (pickerMinutes * 60) + pickerSeconds;
     setRestTargetSeconds(totalSeconds);
     setShowTimerPicker(false);
+    // Auto-start the timer after setting the duration
+    startRestTimer(totalSeconds);
   };
 
   // Handle finish workout confirmation
@@ -1637,7 +1640,7 @@ export default function WorkoutScreen({ navigation, route }) {
 
   // Create custom header component with workout stats
   const WorkoutStatsHeader = () => (
-    <View>
+    <View style={styles.headerStatsContainer}>
       {/* Show program info if from program */}
       {activeWorkout?.fromProgram && (
         <View style={styles.programInfoBar}>
@@ -1647,33 +1650,16 @@ export default function WorkoutScreen({ navigation, route }) {
         </View>
       )}
 
-      <View style={styles.headerStats}>
-        <TouchableOpacity
-          style={styles.headerStatBox}
-          onPress={toggleWorkoutPause}
-          activeOpacity={0.7}
-        >
-          <View style={styles.headerTimerContent}>
-            <Text style={styles.headerPauseIcon}>
-              {isWorkoutPaused ? '▶' : '⏸'}
-            </Text>
-            <Text style={[
-              styles.headerTimerText,
-              isWorkoutPaused && styles.headerTimerPaused
-            ]}>
-              {getElapsedTime()}
-            </Text>
-          </View>
-        </TouchableOpacity>
-
+      {/* Volume and Sets - Two columns */}
+      <View style={styles.headerStatsRow}>
         <View style={styles.headerStatBox}>
           <Text style={styles.headerStatValue}>{totalVolume.toLocaleString()}</Text>
-          <Text style={styles.headerStatLabel}>volume (lbs)</Text>
+          <Text style={styles.headerStatLabel}>VOLUME</Text>
         </View>
 
         <View style={styles.headerStatBox}>
           <Text style={styles.headerStatValue}>{totalSets}</Text>
-          <Text style={styles.headerStatLabel}>sets</Text>
+          <Text style={styles.headerStatLabel}>SETS</Text>
         </View>
       </View>
     </View>
@@ -1685,59 +1671,53 @@ export default function WorkoutScreen({ navigation, route }) {
         title={<WorkoutStatsHeader />}
         subtitle={null}
         navigation={navigation}
-        showBack={true}
+        showBack={false}
         scrollable={true}
         hideWorkoutIndicator={true}
         screenName="WorkoutScreen"
       >
-      {/* Rest Timer Card */}
-      <View style={styles.restTimerCard}>
-        <View style={styles.restTimerContent}>
-          <Text style={styles.restTimerLabel}>Rest Timer</Text>
-          <View style={styles.restTimerControls}>
-            <TouchableOpacity
-              style={styles.restButton}
-              onPress={() => {
-                stopRestTimer();
-                setRestTargetSeconds(60);
-              }}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.restButtonIcon}>↻</Text>
-            </TouchableOpacity>
+      {/* Workout Timer Card - Split Layout */}
+      <View style={styles.workoutTimerCard}>
+        {/* Left Section: Workout Timer (centered in this space) */}
+        <View style={styles.workoutTimerSection}>
+          <TouchableOpacity
+            style={styles.workoutTimerMain}
+            onPress={toggleWorkoutPause}
+            activeOpacity={0.7}
+          >
+            <Ionicons
+              name={isWorkoutPaused ? 'play' : 'pause'}
+              size={28}
+              color={isWorkoutPaused ? '#FF9800' : Colors.primary}
+            />
+            <Text style={[
+              styles.workoutTimerText,
+              isWorkoutPaused && styles.workoutTimerPaused
+            ]}>
+              {getElapsedTime()}
+            </Text>
+          </TouchableOpacity>
+        </View>
 
-            <TouchableOpacity
-              style={styles.restTimerDisplay}
-              onPress={openTimerPicker}
-              activeOpacity={0.7}
-            >
-              <Text style={[
-                styles.restTimerText,
-                isRestTimerRunning && styles.activeTimer
-              ]}>
-                {restTimer > 0 ? formatRestTimer(restTimer) : formatRestTimer(restTargetSeconds)}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.restButton,
-                isRestTimerRunning && styles.activeRestButton
-              ]}
-              onPress={() => {
-                if (isRestTimerRunning) {
-                  stopRestTimer();
-                } else {
-                  startRestTimer();
-                }
-              }}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.restButtonIcon}>
-                {isRestTimerRunning ? '⏸' : '▶'}
-              </Text>
-            </TouchableOpacity>
-          </View>
+        {/* Right Section: Rest Timer (centered vertically) */}
+        <View style={styles.restTimerSection}>
+          <TouchableOpacity
+            style={styles.restTimerButton}
+            onPress={() => setShowRestTimerModal(true)}
+            activeOpacity={0.7}
+          >
+            <Ionicons
+              name="timer-outline"
+              size={18}
+              color={isRestTimerRunning ? Colors.primary : Colors.textSecondary}
+            />
+            <Text style={[
+              styles.restTimerButtonText,
+              isRestTimerRunning && styles.restTimerButtonActive
+            ]}>
+              {restTimer > 0 ? formatRestTimer(restTimer) : formatRestTimer(restTargetSeconds)}
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -1790,7 +1770,8 @@ export default function WorkoutScreen({ navigation, route }) {
               activeOpacity={0.8}
               onPress={() => setShowAIAssistant(true)}
             >
-              <Text style={[styles.actionButtonText, styles.aiButtonText]}>🤖 Ask AI Assistant</Text>
+              <Ionicons name="sparkles" size={20} color={Colors.background} />
+              <Text style={[styles.actionButtonText, styles.aiButtonText]}>Ask AI Assistant</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -1852,6 +1833,76 @@ export default function WorkoutScreen({ navigation, route }) {
                 <Text style={[styles.modalButtonText, styles.modalButtonTextPrimary]}>Set Timer</Text>
               </TouchableOpacity>
             </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Rest Timer Modal */}
+      <Modal
+        visible={showRestTimerModal}
+        transparent={true}
+        animationType="slide"
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Rest Timer</Text>
+
+            <View style={styles.restTimerModalDisplay}>
+              <Text style={styles.restTimerModalText}>
+                {restTimer > 0 ? formatRestTimer(restTimer) : formatRestTimer(restTargetSeconds)}
+              </Text>
+            </View>
+
+            <View style={styles.restTimerModalControls}>
+              <TouchableOpacity
+                style={styles.restTimerModalButton}
+                onPress={() => {
+                  stopRestTimer();
+                  setRestTargetSeconds(60);
+                }}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="refresh-outline" size={24} color={Colors.text} />
+                <Text style={styles.restTimerModalButtonLabel}>Reset</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.restTimerModalButton}
+                onPress={openTimerPicker}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="time-outline" size={24} color={Colors.text} />
+                <Text style={styles.restTimerModalButtonLabel}>Set Time</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.restTimerModalButton, styles.restTimerModalButtonPrimary]}
+                onPress={() => {
+                  if (isRestTimerRunning) {
+                    stopRestTimer();
+                  } else {
+                    startRestTimer();
+                  }
+                }}
+                activeOpacity={0.7}
+              >
+                <Ionicons
+                  name={isRestTimerRunning ? 'pause' : 'play'}
+                  size={24}
+                  color={Colors.background}
+                />
+                <Text style={[styles.restTimerModalButtonLabel, styles.restTimerModalButtonLabelPrimary]}>
+                  {isRestTimerRunning ? 'Pause' : 'Start'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              style={[styles.modalButton, styles.modalButtonPrimary]}
+              onPress={() => setShowRestTimerModal(false)}
+            >
+              <Text style={[styles.modalButtonText, styles.modalButtonTextPrimary]}>Close</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -2108,39 +2159,34 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'center',
   },
-  // Header Stats Styles
-  headerStats: {
+  // Header Stats Styles - Single Row Layout
+  headerStatsContainer: {
+    width: '100%',
+  },
+  headerTimerText: {
+    fontSize: Typography.fontSize.xl,
+    fontWeight: 'bold',
+    color: Colors.text,
+    fontFamily: 'monospace',
+    letterSpacing: 1,
+  },
+  headerTimerPaused: {
+    color: '#FF9800',
+  },
+  headerStatsRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
+    gap: 8,
   },
   headerStatBox: {
     backgroundColor: Colors.surface,
+    paddingVertical: 10,
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: BorderRadius.sm,
+    borderRadius: BorderRadius.md,
     borderWidth: 1,
     borderColor: Colors.border,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  headerTimerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-  },
-  headerPauseIcon: {
-    fontSize: 18,
-    color: Colors.primary,
-  },
-  headerTimerText: {
-    fontSize: Typography.fontSize.lg,
-    fontWeight: 'bold',
-    color: Colors.text,
-    fontFamily: 'monospace',
-  },
-  headerTimerPaused: {
-    color: '#FF9800',
+    flex: 1,
   },
   headerStatValue: {
     fontSize: Typography.fontSize.lg,
@@ -2148,48 +2194,130 @@ const styles = StyleSheet.create({
     color: Colors.text,
   },
   headerStatLabel: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    marginTop: -2,
-  },
-  // Rest Timer Card Styles
-  restTimerCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.md,
-    marginBottom: Spacing.md,
-    marginHorizontal: Spacing.xs,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  restTimerContent: {
-    paddingVertical: 12,
-    paddingHorizontal: Spacing.md,
-  },
-  restTimerLabel: {
     fontSize: Typography.fontSize.xs,
     color: Colors.textSecondary,
-    fontWeight: '600',
+    marginTop: 2,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    textAlign: 'center',
-    marginBottom: 8,
   },
-  restTimerControls: {
+  // Rest Timer Icon in Header Styles
+  restTimerIconBox: {
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+  },
+  restTimerIconText: {
+    fontSize: Typography.fontSize.xs,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+    marginTop: 2,
+    fontFamily: 'monospace',
+  },
+  restTimerIconActive: {
+    color: Colors.primary,
+  },
+  // Workout Timer Card Styles (split layout)
+  workoutTimerCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    marginBottom: Spacing.md,
+    marginHorizontal: Spacing.xs,
+    borderWidth: 2,
+    borderColor: Colors.border,
+    paddingVertical: 20,
+    paddingHorizontal: Spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  workoutTimerSection: {
+    flex: 3,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  restTimerSection: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  workoutTimerMain: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 12,
+    gap: 16,
   },
-  restButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+  workoutTimerText: {
+    fontSize: 36,
+    fontWeight: 'bold',
+    color: Colors.text,
+    fontFamily: 'monospace',
+    letterSpacing: 2,
+  },
+  workoutTimerPaused: {
+    color: '#FF9800',
+  },
+  restTimerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  restTimerButtonText: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+    fontFamily: 'monospace',
+  },
+  restTimerButtonActive: {
+    color: Colors.primary,
+  },
+  // Rest Timer Modal Styles
+  restTimerModalDisplay: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 24,
+    marginVertical: 16,
     backgroundColor: Colors.background,
+    borderRadius: BorderRadius.md,
     borderWidth: 1,
     borderColor: Colors.border,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
+  restTimerModalText: {
+    fontSize: 48,
+    fontWeight: 'bold',
+    color: Colors.text,
+    fontFamily: 'monospace',
+    letterSpacing: 2,
+  },
+  restTimerModalControls: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 20,
+  },
+  restTimerModalButton: {
+    flex: 1,
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  restTimerModalButtonPrimary: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  restTimerModalButtonLabel: {
+    fontSize: Typography.fontSize.xs,
+    fontWeight: '600',
+    color: Colors.text,
+    textTransform: 'uppercase',
+  },
+  restTimerModalButtonLabelPrimary: {
+    color: Colors.background,
+  },
+  // Old rest timer styles (kept for reference, can be removed)
   activeRestButton: {
     backgroundColor: Colors.primary + '20',
     borderColor: Colors.primary,
@@ -2425,13 +2553,15 @@ const styles = StyleSheet.create({
   exerciseHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: Spacing.xs,
-    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    gap: Spacing.sm,
   },
   exerciseActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 2,
+    gap: 4,
+    marginLeft: 'auto',
   },
   moveButton: {
     padding: Spacing.xs,
@@ -2596,25 +2726,29 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: Colors.primary,
     marginRight: Spacing.sm,
-    minWidth: 25,
+    width: 30,
   },
   exerciseListName: {
     fontSize: Typography.fontSize.md,
-    fontWeight: 'bold',
+    fontWeight: '600',
     color: Colors.text,
     flex: 1,
+    flexShrink: 1,
   },
   actionIconButton: {
     padding: 6,
     alignItems: 'center',
     justifyContent: 'center',
-    minWidth: 28,
-    height: 28,
-    marginLeft: 4,
+    width: 36,
+    height: 36,
     borderRadius: BorderRadius.sm,
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   actionIconText: {
-    fontSize: 15,
+    fontSize: 18,
+    color: Colors.text,
   },
   pairButtonActive: {
     backgroundColor: '#3498DB' + '20',
@@ -2778,6 +2912,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(123, 104, 238, 0.9)', // Purple color for AI
     borderWidth: 1,
     borderColor: 'rgba(123, 104, 238, 0.3)',
+    flexDirection: 'row',
+    gap: 8,
+    justifyContent: 'center',
   },
   finishButton: {
     backgroundColor: Colors.primary,
@@ -2819,7 +2956,7 @@ const styles = StyleSheet.create({
     width: '90%',
     maxWidth: 400,
     borderWidth: 2,
-    borderColor: '#4CAF50',
+    borderColor: Colors.primary,
   },
   modalTitle: {
     fontSize: Typography.fontSize.lg,
@@ -2853,7 +2990,7 @@ const styles = StyleSheet.create({
   pickerLabel: {
     fontSize: Typography.fontSize.md,
     fontWeight: 'bold',
-    color: '#4CAF50',
+    color: Colors.primary,
     marginBottom: Spacing.sm,
   },
   picker: {
@@ -2878,8 +3015,8 @@ const styles = StyleSheet.create({
     borderColor: '#555',
   },
   modalButtonPrimary: {
-    backgroundColor: '#4CAF50',
-    borderColor: '#4CAF50',
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
   },
   modalButtonText: {
     fontSize: Typography.fontSize.md,
