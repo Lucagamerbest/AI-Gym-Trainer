@@ -488,6 +488,7 @@ export default function ExerciseListScreen({ navigation, route }) {
       scrollable={false}
       style={{ paddingHorizontal: 0 }}
       screenName="ExerciseListScreen"
+      hideWorkoutIndicator={true}
     >
       {/* Static Search Bar and Filters */}
       <View style={styles.staticHeaderContainer}>

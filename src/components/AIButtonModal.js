@@ -18,6 +18,7 @@ import { getRecentFoods } from '../services/foodDatabase';
 import MacroStatsCard from './MacroStatsCard';
 import FreeRecipeService from '../services/FreeRecipeService';
 import { getRecipePreferences } from '../services/recipePreferencesService';
+import AIChatModal from './AIChatModal';
 
 /**
  * AIButtonModal
@@ -44,6 +45,7 @@ export default function AIButtonModal({
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [customInputText, setCustomInputText] = useState('');
   const customInputRef = useRef(null);
+  const [showChatModal, setShowChatModal] = useState(false); // For opening AIChatModal
 
   // Recipe source modal state
   const [showRecipeSourceModal, setShowRecipeSourceModal] = useState(false);
@@ -1404,11 +1406,11 @@ export default function AIButtonModal({
                 />
               ))}
 
-              {/* "Ask Coach Anything..." Button - Global Text Input Toggle */}
+              {/* "Ask Coach Anything..." Button - Opens Full Chat Modal */}
               {!lastResponse && !showCustomInput && loadingButton === null && (
                 <TouchableOpacity
                   style={styles.askCoachButton}
-                  onPress={() => setShowCustomInput(true)}
+                  onPress={() => setShowChatModal(true)}
                   activeOpacity={0.7}
                 >
                   <LinearGradient
@@ -1418,7 +1420,7 @@ export default function AIButtonModal({
                     style={styles.askCoachGradient}
                   >
                     <Ionicons name="chatbubble-ellipses" size={20} color={Colors.white} />
-                    <Text style={styles.askCoachButtonText}>Ask Coach Anything...</Text>
+                    <Text style={styles.askCoachButtonText}>Open Chat Mode...</Text>
                     <Ionicons name="chevron-forward" size={20} color={Colors.white} />
                   </LinearGradient>
                 </TouchableOpacity>
@@ -2451,6 +2453,13 @@ export default function AIButtonModal({
       <RecipePreferencesModal
         visible={showRecipePreferencesModal}
         onClose={() => setShowRecipePreferencesModal(false)}
+      />
+
+      {/* AI Chat Modal - For free-form conversation */}
+      <AIChatModal
+        visible={showChatModal}
+        onClose={() => setShowChatModal(false)}
+        screenName={screenName}
       />
     </Modal>
   );

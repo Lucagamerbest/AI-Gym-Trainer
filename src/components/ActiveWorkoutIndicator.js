@@ -226,7 +226,7 @@ const modalStyles = StyleSheet.create({
     width: '90%',
     maxWidth: 400,
     borderWidth: 2,
-    borderColor: '#4CAF50',
+    borderColor: Colors.primary,
   },
   modalTitle: {
     fontSize: Typography.fontSize.lg,
@@ -262,8 +262,8 @@ const modalStyles = StyleSheet.create({
     borderColor: '#555',
   },
   modalButtonPrimary: {
-    backgroundColor: '#4CAF50',
-    borderColor: '#4CAF50',
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
   },
   modalButtonDanger: {
     backgroundColor: '#C44444',

@@ -2891,7 +2891,8 @@ const styles = StyleSheet.create({
   },
   buttonSection: {
     gap: Spacing.md,
-    marginBottom: Spacing.xl,
+    marginBottom: Spacing.xxl * 2, // Extra padding to ensure buttons are always visible
+    paddingBottom: Spacing.lg, // Additional padding for safety
   },
   actionButton: {
     padding: Spacing.md,
