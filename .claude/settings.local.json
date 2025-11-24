@@ -68,7 +68,12 @@
       "WebFetch(domain:sketchfab.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(curl:*)",
-      "WebFetch(domain:youtube.com)"
+      "WebFetch(domain:youtube.com)",
+      "Bash(python:*)",
+      "Bash(del temp_exercises.json)",
+      "Bash(exercise_list.json)",
+      "Bash(copy /Y \"src\\utils\\exerciseImages_COMPLETE.js\" \"src\\utils\\exerciseImages.js\")",
+      "Bash(npx eas:*)"
     ],
     "deny": [],
     "ask": []

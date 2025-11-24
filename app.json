@@ -13,6 +13,8 @@
       "infoPlist": {
         "UIBackgroundModes": [
           "audio",
+          "audio",
+          "audio",
           "audio"
         ],
         "CFBundleURLTypes": [
@@ -25,9 +27,22 @@
             "CFBundleURLSchemes": [
               "com.googleusercontent.apps.1011295206743-rl70k9ibahkkgkf41j8qr6vfneedgb8s"
             ]
+          },
+          {
+            "CFBundleURLSchemes": [
+              "com.googleusercontent.apps.1011295206743-rl70k9ibahkkgkf41j8qr6vfneedgb8s"
+            ]
+          },
+          {
+            "CFBundleURLSchemes": [
+              "com.googleusercontent.apps.1011295206743-rl70k9ibahkkgkf41j8qr6vfneedgb8s"
+            ]
           }
         ],
         "ITSAppUsesNonExemptEncryption": false
+      },
+      "runtimeVersion": {
+        "policy": "appVersion"
       }
     },
     "android": {
@@ -37,8 +52,11 @@
       "package": "com.rarau.workoutwave",
       "permissions": [
         "VIBRATE",
+        "POST_NOTIFICATIONS",
+        "VIBRATE",
         "POST_NOTIFICATIONS"
-      ]
+      ],
+      "runtimeVersion": "1.0.0"
     },
     "web": {
       "bundler": "metro"
@@ -98,6 +116,9 @@
       "eas": {
         "projectId": "8c7c4170-bb4a-46c8-bc8e-8288147175cc"
       }
+    },
+    "updates": {
+      "url": "https://u.expo.dev/8c7c4170-bb4a-46c8-bc8e-8288147175cc"
     }
   }
 }

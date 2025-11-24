@@ -411,6 +411,106 @@ export default function WorkoutScreen({ navigation, route }) {
 
   // Auto-save debounce timer
   const autoSaveTimeoutRef = useRef(null);
+  const latestSetsRef = useRef(exerciseSets);
+  const hasInitializedRef = useRef(false);
+
+  // DEBUG: Log whenever exerciseSets state changes
+  useEffect(() => {
+    console.log('🔵 EXERCISE SETS STATE CHANGED:', JSON.stringify(exerciseSets, null, 2));
+  }, [exerciseSets]);
+
+  // Keep ref updated with latest sets - BUT only if they have actual data
+  useEffect(() => {
+    // Check if exerciseSets has any actual data (not all empty)
+    let hasData = false;
+    for (const exerciseIndex in exerciseSets) {
+      const sets = exerciseSets[exerciseIndex];
+      if (Array.isArray(sets)) {
+        for (const set of sets) {
+          if ((set.weight && set.weight !== '') ||
+              (set.reps && set.reps !== '') ||
+              (set.duration && set.duration > 0)) {
+            hasData = true;
+            break;
+          }
+        }
+      }
+      if (hasData) break;
+    }
+
+    // Only update ref if we have real data OR if ref is currently empty
+    if (hasData || !latestSetsRef.current || Object.keys(latestSetsRef.current).length === 0) {
+      latestSetsRef.current = exerciseSets;
+      if (hasData) {
+        console.log('📝 Updated latestSetsRef with real data');
+      }
+    } else {
+      console.log('⚠️ Skipping ref update - exerciseSets are empty but ref has data');
+    }
+  }, [exerciseSets]);
+
+  // Execute pending save when screen loses focus
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        console.log('🚪 Screen losing focus - forcing immediate save...');
+
+        // Clear any pending timeout
+        if (autoSaveTimeoutRef.current) {
+          clearTimeout(autoSaveTimeoutRef.current);
+        }
+
+        // ALWAYS save when leaving, regardless of pending timeout
+        const saveSets = async () => {
+          try {
+            const sets = latestSetsRef.current;
+
+            if (!sets || Object.keys(sets).length === 0) {
+              console.log('⚠️ No sets to save on blur');
+              return;
+            }
+
+            // Check if the sets have actual data (not all empty)
+            let hasActualData = false;
+            for (const exerciseIndex in sets) {
+              const exerciseSets = sets[exerciseIndex];
+              if (Array.isArray(exerciseSets)) {
+                for (const set of exerciseSets) {
+                  // Check if set has weight, reps, or duration
+                  if ((set.weight && set.weight !== '') ||
+                      (set.reps && set.reps !== '') ||
+                      (set.duration && set.duration > 0)) {
+                    hasActualData = true;
+                    break;
+                  }
+                }
+              }
+              if (hasActualData) break;
+            }
+
+            if (!hasActualData) {
+              console.log('⚠️ Skipping blur save - sets are empty (no weight/reps/duration)');
+              return;
+            }
+
+            // Only save to AsyncStorage - the sync effect will handle context
+            const activeWorkoutStr = await AsyncStorage.getItem('@active_workout');
+            if (activeWorkoutStr) {
+              const currentWorkout = JSON.parse(activeWorkoutStr);
+              currentWorkout.exerciseSets = sets;
+              await AsyncStorage.setItem('@active_workout', JSON.stringify(currentWorkout));
+              console.log('✅ BLUR SAVE COMPLETE - Saved', Object.keys(sets).length, 'exercises to AsyncStorage');
+              console.log('📊 BLUR SAVED DATA:', JSON.stringify(sets, null, 2));
+            }
+          } catch (error) {
+            console.error('❌ Save on blur failed:', error);
+          }
+        };
+
+        saveSets();
+      };
+    }, [])
+  );
 
   // Cleanup auto-save timeout on unmount
   useEffect(() => {
@@ -549,6 +649,52 @@ export default function WorkoutScreen({ navigation, route }) {
 
   // Initialize workout - handle all scenarios
   useEffect(() => {
+    const initializeWorkout = async () => {
+      // Prevent double initialization from React StrictMode or rapid re-renders
+      // Once initialized, NEVER re-initialize to prevent overwriting saved data
+      if (hasInitializedRef.current) {
+        console.log('⚠️ Skipping re-initialization - already initialized');
+        return;
+      }
+
+      console.log('🔄 INITIALIZING WORKOUT SCREEN...');
+
+      // CRITICAL: Load from AsyncStorage first if context is empty
+      if (activeWorkout && (!activeWorkout.exerciseSets || Object.keys(activeWorkout.exerciseSets).length === 0)) {
+        try {
+          const storedWorkout = await AsyncStorage.getItem('@active_workout');
+          if (storedWorkout) {
+            const workout = JSON.parse(storedWorkout);
+            if (workout.exerciseSets && Object.keys(workout.exerciseSets).length > 0) {
+              console.log('📥 Loading exerciseSets from AsyncStorage...');
+              console.log('📊 ASYNC STORAGE DATA:', JSON.stringify(workout.exerciseSets, null, 2));
+
+              // Set directly to state instead of calling updateWorkout to avoid re-initialization loop
+              setExerciseSets(workout.exerciseSets);
+              hasInitializedRef.current = true;
+
+              const totals = calculateTotals(workout.exerciseSets);
+              setTotalVolume(totals.volume);
+              setTotalSets(totals.sets);
+
+              console.log('✅ Loaded sets from AsyncStorage and set to state');
+              return; // Done!
+            }
+          }
+        } catch (error) {
+          console.error('❌ Failed to load from AsyncStorage:', error);
+        }
+      }
+
+      console.log('📋 Active workout from context:', activeWorkout ? 'EXISTS' : 'NULL');
+      if (activeWorkout) {
+        console.log('📋 Exercises in context:', activeWorkout.exercises?.length || 0);
+        console.log('📋 ExerciseSets in context:', activeWorkout.exerciseSets ? Object.keys(activeWorkout.exerciseSets).length : 0);
+        if (activeWorkout.exerciseSets) {
+          console.log('📊 LOADING SETS DATA:', JSON.stringify(activeWorkout.exerciseSets, null, 2));
+        }
+      }
+
     // For program workouts, activeWorkout is set by ProgramDaySelection before navigation
     if (fromProgram && activeWorkout) {
       // Load the sets from the active workout
@@ -557,6 +703,7 @@ export default function WorkoutScreen({ navigation, route }) {
         const totals = calculateTotals(activeWorkout.exerciseSets);
         setTotalVolume(totals.volume);
         setTotalSets(totals.sets);
+        console.log('✅ LOADED SETS for program workout');
       }
       setCurrentExerciseIndex(activeWorkout.currentExerciseIndex || 0);
       return; // Exit early for program workouts
@@ -576,22 +723,25 @@ export default function WorkoutScreen({ navigation, route }) {
     }
     // Resuming existing workout OR returning from adding exercise
     else if (activeWorkout) {
+      console.log('🔄 Resuming existing workout...');
       if (activeWorkout.exerciseSets) {
-        // Restore sets from context, but ensure each exercise has at least one set
+        // Restore sets from context, but ensure ALL exercises have at least one set
+        console.log('📥 Restoring sets from context...');
+        console.log('🎯 ABOUT TO SET EXERCISE SETS TO:', JSON.stringify(activeWorkout.exerciseSets, null, 2));
+
+        // Check if any exercises are missing sets and create default empty ones
         const restoredSets = { ...activeWorkout.exerciseSets };
 
-        // Fix any empty arrays by adding default empty set
-        let needsUpdate = false;
         activeWorkout.exercises?.forEach((ex, index) => {
           if (!restoredSets[index] || !Array.isArray(restoredSets[index]) || restoredSets[index].length === 0) {
             const isCardio = isCardioExercise(ex);
             const isBodyweight = isBodyweightExercise(ex);
+            // Create ONE default EMPTY set
             restoredSets[index] = isCardio
               ? [{ duration: 0, completed: false }]
               : isBodyweight
                 ? [{ reps: '', completed: false }]
                 : [{ weight: '', reps: '', completed: false }];
-            needsUpdate = true;
           }
         });
 
@@ -599,17 +749,24 @@ export default function WorkoutScreen({ navigation, route }) {
         const totals = calculateTotals(restoredSets);
         setTotalVolume(totals.volume);
         setTotalSets(totals.sets);
+        console.log('✅ LOADED SETS for existing workout');
+        console.log('📊 RESTORED DATA:', JSON.stringify(restoredSets, null, 2));
 
-        // If we fixed any empty sets, update the workout context so it syncs to AsyncStorage
-        if (needsUpdate) {
-          updateWorkout({ exerciseSets: restoredSets });
-        }
+        // Mark as initialized to prevent re-initialization
+        hasInitializedRef.current = true;
+
+        // DON'T update context here - it causes re-initialization with empty sets
+        // The auto-save will handle syncing to context when user makes changes
+        console.log('⚠️ Skipping updateWorkout to prevent re-initialization loop');
       }
       if (activeWorkout.currentExerciseIndex !== undefined) {
         setCurrentExerciseIndex(activeWorkout.currentExerciseIndex);
       }
     }
-  }, [activeWorkout, fromProgram]); // Re-run when activeWorkout changes
+    };
+
+    initializeWorkout();
+  }, [activeWorkout, fromProgram, updateWorkout]); // Re-run when activeWorkout changes
 
   // Update exercise index when new exercises are added via context
   useEffect(() => {
@@ -617,6 +774,68 @@ export default function WorkoutScreen({ navigation, route }) {
       setCurrentExerciseIndex(activeWorkout.currentExerciseIndex);
     }
   }, [activeWorkout?.currentExerciseIndex]);
+
+  // Handle new exercises being added - auto-create default sets
+  // Track previous exercise count to detect when exercises are actually added (not just loaded)
+  const prevExerciseCountRef = useRef(0);
+  const hasRunInitialCheckRef = useRef(false);
+
+  useEffect(() => {
+    const currentExerciseCount = activeWorkout?.exercises?.length || 0;
+
+    // Skip if no exercises
+    if (!activeWorkout?.exercises || currentExerciseCount === 0) {
+      return;
+    }
+
+    // Skip until initialization is complete to avoid interfering with data loading
+    if (!hasInitializedRef.current) {
+      prevExerciseCountRef.current = currentExerciseCount;
+      return;
+    }
+
+    // Check if this is the first run after initialization OR if exercise count increased
+    const isInitialCheck = hasInitializedRef.current && !hasRunInitialCheckRef.current;
+    const hasExercisesAdded = currentExerciseCount > prevExerciseCountRef.current;
+
+    if (!isInitialCheck && !hasExercisesAdded) {
+      prevExerciseCountRef.current = currentExerciseCount;
+      return;
+    }
+
+    if (isInitialCheck) {
+      hasRunInitialCheckRef.current = true;
+    }
+
+    // Use functional setState to get current value and avoid stale closure
+    setExerciseSets(currentSets => {
+      const updatedSets = { ...currentSets };
+      let hasChanges = false;
+
+      // On initial check, check ALL exercises. Otherwise only check NEW exercises
+      const startIndex = isInitialCheck ? 0 : prevExerciseCountRef.current;
+
+      for (let index = startIndex; index < activeWorkout.exercises.length; index++) {
+        const ex = activeWorkout.exercises[index];
+
+        if (!updatedSets[index] || !Array.isArray(updatedSets[index]) || updatedSets[index].length === 0) {
+          const isCardio = isCardioExercise(ex);
+          const isBodyweight = isBodyweightExercise(ex);
+          // Create ONE default EMPTY set (placeholders will be shown in UI, not actual values)
+          updatedSets[index] = isCardio
+            ? [{ duration: 0, completed: false }]
+            : isBodyweight
+              ? [{ reps: '', completed: false }]
+              : [{ weight: '', reps: '', completed: false }];
+          hasChanges = true;
+        }
+      }
+
+      return hasChanges ? updatedSets : currentSets;
+    });
+
+    prevExerciseCountRef.current = currentExerciseCount;
+  }, [activeWorkout?.exercises?.length]); // Only trigger when exercise count changes
 
   // Get workout data from context
   const workoutExercises = activeWorkout?.exercises || [];
@@ -726,8 +945,13 @@ export default function WorkoutScreen({ navigation, route }) {
     }, 300);
   };
 
-  // Initialize exercise sets - add empty set for any new exercises
+  // OLD: Initialize exercise sets - DISABLED to prevent stale closure issues
+  // This effect was causing data to be overwritten after loading
+  // Default sets are now created during initialization and by the auto-set handler
   useEffect(() => {
+    // DISABLED - see auto-set handler effect above instead
+    return;
+
     // For program workouts, don't override the sets from the program
     if (activeWorkout?.fromProgram) {
       return;
@@ -917,10 +1141,22 @@ export default function WorkoutScreen({ navigation, route }) {
           }
   };
 
-  // Stop rest timer
+  // Stop rest timer (full reset)
   const stopRestTimer = async () => {
     setIsRestTimerRunning(false);
     setRestTimer(0);
+    setRestTimerEndTime(null);
+
+    // Clear from AsyncStorage
+    try {
+      await AsyncStorage.removeItem('@rest_timer_end');
+    } catch (error) {
+          }
+  };
+
+  // Pause rest timer (preserves current time)
+  const pauseRestTimer = async () => {
+    setIsRestTimerRunning(false);
     setRestTimerEndTime(null);
 
     // Clear from AsyncStorage
@@ -1291,9 +1527,11 @@ export default function WorkoutScreen({ navigation, route }) {
       clearTimeout(autoSaveTimeoutRef.current);
     }
 
-    // Schedule auto-save after 500ms of inactivity
+    // Schedule auto-save after 200ms of inactivity (reduced for faster saves)
     autoSaveTimeoutRef.current = setTimeout(async () => {
       try {
+        console.log('💾 AUTO-SAVING workout data...');
+
         // Update WorkoutContext
         updateWorkout({
           exerciseSets: sets,
@@ -1307,11 +1545,13 @@ export default function WorkoutScreen({ navigation, route }) {
           const currentWorkout = JSON.parse(activeWorkoutStr);
           currentWorkout.exerciseSets = sets;
           await AsyncStorage.setItem('@active_workout', JSON.stringify(currentWorkout));
+          console.log('✅ AUTO-SAVE COMPLETE - Sets saved:', Object.keys(sets).length, 'exercises');
+          console.log('📊 SAVED DATA:', JSON.stringify(sets, null, 2));
         }
       } catch (error) {
         console.error('❌ Auto-save failed:', error);
       }
-    }, 500); // 500ms debounce
+    }, 200); // 200ms debounce (faster than before)
   }, [updateWorkout, workoutExercises, currentExerciseIndex]);
 
   // Update set data - LOCAL ONLY, no context update to avoid refresh
@@ -1858,7 +2098,8 @@ export default function WorkoutScreen({ navigation, route }) {
                 style={styles.restTimerModalButton}
                 onPress={() => {
                   stopRestTimer();
-                  setRestTargetSeconds(60);
+                  // Reset to the target time (not hardcoded to 60)
+                  startRestTimer();
                 }}
                 activeOpacity={0.7}
               >
@@ -1868,7 +2109,10 @@ export default function WorkoutScreen({ navigation, route }) {
 
               <TouchableOpacity
                 style={styles.restTimerModalButton}
-                onPress={openTimerPicker}
+                onPress={() => {
+                  setShowRestTimerModal(false);
+                  openTimerPicker();
+                }}
                 activeOpacity={0.7}
               >
                 <Ionicons name="time-outline" size={24} color={Colors.text} />
@@ -1879,9 +2123,10 @@ export default function WorkoutScreen({ navigation, route }) {
                 style={[styles.restTimerModalButton, styles.restTimerModalButtonPrimary]}
                 onPress={() => {
                   if (isRestTimerRunning) {
-                    stopRestTimer();
+                    pauseRestTimer();
                   } else {
-                    startRestTimer();
+                    // Resume from current time if paused, otherwise start from target
+                    startRestTimer(restTimer > 0 ? restTimer : restTargetSeconds);
                   }
                 }}
                 activeOpacity={0.7}
@@ -1898,10 +2143,25 @@ export default function WorkoutScreen({ navigation, route }) {
             </View>
 
             <TouchableOpacity
-              style={[styles.modalButton, styles.modalButtonPrimary]}
+              style={{
+                backgroundColor: Colors.primary,
+                paddingVertical: 16,
+                paddingHorizontal: 32,
+                borderRadius: 12,
+                marginTop: 20,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
               onPress={() => setShowRestTimerModal(false)}
             >
-              <Text style={[styles.modalButtonText, styles.modalButtonTextPrimary]}>Close</Text>
+              <Text style={{
+                color: '#FFFFFF',
+                fontSize: 18,
+                fontWeight: 'bold',
+                textAlign: 'center',
+              }}>
+                Close
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -3025,7 +3285,7 @@ const styles = StyleSheet.create({
     color: Colors.text,
   },
   modalButtonTextPrimary: {
-    color: Colors.background,
+    color: '#FFFFFF',
   },
   modalButtonsVertical: {
     marginTop: Spacing.lg,

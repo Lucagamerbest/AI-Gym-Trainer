@@ -1,0 +1,436 @@
+[
+  {
+    "exercise": "Chest Fly",
+    "partiallyMapped": true,
+    "missingVariants": [
+      "Dumbbell"
+    ]
+  },
+  {
+    "exercise": "Cable Crossover",
+    "variants": [
+      "High to Low",
+      "Low to High",
+      "Middle"
+    ]
+  },
+  {
+    "exercise": "Push-ups",
+    "variants": [
+      "Standard",
+      "Wide Grip",
+      "Diamond",
+      "Decline"
+    ]
+  },
+  {
+    "exercise": "Chest Dips",
+    "partiallyMapped": true,
+    "missingVariants": [
+      "Bodyweight",
+      "Weighted (Dip Belt)"
+    ]
+  },
+  {
+    "exercise": "Lat Pulldown",
+    "partiallyMapped": true,
+    "missingVariants": [
+      "Machine Wide Grip",
+      "Machine Narrow Grip"
+    ]
+  },
+  {
+    "exercise": "Cable Row",
+    "variants": [
+      "Low Angle (lats focus)",
+      "Mid Angle (rhomboids/traps focus)"
+    ]
+  },
+  {
+    "exercise": "Pullover",
+    "partiallyMapped": true,
+    "missingVariants": [
+      "Machine"
+    ]
+  },
+  {
+    "exercise": "Cable Incline Pushdown",
+    "partiallyMapped": true,
+    "missingVariants": [
+      "Straight Bar"
+    ]
+  },
+  {
+    "exercise": "Chin Up",
+    "variants": [
+      "Shoulder Width",
+      "Narrow Grip"
+    ]
+  },
+  {
+    "exercise": "Muscle Up",
+    "variants": [
+      "Bar",
+      "Ring"
+    ]
+  },
+  {
+    "exercise": "Pull Ups",
+    "variants": [
+      "Wide Grip",
+      "Shoulder Width"
+    ]
+  },
+  {
+    "exercise": "V Bar Pulldown",
+    "variants": [
+      "Close Grip",
+      "Wide Grip"
+    ]
+  },
+  {
+    "exercise": "Weighted Pull Ups",
+    "variants": [
+      "Dip Belt with Plates",
+      "Dumbbell Between Feet",
+      "Weight Vest"
+    ]
+  },
+  {
+    "exercise": "Lateral Raise",
+    "partiallyMapped": true,
+    "missingVariants": [
+      "Machine"
+    ]
+  },
+  {
+    "exercise": "Front Raise",
+    "partiallyMapped": true,
+    "missingVariants": [
+      "Plate"
+    ]
+  },
+  {
+    "exercise": "Shrugs",
+    "variants": [
+      "Barbell",
+      "Dumbbell",
+      "Smith Machine",
+      "Trap Bar"
+    ]
+  },
+  {
+    "exercise": "Rear Delt Fly",
+    "partiallyMapped": true,
+    "missingVariants": [
+      "Machine Pec Deck Reverse"
+    ]
+  },
+  {
+    "exercise": "Upright Row",
+    "partiallyMapped": true,
+    "missingVariants": [
+      "EZ Bar"
+    ]
+  },
+  {
+    "exercise": "Bicep Curl",
+    "partiallyMapped": true,
+    "missingVariants": [
+      "Barbell",
+      "EZ Bar"
+    ]
+  },
+  {
+    "exercise": "Concentration Curl",
+    "partiallyMapped": true,
+    "missingVariants": [
+      "Cable Kneeling",
+      "Cable Seated"
+    ]
+  },
+  {
+    "exercise": "Spider Curl",
+    "partiallyMapped": true,
+    "missingVariants": [
+      "Dumbbell",
+      "Cable"
+    ]
+  },
+  {
+    "exercise": "Zottman Curl",
+    "partiallyMapped": true,
+    "missingVariants": [
+      "Cable"
+    ]
+  },
+  {
+    "exercise": "Tricep Pushdown",
+    "partiallyMapped": true,
+    "missingVariants": [
+      "Straight Bar",
+      "V-Bar"
+    ]
+  },
+  {
+    "exercise": "Overhead Tricep Extension",
+    "partiallyMapped": true,
+    "missingVariants": [
+      "EZ Bar"
+    ]
+  },
+  {
+    "exercise": "Skull Crusher",
+    "partiallyMapped": true,
+    "missingVariants": [
+      "Dumbbell"
+    ]
+  },
+  {
+    "exercise": "Dips",
+    "partiallyMapped": true,
+    "missingVariants": [
+      "Parallel Bars",
+      "Bench Dips"
+    ]
+  },
+  {
+    "exercise": "Cable Incline Tricep Extension",
+    "partiallyMapped": true,
+    "missingVariants": [
+      "Incline Bar"
+    ]
+  },
+  {
+    "exercise": "Diamond Push-ups",
+    "variants": [
+      "Bodyweight",
+      "Weight Vest",
+      "Elevated"
+    ]
+  },
+  {
+    "exercise": "Weighted Dips",
+    "variants": [
+      "Dip Belt",
+      "Dumbbell Between Legs",
+      "Weight Vest"
+    ]
+  },
+  {
+    "exercise": "Crunches",
+    "variants": [
+      "Bodyweight Floor",
+      "Cable Kneeling",
+      "Machine"
+    ]
+  },
+  {
+    "exercise": "Plank",
+    "variants": [
+      "Bodyweight",
+      "Weighted",
+      "Elevated Feet"
+    ]
+  },
+  {
+    "exercise": "Leg Raises",
+    "variants": [
+      "Hanging",
+      "Captain's Chair",
+      "Lying Floor"
+    ]
+  },
+  {
+    "exercise": "Russian Twist",
+    "partiallyMapped": true,
+    "missingVariants": [
+      "Bodyweight",
+      "Medicine Ball",
+      "Dumbbell"
+    ]
+  },
+  {
+    "exercise": "Cable Woodchop",
+    "variants": [
+      "High to Low",
+      "Low to High"
+    ]
+  },
+  {
+    "exercise": "Ab Wheel Rollout",
+    "partiallyMapped": true,
+    "missingVariants": [
+      "Knees",
+      "Standing"
+    ]
+  },
+  {
+    "exercise": "Bicycle Crunches",
+    "variants": [
+      "Bodyweight",
+      "Weighted"
+    ]
+  },
+  {
+    "exercise": "Dead Bug",
+    "partiallyMapped": true,
+    "missingVariants": [
+      "Bodyweight"
+    ]
+  },
+  {
+    "exercise": "Sit-Ups",
+    "variants": [
+      "Bodyweight Floor",
+      "Decline Bench",
+      "Weighted Plate"
+    ]
+  },
+  {
+    "exercise": "Glute Kickback",
+    "partiallyMapped": true,
+    "missingVariants": [
+      "Cable",
+      "Bodyweight"
+    ]
+  },
+  {
+    "exercise": "Hang Clean",
+    "partiallyMapped": true,
+    "missingVariants": [
+      "Dumbbell"
+    ]
+  },
+  {
+    "exercise": "Hip Thrust",
+    "partiallyMapped": true,
+    "missingVariants": [
+      "Dumbbell"
+    ]
+  },
+  {
+    "exercise": "Lunges",
+    "partiallyMapped": true,
+    "missingVariants": [
+      "Barbell Walking"
+    ]
+  },
+  {
+    "exercise": "Deadlift",
+    "partiallyMapped": true,
+    "missingVariants": [
+      "Trap Bar"
+    ]
+  },
+  {
+    "exercise": "Bulgarian Split Squat",
+    "partiallyMapped": true,
+    "missingVariants": [
+      "Bodyweight"
+    ]
+  },
+  {
+    "exercise": "Front Squat",
+    "partiallyMapped": true,
+    "missingVariants": [
+      "Smith Machine"
+    ]
+  },
+  {
+    "exercise": "Step-Ups",
+    "variants": [
+      "Dumbbell",
+      "Barbell",
+      "Bodyweight"
+    ]
+  },
+  {
+    "exercise": "Glute Bridge",
+    "partiallyMapped": true,
+    "missingVariants": [
+      "Dumbbell",
+      "Bodyweight"
+    ]
+  },
+  {
+    "exercise": "Farmer's Walk",
+    "variants": [
+      "Dumbbell",
+      "Trap Bar",
+      "Kettlebell"
+    ]
+  },
+  {
+    "exercise": "Plate Pinch",
+    "variants": [
+      "Two Plates Smooth",
+      "Single Plate",
+      "Weight Plate Hold"
+    ]
+  },
+  {
+    "exercise": "Wrist Roller",
+    "variants": [
+      "Standing",
+      "Seated"
+    ]
+  },
+  {
+    "exercise": "Treadmill",
+    "variants": [
+      "Walking",
+      "Jogging",
+      "Running",
+      "Incline Walking",
+      "HIIT Intervals"
+    ]
+  },
+  {
+    "exercise": "Stationary Bike",
+    "variants": [
+      "Steady State",
+      "HIIT",
+      "Spin Class"
+    ]
+  },
+  {
+    "exercise": "Rowing Machine",
+    "variants": [
+      "Steady State",
+      "HIIT Intervals"
+    ]
+  },
+  {
+    "exercise": "Elliptical",
+    "variants": [
+      "Forward",
+      "Reverse",
+      "HIIT"
+    ]
+  },
+  {
+    "exercise": "Jump Rope",
+    "variants": [
+      "Regular Bounce",
+      "Double Unders",
+      "HIIT"
+    ]
+  },
+  {
+    "exercise": "Stair Climber",
+    "variants": [
+      "Steady Pace",
+      "HIIT",
+      "Skip-a-Step"
+    ]
+  },
+  {
+    "exercise": "Burpees",
+    "variants": [
+      "Bodyweight",
+      "Push-up Burpees",
+      "Box Jump Burpees"
+    ]
+  }
+]

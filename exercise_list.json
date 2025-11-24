@@ -1,0 +1,1585 @@
+[
+  {
+    "name": "Bench Press",
+    "muscleGroup": "chest",
+    "variantCount": 4,
+    "variants": [
+      {
+        "equipment": "Barbell",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Dumbbell",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Smith Machine",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Machine",
+        "difficulty": "Beginner"
+      }
+    ]
+  },
+  {
+    "name": "Incline Bench Press",
+    "muscleGroup": "chest",
+    "variantCount": 4,
+    "variants": [
+      {
+        "equipment": "Barbell",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Dumbbell",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Smith Machine",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Machine",
+        "difficulty": "Beginner"
+      }
+    ]
+  },
+  {
+    "name": "Decline Bench Press",
+    "muscleGroup": "chest",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "Barbell",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Dumbbell",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Smith Machine",
+        "difficulty": "Beginner"
+      }
+    ]
+  },
+  {
+    "name": "Chest Fly",
+    "muscleGroup": "chest",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "Dumbbell",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Cable",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Machine (Pec Deck)",
+        "difficulty": "Beginner"
+      }
+    ]
+  },
+  {
+    "name": "Cable Crossover",
+    "muscleGroup": "chest",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "High to Low",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Low to High",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Middle",
+        "difficulty": "Intermediate"
+      }
+    ]
+  },
+  {
+    "name": "Push-ups",
+    "muscleGroup": "chest",
+    "variantCount": 4,
+    "variants": [
+      {
+        "equipment": "Standard",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Wide Grip",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Diamond",
+        "difficulty": "Advanced"
+      },
+      {
+        "equipment": "Decline",
+        "difficulty": "Advanced"
+      }
+    ]
+  },
+  {
+    "name": "Chest Dips",
+    "muscleGroup": "chest",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "Bodyweight",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Weighted (Dip Belt)",
+        "difficulty": "Advanced"
+      },
+      {
+        "equipment": "Assisted Machine",
+        "difficulty": "Beginner"
+      }
+    ]
+  },
+  {
+    "name": "Lat Pulldown",
+    "muscleGroup": "back",
+    "variantCount": 4,
+    "variants": [
+      {
+        "equipment": "Machine Wide Grip",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Machine Narrow Grip",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Cable Wide Grip",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Cable Neutral Grip",
+        "difficulty": "Beginner"
+      }
+    ]
+  },
+  {
+    "name": "Cable Row",
+    "muscleGroup": "back",
+    "variantCount": 2,
+    "variants": [
+      {
+        "equipment": "Low Angle (lats focus)",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Mid Angle (rhomboids/traps focus)",
+        "difficulty": "Beginner"
+      }
+    ]
+  },
+  {
+    "name": "One Arm Row",
+    "muscleGroup": "back",
+    "variantCount": 2,
+    "variants": [
+      {
+        "equipment": "Dumbbell",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Cable",
+        "difficulty": "Intermediate"
+      }
+    ]
+  },
+  {
+    "name": "Pullover",
+    "muscleGroup": "back",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "Cable",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Dumbbell",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Machine",
+        "difficulty": "Beginner"
+      }
+    ]
+  },
+  {
+    "name": "Band Assisted Pull-up",
+    "muscleGroup": "back",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "Heavy Band",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Medium Band",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Light Band",
+        "difficulty": "Intermediate"
+      }
+    ]
+  },
+  {
+    "name": "Cable Incline Pushdown",
+    "muscleGroup": "back",
+    "variantCount": 2,
+    "variants": [
+      {
+        "equipment": "Straight Bar",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Rope Attachment",
+        "difficulty": "Intermediate"
+      }
+    ]
+  },
+  {
+    "name": "Chin Up",
+    "muscleGroup": "back",
+    "variantCount": 2,
+    "variants": [
+      {
+        "equipment": "Shoulder Width",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Narrow Grip",
+        "difficulty": "Intermediate"
+      }
+    ]
+  },
+  {
+    "name": "Muscle Up",
+    "muscleGroup": "back",
+    "variantCount": 2,
+    "variants": [
+      {
+        "equipment": "Bar",
+        "difficulty": "Advanced"
+      },
+      {
+        "equipment": "Ring",
+        "difficulty": "Advanced"
+      }
+    ]
+  },
+  {
+    "name": "One Arm Lat Pulldown",
+    "muscleGroup": "back",
+    "variantCount": 2,
+    "variants": [
+      {
+        "equipment": "Single Handle",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Neutral Grip",
+        "difficulty": "Intermediate"
+      }
+    ]
+  },
+  {
+    "name": "Pull Ups",
+    "muscleGroup": "back",
+    "variantCount": 2,
+    "variants": [
+      {
+        "equipment": "Wide Grip",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Shoulder Width",
+        "difficulty": "Intermediate"
+      }
+    ]
+  },
+  {
+    "name": "V Bar Pulldown",
+    "muscleGroup": "back",
+    "variantCount": 2,
+    "variants": [
+      {
+        "equipment": "Close Grip",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Wide Grip",
+        "difficulty": "Beginner"
+      }
+    ]
+  },
+  {
+    "name": "Weighted Pull Ups",
+    "muscleGroup": "back",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "Dip Belt with Plates",
+        "difficulty": "Advanced"
+      },
+      {
+        "equipment": "Dumbbell Between Feet",
+        "difficulty": "Advanced"
+      },
+      {
+        "equipment": "Weight Vest",
+        "difficulty": "Advanced"
+      }
+    ]
+  },
+  {
+    "name": "Shoulder Press",
+    "muscleGroup": "shoulders",
+    "variantCount": 5,
+    "variants": [
+      {
+        "equipment": "Barbell",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Dumbbell Seated",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Dumbbell Standing",
+        "difficulty": "Advanced"
+      },
+      {
+        "equipment": "Machine",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Smith Machine",
+        "difficulty": "Beginner"
+      }
+    ]
+  },
+  {
+    "name": "Lateral Raise",
+    "muscleGroup": "shoulders",
+    "variantCount": 4,
+    "variants": [
+      {
+        "equipment": "Dumbbell",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Cable Single",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Cable Both",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Machine",
+        "difficulty": "Beginner"
+      }
+    ]
+  },
+  {
+    "name": "Front Raise",
+    "muscleGroup": "shoulders",
+    "variantCount": 4,
+    "variants": [
+      {
+        "equipment": "Barbell",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Dumbbell",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Cable",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Plate",
+        "difficulty": "Beginner"
+      }
+    ]
+  },
+  {
+    "name": "Shrugs",
+    "muscleGroup": "shoulders",
+    "variantCount": 4,
+    "variants": [
+      {
+        "equipment": "Barbell",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Dumbbell",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Smith Machine",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Trap Bar",
+        "difficulty": "Beginner"
+      }
+    ]
+  },
+  {
+    "name": "Rear Delt Fly",
+    "muscleGroup": "shoulders",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "Cable Bent",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Machine Pec Deck Reverse",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Dumbbell Bent",
+        "difficulty": "Intermediate"
+      }
+    ]
+  },
+  {
+    "name": "Upright Row",
+    "muscleGroup": "shoulders",
+    "variantCount": 4,
+    "variants": [
+      {
+        "equipment": "Barbell",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Dumbbell",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Cable",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "EZ Bar",
+        "difficulty": "Intermediate"
+      }
+    ]
+  },
+  {
+    "name": "Bicep Curl",
+    "muscleGroup": "biceps",
+    "variantCount": 4,
+    "variants": [
+      {
+        "equipment": "Incline Dumbbell",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Barbell",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "EZ Bar",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Dumbbell Standing",
+        "difficulty": "Beginner"
+      }
+    ]
+  },
+  {
+    "name": "One Arm Bicep Curl",
+    "muscleGroup": "biceps",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "Dumbbell",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Cable Low",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Cable Mid",
+        "difficulty": "Intermediate"
+      }
+    ]
+  },
+  {
+    "name": "Hammer Curl",
+    "muscleGroup": "biceps",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "Cable Rope",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Dumbbell",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Dumbbell Seated",
+        "difficulty": "Beginner"
+      }
+    ]
+  },
+  {
+    "name": "Preacher Curl",
+    "muscleGroup": "biceps",
+    "variantCount": 5,
+    "variants": [
+      {
+        "equipment": "Machine",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Dumbbell",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Cable Single",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Cable Rope",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "EZ Bar",
+        "difficulty": "Beginner"
+      }
+    ]
+  },
+  {
+    "name": "Concentration Curl",
+    "muscleGroup": "biceps",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "Dumbbell Seated",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Cable Kneeling",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Cable Seated",
+        "difficulty": "Beginner"
+      }
+    ]
+  },
+  {
+    "name": "Cross Body Hammer Curl",
+    "muscleGroup": "biceps",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "Dumbbell",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Cable Low",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Cable Rope",
+        "difficulty": "Intermediate"
+      }
+    ]
+  },
+  {
+    "name": "High Cable Curl",
+    "muscleGroup": "biceps",
+    "variantCount": 2,
+    "variants": [
+      {
+        "equipment": "Double Cable",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Single Cable",
+        "difficulty": "Intermediate"
+      }
+    ]
+  },
+  {
+    "name": "Reverse Curl",
+    "muscleGroup": "biceps",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "Barbell",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "EZ Bar",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Dumbbell",
+        "difficulty": "Intermediate"
+      }
+    ]
+  },
+  {
+    "name": "Spider Curl",
+    "muscleGroup": "biceps",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "EZ Bar",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Dumbbell",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Cable",
+        "difficulty": "Intermediate"
+      }
+    ]
+  },
+  {
+    "name": "Zottman Curl",
+    "muscleGroup": "biceps",
+    "variantCount": 2,
+    "variants": [
+      {
+        "equipment": "Dumbbell",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Cable",
+        "difficulty": "Intermediate"
+      }
+    ]
+  },
+  {
+    "name": "Tricep Pushdown",
+    "muscleGroup": "triceps",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "Cable Rope",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Straight Bar",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "V-Bar",
+        "difficulty": "Beginner"
+      }
+    ]
+  },
+  {
+    "name": "One Arm Tricep Pushdown",
+    "muscleGroup": "triceps",
+    "variantCount": 2,
+    "variants": [
+      {
+        "equipment": "Single Handle",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Rope",
+        "difficulty": "Beginner"
+      }
+    ]
+  },
+  {
+    "name": "Overhead Tricep Extension",
+    "muscleGroup": "triceps",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "Cable Rope",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Dumbbell Two-Handed",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "EZ Bar",
+        "difficulty": "Intermediate"
+      }
+    ]
+  },
+  {
+    "name": "One Arm Overhead Extension",
+    "muscleGroup": "triceps",
+    "variantCount": 2,
+    "variants": [
+      {
+        "equipment": "Dumbbell",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Cable",
+        "difficulty": "Intermediate"
+      }
+    ]
+  },
+  {
+    "name": "Skull Crusher",
+    "muscleGroup": "triceps",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "EZ Bar",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Barbell",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Dumbbell",
+        "difficulty": "Intermediate"
+      }
+    ]
+  },
+  {
+    "name": "Dips",
+    "muscleGroup": "triceps",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "Parallel Bars",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Assisted Machine",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Bench Dips",
+        "difficulty": "Beginner"
+      }
+    ]
+  },
+  {
+    "name": "Close Grip Bench Press",
+    "muscleGroup": "triceps",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "Barbell",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Smith Machine",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Dumbbell",
+        "difficulty": "Intermediate"
+      }
+    ]
+  },
+  {
+    "name": "Cable Incline Tricep Extension",
+    "muscleGroup": "triceps",
+    "variantCount": 2,
+    "variants": [
+      {
+        "equipment": "Overhead Rope",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Incline Bar",
+        "difficulty": "Intermediate"
+      }
+    ]
+  },
+  {
+    "name": "Diamond Push-ups",
+    "muscleGroup": "triceps",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "Bodyweight",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Weight Vest",
+        "difficulty": "Advanced"
+      },
+      {
+        "equipment": "Elevated",
+        "difficulty": "Advanced"
+      }
+    ]
+  },
+  {
+    "name": "Weighted Dips",
+    "muscleGroup": "triceps",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "Dip Belt",
+        "difficulty": "Advanced"
+      },
+      {
+        "equipment": "Dumbbell Between Legs",
+        "difficulty": "Advanced"
+      },
+      {
+        "equipment": "Weight Vest",
+        "difficulty": "Advanced"
+      }
+    ]
+  },
+  {
+    "name": "Crunches",
+    "muscleGroup": "abs",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "Bodyweight Floor",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Cable Kneeling",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Machine",
+        "difficulty": "Beginner"
+      }
+    ]
+  },
+  {
+    "name": "Plank",
+    "muscleGroup": "abs",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "Bodyweight",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Weighted",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Elevated Feet",
+        "difficulty": "Intermediate"
+      }
+    ]
+  },
+  {
+    "name": "Leg Raises",
+    "muscleGroup": "abs",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "Hanging",
+        "difficulty": "Advanced"
+      },
+      {
+        "equipment": "Captain's Chair",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Lying Floor",
+        "difficulty": "Beginner"
+      }
+    ]
+  },
+  {
+    "name": "Russian Twist",
+    "muscleGroup": "abs",
+    "variantCount": 4,
+    "variants": [
+      {
+        "equipment": "Bodyweight",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Medicine Ball",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Dumbbell",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Cable",
+        "difficulty": "Intermediate"
+      }
+    ]
+  },
+  {
+    "name": "Cable Woodchop",
+    "muscleGroup": "abs",
+    "variantCount": 2,
+    "variants": [
+      {
+        "equipment": "High to Low",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Low to High",
+        "difficulty": "Intermediate"
+      }
+    ]
+  },
+  {
+    "name": "Ab Wheel Rollout",
+    "muscleGroup": "abs",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "Knees",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Standing",
+        "difficulty": "Advanced"
+      },
+      {
+        "equipment": "Barbell Rollout",
+        "difficulty": "Intermediate"
+      }
+    ]
+  },
+  {
+    "name": "Bicycle Crunches",
+    "muscleGroup": "abs",
+    "variantCount": 2,
+    "variants": [
+      {
+        "equipment": "Bodyweight",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Weighted",
+        "difficulty": "Intermediate"
+      }
+    ]
+  },
+  {
+    "name": "Mountain Climbers",
+    "muscleGroup": "abs",
+    "variantCount": 2,
+    "variants": [
+      {
+        "equipment": "Bodyweight",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Slider Discs",
+        "difficulty": "Advanced"
+      }
+    ]
+  },
+  {
+    "name": "Dead Bug",
+    "muscleGroup": "abs",
+    "variantCount": 2,
+    "variants": [
+      {
+        "equipment": "Bodyweight",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Resistance Band",
+        "difficulty": "Intermediate"
+      }
+    ]
+  },
+  {
+    "name": "Sit-Ups",
+    "muscleGroup": "abs",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "Bodyweight Floor",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Decline Bench",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Weighted Plate",
+        "difficulty": "Intermediate"
+      }
+    ]
+  },
+  {
+    "name": "Leg Extension",
+    "muscleGroup": "legs",
+    "variantCount": 2,
+    "variants": [
+      {
+        "equipment": "Machine",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Cable",
+        "difficulty": "Intermediate"
+      }
+    ]
+  },
+  {
+    "name": "Leg Curl",
+    "muscleGroup": "legs",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "Lying Machine",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Seated Machine",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Standing Machine",
+        "difficulty": "Beginner"
+      }
+    ]
+  },
+  {
+    "name": "Standing Calf Raise",
+    "muscleGroup": "legs",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "Machine",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Smith Machine",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Barbell",
+        "difficulty": "Advanced"
+      }
+    ]
+  },
+  {
+    "name": "Squat",
+    "muscleGroup": "legs",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "Barbell Back",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Smith Machine",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Dumbbell Goblet",
+        "difficulty": "Beginner"
+      }
+    ]
+  },
+  {
+    "name": "Hip Abduction",
+    "muscleGroup": "legs",
+    "variantCount": 2,
+    "variants": [
+      {
+        "equipment": "Machine",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Cable",
+        "difficulty": "Intermediate"
+      }
+    ]
+  },
+  {
+    "name": "Glute Kickback",
+    "muscleGroup": "legs",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "Cable",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Machine",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Bodyweight",
+        "difficulty": "Beginner"
+      }
+    ]
+  },
+  {
+    "name": "Hang Clean",
+    "muscleGroup": "legs",
+    "variantCount": 2,
+    "variants": [
+      {
+        "equipment": "Barbell",
+        "difficulty": "Advanced"
+      },
+      {
+        "equipment": "Dumbbell",
+        "difficulty": "Intermediate"
+      }
+    ]
+  },
+  {
+    "name": "Hip Thrust",
+    "muscleGroup": "legs",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "Barbell",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Dumbbell",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Machine",
+        "difficulty": "Beginner"
+      }
+    ]
+  },
+  {
+    "name": "Hack Squat",
+    "muscleGroup": "legs",
+    "variantCount": 2,
+    "variants": [
+      {
+        "equipment": "Machine",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Barbell Reverse",
+        "difficulty": "Advanced"
+      }
+    ]
+  },
+  {
+    "name": "Lunges",
+    "muscleGroup": "legs",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "Dumbbell Walking",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Barbell Walking",
+        "difficulty": "Advanced"
+      },
+      {
+        "equipment": "Dumbbell Stationary",
+        "difficulty": "Beginner"
+      }
+    ]
+  },
+  {
+    "name": "Seated Calf Raise",
+    "muscleGroup": "legs",
+    "variantCount": 2,
+    "variants": [
+      {
+        "equipment": "Machine",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Dumbbell",
+        "difficulty": "Beginner"
+      }
+    ]
+  },
+  {
+    "name": "Deadlift",
+    "muscleGroup": "legs",
+    "variantCount": 5,
+    "variants": [
+      {
+        "equipment": "Barbell Conventional",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Barbell Sumo",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Trap Bar",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Dumbbell Romanian",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Barbell Romanian",
+        "difficulty": "Intermediate"
+      }
+    ]
+  },
+  {
+    "name": "Leg Press",
+    "muscleGroup": "legs",
+    "variantCount": 2,
+    "variants": [
+      {
+        "equipment": "45° Machine",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Horizontal Machine",
+        "difficulty": "Beginner"
+      }
+    ]
+  },
+  {
+    "name": "Bulgarian Split Squat",
+    "muscleGroup": "legs",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "Dumbbell",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Barbell",
+        "difficulty": "Advanced"
+      },
+      {
+        "equipment": "Bodyweight",
+        "difficulty": "Beginner"
+      }
+    ]
+  },
+  {
+    "name": "Front Squat",
+    "muscleGroup": "legs",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "Barbell",
+        "difficulty": "Advanced"
+      },
+      {
+        "equipment": "Dumbbell",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Smith Machine",
+        "difficulty": "Intermediate"
+      }
+    ]
+  },
+  {
+    "name": "Step-Ups",
+    "muscleGroup": "legs",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "Dumbbell",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Barbell",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Bodyweight",
+        "difficulty": "Beginner"
+      }
+    ]
+  },
+  {
+    "name": "Hip Adduction",
+    "muscleGroup": "legs",
+    "variantCount": 2,
+    "variants": [
+      {
+        "equipment": "Machine",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Cable",
+        "difficulty": "Intermediate"
+      }
+    ]
+  },
+  {
+    "name": "Glute Bridge",
+    "muscleGroup": "legs",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "Barbell",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Dumbbell",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Bodyweight",
+        "difficulty": "Beginner"
+      }
+    ]
+  },
+  {
+    "name": "Wrist Curl",
+    "muscleGroup": "forearms",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "Barbell",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Dumbbell",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Cable",
+        "difficulty": "Beginner"
+      }
+    ]
+  },
+  {
+    "name": "Reverse Wrist Curl",
+    "muscleGroup": "forearms",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "Barbell",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Dumbbell",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "EZ Bar",
+        "difficulty": "Beginner"
+      }
+    ]
+  },
+  {
+    "name": "Farmer's Walk",
+    "muscleGroup": "forearms",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "Dumbbell",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Trap Bar",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Kettlebell",
+        "difficulty": "Beginner"
+      }
+    ]
+  },
+  {
+    "name": "Plate Pinch",
+    "muscleGroup": "forearms",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "Two Plates Smooth",
+        "difficulty": "Advanced"
+      },
+      {
+        "equipment": "Single Plate",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Weight Plate Hold",
+        "difficulty": "Beginner"
+      }
+    ]
+  },
+  {
+    "name": "Wrist Roller",
+    "muscleGroup": "forearms",
+    "variantCount": 2,
+    "variants": [
+      {
+        "equipment": "Standing",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Seated",
+        "difficulty": "Intermediate"
+      }
+    ]
+  },
+  {
+    "name": "Treadmill",
+    "muscleGroup": "cardio",
+    "variantCount": 5,
+    "variants": [
+      {
+        "equipment": "Walking",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Jogging",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Running",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Incline Walking",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "HIIT Intervals",
+        "difficulty": "Advanced"
+      }
+    ]
+  },
+  {
+    "name": "Stationary Bike",
+    "muscleGroup": "cardio",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "Steady State",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "HIIT",
+        "difficulty": "Advanced"
+      },
+      {
+        "equipment": "Spin Class",
+        "difficulty": "Intermediate"
+      }
+    ]
+  },
+  {
+    "name": "Rowing Machine",
+    "muscleGroup": "cardio",
+    "variantCount": 2,
+    "variants": [
+      {
+        "equipment": "Steady State",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "HIIT Intervals",
+        "difficulty": "Advanced"
+      }
+    ]
+  },
+  {
+    "name": "Elliptical",
+    "muscleGroup": "cardio",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "Forward",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Reverse",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "HIIT",
+        "difficulty": "Advanced"
+      }
+    ]
+  },
+  {
+    "name": "Jump Rope",
+    "muscleGroup": "cardio",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "Regular Bounce",
+        "difficulty": "Beginner"
+      },
+      {
+        "equipment": "Double Unders",
+        "difficulty": "Advanced"
+      },
+      {
+        "equipment": "HIIT",
+        "difficulty": "Advanced"
+      }
+    ]
+  },
+  {
+    "name": "Stair Climber",
+    "muscleGroup": "cardio",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "Steady Pace",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "HIIT",
+        "difficulty": "Advanced"
+      },
+      {
+        "equipment": "Skip-a-Step",
+        "difficulty": "Advanced"
+      }
+    ]
+  },
+  {
+    "name": "Burpees",
+    "muscleGroup": "cardio",
+    "variantCount": 3,
+    "variants": [
+      {
+        "equipment": "Bodyweight",
+        "difficulty": "Intermediate"
+      },
+      {
+        "equipment": "Push-up Burpees",
+        "difficulty": "Advanced"
+      },
+      {
+        "equipment": "Box Jump Burpees",
+        "difficulty": "Advanced"
+      }
+    ]
+  }
+]
