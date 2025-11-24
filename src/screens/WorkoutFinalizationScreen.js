@@ -216,6 +216,7 @@ export default function WorkoutFinalizationScreen({ navigation, route }) {
       navigation={navigation}
       showBack={false}
       showHome={false}
+      hideWorkoutIndicator={true}
     >
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         {/* Workout Title */}

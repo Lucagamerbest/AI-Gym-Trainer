@@ -101,6 +101,7 @@ export default function WorkoutSummaryScreen({ navigation, route }) {
       showHome={false}
       scrollable={true}
       screenName="WorkoutSummaryScreen"
+      hideWorkoutIndicator={true}
     >
       {/* Workout Title & Photos */}
       {(photos.length > 0 || notes) && (
