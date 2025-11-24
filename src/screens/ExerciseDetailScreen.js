@@ -7,6 +7,7 @@ import { WorkoutStorageService } from '../services/workoutStorage';
 import { CustomExerciseStorage } from '../services/customExerciseStorage';
 import { useAuth } from '../context/AuthContext';
 import AIHeaderButton from '../components/AIHeaderButton';
+import ScreenLayout from '../components/ScreenLayout';
 
 // Get screen dimensions for responsive design
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -138,64 +139,16 @@ export default function ExerciseDetailScreen({ navigation, route }) {
   };
 
   return (
-    <SafeAreaView style={{
-      flex: 1,
-      backgroundColor: Colors.background,
-    }}>
-      {/* Responsive Header */}
-      <View style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: getResponsiveSpacing(1),
-        borderBottomWidth: 1,
-        borderBottomColor: Colors.border,
-        backgroundColor: Colors.surface,
-        minHeight: getResponsiveSize(60, 70, 80),
-      }}>
-        <AIHeaderButton screenName="ExerciseDetailScreen" />
-        <TouchableOpacity
-          onPress={() => {
-            navigation.goBack();
-          }}
-          style={{
-            marginRight: getResponsiveSpacing(0.5),
-            padding: getResponsiveSpacing(0.5),
-            minWidth: getResponsiveSize(40, 45, 50),
-            minHeight: getResponsiveSize(40, 45, 50),
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <Text style={{
-            fontSize: getResponsiveSize(20, 22, 24),
-            color: Colors.primary
-          }}>←</Text>
-        </TouchableOpacity>
-        <View style={{ flex: 1 }}>
-          <Text style={{
-            fontSize: getResponsiveFontSize(Typography.fontSize.lg),
-            fontWeight: 'bold',
-            color: Colors.text,
-            numberOfLines: 1,
-          }}>
-            {exercise?.displayName || exercise?.name || "Exercise Detail"}
-          </Text>
-          <Text style={{
-            fontSize: getResponsiveFontSize(Typography.fontSize.sm),
-            color: Colors.textSecondary,
-          }}>
-            Exercise Information
-          </Text>
-        </View>
-      </View>
-
-      {/* Responsive Content */}
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{
-          paddingBottom: getResponsiveSpacing(2),
-        }}
-      >
+    <ScreenLayout
+      title="Exercise Detail"
+      subtitle={exercise?.displayName || exercise?.name || "Exercise Information"}
+      navigation={navigation}
+      showBack={true}
+      scrollable={true}
+      screenName="ExerciseDetailScreen"
+      hideWorkoutIndicator={true}
+      style={{ paddingHorizontal: 0 }}
+    >
         <View style={{
           backgroundColor: Colors.surface,
           margin: getResponsiveSpacing(1),
@@ -681,7 +634,6 @@ export default function ExerciseDetailScreen({ navigation, route }) {
           )}
         </View>
         </View>
-      </ScrollView>
 
       {/* Full Screen Image Modal */}
       <Modal
@@ -735,7 +687,7 @@ export default function ExerciseDetailScreen({ navigation, route }) {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </ScreenLayout>
   );
 }
 

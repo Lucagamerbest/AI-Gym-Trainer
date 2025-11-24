@@ -44,6 +44,7 @@ export default function EquipmentVariantSelectionScreen({ navigation, route }) {
         title="Equipment Selection"
         navigation={navigation}
         showBack={true}
+        hideWorkoutIndicator={true}
       >
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>No equipment variants available</Text>
@@ -114,6 +115,7 @@ export default function EquipmentVariantSelectionScreen({ navigation, route }) {
       subtitle="Choose your equipment"
       navigation={navigation}
       showBack={true}
+      hideWorkoutIndicator={true}
     >
       <ScrollView
         style={styles.scrollView}

@@ -176,7 +176,7 @@ const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exercise
               <Text style={styles.exerciseListNumber}>
                 {index + 1}
               </Text>
-              <Text style={styles.exerciseListName} numberOfLines={2} ellipsizeMode="tail">
+              <Text style={styles.exerciseListName}>
                 {exercise.name}
               </Text>
             </View>
@@ -414,11 +414,6 @@ export default function WorkoutScreen({ navigation, route }) {
   const latestSetsRef = useRef(exerciseSets);
   const hasInitializedRef = useRef(false);
 
-  // DEBUG: Log whenever exerciseSets state changes
-  useEffect(() => {
-    console.log('🔵 EXERCISE SETS STATE CHANGED:', JSON.stringify(exerciseSets, null, 2));
-  }, [exerciseSets]);
-
   // Keep ref updated with latest sets - BUT only if they have actual data
   useEffect(() => {
     // Check if exerciseSets has any actual data (not all empty)
@@ -441,11 +436,6 @@ export default function WorkoutScreen({ navigation, route }) {
     // Only update ref if we have real data OR if ref is currently empty
     if (hasData || !latestSetsRef.current || Object.keys(latestSetsRef.current).length === 0) {
       latestSetsRef.current = exerciseSets;
-      if (hasData) {
-        console.log('📝 Updated latestSetsRef with real data');
-      }
-    } else {
-      console.log('⚠️ Skipping ref update - exerciseSets are empty but ref has data');
     }
   }, [exerciseSets]);
 
@@ -453,8 +443,6 @@ export default function WorkoutScreen({ navigation, route }) {
   useFocusEffect(
     useCallback(() => {
       return () => {
-        console.log('🚪 Screen losing focus - forcing immediate save...');
-
         // Clear any pending timeout
         if (autoSaveTimeoutRef.current) {
           clearTimeout(autoSaveTimeoutRef.current);
@@ -466,7 +454,6 @@ export default function WorkoutScreen({ navigation, route }) {
             const sets = latestSetsRef.current;
 
             if (!sets || Object.keys(sets).length === 0) {
-              console.log('⚠️ No sets to save on blur');
               return;
             }
 
@@ -489,7 +476,6 @@ export default function WorkoutScreen({ navigation, route }) {
             }
 
             if (!hasActualData) {
-              console.log('⚠️ Skipping blur save - sets are empty (no weight/reps/duration)');
               return;
             }
 
@@ -499,8 +485,6 @@ export default function WorkoutScreen({ navigation, route }) {
               const currentWorkout = JSON.parse(activeWorkoutStr);
               currentWorkout.exerciseSets = sets;
               await AsyncStorage.setItem('@active_workout', JSON.stringify(currentWorkout));
-              console.log('✅ BLUR SAVE COMPLETE - Saved', Object.keys(sets).length, 'exercises to AsyncStorage');
-              console.log('📊 BLUR SAVED DATA:', JSON.stringify(sets, null, 2));
             }
           } catch (error) {
             console.error('❌ Save on blur failed:', error);
@@ -653,11 +637,8 @@ export default function WorkoutScreen({ navigation, route }) {
       // Prevent double initialization from React StrictMode or rapid re-renders
       // Once initialized, NEVER re-initialize to prevent overwriting saved data
       if (hasInitializedRef.current) {
-        console.log('⚠️ Skipping re-initialization - already initialized');
         return;
       }
-
-      console.log('🔄 INITIALIZING WORKOUT SCREEN...');
 
       // CRITICAL: Load from AsyncStorage first if context is empty
       if (activeWorkout && (!activeWorkout.exerciseSets || Object.keys(activeWorkout.exerciseSets).length === 0)) {
@@ -666,9 +647,6 @@ export default function WorkoutScreen({ navigation, route }) {
           if (storedWorkout) {
             const workout = JSON.parse(storedWorkout);
             if (workout.exerciseSets && Object.keys(workout.exerciseSets).length > 0) {
-              console.log('📥 Loading exerciseSets from AsyncStorage...');
-              console.log('📊 ASYNC STORAGE DATA:', JSON.stringify(workout.exerciseSets, null, 2));
-
               // Set directly to state instead of calling updateWorkout to avoid re-initialization loop
               setExerciseSets(workout.exerciseSets);
               hasInitializedRef.current = true;
@@ -677,21 +655,11 @@ export default function WorkoutScreen({ navigation, route }) {
               setTotalVolume(totals.volume);
               setTotalSets(totals.sets);
 
-              console.log('✅ Loaded sets from AsyncStorage and set to state');
               return; // Done!
             }
           }
         } catch (error) {
           console.error('❌ Failed to load from AsyncStorage:', error);
-        }
-      }
-
-      console.log('📋 Active workout from context:', activeWorkout ? 'EXISTS' : 'NULL');
-      if (activeWorkout) {
-        console.log('📋 Exercises in context:', activeWorkout.exercises?.length || 0);
-        console.log('📋 ExerciseSets in context:', activeWorkout.exerciseSets ? Object.keys(activeWorkout.exerciseSets).length : 0);
-        if (activeWorkout.exerciseSets) {
-          console.log('📊 LOADING SETS DATA:', JSON.stringify(activeWorkout.exerciseSets, null, 2));
         }
       }
 
@@ -703,7 +671,6 @@ export default function WorkoutScreen({ navigation, route }) {
         const totals = calculateTotals(activeWorkout.exerciseSets);
         setTotalVolume(totals.volume);
         setTotalSets(totals.sets);
-        console.log('✅ LOADED SETS for program workout');
       }
       setCurrentExerciseIndex(activeWorkout.currentExerciseIndex || 0);
       return; // Exit early for program workouts
@@ -723,12 +690,8 @@ export default function WorkoutScreen({ navigation, route }) {
     }
     // Resuming existing workout OR returning from adding exercise
     else if (activeWorkout) {
-      console.log('🔄 Resuming existing workout...');
       if (activeWorkout.exerciseSets) {
         // Restore sets from context, but ensure ALL exercises have at least one set
-        console.log('📥 Restoring sets from context...');
-        console.log('🎯 ABOUT TO SET EXERCISE SETS TO:', JSON.stringify(activeWorkout.exerciseSets, null, 2));
-
         // Check if any exercises are missing sets and create default empty ones
         const restoredSets = { ...activeWorkout.exerciseSets };
 
@@ -749,15 +712,12 @@ export default function WorkoutScreen({ navigation, route }) {
         const totals = calculateTotals(restoredSets);
         setTotalVolume(totals.volume);
         setTotalSets(totals.sets);
-        console.log('✅ LOADED SETS for existing workout');
-        console.log('📊 RESTORED DATA:', JSON.stringify(restoredSets, null, 2));
 
         // Mark as initialized to prevent re-initialization
         hasInitializedRef.current = true;
 
         // DON'T update context here - it causes re-initialization with empty sets
         // The auto-save will handle syncing to context when user makes changes
-        console.log('⚠️ Skipping updateWorkout to prevent re-initialization loop');
       }
       if (activeWorkout.currentExerciseIndex !== undefined) {
         setCurrentExerciseIndex(activeWorkout.currentExerciseIndex);
@@ -844,21 +804,17 @@ export default function WorkoutScreen({ navigation, route }) {
   // Execute batched exercise moves
   const executePendingMoves = () => {
     const moves = pendingMovesRef.current;
-    console.log('🔄 executePendingMoves called, pendingMoves:', moves);
 
     if (moves.index === null || moves.count === 0) {
-      console.log('❌ No pending moves to execute');
       return;
     }
 
     const { index, direction, count } = moves;
-    console.log(`✅ Executing move: index=${index}, direction=${direction}, count=${count}`);
 
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
     const updatedExercises = [...workoutExercises];
     const exercise = updatedExercises[index];
-    console.log('📋 Current order:', updatedExercises.map((e, i) => `${i}: ${e.name}`));
 
     // Calculate target position
     let targetIndex = index;
@@ -867,12 +823,10 @@ export default function WorkoutScreen({ navigation, route }) {
     } else {
       targetIndex = Math.min(updatedExercises.length - 1, index + count);
     }
-    console.log(`🎯 Moving from index ${index} to ${targetIndex}`);
 
     // Remove from old position and insert at new position
     updatedExercises.splice(index, 1);
     updatedExercises.splice(targetIndex, 0, exercise);
-    console.log('📋 New order:', updatedExercises.map((e, i) => `${i}: ${e.name}`));
 
     // Update workout with new exercise order
     updateWorkout({ exercises: updatedExercises });
@@ -883,9 +837,7 @@ export default function WorkoutScreen({ navigation, route }) {
 
   // Move exercise up with batching
   const moveExerciseUp = (index) => {
-    console.log(`⬆️ moveExerciseUp called for index ${index}`);
     if (index === 0) {
-      console.log('❌ Already at top, cannot move up');
       return;
     }
 
@@ -893,7 +845,6 @@ export default function WorkoutScreen({ navigation, route }) {
 
     // Clear existing timer
     if (moveTimerRef.current) {
-      console.log('🔄 Clearing existing timer');
       clearTimeout(moveTimerRef.current);
     }
 
@@ -903,21 +854,16 @@ export default function WorkoutScreen({ navigation, route }) {
       ? { ...current, count: current.count + 1 }
       : { index, direction: 'up', count: 1 };
     pendingMovesRef.current = newState;
-    console.log('📝 Updated pendingMoves:', newState);
 
     // Set timer to execute after delay
-    console.log('⏱️ Setting timer for 300ms');
     moveTimerRef.current = setTimeout(() => {
-      console.log('⏰ Timer fired! Executing pending moves...');
       executePendingMoves();
     }, 300);
   };
 
   // Move exercise down with batching
   const moveExerciseDown = (index) => {
-    console.log(`⬇️ moveExerciseDown called for index ${index}`);
     if (index === workoutExercises.length - 1) {
-      console.log('❌ Already at bottom, cannot move down');
       return;
     }
 
@@ -925,7 +871,6 @@ export default function WorkoutScreen({ navigation, route }) {
 
     // Clear existing timer
     if (moveTimerRef.current) {
-      console.log('🔄 Clearing existing timer');
       clearTimeout(moveTimerRef.current);
     }
 
@@ -935,12 +880,9 @@ export default function WorkoutScreen({ navigation, route }) {
       ? { ...current, count: current.count + 1 }
       : { index, direction: 'down', count: 1 };
     pendingMovesRef.current = newState;
-    console.log('📝 Updated pendingMoves:', newState);
 
     // Set timer to execute after delay
-    console.log('⏱️ Setting timer for 300ms');
     moveTimerRef.current = setTimeout(() => {
-      console.log('⏰ Timer fired! Executing pending moves...');
       executePendingMoves();
     }, 300);
   };
@@ -1530,8 +1472,6 @@ export default function WorkoutScreen({ navigation, route }) {
     // Schedule auto-save after 200ms of inactivity (reduced for faster saves)
     autoSaveTimeoutRef.current = setTimeout(async () => {
       try {
-        console.log('💾 AUTO-SAVING workout data...');
-
         // Update WorkoutContext
         updateWorkout({
           exerciseSets: sets,
@@ -1545,8 +1485,6 @@ export default function WorkoutScreen({ navigation, route }) {
           const currentWorkout = JSON.parse(activeWorkoutStr);
           currentWorkout.exerciseSets = sets;
           await AsyncStorage.setItem('@active_workout', JSON.stringify(currentWorkout));
-          console.log('✅ AUTO-SAVE COMPLETE - Sets saved:', Object.keys(sets).length, 'exercises');
-          console.log('📊 SAVED DATA:', JSON.stringify(sets, null, 2));
         }
       } catch (error) {
         console.error('❌ Auto-save failed:', error);
@@ -1893,12 +1831,16 @@ export default function WorkoutScreen({ navigation, route }) {
       {/* Volume and Sets - Two columns */}
       <View style={styles.headerStatsRow}>
         <View style={styles.headerStatBox}>
-          <Text style={styles.headerStatValue}>{totalVolume.toLocaleString()}</Text>
+          <Text style={styles.headerStatValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
+            {totalVolume.toLocaleString()}
+          </Text>
           <Text style={styles.headerStatLabel}>VOLUME</Text>
         </View>
 
         <View style={styles.headerStatBox}>
-          <Text style={styles.headerStatValue}>{totalSets}</Text>
+          <Text style={styles.headerStatValue} numberOfLines={1}>
+            {totalSets}
+          </Text>
           <Text style={styles.headerStatLabel}>SETS</Text>
         </View>
       </View>
