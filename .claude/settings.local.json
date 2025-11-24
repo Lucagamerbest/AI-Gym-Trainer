@@ -73,7 +73,9 @@
       "Bash(del temp_exercises.json)",
       "Bash(exercise_list.json)",
       "Bash(copy /Y \"src\\utils\\exerciseImages_COMPLETE.js\" \"src\\utils\\exerciseImages.js\")",
-      "Bash(npx eas:*)"
+      "Bash(npx eas:*)",
+      "Bash(npx react-native log-android:*)",
+      "Bash(timeout /t 3)"
     ],
     "deny": [],
     "ask": []

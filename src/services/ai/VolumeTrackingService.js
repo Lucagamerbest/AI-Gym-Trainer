@@ -1,4 +1,9 @@
-import ContextManager from './ContextManager';
+let ContextManager;
+try {
+  ContextManager = require('./ContextManager').default;
+} catch (error) {
+  console.error('Failed to load ContextManager:', error.message);
+}
 
 /**
  * Volume Tracking & Balance Service
@@ -12,6 +17,10 @@ class VolumeTrackingService {
    */
   async getWeeklyVolume(userId) {
     try {
+      if (!ContextManager || !ContextManager.getAllWorkoutHistory) {
+        console.warn('ContextManager not available');
+        return null;
+      }
       const workoutHistory = await ContextManager.getAllWorkoutHistory(userId, 30);
 
       // Filter to last 7 days
@@ -65,7 +74,7 @@ class VolumeTrackingService {
         period: '7 days',
       };
     } catch (error) {
-      console.error('Error calculating weekly volume:', error);
+      console.error('Error calculating weekly volume:', error.message || error);
       return null;
     }
   }

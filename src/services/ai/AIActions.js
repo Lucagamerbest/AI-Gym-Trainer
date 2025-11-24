@@ -2812,7 +2812,7 @@ function getMuscleGroupsFromExercise(exerciseName) {
 // Get weekly volume for muscle groups
 async function getWeeklyMuscleGroupVolume(userId, weeksBack = 4) {
   try {
-    const WorkoutStorageService = (await import('../services/WorkoutStorageService')).default;
+    const { WorkoutStorageService } = await import('../workoutStorage');
 
     // Get workouts from the last X weeks
     const endDate = new Date();

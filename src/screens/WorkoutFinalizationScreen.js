@@ -227,7 +227,7 @@ export default function WorkoutFinalizationScreen({ navigation, route }) {
             onChangeText={setWorkoutTitle}
             placeholder="Enter workout name..."
             placeholderTextColor={Colors.textMuted}
-            maxLength={50}
+            maxLength={100}
           />
           <Text style={styles.helperText}>
             Default: {getDefaultTitle()}
