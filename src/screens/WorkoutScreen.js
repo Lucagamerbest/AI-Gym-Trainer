@@ -14,6 +14,8 @@ import { WorkoutStorageService } from '../services/workoutStorage';
 import { useAuth } from '../context/AuthContext';
 import { useWorkout } from '../context/WorkoutContext';
 import AIButtonModal from '../components/AIButtonModal';
+import PlatePicker from '../components/PlatePicker';
+import { usesBarbellPlates, getBarType } from '../constants/weightEquipment';
 
 // Configure notification handler - always show notifications
 Notifications.setNotificationHandler({
@@ -87,6 +89,26 @@ const isBodyweightExercise = (exercise) => {
 
 // Exercise Card Component
 const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exerciseSets, onUpdateSet, onAddSet, onDeleteSet, onShowInfo, onSelectSetType, onPairSuperset, supersetPairIndex, fromProgram, rpeEnabled, onStartCardioTimer, onPauseCardioTimer, cardioTimers, onMoveUp, onMoveDown, canMoveUp, canMoveDown }) => {
+
+  // Check if this exercise uses barbell/plates
+  const selectedEquipment = exercise.selectedEquipment || exercise.equipment?.split(', ')[0] || '';
+  const isBarbellExercise = usesBarbellPlates(exercise.name, selectedEquipment);
+  const barType = isBarbellExercise ? getBarType(exercise.name, selectedEquipment) : null;
+
+  // State for plate picker modal
+  const [showPlatePicker, setShowPlatePicker] = useState(false);
+  const [activeSetIndex, setActiveSetIndex] = useState(0);
+
+  // Open plate picker for a specific set
+  const openPlatePicker = (setIndex) => {
+    setActiveSetIndex(setIndex);
+    setShowPlatePicker(true);
+  };
+
+  // Handle plate picker confirmation
+  const handlePlatePickerConfirm = (weight) => {
+    onUpdateSet(index, activeSetIndex, 'weight', weight);
+  };
 
   // Function to get set type color
   const getSetTypeColor = (type) => {
@@ -299,14 +321,29 @@ const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exercise
                   </TouchableOpacity>
 
                   {!isBodyweight && (
-                    <TextInput
-                      style={styles.setInput}
-                      value={set.weight}
-                      onChangeText={(value) => onUpdateSet(index, setIndex, 'weight', value)}
-                      placeholder="lbs"
-                      placeholderTextColor={Colors.textMuted}
-                      keyboardType="numeric"
-                    />
+                    isBarbellExercise ? (
+                      <TouchableOpacity
+                        style={[styles.setInput, styles.weightTouchable]}
+                        onPress={() => openPlatePicker(setIndex)}
+                      >
+                        <Text style={[
+                          styles.weightTouchableText,
+                          !set.weight && styles.weightTouchablePlaceholder
+                        ]}>
+                          {set.weight || 'lbs'}
+                        </Text>
+                        <Ionicons name="barbell-outline" size={16} color={Colors.primary} />
+                      </TouchableOpacity>
+                    ) : (
+                      <TextInput
+                        style={styles.setInput}
+                        value={set.weight}
+                        onChangeText={(value) => onUpdateSet(index, setIndex, 'weight', value)}
+                        placeholder="lbs"
+                        placeholderTextColor={Colors.textMuted}
+                        keyboardType="numeric"
+                      />
+                    )
                   )}
 
                   <TextInput
@@ -347,7 +384,7 @@ const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exercise
               )}
             </View>
           ))}
-          
+
           <TouchableOpacity
             style={styles.addSetButton}
             onPress={() => onAddSet(index)}
@@ -355,6 +392,18 @@ const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exercise
             <Text style={styles.addSetButtonText}>+ Add Set</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Plate Picker Modal for barbell exercises */}
+        {isBarbellExercise && barType && (
+          <PlatePicker
+            visible={showPlatePicker}
+            onClose={() => setShowPlatePicker(false)}
+            onConfirm={handlePlatePickerConfirm}
+            initialWeight={exerciseSets?.[activeSetIndex]?.weight || '45'}
+            barType={barType}
+            unit="lbs"
+          />
+        )}
     </View>
   );
 };
@@ -2885,6 +2934,44 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.xs,
     marginTop: Spacing.xs,
     alignItems: 'center',
+  },
+  weightInputContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  setInputWithButton: {
+    flex: 1,
+    borderTopRightRadius: 0,
+    borderBottomRightRadius: 0,
+    borderRightWidth: 0,
+  },
+  platePickerButton: {
+    backgroundColor: Colors.card,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+    borderTopRightRadius: BorderRadius.sm,
+    borderBottomRightRadius: BorderRadius.sm,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100%',
+  },
+  weightTouchable: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderColor: Colors.primary,
+    borderWidth: 1,
+  },
+  weightTouchableText: {
+    color: Colors.text,
+    fontSize: Typography.fontSize.md,
+    flex: 1,
+  },
+  weightTouchablePlaceholder: {
+    color: Colors.textMuted,
   },
   addSetButtonText: {
     color: Colors.background,

@@ -1,13 +1,13 @@
 /**
  * COMPLETE Exercise Image Mapping
- * All 85 exercises mapped to Free Exercise DB
- * Generated: 2025-01-21
+ * All 92 exercises mapped to Free Exercise DB
+ * Updated: 2025-01-24
  */
 
 const BASE_URL = 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/';
 
 const EXERCISE_IMAGE_MAPPING = {
-  // ============ CHEST (7 exercises) ============
+  // ============ CHEST (8 exercises) ============
   "Bench Press": {
     "Barbell": "Barbell_Bench_Press_-_Medium_Grip",
     "Dumbbell": "Dumbbell_Bench_Press",
@@ -53,7 +53,12 @@ const EXERCISE_IMAGE_MAPPING = {
     "Assisted Machine": "Dip_Machine"
   },
 
-  // ============ BACK (12 exercises) ============
+  "Machine Chest Press": {
+    "Machine Seated": "Leverage_Chest_Press",
+    "Machine Plate Loaded": "Leverage_Chest_Press"
+  },
+
+  // ============ BACK (14 exercises) ============
   "Lat Pulldown": {
     "Machine Wide Grip": "Wide-Grip_Lat_Pulldown",
     "Machine Narrow Grip": "Close-Grip_Front_Lat_Pulldown",
@@ -63,7 +68,8 @@ const EXERCISE_IMAGE_MAPPING = {
 
   "Cable Row": {
     "Low Angle (lats focus)": "Seated_Cable_Rows",
-    "Mid Angle (rhomboids/traps focus)": "Seated_Cable_Rows"
+    "Mid Angle (rhomboids/traps focus)": "Seated_Cable_Rows",
+    "High Angle (upper back/rear delts focus)": "Leverage_High_Row"
   },
 
   "One Arm Row": {
@@ -117,7 +123,17 @@ const EXERCISE_IMAGE_MAPPING = {
     "Weight Vest": "Pullups"
   },
 
-  // ============ SHOULDERS (6 exercises) ============
+  "T-Bar Row": {
+    "T-Bar Machine": "Lying_T-Bar_Row",
+    "Landmine Barbell": "Lying_T-Bar_Row"
+  },
+
+  "Assisted Pull-up": {
+    "Assisted Pull-up Machine": "Band_Assisted_Pull-Up",
+    "Resistance Band": "Band_Assisted_Pull-Up"
+  },
+
+  // ============ SHOULDERS (8 exercises) ============
   "Shoulder Press": {
     "Barbell": "Barbell_Shoulder_Press",
     "Dumbbell Seated": "Dumbbell_Shoulder_Press",
@@ -157,6 +173,17 @@ const EXERCISE_IMAGE_MAPPING = {
     "Dumbbell": "Standing_Dumbbell_Upright_Row",
     "Cable": "Upright_Cable_Row",
     "EZ Bar": "Upright_Row_-_With_Bands"
+  },
+
+  "Face Pull": {
+    "Cable Rope": "Face_Pull",
+    "Resistance Band": "Face_Pull"
+  },
+
+  "Rear Delt Cable": {
+    "Cable High Single": "Cable_Rear_Delt_Fly",
+    "Cable Low Single": "Cable_Rear_Delt_Fly",
+    "Cable Cross": "Cable_Rear_Delt_Fly"
   },
 
   // ============ BICEPS (10 exercises) ============
@@ -332,7 +359,7 @@ const EXERCISE_IMAGE_MAPPING = {
     "Weighted Plate": "Weighted_Sit-Ups_-_With_Bands"
   },
 
-  // ============ LEGS (20 exercises) ============
+  // ============ LEGS (19 exercises) ============
   "Leg Extension": {
     "Machine": "Leg_Extensions",
     "Cable": "One-Legged_Cable_Kickback"
@@ -434,6 +461,12 @@ const EXERCISE_IMAGE_MAPPING = {
     "Barbell": "Barbell_Glute_Bridge",
     "Dumbbell": "Dumbbell_Bench_Press",
     "Bodyweight": "Butt_Lift_Bridge"
+  },
+
+  "Romanian Deadlift": {
+    "Barbell": "Romanian_Deadlift",
+    "Dumbbell": "Stiff-Legged_Dumbbell_Deadlift",
+    "Single Leg Dumbbell": "Stiff-Legged_Dumbbell_Deadlift"
   },
 
   // ============ FOREARMS (5 exercises) ============

@@ -650,6 +650,66 @@ export const exerciseDatabase = {
           ]
         }
       ]
+    },
+    {
+      "id": "chest-8",
+      "name": "Machine Chest Press",
+      "muscleGroup": "Chest",
+      "primaryMuscles": ["Chest", "Front Deltoids"],
+      "secondaryMuscles": ["Triceps"],
+      "equipment": "Machine Seated, Machine Plate Loaded",
+      "difficulty": "Beginner",
+      "instructions": "A machine-based pressing movement that safely targets the chest muscles. The fixed movement path makes it excellent for beginners and for training to failure without a spotter. Great for isolating the chest when fatigued.",
+      "variants": [
+        {
+          "equipment": "Machine Seated",
+          "difficulty": "Beginner",
+          "pros": [
+            "Very safe, no spotter needed",
+            "Fixed path ensures consistent form",
+            "Easy to adjust weight quickly",
+            "Great for beginners learning pressing",
+            "Can safely train to failure"
+          ],
+          "cons": [
+            "Fixed path may not suit all body types",
+            "Less stabilizer muscle engagement",
+            "Doesn't build functional strength as well",
+            "May create strength imbalances between sides"
+          ],
+          "setupTips": [
+            "Adjust seat so handles align with mid-chest",
+            "Plant feet firmly on floor or platform",
+            "Grip handles with full hand, wrists straight",
+            "Press forward until arms nearly locked",
+            "Lower with control, feel chest stretch"
+          ]
+        },
+        {
+          "equipment": "Machine Plate Loaded",
+          "difficulty": "Beginner",
+          "pros": [
+            "More natural feel than selectorized machines",
+            "Often allows independent arm movement",
+            "Can load heavy for strength training",
+            "Feels closer to free weight pressing",
+            "Good middle ground between free weights and machines"
+          ],
+          "cons": [
+            "Still a fixed path limiting natural movement",
+            "Requires loading/unloading plates",
+            "Machine not available in all gyms",
+            "Each arm may work independently (can be pro or con)"
+          ],
+          "setupTips": [
+            "Load plates evenly on both sides",
+            "Adjust seat height for proper chest alignment",
+            "Grip handles firmly, elbows slightly below shoulders",
+            "Press smoothly, avoid locking out aggressively",
+            "Control the negative portion for more tension"
+          ]
+        }
+      ]
     }
   ],
   "back": [
@@ -811,6 +871,29 @@ export const exerciseDatabase = {
             "Pull handle to sternum/lower chest area",
             "Focus on squeezing shoulder blades together",
             "Keep elbows at approximately 45-degree angle"
+          ]
+        },
+        {
+          "equipment": "High Angle (upper back/rear delts focus)",
+          "difficulty": "Beginner",
+          "pros": [
+            "Excellent for upper back and rear delt development",
+            "Great for improving posture and shoulder health",
+            "Targets often-neglected upper back muscles",
+            "Mimics face pull motion with rowing mechanics",
+            "Effective for building back thickness"
+          ],
+          "cons": [
+            "Less lat involvement than lower angles",
+            "Easier to use momentum with lighter weights",
+            "Requires focus to avoid shrugging traps"
+          ],
+          "setupTips": [
+            "Set cable at or above head height",
+            "Can stand or sit on bench facing cable",
+            "Pull handle towards upper chest or face",
+            "Keep elbows high and flared out",
+            "Squeeze shoulder blades together at peak contraction"
           ]
         }
       ]
@@ -1436,6 +1519,125 @@ export const exerciseDatabase = {
           ]
         }
       ]
+    },
+    {
+      "id": "back-13",
+      "name": "T-Bar Row",
+      "muscleGroup": "Back",
+      "primaryMuscles": ["Middle Back", "Lats"],
+      "secondaryMuscles": ["Biceps", "Rear Deltoids", "Rhomboids", "Lower Back"],
+      "equipment": "T-Bar Machine, Landmine Barbell",
+      "difficulty": "Intermediate",
+      "instructions": "A classic compound back exercise that allows heavy loading for building back thickness. The angled pulling motion effectively targets the middle back and lats while engaging the entire posterior chain.",
+      "variants": [
+        {
+          "equipment": "T-Bar Machine",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Stable platform allows heavy loading",
+            "Chest support reduces lower back strain",
+            "Fixed path ensures consistent form",
+            "Multiple grip options for variety",
+            "Great for building overall back mass"
+          ],
+          "cons": [
+            "Machine not available in all gyms",
+            "Fixed path may not suit all body types",
+            "Less core engagement than free weight version"
+          ],
+          "setupTips": [
+            "Position chest on pad if machine has one",
+            "Choose grip width based on target muscles",
+            "Pull weight to lower chest/upper abdomen",
+            "Squeeze shoulder blades together at top",
+            "Lower with control, maintain tension"
+          ]
+        },
+        {
+          "equipment": "Landmine Barbell",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Can be done with minimal equipment",
+            "Natural arc path is joint-friendly",
+            "Allows heavy loading for strength gains",
+            "More core engagement than machine",
+            "Can use V-grip handle or rope"
+          ],
+          "cons": [
+            "Requires strong lower back",
+            "Need to maintain bent-over position",
+            "Balance can be challenging with heavy weight",
+            "Setup requires corner or landmine attachment"
+          ],
+          "setupTips": [
+            "Secure barbell end in corner or landmine",
+            "Straddle barbell with feet shoulder-width",
+            "Hinge at hips, grab bar with V-handle or hands",
+            "Pull bar to chest, driving elbows back",
+            "Keep back flat throughout movement"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "back-14",
+      "name": "Assisted Pull-up",
+      "muscleGroup": "Back",
+      "primaryMuscles": ["Lats", "Upper Back"],
+      "secondaryMuscles": ["Biceps", "Rear Deltoids", "Core"],
+      "equipment": "Assisted Pull-up Machine, Resistance Band",
+      "difficulty": "Beginner",
+      "instructions": "A progression exercise for building towards unassisted pull-ups. The machine or band provides counterweight assistance, making the movement easier while still training the same muscles and movement pattern as a full pull-up.",
+      "variants": [
+        {
+          "equipment": "Assisted Pull-up Machine",
+          "difficulty": "Beginner",
+          "pros": [
+            "Adjustable assistance allows precise progression",
+            "Stable and safe for beginners",
+            "Consistent assistance throughout the range of motion",
+            "Easy to track progress by reducing assistance over time",
+            "Can also be used for assisted dips"
+          ],
+          "cons": [
+            "Fixed movement path may feel less natural",
+            "Doesn't train stabilizer muscles as much",
+            "Not available in all gyms",
+            "Counterweight assistance differs from bodyweight mechanics"
+          ],
+          "setupTips": [
+            "Set counterweight based on your strength level",
+            "Start with higher assistance and reduce over time",
+            "Kneel or stand on the platform securely",
+            "Grip bar slightly wider than shoulder width",
+            "Pull until chin clears bar, lower with control"
+          ]
+        },
+        {
+          "equipment": "Resistance Band",
+          "difficulty": "Beginner",
+          "pros": [
+            "Portable and inexpensive",
+            "Provides most assistance at bottom where needed most",
+            "More closely mimics natural pull-up movement",
+            "Can be used anywhere with a pull-up bar",
+            "Multiple bands available for different assistance levels"
+          ],
+          "cons": [
+            "Assistance varies throughout movement",
+            "Can be awkward to set up and dismount",
+            "Bands wear out and need replacement",
+            "Less consistent than machine assistance"
+          ],
+          "setupTips": [
+            "Loop band over pull-up bar securely",
+            "Place knee or foot in band loop",
+            "Start from full hang position",
+            "Perform full range pull-ups with controlled tempo",
+            "Progress to thinner bands as strength improves"
+          ]
+        }
+      ]
     }
   ],
   "shoulders": [
@@ -2013,6 +2215,143 @@ export const exerciseDatabase = {
             "Pull bar up close to body",
             "Keep elbows higher than hands",
             "Lower slowly to stretch traps and delts"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "shoulders-7",
+      "name": "Face Pull",
+      "muscleGroup": "Shoulders",
+      "primaryMuscles": ["Rear Deltoids", "Rotator Cuff"],
+      "secondaryMuscles": ["Rhomboids", "Traps", "Biceps"],
+      "equipment": "Cable Rope, Resistance Band",
+      "difficulty": "Beginner",
+      "instructions": "An essential exercise for shoulder health and posture. Pull the rope attachment towards your face while externally rotating your shoulders. This exercise strengthens the rear delts and rotator cuff muscles, helping prevent shoulder injuries from pressing movements.",
+      "variants": [
+        {
+          "equipment": "Cable Rope",
+          "difficulty": "Beginner",
+          "pros": [
+            "Excellent for shoulder health and injury prevention",
+            "Targets rear delts and rotator cuff simultaneously",
+            "Constant cable tension throughout movement",
+            "Easy to adjust resistance for any fitness level",
+            "Great for correcting forward shoulder posture"
+          ],
+          "cons": [
+            "Easy to use momentum and cheat",
+            "Requires focus on external rotation component",
+            "Cable machine required"
+          ],
+          "setupTips": [
+            "Set cable to upper chest or face height",
+            "Attach rope handle to cable",
+            "Grab rope ends with thumbs pointing back",
+            "Pull rope to face, separating hands as you pull",
+            "Externally rotate shoulders at end position"
+          ]
+        },
+        {
+          "equipment": "Resistance Band",
+          "difficulty": "Beginner",
+          "pros": [
+            "Can be done anywhere, no gym needed",
+            "Inexpensive and portable option",
+            "Great for warm-ups before pressing",
+            "Easy to adjust resistance with band tension",
+            "Perfect for home workouts"
+          ],
+          "cons": [
+            "Resistance varies throughout movement",
+            "Requires secure anchor point",
+            "Bands wear out over time"
+          ],
+          "setupTips": [
+            "Anchor band at face height",
+            "Grip band ends with palms facing down",
+            "Pull band to face while separating hands",
+            "Focus on squeezing rear delts and rotating externally",
+            "Control return to maintain tension"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "shoulders-8",
+      "name": "Rear Delt Cable",
+      "muscleGroup": "Shoulders",
+      "primaryMuscles": ["Rear Deltoids"],
+      "secondaryMuscles": ["Rhomboids", "Traps", "Rotator Cuff"],
+      "equipment": "Cable High Single, Cable Low Single, Cable Cross",
+      "difficulty": "Beginner",
+      "instructions": "A cable isolation exercise specifically targeting the rear deltoids. The constant cable tension provides excellent muscle activation throughout the range of motion, making it superior to free weight variations for rear delt isolation.",
+      "variants": [
+        {
+          "equipment": "Cable High Single",
+          "difficulty": "Beginner",
+          "pros": [
+            "Constant tension throughout entire movement",
+            "Single arm allows maximum range of motion",
+            "Easy to adjust weight for drop sets",
+            "Natural pulling angle for rear delts",
+            "Can grip cable directly without attachment"
+          ],
+          "cons": [
+            "Takes twice as long to train both sides",
+            "Requires good mind-muscle connection",
+            "Easy to use body momentum"
+          ],
+          "setupTips": [
+            "Set cable to face height or slightly above",
+            "Stand sideways to machine, grab cable ball/stopper",
+            "Pull across body, leading with elbow",
+            "Keep arm nearly straight with slight bend",
+            "Squeeze rear delt at end, control return"
+          ]
+        },
+        {
+          "equipment": "Cable Low Single",
+          "difficulty": "Beginner",
+          "pros": [
+            "Different angle emphasizes rear delts differently",
+            "Upward pulling motion hits rear delts effectively",
+            "Easy to set up and execute",
+            "Good for beginners learning rear delt activation"
+          ],
+          "cons": [
+            "Requires good form to avoid trap involvement",
+            "Takes twice as long to train both sides",
+            "Less range of motion than high cable"
+          ],
+          "setupTips": [
+            "Set cable to lowest position",
+            "Stand sideways, reach across body for handle",
+            "Pull diagonally up and back",
+            "Lead with elbow, slight bend in arm",
+            "Focus on rear delt contraction at peak"
+          ]
+        },
+        {
+          "equipment": "Cable Cross",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Works both arms simultaneously",
+            "Time efficient bilateral training",
+            "Great stretch at starting position",
+            "Constant tension from cable resistance"
+          ],
+          "cons": [
+            "Requires cable crossover machine",
+            "More complex setup and coordination",
+            "Fixed path may not suit all body types"
+          ],
+          "setupTips": [
+            "Set both cables to high position",
+            "Stand in center, grab opposite cables (cross grip)",
+            "Pull handles apart and back with straight arms",
+            "Squeeze shoulder blades at peak contraction",
+            "Control return to feel the stretch"
           ]
         }
       ]
@@ -5490,6 +5829,87 @@ export const exerciseDatabase = {
             "Drive hips up by squeezing glutes",
             "Pause at top with full glute contraction",
             "Lower hips back down with control"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "legs-19",
+      "name": "Romanian Deadlift",
+      "muscleGroup": "Legs",
+      "primaryMuscles": ["Hamstrings", "Glutes"],
+      "secondaryMuscles": ["Lower Back", "Core", "Forearms"],
+      "equipment": "Barbell, Dumbbell, Single Leg Dumbbell",
+      "difficulty": "Intermediate",
+      "instructions": "A hip-hinge movement that emphasizes the hamstrings and glutes through an eccentric stretch. Unlike conventional deadlifts, the weight doesn't touch the ground between reps, maintaining constant tension. Keep a slight knee bend and push hips back while lowering the weight along your legs.",
+      "variants": [
+        {
+          "equipment": "Barbell",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Allows heavy loading for strength and hypertrophy",
+            "Excellent for hamstring development",
+            "Builds posterior chain strength",
+            "Teaches proper hip hinge mechanics",
+            "Great carryover to conventional deadlift"
+          ],
+          "cons": [
+            "Requires good hip mobility",
+            "Can strain lower back with improper form",
+            "Challenging to maintain proper spine position"
+          ],
+          "setupTips": [
+            "Start standing with barbell at hips",
+            "Slight bend in knees, keep this fixed",
+            "Push hips back, slide bar down thighs",
+            "Lower until strong hamstring stretch felt",
+            "Drive hips forward to return, squeeze glutes at top"
+          ]
+        },
+        {
+          "equipment": "Dumbbell",
+          "difficulty": "Intermediate",
+          "pros": [
+            "More accessible than barbell version",
+            "Natural hand position at sides",
+            "Each arm can work independently",
+            "Good for home gyms with limited equipment"
+          ],
+          "cons": [
+            "Limited by grip strength on heavier weights",
+            "Dumbbells may swing if not controlled",
+            "Cannot load as heavy as barbell"
+          ],
+          "setupTips": [
+            "Hold dumbbells at sides or in front of thighs",
+            "Maintain slight knee bend throughout",
+            "Hinge at hips pushing them backward",
+            "Keep dumbbells close to legs during descent",
+            "Stop when hamstrings are fully stretched"
+          ]
+        },
+        {
+          "equipment": "Single Leg Dumbbell",
+          "difficulty": "Advanced",
+          "pros": [
+            "Addresses left-right imbalances",
+            "Excellent for balance and stability",
+            "Intense hamstring stretch on working leg",
+            "Great for athletic performance",
+            "Core engagement for stabilization"
+          ],
+          "cons": [
+            "Challenging balance component",
+            "Cannot load as heavy as bilateral version",
+            "Requires significant hamstring flexibility",
+            "Takes longer to complete both sides"
+          ],
+          "setupTips": [
+            "Hold dumbbell in opposite hand to working leg",
+            "Stand on one leg with slight knee bend",
+            "Hinge forward while raising non-working leg behind",
+            "Keep hips square, don't rotate",
+            "Drive through heel to return to standing"
           ]
         }
       ]
