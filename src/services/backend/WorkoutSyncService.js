@@ -17,9 +17,11 @@ import {
 import { WorkoutStorageService } from '../workoutStorage';
 
 class WorkoutSyncService {
-  constructor() {
-    this.db = db;
-    this.auth = auth;
+  // Note: We don't cache auth/db references in constructor since they may not be ready
+  // Instead, we access them directly when needed to ensure fresh state
+
+  get currentUser() {
+    return auth.currentUser;
   }
 
   // ========================================
@@ -33,13 +35,13 @@ class WorkoutSyncService {
    */
   async saveWorkout(workout) {
     try {
-      const userId = this.auth.currentUser?.uid;
+      const userId = this.currentUser?.uid;
       if (!userId) {
         throw new Error('User not authenticated');
       }
 
       // Create a new document reference with auto-generated ID
-      const workoutRef = doc(collection(this.db, 'users', userId, 'workouts'));
+      const workoutRef = doc(collection(db, 'users', userId, 'workouts'));
 
       // Prepare workout data for cloud storage
       const workoutData = {
@@ -72,12 +74,12 @@ class WorkoutSyncService {
    */
   async getWorkout(workoutId) {
     try {
-      const userId = this.auth.currentUser?.uid;
+      const userId = this.currentUser?.uid;
       if (!userId) {
         throw new Error('User not authenticated');
       }
 
-      const workoutRef = doc(this.db, 'users', userId, 'workouts', workoutId);
+      const workoutRef = doc(db, 'users', userId, 'workouts', workoutId);
       const workoutDoc = await getDoc(workoutRef);
 
       if (workoutDoc.exists()) {
@@ -105,16 +107,16 @@ class WorkoutSyncService {
   async getAllWorkouts(limitCount = 100) {
     try {
       // Don't access Firebase if not authenticated
-      if (!this.auth.currentUser) {
+      if (!this.currentUser) {
         return [];
       }
 
-      const userId = this.auth.currentUser?.uid;
+      const userId = this.currentUser?.uid;
       if (!userId) {
         throw new Error('User not authenticated');
       }
 
-      const workoutsRef = collection(this.db, 'users', userId, 'workouts');
+      const workoutsRef = collection(db, 'users', userId, 'workouts');
       const q = query(
         workoutsRef,
         orderBy('date', 'desc'),
@@ -152,12 +154,12 @@ class WorkoutSyncService {
    */
   async getWorkoutsByDateRange(startDate, endDate) {
     try {
-      const userId = this.auth.currentUser?.uid;
+      const userId = this.currentUser?.uid;
       if (!userId) {
         throw new Error('User not authenticated');
       }
 
-      const workoutsRef = collection(this.db, 'users', userId, 'workouts');
+      const workoutsRef = collection(db, 'users', userId, 'workouts');
       const q = query(
         workoutsRef,
         where('date', '>=', startDate),
@@ -192,7 +194,7 @@ class WorkoutSyncService {
    */
   async syncLocalWorkouts(userId = 'guest') {
     try {
-      const firebaseUserId = this.auth.currentUser?.uid;
+      const firebaseUserId = this.currentUser?.uid;
       if (!firebaseUserId) {
         throw new Error('User not authenticated');
       }
@@ -218,7 +220,7 @@ class WorkoutSyncService {
 
 
       // Use Firebase batch for efficient writes (can handle up to 500 operations)
-      const batch = writeBatch(this.db);
+      const batch = writeBatch(db);
       let syncedCount = 0;
       const updatedWorkouts = [...localWorkouts];
 
@@ -228,7 +230,7 @@ class WorkoutSyncService {
         try {
           // Create a new document reference
           const workoutRef = doc(
-            collection(this.db, 'users', firebaseUserId, 'workouts')
+            collection(db, 'users', firebaseUserId, 'workouts')
           );
 
           // Prepare workout data with cloud ID
@@ -293,7 +295,7 @@ class WorkoutSyncService {
    */
   async downloadCloudWorkouts(userId = 'guest') {
     try {
-      const firebaseUserId = this.auth.currentUser?.uid;
+      const firebaseUserId = this.currentUser?.uid;
       if (!firebaseUserId) {
         throw new Error('User not authenticated');
       }

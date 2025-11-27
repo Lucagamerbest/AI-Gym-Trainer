@@ -6,6 +6,7 @@ import { getAISectionsForScreen, hasAISections } from '../config/aiSectionConfig
 import AIService from '../services/ai/AIService';
 import ContextManager from '../services/ai/ContextManager';
 import { useAuth } from '../context/AuthContext';
+import { useAICoach } from '../context/AICoachContext';
 
 /**
  * AISectionPanel
@@ -27,6 +28,7 @@ export default function AISectionPanel({
   defaultExpandFirst = false,
 }) {
   const { user } = useAuth();
+  const { coachName } = useAICoach();
   const [loadingButton, setLoadingButton] = useState(null);
   const [lastResponse, setLastResponse] = useState(null);
 
@@ -90,7 +92,7 @@ export default function AISectionPanel({
       {showHeader && (
         <View style={styles.header}>
           <Text style={styles.headerIcon}>🤖</Text>
-          <Text style={styles.headerTitle}>AI Coach</Text>
+          <Text style={styles.headerTitle}>{coachName}</Text>
         </View>
       )}
 

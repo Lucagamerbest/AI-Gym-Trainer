@@ -22,7 +22,8 @@ export default function ScreenLayout({
   hideWorkoutIndicator = false,
   screenName, // Screen name for AI context
   screenParams, // Screen route params (e.g., mealType for RecipesScreen)
-  onAIClose // Callback when AI modal closes (e.g., to reload data)
+  onAIClose, // Callback when AI modal closes (e.g., to reload data)
+  rightComponent // Optional component to render on the right side of the header (next to title)
 }) {
   const Colors = useColors();
   const styles = createDynamicStyles(Colors);
@@ -95,11 +96,14 @@ export default function ScreenLayout({
           </View>
 
           <View style={styles.headerCenter}>
-            {typeof title === 'string' ? (
-              title && <Text style={styles.headerTitle}>{title}</Text>
-            ) : (
-              title
-            )}
+            <View style={styles.titleRow}>
+              {typeof title === 'string' ? (
+                title && <Text style={styles.headerTitle}>{title}</Text>
+              ) : (
+                title
+              )}
+              {rightComponent}
+            </View>
           </View>
 
           <View style={styles.headerRight}>
@@ -176,6 +180,10 @@ const createDynamicStyles = (Colors) => StyleSheet.create({
   },
   headerCenter: {
     flex: 2,
+    alignItems: 'center',
+  },
+  titleRow: {
+    flexDirection: 'row',
     alignItems: 'center',
   },
   headerRight: {

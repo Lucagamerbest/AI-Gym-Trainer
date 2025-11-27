@@ -1,12 +1,45 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import WebView from 'react-native-webview';
 import ScreenLayout from '../components/ScreenLayout';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 
+const MODEL_REMOTE_URL = 'https://raw.githubusercontent.com/Lucagamerbest/AI-Gym-Trainer/main/assets/models/human.glb';
+
 export default function Model3DWebViewScreen({ navigation, route }) {
   const webViewRef = useRef(null);
   const [selectedMuscleGroups, setSelectedMuscleGroups] = useState([]);
+  const [modelUri, setModelUri] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Detect if running in Expo Go or dev/production build
+  // Expo Go: Use remote URL (can't access native assets)
+  // Dev Build/Production: Use local bundled asset (offline support)
+  useEffect(() => {
+    import('expo-constants').then((Constants) => {
+      const isExpoGo = Constants.default.appOwnership === 'expo';
+
+      if (isExpoGo) {
+        // Expo Go - must use remote URL
+        console.log('Running in Expo Go - using remote URL for 3D model');
+        setModelUri(MODEL_REMOTE_URL);
+      } else {
+        // Dev build or production - use local Android asset (works offline!)
+        if (Platform.OS === 'android') {
+          console.log('Running in dev/production build - using local asset for 3D model (offline ready)');
+          setModelUri('file:///android_asset/models/human.glb');
+        } else {
+          // iOS - use remote for now (TODO: bundle for iOS)
+          setModelUri(MODEL_REMOTE_URL);
+        }
+      }
+      setIsLoading(false);
+    }).catch(() => {
+      // Fallback to remote URL
+      setModelUri(MODEL_REMOTE_URL);
+      setIsLoading(false);
+    });
+  }, []);
 
   // Get navigation params (for passing through to ExerciseList)
   const { fromWorkout, currentWorkoutExercises, workoutStartTime, existingExerciseSets, fromLibrary, fromProgramCreation, fromProgramDayEdit, programDayIndex } = route.params || {};
@@ -467,7 +500,7 @@ export default function Model3DWebViewScreen({ navigation, route }) {
 
         function loadModel() {
             const loader = new THREE.GLTFLoader();
-            const modelPath = 'https://raw.githubusercontent.com/Lucagamerbest/AI-Gym-Trainer/main/assets/models/human.glb';
+            const modelPath = '${modelUri || 'https://raw.githubusercontent.com/Lucagamerbest/AI-Gym-Trainer/main/assets/models/human.glb'}';
 
             loader.load(
                 modelPath,
@@ -705,8 +738,6 @@ export default function Model3DWebViewScreen({ navigation, route }) {
 </html>
   `;
 
-  const htmlSource = { html: htmlContent };
-
   return (
     <ScreenLayout
       title="Select Muscles"
@@ -744,28 +775,35 @@ export default function Model3DWebViewScreen({ navigation, route }) {
         {/* 3D WebView with overlay */}
         <View style={styles.webviewWrapper}>
           <View style={styles.webviewContainer}>
-            <WebView
-              ref={webViewRef}
-              source={htmlSource}
-              style={styles.webview}
-              onMessage={handleMessage}
-              javaScriptEnabled={true}
-              domStorageEnabled={true}
-              allowFileAccess={true}
-              allowFileAccessFromFileURLs={true}
-              allowUniversalAccessFromFileURLs={true}
-              mixedContentMode="always"
-              originWhitelist={['*']}
-              baseUrl={Platform.OS === 'android' ? 'file:///android_asset/' : ''}
-              onError={(syntheticEvent) => {
-                const { nativeEvent } = syntheticEvent;
-                console.error('WebView error:', nativeEvent);
-              }}
-              onHttpError={(syntheticEvent) => {
-                const { nativeEvent } = syntheticEvent;
-                console.error('HTTP error:', nativeEvent);
-              }}
-            />
+            {isLoading ? (
+              <View style={styles.loadingContainer}>
+                <Text style={styles.loadingText}>Preparing 3D Model...</Text>
+                <Text style={styles.loadingSubtext}>First load may take a moment</Text>
+              </View>
+            ) : (
+              <WebView
+                ref={webViewRef}
+                source={{ html: htmlContent }}
+                style={styles.webview}
+                onMessage={handleMessage}
+                javaScriptEnabled={true}
+                domStorageEnabled={true}
+                allowFileAccess={true}
+                allowFileAccessFromFileURLs={true}
+                allowUniversalAccessFromFileURLs={true}
+                mixedContentMode="always"
+                originWhitelist={['*']}
+                baseUrl={Platform.OS === 'android' ? 'file:///android_asset/' : ''}
+                onError={(syntheticEvent) => {
+                  const { nativeEvent } = syntheticEvent;
+                  console.error('WebView error:', nativeEvent);
+                }}
+                onHttpError={(syntheticEvent) => {
+                  const { nativeEvent } = syntheticEvent;
+                  console.error('HTTP error:', nativeEvent);
+                }}
+              />
+            )}
           </View>
 
           {/* Selected Muscles Overlay - Shows all selected muscles */}
@@ -926,6 +964,22 @@ const styles = StyleSheet.create({
   webview: {
     flex: 1,
     backgroundColor: 'transparent',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#1a1a1a',
+  },
+  loadingText: {
+    color: Colors.text,
+    fontSize: Typography.fontSize.lg,
+    fontWeight: '600',
+    marginBottom: Spacing.xs,
+  },
+  loadingSubtext: {
+    color: Colors.textMuted,
+    fontSize: Typography.fontSize.sm,
   },
   muscleOverlay: {
     position: 'absolute',

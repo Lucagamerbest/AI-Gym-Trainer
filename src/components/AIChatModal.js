@@ -21,12 +21,15 @@ import AIService from '../services/ai/AIService';
 import SmartTextInput from './SmartTextInput';
 import ContextManager from '../services/ai/ContextManager';
 import { useAuth } from '../context/AuthContext';
+import { useAICoach } from '../context/AICoachContext';
 import QuickSuggestions from './QuickSuggestions';
 import ThinkingAnimation from './ThinkingAnimation';
 import MacroStatsCard from './MacroStatsCard';
+import VoiceInputButton from './VoiceInputButton';
 
 export default function AIChatModal({ visible, onClose, initialMessage = '', screenName = 'AIScreen' }) {
   const { user } = useAuth(); // Get real user from AuthContext
+  const { coachName } = useAICoach();
   const navigation = useNavigation(); // For navigating to RecipesScreen
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
@@ -740,7 +743,7 @@ export default function AIChatModal({ visible, onClose, initialMessage = '', scr
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            <Text style={styles.headerTitle}>🤖 AI Coach</Text>
+            <Text style={styles.headerTitle}>🤖 {coachName}</Text>
             <Text style={styles.headerSubtitle}>
               {ContextManager.currentScreen || 'Chat'}
             </Text>
@@ -831,10 +834,13 @@ export default function AIChatModal({ visible, onClose, initialMessage = '', scr
               </ScrollView>
             </View>
           )}
-          {!contextualButtons && console.log('❌ Contextual buttons is NULL/undefined')}
 
           {/* Input */}
           <View style={styles.inputContainer}>
+            <VoiceInputButton
+              onTranscript={(text) => setInputText(text)}
+              disabled={loading}
+            />
             <View style={{flex: 1}}>
               <SmartTextInput
                 value={inputText}

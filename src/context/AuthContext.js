@@ -11,6 +11,7 @@ import {
   updateProfile,
 } from 'firebase/auth';
 import BackendService from '../services/backend/BackendService';
+import WorkoutSyncService from '../services/backend/WorkoutSyncService';
 
 const AuthContext = createContext({});
 
@@ -40,6 +41,14 @@ export function AuthProvider({ children }) {
           await BackendService.createOrUpdateUserProfile(firebaseUser);
         } catch (error) {
           // Silent fail
+        }
+
+        // Download cloud workouts to local storage (restores data after reinstall)
+        try {
+          await WorkoutSyncService.downloadCloudWorkouts(firebaseUser.uid);
+          console.log('✅ Cloud workouts synced to local storage');
+        } catch (error) {
+          console.log('Cloud workout sync skipped:', error.message);
         }
       } else {
         // User is signed out

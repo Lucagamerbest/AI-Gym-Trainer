@@ -38,6 +38,9 @@ export default function SmartTextInput({
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const inputRef = useRef(null);
 
+  // Memoize screenParams to prevent infinite re-renders
+  const screenParamsKey = JSON.stringify(screenParams);
+
   // Update suggestions when input changes
   useEffect(() => {
     const fetchSuggestions = async () => {
@@ -68,7 +71,7 @@ export default function SmartTextInput({
     };
 
     fetchSuggestions();
-  }, [value, screenName, screenParams]);
+  }, [value, screenName, screenParamsKey]);
 
   const fadeOutSuggestions = () => {
     Animated.timing(fadeAnim, {

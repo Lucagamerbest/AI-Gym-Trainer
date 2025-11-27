@@ -105,7 +105,8 @@
           ]
         }
       ],
-      "expo-asset"
+      "expo-asset",
+      "expo-speech-recognition"
     ],
     "notification": {
       "color": "#4CAF50",

@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { WorkoutProvider } from './src/context/WorkoutContext';
 import { ThemeProvider } from './src/context/ThemeContext';
+import { AICoachProvider } from './src/context/AICoachContext';
 import { Colors } from './src/constants/theme';
 import SyncManager from './src/services/backend/SyncManager';
 import { initializeGemini } from './src/config/gemini';
@@ -84,6 +85,7 @@ const Tab = createBottomTabNavigator();
 
 function TabNavigator() {
   const { user } = useAuth();
+  const { coachName } = require('./src/context/AICoachContext').useAICoach();
   const [aiSuggestionCount, setAISuggestionCount] = useState(0);
 
   // Check for AI suggestions every 30 seconds
@@ -125,7 +127,7 @@ function TabNavigator() {
         name="AI"
         component={AIScreen}
         options={{
-          tabBarLabel: 'AI Coach',
+          tabBarLabel: coachName,
           tabBarIcon: ({ focused }) => (
             <View>
               <Ionicons
@@ -429,10 +431,12 @@ export default function App() {
     <SafeAreaProvider>
       <ThemeProvider>
         <AuthProvider>
-          <WorkoutProvider>
-            <StatusBar style="light" />
-            <AppNavigator />
-          </WorkoutProvider>
+          <AICoachProvider>
+            <WorkoutProvider>
+              <StatusBar style="light" />
+              <AppNavigator />
+            </WorkoutProvider>
+          </AICoachProvider>
         </AuthProvider>
       </ThemeProvider>
     </SafeAreaProvider>

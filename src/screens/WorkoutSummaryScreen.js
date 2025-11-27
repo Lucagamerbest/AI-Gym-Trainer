@@ -5,8 +5,10 @@ import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { LinearGradient } from 'expo-linear-gradient';
 import { analyzeWorkoutInsights } from '../services/ai/AIActions';
 import BackendService from '../services/backend/BackendService';
+import { useAICoach } from '../context/AICoachContext';
 
 export default function WorkoutSummaryScreen({ navigation, route }) {
+  const { coachName } = useAICoach();
   const { workoutData, exerciseSets, saveResult } = route.params || {};
   const [aiInsights, setAiInsights] = useState([]);
   const [loadingInsights, setLoadingInsights] = useState(true);
@@ -180,7 +182,7 @@ export default function WorkoutSummaryScreen({ navigation, route }) {
       ) : aiInsights.length > 0 ? (
         <View style={styles.section}>
           <View style={styles.insightsTitleRow}>
-            <Text style={styles.sectionTitle}>🤖 AI Coach Insights</Text>
+            <Text style={styles.sectionTitle}>🤖 {coachName} Insights</Text>
           </View>
           {aiInsights.map((insight, index) => (
             <View key={index} style={styles.insightCard}>

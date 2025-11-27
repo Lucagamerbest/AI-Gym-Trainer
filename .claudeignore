@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+android/
+ios/
+.expo/
+dist/
+web-build/
+
+# Large data files (if any backups exist)
+*.backup.js
+*.CORRUPTED.js
+
+# Cache directories
+.cache/
+__pycache__/
+
+# Firebase
+.firebase/
+
+# Logs
+*.log
+npm-debug.log*
+
+# IDE
+.idea/
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db

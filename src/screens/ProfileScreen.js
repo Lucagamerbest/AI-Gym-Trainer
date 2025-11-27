@@ -6,6 +6,7 @@ import StyledCard from '../components/StyledCard';
 import StyledButton from '../components/StyledButton';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { useAuth } from '../context/AuthContext';
+import { useAICoach } from '../context/AICoachContext';
 import { WorkoutStorageService } from '../services/workoutStorage';
 import SyncManager from '../services/backend/SyncManager';
 import { loadUserProfile } from '../services/userProfileAssessment';
@@ -16,6 +17,7 @@ WebBrowser.maybeCompleteAuthSession();
 
 export default function ProfileScreen({ navigation }) {
   const { user, signIn, signInWithGoogle, signOut } = useAuth();
+  const { coachName } = useAICoach();
   const [isLoading, setIsLoading] = useState(false);
   const [userStats, setUserStats] = useState(null);
   const [syncStatus, setSyncStatus] = useState({ isOnline: true, isSyncing: false, pendingOperations: 0 });
@@ -225,7 +227,7 @@ export default function ProfileScreen({ navigation }) {
         <View style={styles.statusContent}>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
             <Ionicons name="hardware-chip" size={20} color={Colors.primary} style={{ marginRight: 8 }} />
-            <Text style={styles.statusLabel}>AI Coach Profile</Text>
+            <Text style={styles.statusLabel}>{coachName} Profile</Text>
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
             {user && user.provider !== 'guest' && userProfile?.assessmentCompleted && (
@@ -242,7 +244,7 @@ export default function ProfileScreen({ navigation }) {
           <Text style={styles.statusHint}>
             {user && user.provider !== 'guest'
               ? (userProfile?.assessmentCompleted
-                ? 'Your AI coach knows your goals, preferences, and limitations'
+                ? `${coachName} knows your goals, preferences, and limitations`
                 : 'Complete your profile to get highly personalized coaching and recommendations')
               : 'Sign in to get personalized recommendations'}
           </Text>

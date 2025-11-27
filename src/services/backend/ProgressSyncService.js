@@ -17,9 +17,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const PROGRESS_ENTRIES_KEY = '@progress_entries';
 
 class ProgressSyncService {
-  constructor() {
-    this.db = db;
-  }
+  // Note: Access db directly to ensure fresh state
 
   // Upload a single progress entry to Firebase
   async uploadProgressEntry(userId, progressEntry) {
@@ -30,7 +28,7 @@ class ProgressSyncService {
       }
 
       const progressRef = doc(
-        collection(this.db, 'users', userId, 'progress')
+        collection(db, 'users', userId, 'progress')
       );
 
       const progressData = {
@@ -58,7 +56,7 @@ class ProgressSyncService {
         throw new Error('User not authenticated');
       }
 
-      const progressRef = doc(this.db, 'users', userId, 'progress', entryId);
+      const progressRef = doc(db, 'users', userId, 'progress', entryId);
       const progressDoc = await getDoc(progressRef);
 
       if (progressDoc.exists()) {
@@ -78,7 +76,7 @@ class ProgressSyncService {
         throw new Error('User not authenticated');
       }
 
-      const progressRef = collection(this.db, 'users', userId, 'progress');
+      const progressRef = collection(db, 'users', userId, 'progress');
       const q = query(
         progressRef,
         orderBy('date', 'desc'),
@@ -165,13 +163,13 @@ class ProgressSyncService {
 
 
 
-      const batch = writeBatch(this.db);
+      const batch = writeBatch(db);
       let uploadedCount = 0;
 
       for (const entry of unsyncedProgress) {
         try {
           const progressRef = doc(
-            collection(this.db, 'users', userId, 'progress')
+            collection(db, 'users', userId, 'progress')
           );
 
           const progressData = {
@@ -214,7 +212,7 @@ class ProgressSyncService {
         return;
       }
 
-      const progressRef = doc(this.db, 'users', userId, 'progress', entryId);
+      const progressRef = doc(db, 'users', userId, 'progress', entryId);
       await deleteDoc(progressRef);
 
 
@@ -249,7 +247,7 @@ class ProgressSyncService {
         throw new Error('User not authenticated');
       }
 
-      const progressRef = collection(this.db, 'users', userId, 'progress');
+      const progressRef = collection(db, 'users', userId, 'progress');
       const q = query(
         progressRef,
         orderBy('date', 'desc'),

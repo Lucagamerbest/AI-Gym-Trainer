@@ -15,10 +15,7 @@ import {
 import { getDailySummary, addToDaily } from '../foodDatabase.web';
 
 class MealSyncService {
-  constructor() {
-    this.db = db;
-    this.auth = auth;
-  }
+  // Note: Access db and auth directly to ensure fresh state
 
   // Upload a single daily consumption entry to Firebase
   async uploadDailyConsumption(userId, consumptionData) {
@@ -29,7 +26,7 @@ class MealSyncService {
       }
 
       const consumptionRef = doc(
-        collection(this.db, 'users', userId, 'meals')
+        collection(db, 'users', userId, 'meals')
       );
 
       const mealData = {
@@ -54,7 +51,7 @@ class MealSyncService {
   async getMealsByDate(userId, date) {
     try {
       // Don't access Firebase if not authenticated
-      if (!this.auth.currentUser) {
+      if (!auth.currentUser) {
         return [];
       }
 
@@ -65,7 +62,7 @@ class MealSyncService {
       // Ensure date is in YYYY-MM-DD format
       const dateString = typeof date === 'string' ? date : date.toISOString().split('T')[0];
 
-      const mealsRef = collection(this.db, 'users', userId, 'meals');
+      const mealsRef = collection(db, 'users', userId, 'meals');
       const q = query(
         mealsRef,
         where('date', '==', dateString)
@@ -103,7 +100,7 @@ class MealSyncService {
         throw new Error('User not authenticated');
       }
 
-      const mealsRef = collection(this.db, 'users', userId, 'meals');
+      const mealsRef = collection(db, 'users', userId, 'meals');
       const q = query(
         mealsRef,
         orderBy('date', 'desc'),
@@ -158,13 +155,13 @@ class MealSyncService {
 
 
 
-      const batch = writeBatch(this.db);
+      const batch = writeBatch(db);
       let uploadedCount = 0;
 
       for (const meal of dailySummary) {
         try {
           const mealRef = doc(
-            collection(this.db, 'users', userId, 'meals')
+            collection(db, 'users', userId, 'meals')
           );
 
           const mealData = {
@@ -314,7 +311,7 @@ class MealSyncService {
       }
 
       const { deleteDoc, doc } = await import('firebase/firestore');
-      const mealRef = doc(this.db, 'users', userId, 'meals', mealId);
+      const mealRef = doc(db, 'users', userId, 'meals', mealId);
       await deleteDoc(mealRef);
 
 
@@ -338,7 +335,7 @@ class MealSyncService {
       }
 
       const { updateDoc, doc } = await import('firebase/firestore');
-      const mealRef = doc(this.db, 'users', userId, 'meals', mealId);
+      const mealRef = doc(db, 'users', userId, 'meals', mealId);
 
       const updatePayload = {
         ...updatedData,

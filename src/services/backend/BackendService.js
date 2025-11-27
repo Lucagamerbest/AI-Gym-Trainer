@@ -16,10 +16,8 @@ import {
 } from 'firebase/firestore';
 
 class BackendService {
-  constructor() {
-    this.db = db;
-    this.auth = auth;
-  }
+  // Note: We access db and auth directly when needed to ensure fresh state
+  // instead of caching them in constructor (which happens before auth is ready)
 
   // ========================================
   // CONNECTION TESTING
@@ -31,7 +29,7 @@ class BackendService {
    */
   async testConnection() {
     try {
-      const testRef = doc(collection(this.db, 'test'), 'connection-test');
+      const testRef = doc(collection(db, 'test'), 'connection-test');
       await setDoc(testRef, {
         timestamp: new Date().toISOString(),
         message: 'Backend connected successfully',
@@ -53,7 +51,7 @@ class BackendService {
    * @returns {string|null} User ID or null if not authenticated
    */
   getCurrentUserId() {
-    const user = this.auth.currentUser;
+    const user = auth.currentUser;
     if (!user) {
       return null;
     }
@@ -65,7 +63,7 @@ class BackendService {
    * @returns {object|null} User object or null
    */
   getCurrentUser() {
-    return this.auth.currentUser;
+    return auth.currentUser;
   }
 
   /**
@@ -74,7 +72,7 @@ class BackendService {
    */
   async createOrUpdateUserProfile(firebaseUser) {
     try {
-      const userRef = doc(this.db, 'users', firebaseUser.uid);
+      const userRef = doc(db, 'users', firebaseUser.uid);
       const userDoc = await getDoc(userRef);
 
       const userData = {
@@ -118,15 +116,15 @@ class BackendService {
   async getUserProfile(userId) {
     try {
       // Don't access Firebase if not authenticated
-      if (!this.auth.currentUser) {
+      if (!auth.currentUser) {
         return null;
       }
 
-      const userRef = doc(this.db, 'users', userId);
+      const userRef = doc(db, 'users', userId);
       const userDoc = await getDoc(userRef);
 
       // Also fetch from userProfiles collection (assessment data)
-      const assessmentRef = doc(this.db, 'userProfiles', userId);
+      const assessmentRef = doc(db, 'userProfiles', userId);
       const assessmentDoc = await getDoc(assessmentRef);
 
       // Merge both profiles (assessment data takes precedence for overlapping fields)
@@ -158,7 +156,7 @@ class BackendService {
    */
   async updateUserSettings(userId, settings) {
     try {
-      const userRef = doc(this.db, 'users', userId);
+      const userRef = doc(db, 'users', userId);
       await setDoc(userRef, {
         settings,
         updatedAt: new Date().toISOString(),
@@ -175,7 +173,7 @@ class BackendService {
    */
   async updateUserGoals(userId, goals) {
     try {
-      const userRef = doc(this.db, 'users', userId);
+      const userRef = doc(db, 'users', userId);
       await setDoc(userRef, {
         goals,
         updatedAt: new Date().toISOString(),
@@ -192,7 +190,7 @@ class BackendService {
    */
   async updateUserFoodPreferences(userId, foodPreferences) {
     try {
-      const userRef = doc(this.db, 'users', userId);
+      const userRef = doc(db, 'users', userId);
       await setDoc(userRef, {
         foodPreferences,
         updatedAt: new Date().toISOString(),
@@ -213,7 +211,7 @@ class BackendService {
    * @returns {CollectionReference}
    */
   getWorkoutsRef(userId) {
-    return collection(this.db, 'users', userId, 'workouts');
+    return collection(db, 'users', userId, 'workouts');
   }
 
   /**
@@ -222,7 +220,7 @@ class BackendService {
    * @returns {CollectionReference}
    */
   getMealsRef(userId) {
-    return collection(this.db, 'users', userId, 'meals');
+    return collection(db, 'users', userId, 'meals');
   }
 
   /**
@@ -231,7 +229,7 @@ class BackendService {
    * @returns {CollectionReference}
    */
   getProgressRef(userId) {
-    return collection(this.db, 'users', userId, 'progress');
+    return collection(db, 'users', userId, 'progress');
   }
 
   /**
@@ -240,7 +238,7 @@ class BackendService {
    * @returns {CollectionReference}
    */
   getAISessionsRef(userId) {
-    return collection(this.db, 'users', userId, 'ai_sessions');
+    return collection(db, 'users', userId, 'ai_sessions');
   }
 
   // ========================================
@@ -255,7 +253,7 @@ class BackendService {
    */
   async setCachedWorkouts(userId, cache) {
     try {
-      const cacheRef = doc(this.db, 'users', userId, 'cache', 'workouts');
+      const cacheRef = doc(db, 'users', userId, 'cache', 'workouts');
       await setDoc(cacheRef, cache);
       console.log('✅ Cached workouts saved to Firebase');
     } catch (error) {
@@ -271,7 +269,7 @@ class BackendService {
    */
   async getCachedWorkouts(userId) {
     try {
-      const cacheRef = doc(this.db, 'users', userId, 'cache', 'workouts');
+      const cacheRef = doc(db, 'users', userId, 'cache', 'workouts');
       const cacheSnap = await getDoc(cacheRef);
 
       if (cacheSnap.exists()) {
@@ -292,7 +290,7 @@ class BackendService {
    */
   async deleteCachedWorkouts(userId) {
     try {
-      const cacheRef = doc(this.db, 'users', userId, 'cache', 'workouts');
+      const cacheRef = doc(db, 'users', userId, 'cache', 'workouts');
       await deleteDoc(cacheRef);
       console.log('✅ Workout cache deleted');
     } catch (error) {
@@ -309,7 +307,7 @@ class BackendService {
    */
   async getWorkoutUsageStats(userId, workoutType) {
     try {
-      const statsRef = doc(this.db, 'users', userId, 'workoutUsageStats', workoutType);
+      const statsRef = doc(db, 'users', userId, 'workoutUsageStats', workoutType);
       const statsSnap = await getDoc(statsRef);
 
       if (statsSnap.exists()) {
@@ -332,7 +330,7 @@ class BackendService {
    */
   async markWorkoutAsSeen(userId, workoutType, variationIndex) {
     try {
-      const statsRef = doc(this.db, 'users', userId, 'workoutUsageStats', workoutType);
+      const statsRef = doc(db, 'users', userId, 'workoutUsageStats', workoutType);
       const statsSnap = await getDoc(statsRef);
 
       let seenVariations = [];
@@ -362,7 +360,7 @@ class BackendService {
    */
   async setCachedRecipes(userId, cache) {
     try {
-      const cacheRef = doc(this.db, 'users', userId, 'cache', 'recipes');
+      const cacheRef = doc(db, 'users', userId, 'cache', 'recipes');
       await setDoc(cacheRef, cache);
       console.log('✅ Cached recipes saved to Firebase');
     } catch (error) {
@@ -378,7 +376,7 @@ class BackendService {
    */
   async getCachedRecipes(userId) {
     try {
-      const cacheRef = doc(this.db, 'users', userId, 'cache', 'recipes');
+      const cacheRef = doc(db, 'users', userId, 'cache', 'recipes');
       const cacheSnap = await getDoc(cacheRef);
 
       if (cacheSnap.exists()) {
@@ -399,7 +397,7 @@ class BackendService {
    */
   async deleteCachedRecipes(userId) {
     try {
-      const cacheRef = doc(this.db, 'users', userId, 'cache', 'recipes');
+      const cacheRef = doc(db, 'users', userId, 'cache', 'recipes');
       await deleteDoc(cacheRef);
       console.log('✅ Recipe cache deleted');
     } catch (error) {
@@ -418,7 +416,7 @@ class BackendService {
   async getRecipeUsageStats(userId, mealType, highProtein) {
     try {
       const category = highProtein ? 'highProtein' : 'regular';
-      const statsRef = doc(this.db, 'users', userId, 'recipeUsageStats', `${category}_${mealType}`);
+      const statsRef = doc(db, 'users', userId, 'recipeUsageStats', `${category}_${mealType}`);
       const statsSnap = await getDoc(statsRef);
 
       if (statsSnap.exists()) {
@@ -443,7 +441,7 @@ class BackendService {
   async markRecipeAsSeen(userId, mealType, highProtein, variationIndex) {
     try {
       const category = highProtein ? 'highProtein' : 'regular';
-      const statsRef = doc(this.db, 'users', userId, 'recipeUsageStats', `${category}_${mealType}`);
+      const statsRef = doc(db, 'users', userId, 'recipeUsageStats', `${category}_${mealType}`);
       const statsSnap = await getDoc(statsRef);
 
       let seenVariations = [];

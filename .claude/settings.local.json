@@ -75,7 +75,20 @@
       "Bash(copy /Y \"src\\utils\\exerciseImages_COMPLETE.js\" \"src\\utils\\exerciseImages.js\")",
       "Bash(npx eas:*)",
       "Bash(npx react-native log-android:*)",
-      "Bash(timeout /t 3)"
+      "Bash(timeout /t 3)",
+      "Bash(del \"C:\\Users\\lucar\\AI-Gym-Trainer\\src\\data\\exerciseDatabase.backup.js\" \"C:\\Users\\lucar\\AI-Gym-Trainer\\src\\data\\exerciseDatabase.CORRUPTED.js\")",
+      "Bash(xargs:*)",
+      "Bash(npm update:*)",
+      "Bash(git show:*)",
+      "Bash(powershell -command \"(Get-Item ''C:\\Users\\lucar\\AI-Gym-Trainer\\assets\\models\\human.glb'').Length / 1MB\")",
+      "Bash(if not exist \"C:\\Users\\lucar\\AI-Gym-Trainer\\android\\app\\src\\main\\assets\\models\" mkdir \"C:\\Users\\lucar\\AI-Gym-Trainer\\android\\app\\src\\main\\assets\\models\")",
+      "Bash(copy:*)",
+      "Bash(cp:*)",
+      "Bash(npx expo run:android)",
+      "WebFetch(domain:www.npmjs.com)",
+      "WebFetch(domain:expo.dev)",
+      "Bash(timeout /t 15)",
+      "Bash(ipconfig:*)"
     ],
     "deny": [],
     "ask": []

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, Animated } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, Animated, Modal, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -9,6 +9,7 @@ import AIChatModal from '../components/AIChatModal';
 import ProactiveSuggestionCard from '../components/ProactiveSuggestionCard';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { useAuth } from '../context/AuthContext';
+import { useAICoach } from '../context/AICoachContext';
 import ProactiveAIService from '../services/ai/ProactiveAIService';
 import { getNutritionGoals } from '../services/userProfileService';
 import MealSyncService from '../services/backend/MealSyncService';
@@ -27,6 +28,7 @@ const MOTIVATIONAL_QUOTES = [
 
 export default function AIScreen({ navigation }) {
   const { user } = useAuth();
+  const { coachName, updateCoachName, defaultName } = useAICoach();
   const firstName = useMemo(() => user?.displayName?.split(' ')[0] || 'Champion', [user]);
   const [chatVisible, setChatVisible] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
@@ -40,6 +42,10 @@ export default function AIScreen({ navigation }) {
   const [todayMealPlan, setTodayMealPlan] = useState(null);
   const [todayWorkoutPlan, setTodayWorkoutPlan] = useState(null);
   const [todayQuote] = useState(() => MOTIVATIONAL_QUOTES[Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length)]);
+
+  // Coach name editing
+  const [nameModalVisible, setNameModalVisible] = useState(false);
+  const [editingName, setEditingName] = useState('');
 
   // Animation values
   const fadeAnim = useState(new Animated.Value(0))[0];
@@ -224,15 +230,36 @@ export default function AIScreen({ navigation }) {
   // Calculate calorie progress percentage
   const calorieProgress = calorieGoal > 0 ? (consumedCalories / calorieGoal) * 100 : 0;
 
+  // Coach name editing handlers
+  const openNameEditor = () => {
+    setEditingName(coachName);
+    setNameModalVisible(true);
+  };
+
+  const saveCoachName = async () => {
+    await updateCoachName(editingName);
+    setNameModalVisible(false);
+  };
+
+  const cancelNameEdit = () => {
+    setNameModalVisible(false);
+    setEditingName('');
+  };
+
   return (
     <>
       <ScreenLayout
-        title="AI Coach"
+        title={coachName}
         subtitle="Your Personal Fitness Assistant"
         navigation={navigation}
         showBack={false}
         showHome={false}
         centerContent={false}
+        rightComponent={
+          <TouchableOpacity onPress={openNameEditor} style={styles.editNameButton}>
+            <Ionicons name="pencil" size={18} color={Colors.textSecondary} />
+          </TouchableOpacity>
+        }
       >
         <ScrollView
           style={styles.scrollView}
@@ -357,6 +384,59 @@ export default function AIScreen({ navigation }) {
         }}
         initialMessage={initialMessage}
       />
+
+      {/* Coach Name Edit Modal */}
+      <Modal
+        visible={nameModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={cancelNameEdit}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
+          <View style={styles.nameModalContainer}>
+            <View style={styles.nameModalHeader}>
+              <Text style={styles.nameModalTitle}>Rename Your Coach</Text>
+              <TouchableOpacity onPress={cancelNameEdit} style={styles.closeModalButton}>
+                <Ionicons name="close" size={24} color={Colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.nameModalSubtitle}>
+              Give your AI coach a personal name
+            </Text>
+
+            <TextInput
+              style={styles.nameInput}
+              value={editingName}
+              onChangeText={setEditingName}
+              placeholder={defaultName}
+              placeholderTextColor={Colors.textMuted}
+              maxLength={20}
+              autoFocus={true}
+              selectTextOnFocus={true}
+            />
+
+            <View style={styles.nameModalButtons}>
+              <TouchableOpacity
+                style={styles.resetButton}
+                onPress={() => setEditingName(defaultName)}
+              >
+                <Text style={styles.resetButtonText}>Reset</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.saveButton}
+                onPress={saveCoachName}
+              >
+                <Text style={styles.saveButtonText}>Save</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </>
   );
 }
@@ -573,5 +653,87 @@ const styles = StyleSheet.create({
   chatButtonSubtitle: {
     fontSize: Typography.fontSize.sm,
     color: Colors.textSecondary,
+  },
+
+  // Edit Name Button
+  editNameButton: {
+    padding: Spacing.xs,
+    marginLeft: Spacing.sm,
+  },
+
+  // Name Edit Modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: Spacing.lg,
+  },
+  nameModalContainer: {
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.xl,
+    width: '100%',
+    maxWidth: 340,
+  },
+  nameModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+  },
+  nameModalTitle: {
+    fontSize: Typography.fontSize.xl,
+    fontWeight: '700',
+    color: Colors.text,
+  },
+  closeModalButton: {
+    padding: Spacing.xs,
+  },
+  nameModalSubtitle: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.lg,
+  },
+  nameInput: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.md,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    fontSize: Typography.fontSize.lg,
+    color: Colors.text,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    marginBottom: Spacing.lg,
+  },
+  nameModalButtons: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+  },
+  resetButton: {
+    flex: 1,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+  },
+  resetButtonText: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+  },
+  saveButton: {
+    flex: 1,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+  },
+  saveButtonText: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+    color: Colors.background,
   },
 });

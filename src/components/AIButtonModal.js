@@ -10,10 +10,12 @@ import RecipeSourceModal from './RecipeSourceModal';
 import RecipeFilterModal from './RecipeFilterModal';
 import RecipePreferencesModal from './RecipePreferencesModal';
 import SmartTextInput from './SmartTextInput';
+import VoiceInputButton from './VoiceInputButton';
 import { getAISectionsForScreen, hasAISections } from '../config/aiSectionConfig';
 import AIService from '../services/ai/AIService';
 import ContextManager from '../services/ai/ContextManager';
 import { useAuth } from '../context/AuthContext';
+import { useAICoach } from '../context/AICoachContext';
 import { getRecentFoods } from '../services/foodDatabase';
 import MacroStatsCard from './MacroStatsCard';
 import FreeRecipeService from '../services/FreeRecipeService';
@@ -33,6 +35,7 @@ export default function AIButtonModal({
   screenParams = {}, // Screen route params like mealType
 }) {
   const { user } = useAuth();
+  const { coachName } = useAICoach();
   const scrollViewRef = useRef(null);
   const responseRef = useRef(null);
 
@@ -1359,7 +1362,7 @@ export default function AIButtonModal({
           <View style={styles.headerLeft}>
             <Text style={styles.headerIcon}>🤖</Text>
             <View>
-              <Text style={styles.headerTitle}>AI Coach</Text>
+              <Text style={styles.headerTitle}>{coachName}</Text>
               <Text style={styles.headerSubtitle}>
                 {screenName ? screenName.replace('Screen', '') : 'Assistant'}
               </Text>
@@ -2304,6 +2307,10 @@ export default function AIButtonModal({
                   <View style={styles.replyInputContainer}>
                     <Text style={styles.replyInputLabel}>Continue conversation:</Text>
                     <View style={styles.replyInputRow}>
+                      <VoiceInputButton
+                        onTranscript={(text) => setReplyText(text)}
+                        disabled={loadingButton !== null}
+                      />
                       <View style={{flex: 1}}>
                         <SmartTextInput
                           value={replyText}
@@ -2358,6 +2365,10 @@ export default function AIButtonModal({
                     </TouchableOpacity>
                   </View>
                   <View style={styles.customInputRow}>
+                    <VoiceInputButton
+                      onTranscript={(text) => setCustomInputText(text)}
+                      disabled={loadingButton !== null}
+                    />
                     <View style={{flex: 1}}>
                       <SmartTextInput
                         value={customInputText}
