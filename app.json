@@ -2,6 +2,7 @@
   "expo": {
     "name": "Workout Wave",
     "slug": "workout-wave",
+    "owner": "workoutwave",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",

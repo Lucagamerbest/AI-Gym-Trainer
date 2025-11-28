@@ -18,6 +18,8 @@ import { Colors, Spacing, Typography, BorderRadius, Shadows } from '../constants
 import { useAuth } from '../context/AuthContext';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
+import * as AuthSession from 'expo-auth-session';
+import Constants from 'expo-constants';
 
 const { width } = Dimensions.get('window');
 
@@ -44,13 +46,68 @@ export default function SignInScreen({ navigation }) {
     typeof window !== 'undefined' &&
     (window.location.hostname === '10.0.2.2' || window.location.hostname === '10.0.3.2');
 
+  // Create proper redirect URI - use proxy for Expo Go
+  const isExpoGo = !Constants.appOwnership || Constants.appOwnership === 'expo';
+  const redirectUri = isExpoGo
+    ? 'https://auth.expo.io/@workoutwave/workout-wave'
+    : AuthSession.makeRedirectUri({ scheme: 'workoutwave' });
+
+  console.log('Is Expo Go:', isExpoGo);
+  console.log('Redirect URI:', redirectUri);
+
   // Google Sign-In configuration
-  const [request, response, promptAsync] = isAndroidEmulator ? [null, null, null] : Google.useAuthRequest({
-    iosClientId: '1011295206743-rl70k9ibahkkgkf41j8qr6vfneedgb8s.apps.googleusercontent.com',
-    androidClientId: '1011295206743-ab4i5hlk0qoh9ojqm9itmp932peacv4q.apps.googleusercontent.com',
-    webClientId: '1011295206743-8jkfemcg0fcss02fgm14b9lhv282uk33.apps.googleusercontent.com',
-    scopes: ['openid', 'profile', 'email'],
-  });
+  // When using auth.expo.io proxy (Expo Go), we must use the web client ID with implicit flow
+  const googleAuthConfig = isExpoGo
+    ? {
+        // In Expo Go, use web client with proxy redirect and implicit flow
+        clientId: '1011295206743-8r4o53jb5bqm10035a4ushe160kgonf0.apps.googleusercontent.com',
+        redirectUri: redirectUri,
+        responseType: 'id_token',
+        scopes: ['openid', 'profile', 'email'],
+      }
+    : {
+        // In dev/production builds, use native client IDs
+        iosClientId: '1011295206743-rl70k9ibahkkgkf41j8qr6vfneedgb8s.apps.googleusercontent.com',
+        androidClientId: '1011295206743-ab4i5hlk0qoh9ojqm9itmp932peacv4q.apps.googleusercontent.com',
+        webClientId: '1011295206743-8r4o53jb5bqm10035a4ushe160kgonf0.apps.googleusercontent.com',
+        redirectUri: redirectUri,
+        scopes: ['openid', 'profile', 'email'],
+      };
+
+  console.log('Google Auth Config:', JSON.stringify(googleAuthConfig, null, 2));
+
+  const [request, response, promptAsync] = isAndroidEmulator ? [null, null, null] : Google.useAuthRequest(googleAuthConfig);
+
+  // Debug: Log request state
+  useEffect(() => {
+    console.log('=== GOOGLE AUTH DEBUG ===');
+    console.log('Platform:', Platform.OS);
+    console.log('Request object exists:', !!request);
+    if (request) {
+      console.log('Request URL:', request.url);
+      console.log('Request codeVerifier:', !!request.codeVerifier);
+      console.log('Request state:', request.state);
+    }
+    console.log('=========================');
+  }, [request]);
+
+  // Debug: Log response changes
+  useEffect(() => {
+    console.log('=== GOOGLE AUTH RESPONSE ===');
+    console.log('Response:', JSON.stringify(response, null, 2));
+    if (response) {
+      console.log('Response type:', response.type);
+      if (response.type === 'error') {
+        console.log('Error:', response.error);
+        Alert.alert('Google Auth Error', `Type: ${response.type}\nError: ${JSON.stringify(response.error)}\nParams: ${JSON.stringify(response.params)}`);
+      } else if (response.type === 'dismiss') {
+        console.log('User dismissed the auth flow');
+      } else if (response.type === 'success') {
+        console.log('Success! Authentication:', response.authentication);
+      }
+    }
+    console.log('============================');
+  }, [response]);
 
   useEffect(() => {
     Animated.parallel([
@@ -344,7 +401,11 @@ export default function SignInScreen({ navigation }) {
             <TouchableOpacity 
               style={styles.socialButton} 
               activeOpacity={0.8}
-              onPress={() => {
+              onPress={async () => {
+                console.log('=== GOOGLE BUTTON PRESSED ===');
+                console.log('isAndroidEmulator:', isAndroidEmulator);
+                console.log('request exists:', !!request);
+
                 // Development bypass for Android emulator
                 if (isAndroidEmulator) {
                   Alert.alert(
@@ -352,8 +413,8 @@ export default function SignInScreen({ navigation }) {
                     'Google Sign-In is not available on the Android emulator due to redirect URI restrictions.\n\nPlease use one of these options:',
                     [
                       { text: 'Cancel', style: 'cancel' },
-                      { 
-                        text: 'Use Demo Account', 
+                      {
+                        text: 'Use Demo Account',
                         onPress: () => {
                           setShowEmailForm(true);
                           setEmail('demo@gymtrainer.com');
@@ -372,9 +433,18 @@ export default function SignInScreen({ navigation }) {
                   return;
                 }
                 if (request) {
-                  promptAsync();
+                  console.log('Calling promptAsync...');
+                  console.log('Request URL:', request.url);
+                  try {
+                    const result = await promptAsync();
+                    console.log('promptAsync result:', JSON.stringify(result, null, 2));
+                  } catch (error) {
+                    console.log('promptAsync error:', error);
+                    Alert.alert('Google Auth Error', `promptAsync failed: ${error.message}`);
+                  }
                 } else {
-                  Alert.alert('Loading', 'Please wait while Google Sign-In loads...');
+                  console.log('Request is null/undefined');
+                  Alert.alert('Debug Info', `Request: ${request}\nPlatform: ${Platform.OS}\nCheck console for more details`);
                 }
               }}
               disabled={!request || isGoogleLoading}
