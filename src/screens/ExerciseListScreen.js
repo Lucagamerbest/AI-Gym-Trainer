@@ -6,12 +6,14 @@
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView, Platform, TextInput, Image, Modal } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ScreenLayout from '../components/ScreenLayout';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { LinearGradient } from 'expo-linear-gradient';
 import { getExercisesByMuscleGroup } from '../data/exerciseDatabase';
 import { useWorkout } from '../context/WorkoutContext';
+import { PinnedExerciseStorage } from '../services/pinnedExerciseStorage';
 
 // Cache for loaded exercises to make subsequent loads instant
 const exerciseCache = new Map();
@@ -42,6 +44,8 @@ export default function ExerciseListScreen({ navigation, route }) {
   const [debugMode, setDebugMode] = useState(false); // Debug mode disabled for clean UI
   const [debugLogs, setDebugLogs] = useState([]);
   const [hideVariations, setHideVariations] = useState(true); // Variations hidden for cleaner display
+  const [pinnedKeys, setPinnedKeys] = useState(new Set()); // Track pinned exercises
+  const [pinnedExercises, setPinnedExercises] = useState([]); // Pinned variants to show at top
   // Active muscle filters - initialized from selectedMuscleGroups or default to all
   const [activeMuscleFilters, setActiveMuscleFilters] = useState(
     selectedMuscleGroups && selectedMuscleGroups.length > 0
@@ -56,7 +60,41 @@ export default function ExerciseListScreen({ navigation, route }) {
 
   useEffect(() => {
     loadDisplayMode();
+    loadPinnedExercises();
   }, []);
+
+  // Reload pinned exercises when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      loadPinnedExercises();
+    }, [activeMuscleFilters])
+  );
+
+  const loadPinnedExercises = async () => {
+    const keys = await PinnedExerciseStorage.getPinnedExerciseKeys();
+    setPinnedKeys(keys);
+
+    // Load pinned variants filtered by current muscle groups
+    const pinned = await PinnedExerciseStorage.getPinnedExercisesByMuscleGroup(activeMuscleFilters);
+    setPinnedExercises(pinned);
+  };
+
+  // Reload pinned when muscle filters change
+  useEffect(() => {
+    loadPinnedExercises();
+  }, [activeMuscleFilters]);
+
+  // Handle unpinning a variant from the pinned section
+  const handleUnpinVariant = async (pinnedExercise) => {
+    await PinnedExerciseStorage.unpinVariant(pinnedExercise.id, pinnedExercise.equipment);
+    await loadPinnedExercises();
+  };
+
+  // Start workout directly with a pinned variant (skip equipment selection)
+  const startWorkoutWithPinnedVariant = (pinnedExercise) => {
+    // Pinned exercises already have selectedVariant set, so skip equipment selection
+    proceedWithExercise(pinnedExercise);
+  };
 
   const loadDisplayMode = async () => {
     try {
@@ -174,11 +212,13 @@ export default function ExerciseListScreen({ navigation, route }) {
         });
       }
 
-      setExercises(filteredExercises);
+      // Sort with pinned exercises first
+      const sortedExercises = PinnedExerciseStorage.sortWithPinnedFirst(filteredExercises, pinnedKeys);
+      setExercises(sortedExercises);
     } finally {
       setIsLoading(false);
     }
-  }, [activeMuscleFilters, selectedDifficulty, selectedEquipment, searchQuery]);
+  }, [activeMuscleFilters, selectedDifficulty, selectedEquipment, searchQuery, pinnedKeys]);
 
 
   const startWorkoutWithExercise = (exercise) => {
@@ -643,6 +683,64 @@ export default function ExerciseListScreen({ navigation, route }) {
                     <Text style={styles.createExerciseInListArrow}>→</Text>
                   </TouchableOpacity>
                 )}
+
+                {/* Pinned/Saved Exercises - Smaller grid layout */}
+                {pinnedExercises.length > 0 && (
+                  <View style={styles.pinnedSection}>
+                    <View style={styles.pinnedHeader}>
+                      <Text style={styles.pinnedHeaderIcon}>★</Text>
+                      <Text style={styles.pinnedHeaderText}>Saved Exercises</Text>
+                    </View>
+                    <View style={styles.pinnedGrid}>
+                      {pinnedExercises.map((pinned, idx) => (
+                        <View key={pinned.pinKey || idx} style={styles.pinnedCard}>
+                          <View style={styles.pinnedCardContent}>
+                            {/* Title with star */}
+                            <View style={styles.pinnedTitleRow}>
+                              <Text style={styles.pinnedCardName} numberOfLines={2} ellipsizeMode="tail">
+                                {pinned.displayName || pinned.name?.split(' (')[0]}
+                              </Text>
+                              <TouchableOpacity
+                                style={styles.pinnedStarButton}
+                                onPress={() => handleUnpinVariant(pinned)}
+                                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                              >
+                                <Text style={styles.pinnedStarIcon}>★</Text>
+                              </TouchableOpacity>
+                            </View>
+
+                            {/* Equipment badge */}
+                            <View style={styles.pinnedBadge}>
+                              <Text style={styles.pinnedBadgeText}>{pinned.equipment}</Text>
+                            </View>
+
+                            {/* Action buttons */}
+                            <View style={styles.pinnedButtonsRow}>
+                              <TouchableOpacity
+                                style={styles.pinnedInfoButton}
+                                onPress={() => navigation.navigate('ExerciseDetail', { exercise: pinned, fromWorkout: false })}
+                                activeOpacity={0.8}
+                              >
+                                <Text style={styles.pinnedInfoButtonText}>Info</Text>
+                              </TouchableOpacity>
+                              <TouchableOpacity
+                                style={styles.pinnedStartButton}
+                                onPress={() => startWorkoutWithPinnedVariant(pinned)}
+                                activeOpacity={0.8}
+                              >
+                                <Text style={styles.pinnedStartButtonText}>
+                                  {fromProgramCreation ? 'Add' : (fromWorkout || isWorkoutActive() ? 'Add' : 'Start')}
+                                </Text>
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+                        </View>
+                      ))}
+                    </View>
+                    {/* Divider line */}
+                    <View style={styles.pinnedDivider} />
+                  </View>
+                )}
               </View>
             );
           }}
@@ -671,8 +769,12 @@ export default function ExerciseListScreen({ navigation, route }) {
                   </View>
                   <View style={styles.detailedExerciseContent}>
                 {/* Exercise Name */}
-                {item.isCustom && <Text style={styles.customBadge}>⭐ CUSTOM</Text>}
-                <Text style={styles.exerciseName} numberOfLines={2} ellipsizeMode="tail">{item.name}</Text>
+                <View style={styles.titleRow}>
+                  <View style={{ flex: 1 }}>
+                    {item.isCustom && <Text style={styles.customBadge}>⭐ CUSTOM</Text>}
+                    <Text style={styles.exerciseName} numberOfLines={2} ellipsizeMode="tail">{item.name}</Text>
+                  </View>
+                </View>
 
                 {/* Exercise Meta */}
                 <View style={styles.exerciseMeta}>
@@ -778,8 +880,10 @@ export default function ExerciseListScreen({ navigation, route }) {
                 ]}>
                   {/* Title Zone */}
                   <View style={styles.titleZone}>
-                    {item.isCustom && <Text style={styles.customBadge}>⭐ CUSTOM</Text>}
-                    <Text style={styles.exerciseName} numberOfLines={2} ellipsizeMode="tail">{item.name}</Text>
+                    <View style={styles.titleRow}>
+                      {item.isCustom && <Text style={styles.customBadge}>⭐ CUSTOM</Text>}
+                      <Text style={[styles.exerciseName, { flex: 1 }]} numberOfLines={2} ellipsizeMode="tail">{item.name}</Text>
+                    </View>
                   </View>
 
                   {/* Tag Zone - Fixed height area for badges */}
@@ -924,6 +1028,130 @@ const styles = StyleSheet.create({
   headerContainer: {
     backgroundColor: Colors.background,
     paddingBottom: Spacing.xs,
+  },
+  // Pinned/Saved Exercises Section - Smaller grid layout
+  pinnedSection: {
+    marginHorizontal: 14,
+    marginTop: Spacing.sm,
+  },
+  pinnedHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+    paddingHorizontal: 2,
+  },
+  pinnedHeaderIcon: {
+    fontSize: 14,
+    color: '#FFB300',
+    marginRight: 6,
+  },
+  pinnedHeaderText: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+  },
+  pinnedGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  pinnedCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    padding: 14,
+    width: '47%',
+    minHeight: 170,
+    marginBottom: 12,
+  },
+  pinnedImageContainer: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    zIndex: 1,
+  },
+  pinnedImage: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  pinnedCardContent: {
+    flex: 1,
+    justifyContent: 'space-between',
+  },
+  pinnedTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  pinnedCardName: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: Colors.text,
+    flex: 1,
+    lineHeight: 20,
+  },
+  pinnedStarButton: {
+    padding: 2,
+    marginLeft: 6,
+  },
+  pinnedStarIcon: {
+    fontSize: 16,
+    color: '#FFB300',
+  },
+  pinnedBadge: {
+    backgroundColor: 'rgba(138, 43, 226, 0.2)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 10,
+    alignSelf: 'flex-start',
+    marginBottom: 12,
+  },
+  pinnedBadgeText: {
+    fontSize: 11,
+    color: '#c9a0ff',
+    fontWeight: '600',
+  },
+  pinnedButtonsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 'auto',
+  },
+  pinnedInfoButton: {
+    backgroundColor: 'rgba(138, 43, 226, 0.25)',
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+    flex: 0.4,
+    borderWidth: 1,
+    borderColor: 'rgba(138, 43, 226, 0.4)',
+  },
+  pinnedInfoButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#c9a0ff',
+  },
+  pinnedStartButton: {
+    backgroundColor: Colors.primary,
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+    flex: 0.6,
+  },
+  pinnedStartButtonText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  pinnedDivider: {
+    height: 1,
+    backgroundColor: Colors.border,
+    marginTop: Spacing.sm,
+    marginBottom: Spacing.xs,
   },
   muscleGroupButton: {
     flexDirection: 'row',
@@ -1200,6 +1428,18 @@ const styles = StyleSheet.create({
   // Title zone
   titleZone: {
     marginBottom: 8,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+  },
+  pinButton: {
+    padding: 2,
+    marginLeft: 4,
+  },
+  pinIcon: {
+    fontSize: 14,
   },
   // Tag zone with fixed height
   tagZone: {

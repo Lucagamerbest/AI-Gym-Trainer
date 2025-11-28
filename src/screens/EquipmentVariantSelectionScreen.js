@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
 import ScreenLayout from '../components/ScreenLayout';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { getVariantImage } from '../utils/exerciseImages';
+import { PinnedExerciseStorage } from '../services/pinnedExerciseStorage';
 
 /**
  * Full-screen Equipment Variant Selection
@@ -28,11 +29,51 @@ export default function EquipmentVariantSelectionScreen({ navigation, route }) {
   const { isWorkoutActive, activeWorkout, updateWorkout } = useWorkout();
 
   // Track which variant is expanded
-  const [expandedVariantIndex, setExpandedVariantIndex] = React.useState(null);
+  const [expandedVariantIndex, setExpandedVariantIndex] = useState(null);
 
   // Track image loading states
-  const [imageLoadingStates, setImageLoadingStates] = React.useState({});
-  const [imageErrorStates, setImageErrorStates] = React.useState({});
+  const [imageLoadingStates, setImageLoadingStates] = useState({});
+  const [imageErrorStates, setImageErrorStates] = useState({});
+
+  // Track pinned status for each variant
+  const [pinnedVariants, setPinnedVariants] = useState(new Set());
+
+  // Load pinned status on mount
+  useEffect(() => {
+    loadPinnedStatus();
+  }, [exercise]);
+
+  const loadPinnedStatus = async () => {
+    if (!exercise?.variants) return;
+
+    const pinnedKeys = await PinnedExerciseStorage.getPinnedExerciseKeys();
+    const pinnedSet = new Set();
+
+    exercise.variants.forEach(variant => {
+      const pinKey = `${exercise.id}_${variant.equipment}`;
+      if (pinnedKeys.has(pinKey)) {
+        pinnedSet.add(variant.equipment);
+      }
+    });
+
+    setPinnedVariants(pinnedSet);
+  };
+
+  const handleTogglePin = async (variant) => {
+    const result = await PinnedExerciseStorage.togglePinVariant(exercise, variant);
+    if (result.success) {
+      // Update local state
+      setPinnedVariants(prev => {
+        const newSet = new Set(prev);
+        if (newSet.has(variant.equipment)) {
+          newSet.delete(variant.equipment);
+        } else {
+          newSet.add(variant.equipment);
+        }
+        return newSet;
+      });
+    }
+  };
 
   const toggleVariant = (index) => {
     setExpandedVariantIndex(expandedVariantIndex === index ? null : index);
@@ -206,17 +247,40 @@ export default function EquipmentVariantSelectionScreen({ navigation, route }) {
               {/* Expanded Content */}
               {isExpanded && (
                 <View style={styles.expandedContent}>
-                  {/* Select Button - Moved to top */}
-                  <TouchableOpacity
-                    style={styles.selectButton}
-                    onPress={() => handleVariantSelect(variant)}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.selectButtonText}>
-                      {mode === 'info' ? 'View Full Details' : 'Select This Equipment'}
-                    </Text>
-                    <Text style={styles.selectButtonIcon}>→</Text>
-                  </TouchableOpacity>
+                  {/* Action Buttons Row */}
+                  <View style={styles.actionButtonsRow}>
+                    {/* Select Button */}
+                    <TouchableOpacity
+                      style={styles.selectButton}
+                      onPress={() => handleVariantSelect(variant)}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={styles.selectButtonText}>
+                        {mode === 'info' ? 'View Details' : 'Select'}
+                      </Text>
+                      <Text style={styles.selectButtonIcon}>→</Text>
+                    </TouchableOpacity>
+
+                    {/* Pin/Favorite Button */}
+                    <TouchableOpacity
+                      style={[
+                        styles.pinButton,
+                        pinnedVariants.has(variant.equipment) && styles.pinButtonActive
+                      ]}
+                      onPress={() => handleTogglePin(variant)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.pinButtonIcon}>
+                        {pinnedVariants.has(variant.equipment) ? '★' : '☆'}
+                      </Text>
+                      <Text style={[
+                        styles.pinButtonText,
+                        pinnedVariants.has(variant.equipment) && styles.pinButtonTextActive
+                      ]}>
+                        {pinnedVariants.has(variant.equipment) ? 'Saved' : 'Save'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
 
                   {/* Pros */}
                   {variant.pros && variant.pros.length > 0 && (
@@ -488,11 +552,16 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginBottom: 4,
   },
+  actionButtonsRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
   selectButton: {
+    flex: 1,
     backgroundColor: Colors.primary,
     borderRadius: BorderRadius.md,
     padding: Spacing.md,
-    marginBottom: Spacing.md,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -506,6 +575,34 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.lg,
     fontWeight: 'bold',
     color: Colors.background,
+  },
+  pinButton: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: Colors.border,
+    gap: Spacing.xs,
+    minWidth: 90,
+  },
+  pinButtonActive: {
+    backgroundColor: '#FFF3E0',
+    borderColor: '#FFB300',
+  },
+  pinButtonIcon: {
+    fontSize: 20,
+    color: '#FFB300',
+  },
+  pinButtonText: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+  },
+  pinButtonTextActive: {
+    color: '#FF8F00',
   },
   styleVariantsInfo: {
     backgroundColor: Colors.primary + '10',

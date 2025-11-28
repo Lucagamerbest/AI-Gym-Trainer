@@ -1,11 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { TouchableOpacity, StyleSheet, Animated, Alert, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import {
-  ExpoSpeechRecognitionModule,
-  useSpeechRecognitionEvent,
-} from 'expo-speech-recognition';
 import { Colors, Spacing } from '../constants/theme';
+
+// Try to import speech recognition - may not be available in Expo Go
+let ExpoSpeechRecognitionModule = null;
+let useSpeechRecognitionEvent = () => {}; // No-op if not available
+
+try {
+  const speechModule = require('expo-speech-recognition');
+  ExpoSpeechRecognitionModule = speechModule.ExpoSpeechRecognitionModule;
+  useSpeechRecognitionEvent = speechModule.useSpeechRecognitionEvent;
+} catch (error) {
+  console.log('Voice input not available (requires native build)');
+}
 
 /**
  * VoiceInputButton - Microphone button for speech-to-text input
@@ -22,10 +30,13 @@ export default function VoiceInputButton({
   style
 }) {
   const [isListening, setIsListening] = useState(false);
+  const [isAvailable, setIsAvailable] = useState(!!ExpoSpeechRecognitionModule);
   const [pulseAnim] = useState(new Animated.Value(1));
 
-  // Handle speech recognition results
+  // Handle speech recognition results (only if module is available)
   useSpeechRecognitionEvent('result', (event) => {
+    if (!ExpoSpeechRecognitionModule) return;
+
     const transcript = event.results[0]?.transcript || '';
 
     if (onTranscript) {
@@ -40,6 +51,8 @@ export default function VoiceInputButton({
 
   // Handle errors
   useSpeechRecognitionEvent('error', (event) => {
+    if (!ExpoSpeechRecognitionModule) return;
+
     console.log('Speech recognition error:', event.error);
     setIsListening(false);
 
@@ -56,6 +69,7 @@ export default function VoiceInputButton({
 
   // Handle end of speech recognition
   useSpeechRecognitionEvent('end', () => {
+    if (!ExpoSpeechRecognitionModule) return;
     setIsListening(false);
   });
 
@@ -84,6 +98,15 @@ export default function VoiceInputButton({
   }, [isListening]);
 
   const startListening = async () => {
+    if (!ExpoSpeechRecognitionModule) {
+      Alert.alert(
+        'Voice Input Not Available',
+        'Voice input requires a development build. It is not available in Expo Go.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
     try {
       // Check and request permissions
       const { status } = await ExpoSpeechRecognitionModule.getPermissionsAsync();
@@ -119,6 +142,8 @@ export default function VoiceInputButton({
   };
 
   const stopListening = async () => {
+    if (!ExpoSpeechRecognitionModule) return;
+
     try {
       await ExpoSpeechRecognitionModule.stop();
       setIsListening(false);
@@ -135,6 +160,11 @@ export default function VoiceInputButton({
       startListening();
     }
   };
+
+  // Don't render the button if voice input is not available
+  if (!isAvailable) {
+    return null;
+  }
 
   return (
     <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>

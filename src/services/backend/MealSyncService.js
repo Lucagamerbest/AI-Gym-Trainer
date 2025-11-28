@@ -126,16 +126,142 @@ class MealSyncService {
   async downloadMeals(userId) {
     try {
       if (!userId || userId === 'guest') {
-
         return [];
       }
 
       const cloudMeals = await this.getAllMeals(userId);
-
-
       return cloudMeals;
     } catch (error) {
       console.error('Error downloading meals:', error);
+      throw error;
+    }
+  }
+
+  // Download cloud meals and merge with local storage (like downloadCloudWorkouts)
+  async downloadCloudMeals(userId) {
+    try {
+      if (!userId || userId === 'guest') {
+        return [];
+      }
+
+      const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
+      const consumptionKey = `@daily_consumption_${userId}`;
+
+      // Get all meals from cloud
+      const cloudMeals = await this.getAllMeals(userId);
+
+      // Get local meals
+      const localData = await AsyncStorage.getItem(consumptionKey);
+      const localMeals = localData ? JSON.parse(localData) : [];
+
+      // Merge strategy: Create a map with meal ID as key
+      // Cloud data takes precedence
+      const mealMap = new Map();
+
+      // Add local meals first (these will be overridden if cloud version exists)
+      localMeals.forEach(meal => {
+        const key = meal.cloudId || meal.id;
+        mealMap.set(key, meal);
+      });
+
+      // Override with cloud meals (cloud is source of truth)
+      cloudMeals.forEach(meal => {
+        mealMap.set(meal.id, {
+          ...meal,
+          synced: true,
+          cloudId: meal.id,
+        });
+      });
+
+      // Convert map back to array
+      const mergedMeals = Array.from(mealMap.values());
+
+      // Sort by date/time (most recent first)
+      mergedMeals.sort((a, b) => {
+        const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return timeB - timeA;
+      });
+
+      // Save merged meals to local storage
+      await AsyncStorage.setItem(consumptionKey, JSON.stringify(mergedMeals));
+
+      return mergedMeals;
+    } catch (error) {
+      console.error('Error downloading cloud meals:', error);
+      throw error;
+    }
+  }
+
+  // Sync all unsynced local meals to Firebase (like syncLocalWorkouts)
+  async syncLocalMeals(userId) {
+    try {
+      if (!userId || userId === 'guest') {
+        return { synced: 0, failed: 0 };
+      }
+
+      const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
+      const { writeBatch, collection, doc } = await import('firebase/firestore');
+
+      const consumptionKey = `@daily_consumption_${userId}`;
+      const localData = await AsyncStorage.getItem(consumptionKey);
+      const localMeals = localData ? JSON.parse(localData) : [];
+
+      if (localMeals.length === 0) {
+        return { synced: 0, failed: 0 };
+      }
+
+      // Filter out meals that are already synced
+      const unsyncedMeals = localMeals.filter(m => !m.synced);
+
+      if (unsyncedMeals.length === 0) {
+        return { synced: 0, failed: 0 };
+      }
+
+      // Use Firebase batch for efficient writes
+      const batch = writeBatch(db);
+      let syncedCount = 0;
+      const updatedMeals = [...localMeals];
+
+      for (const meal of unsyncedMeals) {
+        try {
+          const mealRef = doc(collection(db, 'users', userId, 'meals'));
+
+          const mealData = {
+            ...meal,
+            id: mealRef.id,
+            userId,
+            synced: true,
+            syncedAt: new Date().toISOString(),
+          };
+
+          batch.set(mealRef, mealData);
+
+          // Update local meal with cloud ID and sync status
+          const localIndex = updatedMeals.findIndex(m => m.id === meal.id);
+          if (localIndex !== -1) {
+            updatedMeals[localIndex].cloudId = mealRef.id;
+            updatedMeals[localIndex].synced = true;
+            updatedMeals[localIndex].syncedAt = new Date().toISOString();
+          }
+
+          syncedCount++;
+        } catch (error) {
+          console.error('Error preparing meal for sync:', error);
+        }
+      }
+
+      // Commit the batch
+      await batch.commit();
+
+      // Update local storage with sync status
+      await AsyncStorage.setItem(consumptionKey, JSON.stringify(updatedMeals));
+
+      const failedCount = unsyncedMeals.length - syncedCount;
+
+      return { synced: syncedCount, failed: failedCount };
+    } catch (error) {
+      console.error('Error syncing local meals:', error);
       throw error;
     }
   }

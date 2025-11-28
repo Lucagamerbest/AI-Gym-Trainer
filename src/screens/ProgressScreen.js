@@ -753,6 +753,35 @@ export default function ProgressScreen({ navigation }) {
     return `${Math.floor(diffInDays / 30)}mo ago`;
   };
 
+  const handleSeedTestData = () => {
+    Alert.alert(
+      '🧪 Seed Test Data',
+      'This will create 5 bench press workouts with varying weights to test the progress chart colors (green for progress, red for regression).\n\nNote: This will clear existing data first.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Create Test Data',
+          onPress: async () => {
+            try {
+              const userId = user?.uid || 'guest';
+              const result = await WorkoutStorageService.seedBenchPressTestData(userId);
+
+              if (result.success) {
+                // Reload to show test data
+                await loadProgressData();
+                Alert.alert('Success', `Created ${result.workoutsCreated} bench press workouts!\n\nGo to the Stats tab, select Bench Press, and see the green/red colors on the chart.`);
+              } else {
+                Alert.alert('Error', 'Failed to create test data');
+              }
+            } catch (error) {
+              Alert.alert('Error', 'Failed to create test data');
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const handleClearAllData = () => {
     Alert.alert(
       '⚠️ Clear All Data',
@@ -1440,6 +1469,35 @@ export default function ProgressScreen({ navigation }) {
                 {/* Exercise Name */}
                 <Text style={styles.chartExerciseName}>{exerciseProgress[selectedExercise]?.name}</Text>
 
+                {/* Progress Summary */}
+                {chartData.length >= 2 && (() => {
+                  const firstValue = chartData[0].weight;
+                  const lastValue = chartData[chartData.length - 1].weight;
+                  const diff = lastValue - firstValue;
+                  const percentChange = firstValue > 0 ? ((diff / firstValue) * 100).toFixed(1) : 0;
+                  const isPositive = diff > 0;
+                  const isNegative = diff < 0;
+
+                  return (
+                    <View style={styles.progressSummary}>
+                      <View style={[
+                        styles.progressSummaryBadge,
+                        { backgroundColor: isPositive ? 'rgba(3, 218, 198, 0.15)' : isNegative ? 'rgba(255, 112, 67, 0.15)' : 'rgba(156, 163, 175, 0.15)' }
+                      ]}>
+                        <Text style={[
+                          styles.progressSummaryText,
+                          { color: isPositive ? '#03DAC6' : isNegative ? '#FF7043' : '#9CA3AF' }
+                        ]}>
+                          {isPositive ? '↑' : isNegative ? '↓' : '→'} {Math.abs(diff).toFixed(0)} {chartType === 'reps' ? 'reps' : 'lbs'} ({isPositive ? '+' : ''}{percentChange}%)
+                        </Text>
+                      </View>
+                      <Text style={styles.progressSummaryLabel}>
+                        {isPositive ? 'Progress' : isNegative ? 'Change' : 'No change'} over {timeRange === 'all' ? 'all time' : timeRange}
+                      </Text>
+                    </View>
+                  );
+                })()}
+
                 {/* Time Range Controls */}
                 <View style={styles.timeRangeSection}>
                   <Text style={styles.controlSectionLabel}>Time Range</Text>
@@ -1538,6 +1596,15 @@ export default function ProgressScreen({ navigation }) {
                 </Text>
               </View>
             )}
+
+            {/* Debug: Test Data Button */}
+            <TouchableOpacity
+              style={[styles.clearDataButton, { backgroundColor: '#10B981' }]}
+              onPress={handleSeedTestData}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.clearDataButtonText}>🧪 Seed Bench Press Test Data</Text>
+            </TouchableOpacity>
 
             {/* Debug: Clear All Data Button */}
             <TouchableOpacity
@@ -3540,18 +3607,42 @@ const styles = StyleSheet.create({
   // Chart Card Styles
   chartCard: {
     backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.lg,
+    borderRadius: BorderRadius.xl || 16,
     borderWidth: 1,
     borderColor: Colors.border,
-    padding: Spacing.md,
+    padding: Spacing.lg,
     marginBottom: Spacing.lg,
+    // Enhanced shadow for depth
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   chartExerciseName: {
     fontSize: Typography.fontSize.xl,
     fontWeight: 'bold',
     color: Colors.text,
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.sm,
     textAlign: 'center',
+  },
+  progressSummary: {
+    alignItems: 'center',
+    marginBottom: Spacing.lg,
+  },
+  progressSummaryBadge: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.full,
+    marginBottom: Spacing.xs,
+  },
+  progressSummaryText: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: 'bold',
+  },
+  progressSummaryLabel: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textMuted,
   },
   // Control Section Styles
   controlSectionLabel: {
@@ -3609,8 +3700,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   chartTypeButtonActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    backgroundColor: 'rgba(187, 134, 252, 0.2)', // Soft purple glow background
+    borderColor: '#BB86FC',
+    borderWidth: 2,
+    // Glow effect
+    shadowColor: '#BB86FC',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 8,
+    elevation: 6,
   },
   chartTypeButtonIcon: {
     fontSize: 24,
@@ -3622,7 +3720,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
   },
   chartTypeButtonLabelActive: {
-    color: '#FFFFFF',
+    color: '#BB86FC', // Bright purple for better contrast on transparent bg
   },
   // Exercise Selector Toggle Styles
   exerciseSelectorToggle: {

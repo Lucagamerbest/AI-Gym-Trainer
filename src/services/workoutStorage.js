@@ -229,6 +229,238 @@ export class WorkoutStorageService {
     }
   }
 
+  // Seed comprehensive test data with multiple exercises to showcase chart features
+  static async seedBenchPressTestData(userId = 'guest') {
+    try {
+      // Clear existing data first
+      await this.clearAllData(userId);
+
+      const workoutHistory = [];
+      const exerciseProgress = {
+        bench_press: {
+          name: 'Bench Press',
+          equipment: 'barbell',
+          records: []
+        },
+        squat: {
+          name: 'Squat',
+          equipment: 'barbell',
+          records: []
+        },
+        deadlift: {
+          name: 'Deadlift',
+          equipment: 'barbell',
+          records: []
+        }
+      };
+
+      // Generate unique base timestamp
+      const baseTime = Date.now();
+
+      // Workout data - shows progression with ups and downs
+      const workoutData = [
+        // Day 14 - Starting point
+        {
+          daysAgo: 14,
+          title: 'Push Day - Week 1',
+          exercises: [
+            { name: 'Bench Press', key: 'bench_press', equipment: 'barbell', sets: [
+              { weight: 135, reps: 10 },
+              { weight: 145, reps: 8 },
+              { weight: 155, reps: 6 }
+            ]},
+          ]
+        },
+        // Day 12 - Leg day
+        {
+          daysAgo: 12,
+          title: 'Leg Day - Week 1',
+          exercises: [
+            { name: 'Squat', key: 'squat', equipment: 'barbell', sets: [
+              { weight: 185, reps: 8 },
+              { weight: 205, reps: 6 },
+              { weight: 225, reps: 4 }
+            ]},
+            { name: 'Deadlift', key: 'deadlift', equipment: 'barbell', sets: [
+              { weight: 225, reps: 6 },
+              { weight: 275, reps: 4 },
+              { weight: 315, reps: 2 }
+            ]},
+          ]
+        },
+        // Day 10 - Push day (PROGRESS - weight up)
+        {
+          daysAgo: 10,
+          title: 'Push Day - Week 2',
+          exercises: [
+            { name: 'Bench Press', key: 'bench_press', equipment: 'barbell', sets: [
+              { weight: 145, reps: 10 },
+              { weight: 155, reps: 8 },
+              { weight: 165, reps: 5 }
+            ]},
+          ]
+        },
+        // Day 8 - Leg day (PROGRESS)
+        {
+          daysAgo: 8,
+          title: 'Leg Day - Week 2',
+          exercises: [
+            { name: 'Squat', key: 'squat', equipment: 'barbell', sets: [
+              { weight: 195, reps: 8 },
+              { weight: 215, reps: 6 },
+              { weight: 235, reps: 4 }
+            ]},
+            { name: 'Deadlift', key: 'deadlift', equipment: 'barbell', sets: [
+              { weight: 245, reps: 6 },
+              { weight: 295, reps: 4 },
+              { weight: 335, reps: 2 }
+            ]},
+          ]
+        },
+        // Day 6 - Push day (REGRESSION - bad day)
+        {
+          daysAgo: 6,
+          title: 'Push Day - Deload',
+          exercises: [
+            { name: 'Bench Press', key: 'bench_press', equipment: 'barbell', sets: [
+              { weight: 135, reps: 12 },
+              { weight: 145, reps: 10 },
+              { weight: 155, reps: 8 }
+            ]},
+          ]
+        },
+        // Day 4 - Leg day (slight regression)
+        {
+          daysAgo: 4,
+          title: 'Leg Day - Week 3',
+          exercises: [
+            { name: 'Squat', key: 'squat', equipment: 'barbell', sets: [
+              { weight: 185, reps: 10 },
+              { weight: 205, reps: 8 },
+              { weight: 225, reps: 6 }
+            ]},
+            { name: 'Deadlift', key: 'deadlift', equipment: 'barbell', sets: [
+              { weight: 275, reps: 5 },
+              { weight: 315, reps: 3 },
+              { weight: 335, reps: 2 }
+            ]},
+          ]
+        },
+        // Day 2 - Push day (BIG PROGRESS - PR!)
+        {
+          daysAgo: 2,
+          title: 'Push Day - PR Day!',
+          exercises: [
+            { name: 'Bench Press', key: 'bench_press', equipment: 'barbell', sets: [
+              { weight: 155, reps: 8 },
+              { weight: 175, reps: 5 },
+              { weight: 185, reps: 3 }
+            ]},
+          ]
+        },
+        // Today - Leg day (PROGRESS)
+        {
+          daysAgo: 0,
+          title: 'Leg Day - Strong!',
+          exercises: [
+            { name: 'Squat', key: 'squat', equipment: 'barbell', sets: [
+              { weight: 205, reps: 8 },
+              { weight: 225, reps: 6 },
+              { weight: 245, reps: 4 }
+            ]},
+            { name: 'Deadlift', key: 'deadlift', equipment: 'barbell', sets: [
+              { weight: 295, reps: 5 },
+              { weight: 335, reps: 3 },
+              { weight: 365, reps: 1 }
+            ]},
+          ]
+        },
+      ];
+
+      // Create workouts and progress records
+      for (let i = 0; i < workoutData.length; i++) {
+        const data = workoutData[i];
+        const workoutDate = new Date();
+        workoutDate.setDate(workoutDate.getDate() - data.daysAgo);
+        workoutDate.setHours(10 + i, 0, 0, 0); // Different times to ensure unique timestamps
+
+        const workoutId = `workout_${baseTime}_${i}`;
+
+        // Create workout history entry
+        const workout = {
+          id: workoutId,
+          odI: workoutId,
+          userId,
+          date: workoutDate.toISOString(),
+          startTime: workoutDate.toISOString(),
+          endTime: new Date(workoutDate.getTime() + 60 * 60 * 1000).toISOString(),
+          duration: 60 * 60 * 1000,
+          workoutTitle: data.title,
+          workoutType: 'quick',
+          notes: data.daysAgo === 2 ? 'New PR on bench! Feeling strong!' : '',
+          photos: [],
+          exercises: data.exercises.map(ex => ({
+            name: ex.name,
+            equipment: ex.equipment,
+            sets: ex.sets,
+            completedSets: ex.sets.length,
+            totalSets: ex.sets.length
+          }))
+        };
+
+        workoutHistory.push(workout);
+
+        // Create exercise progress records
+        data.exercises.forEach(ex => {
+          ex.sets.forEach(set => {
+            exerciseProgress[ex.key].records.push({
+              date: workoutDate.toISOString(),
+              weight: parseFloat(set.weight),
+              reps: parseInt(set.reps),
+              volume: set.weight * set.reps,
+              workoutId: workoutId
+            });
+          });
+        });
+      }
+
+      // Sort all records by date
+      Object.keys(exerciseProgress).forEach(key => {
+        exerciseProgress[key].records.sort((a, b) => new Date(a.date) - new Date(b.date));
+      });
+
+      // Sort workout history by date (most recent first)
+      workoutHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      // Save to AsyncStorage
+      await AsyncStorage.setItem(`${STORAGE_KEYS.WORKOUT_HISTORY}_${userId}`, JSON.stringify(workoutHistory));
+      await AsyncStorage.setItem(`${STORAGE_KEYS.EXERCISE_PROGRESS}_${userId}`, JSON.stringify(exerciseProgress));
+
+      // Calculate total volume
+      let totalVolume = 0;
+      Object.values(exerciseProgress).forEach(ex => {
+        ex.records.forEach(r => {
+          totalVolume += r.volume;
+        });
+      });
+
+      // Update user stats
+      const stats = {
+        totalWorkouts: workoutHistory.length,
+        totalExercises: workoutHistory.reduce((sum, w) => sum + w.exercises.length, 0),
+        currentStreak: 3,
+        totalVolume: totalVolume,
+        lastWorkoutDate: new Date().toISOString(),
+        lastStreakDate: new Date().toDateString()
+      };
+      await AsyncStorage.setItem(`${STORAGE_KEYS.USER_STATS}_${userId}`, JSON.stringify(stats));
+
+      return { success: true, workoutsCreated: workoutHistory.length };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
   // ============ PLANNED WORKOUTS ============
 
   // Save a planned workout for a specific date
