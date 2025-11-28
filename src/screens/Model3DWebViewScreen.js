@@ -10,6 +10,7 @@ export default function Model3DWebViewScreen({ navigation, route }) {
   const webViewRef = useRef(null);
   const [selectedMuscleGroups, setSelectedMuscleGroups] = useState([]);
   const [modelUri, setModelUri] = useState(null);
+  const [isExpoGo, setIsExpoGo] = useState(true); // Default to true (safer - uses CDN)
   const [isLoading, setIsLoading] = useState(true);
 
   // Detect if running in Expo Go or dev/production build
@@ -17,9 +18,10 @@ export default function Model3DWebViewScreen({ navigation, route }) {
   // Dev Build/Production: Use local bundled asset (offline support)
   useEffect(() => {
     import('expo-constants').then((Constants) => {
-      const isExpoGo = Constants.default.appOwnership === 'expo';
+      const expoGo = Constants.default.appOwnership === 'expo';
+      setIsExpoGo(expoGo);
 
-      if (isExpoGo) {
+      if (expoGo) {
         // Expo Go - must use remote URL
         console.log('Running in Expo Go - using remote URL for 3D model');
         setModelUri(MODEL_REMOTE_URL);
@@ -131,6 +133,27 @@ export default function Model3DWebViewScreen({ navigation, route }) {
     });
   };
 
+  // Script sources - use local files for dev/production (offline), CDN for Expo Go
+  const useLocalAssets = !isExpoGo && Platform.OS === 'android';
+  const scriptSources = useLocalAssets
+    ? {
+        three: 'file:///android_asset/js/three.min.js',
+        gltfLoader: 'file:///android_asset/js/GLTFLoader.js',
+        orbitControls: 'file:///android_asset/js/OrbitControls.js',
+        dracoLoader: 'file:///android_asset/js/DRACOLoader.js',
+        dracoDecoderPath: 'file:///android_asset/js/draco/',
+      }
+    : {
+        three: 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js',
+        gltfLoader: 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js',
+        orbitControls: 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js',
+        dracoLoader: 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js',
+        dracoDecoderPath: 'https://www.gstatic.com/draco/versioned/decoders/1.4.1/',
+      };
+
+  // Log which mode we're using
+  console.log(`3D Model Viewer: isExpoGo=${isExpoGo}, Platform=${Platform.OS}, useLocalAssets=${useLocalAssets}`);
+
   // HTML content - inline to avoid path issues
   const htmlContent = `
 <!DOCTYPE html>
@@ -167,9 +190,10 @@ export default function Model3DWebViewScreen({ navigation, route }) {
     <div id="loading">Loading 3D Model...<br/>Please wait...</div>
     <canvas id="canvas"></canvas>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" onerror="scriptLoadError('THREE.js')"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js" onerror="scriptLoadError('GLTFLoader')"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js" onerror="scriptLoadError('OrbitControls')"></script>
+    <script src="${scriptSources.three}" onerror="scriptLoadError('THREE.js')"></script>
+    <script src="${scriptSources.gltfLoader}" onerror="scriptLoadError('GLTFLoader')"></script>
+    <script src="${scriptSources.dracoLoader}" onerror="scriptLoadError('DRACOLoader')"></script>
+    <script src="${scriptSources.orbitControls}" onerror="scriptLoadError('OrbitControls')"></script>
 
     <script>
         try {
@@ -500,6 +524,12 @@ export default function Model3DWebViewScreen({ navigation, route }) {
 
         function loadModel() {
             const loader = new THREE.GLTFLoader();
+
+            // Set up Draco decoder for compressed models (70% smaller = faster loading!)
+            const dracoLoader = new THREE.DRACOLoader();
+            dracoLoader.setDecoderPath('${scriptSources.dracoDecoderPath}');
+            loader.setDRACOLoader(dracoLoader);
+
             const modelPath = '${modelUri || 'https://raw.githubusercontent.com/Lucagamerbest/AI-Gym-Trainer/main/assets/models/human.glb'}';
 
             loader.load(

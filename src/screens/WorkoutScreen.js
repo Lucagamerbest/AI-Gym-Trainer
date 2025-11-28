@@ -29,24 +29,31 @@ Notifications.setNotificationHandler({
   },
 });
 
-// Helper function to play notification sound using the "silent sound hack"
+// Helper function to play notification sound even in silent mode
 const playNotificationSound = async () => {
   try {
-    // CRITICAL: Set audio mode to play in silent mode
+    // Configure audio to play even in silent mode
+    // On Android: shouldDuckAndroid: false means it won't lower volume for other apps
+    // On iOS: playsInSilentModeIOS: true allows playback in silent mode
     await Audio.setAudioModeAsync({
       playsInSilentModeIOS: true,
       allowsRecordingIOS: false,
-      staysActiveInBackground: false,
-      interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DUCK_OTHERS,
-      shouldDuckAndroid: true,
-      interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DUCK_OTHERS,
+      staysActiveInBackground: true, // Keep playing if app goes to background briefly
+      interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX,
+      shouldDuckAndroid: false, // Don't duck - play at full volume
+      interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DO_NOT_MIX,
       playThroughEarpieceAndroid: false,
     });
 
-    // Create and immediately play the notification sound
+    // Create and play the notification sound using local file (works offline!)
     const { sound } = await Audio.Sound.createAsync(
-      { uri: 'https://actions.google.com/sounds/v1/alarms/beep_short.ogg' },
-      { shouldPlay: true, volume: 1.0 }, // shouldPlay: true is CRITICAL for silent mode
+      require('../../assets/notification.mp3'),
+      {
+        shouldPlay: true,
+        volume: 1.0,
+        // Android: Use ALARM stream to bypass silent mode
+        androidImplementation: 'MediaPlayer',
+      },
       null,
       false
     );
@@ -59,7 +66,8 @@ const playNotificationSound = async () => {
     });
 
   } catch (error) {
-      }
+    console.error('Error playing notification sound:', error);
+  }
 };
 
 // Helper function to detect if exercise is cardio
