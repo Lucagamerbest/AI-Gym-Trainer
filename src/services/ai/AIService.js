@@ -276,7 +276,7 @@ class AIService {
 
           // Inject real userId if tool expects userId parameter
           const toolArgs = { ...functionCall.args };
-          const placeholderUserIds = ['USER_ID', 'user-123', 'user123', 'some_user_id', 'test-user', 'example-user', '_user_id', 'userId', 'user_id', 'current_user', '<user_id>'];
+          const placeholderUserIds = ['USER_ID', 'User ID', 'user-123', 'user123', 'some_user_id', 'test-user', 'test_user', 'example-user', '_user_id', 'userId', 'user_id', 'current_user', '<user_id>'];
           // Always inject real userId if it's a placeholder or missing
           if (!toolArgs.userId || toolArgs.userId === '' || placeholderUserIds.includes(toolArgs.userId)) {
             const originalUserId = toolArgs.userId;

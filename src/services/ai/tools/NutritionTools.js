@@ -3,7 +3,15 @@
  */
 
 import MealSyncService from '../../backend/MealSyncService';
-import BackendService from '../../backend/BackendService';
+import { getNutritionGoals } from '../../userProfileService';
+
+// Helper function to get local date string in YYYY-MM-DD format (not UTC)
+const getLocalDateString = (date = new Date()) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 /**
  * HELPER: Generate AI content with retry logic
@@ -193,7 +201,8 @@ export async function calculateMacros({ weight, height, age, gender, activityLev
  */
 export async function getNutritionStatus({ userId }) {
   try {
-    const today = new Date().toISOString().split('T')[0];
+    // Use local date, not UTC
+    const today = getLocalDateString();
 
     // Get today's meals
     const meals = await MealSyncService.getMealsByDate(userId, today);
@@ -211,20 +220,20 @@ export async function getNutritionStatus({ userId }) {
       totalFat += meal.fat_consumed || meal.fat || 0;
     });
 
-    // Get user goals
+    // Get user goals from userProfileService (same source as HomeScreen)
     let goals = { calories: 2000, protein: 150, carbs: 200, fat: 65 };
     try {
-      const profile = await BackendService.getUserProfile(userId);
-      if (profile?.goals) {
+      const nutritionGoals = await getNutritionGoals(userId);
+      if (nutritionGoals) {
         goals = {
-          calories: profile.goals.targetCalories || profile.goals.calories || 2000,
-          protein: profile.goals.proteinGrams || profile.goals.protein || 150,
-          carbs: profile.goals.carbsGrams || profile.goals.carbs || 200,
-          fat: profile.goals.fatGrams || profile.goals.fat || 65,
+          calories: nutritionGoals.calories || 2000,
+          protein: nutritionGoals.protein || 150,
+          carbs: nutritionGoals.carbs || 200,
+          fat: nutritionGoals.fat || 65,
         };
       }
     } catch (error) {
-      console.error('Error getting user profile:', error);
+      console.error('Error getting nutrition goals:', error);
     }
 
     // Calculate remaining

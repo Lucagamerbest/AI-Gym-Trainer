@@ -5,7 +5,15 @@ import MealSyncService from '../backend/MealSyncService';
 import BackendService from '../backend/BackendService';
 import ProgressSyncService from '../backend/ProgressSyncService';
 import { getUserProfileSummary } from '../userProfileAssessment';
-import { getFoodPreferences } from '../userProfileService';
+import { getFoodPreferences, getNutritionGoals } from '../userProfileService';
+
+// Helper function to get local date string in YYYY-MM-DD format (not UTC)
+const getLocalDateString = (date = new Date()) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 class ContextManager {
   constructor() {
@@ -37,13 +45,13 @@ class ContextManager {
 
     // Skip heavy data fetching for faster responses
     const context = {
+      userId: userId, // Include userId for tool injection
       screen: this.currentScreen,
       activity: this.currentActivity,
       screenData: this.screenData,
-      userProfile: userProfile, // PERSONALIZATION: AI coach knows the user
-      // userData: await this.getUserData(), // SKIP for speed
+      userProfile: userProfile,
       recentActivity: await this.getRecentActivity(),
-      topExercises: await this.getTopExercisePRs(userId, 2), // Top 2 only (SPEED)
+      topExercises: await this.getTopExercisePRs(userId, 2),
     };
 
 
@@ -148,11 +156,8 @@ class ContextManager {
     // This allows AI to see macros from any screen (Workout, Progress, etc.)
 
     try {
-      console.log('🍎 getNutritionContext called for userId:', userId, 'screen:', this.currentScreen);
-
-      // Read meals from Firebase
-      const today = new Date().toISOString().split('T')[0];
-      console.log('📅 Today\'s date:', today);
+      // Read meals from Firebase (use local date, not UTC)
+      const today = getLocalDateString();
       let meals = [];
       let totalCalories = 0;
       let totalProtein = 0;
@@ -161,9 +166,7 @@ class ContextManager {
 
       if (userId && userId !== 'guest') {
         try {
-          console.log('🔍 Fetching meals from Firebase for user:', userId);
           const firebaseMeals = await MealSyncService.getMealsByDate(userId, today);
-          console.log('📦 Firebase meals fetched:', firebaseMeals.length, 'meals');
 
           // Convert Firebase meals to array and calculate totals
           meals = firebaseMeals.map(meal => ({
@@ -182,45 +185,27 @@ class ContextManager {
             totalFat += meal.fat;
           });
 
-          console.log('✅ Meals processed. Totals:', {
-            calories: totalCalories,
-            protein: totalProtein,
-            carbs: totalCarbs,
-            fat: totalFat
-          });
-
         } catch (error) {
-          console.error('❌ Error fetching meals from Firebase:', error);
+          console.error('❌ Error fetching meals:', error.message);
         }
-      } else {
-        console.log('⚠️ Guest user - skipping Firebase meal fetch');
       }
 
 
 
-      // Get goals from Firebase
-      console.log('🎯 Fetching user goals from Firebase...');
+      // Get goals from userProfileService (same source as HomeScreen)
       let goals = { calories: 2000, protein: 150, carbs: 200, fat: 65 };
-      if (userId && userId !== 'guest') {
-        try {
-          const firebaseProfile = await BackendService.getUserProfile(userId);
-          console.log('📦 Firebase profile fetched:', firebaseProfile ? 'Yes' : 'No');
-          if (firebaseProfile && firebaseProfile.goals) {
-            goals = {
-              calories: firebaseProfile.goals.targetCalories || firebaseProfile.goals.calories || 2000,
-              protein: firebaseProfile.goals.proteinGrams || firebaseProfile.goals.protein || 150,
-              carbs: firebaseProfile.goals.carbsGrams || firebaseProfile.goals.carbs || 200,
-              fat: firebaseProfile.goals.fatGrams || firebaseProfile.goals.fat || 65,
-            };
-            console.log('✅ User goals loaded:', goals);
-          } else {
-            console.log('⚠️ No goals found in profile, using defaults');
-          }
-        } catch (error) {
-          console.error('❌ Error fetching user profile/goals:', error);
+      try {
+        const nutritionGoals = await getNutritionGoals(userId);
+        if (nutritionGoals) {
+          goals = {
+            calories: nutritionGoals.calories || 2000,
+            protein: nutritionGoals.protein || 150,
+            carbs: nutritionGoals.carbs || 200,
+            fat: nutritionGoals.fat || 65,
+          };
         }
-      } else {
-        console.log('⚠️ Guest user - using default goals');
+      } catch (error) {
+        console.error('❌ Error fetching goals:', error.message);
       }
 
 
@@ -234,22 +219,14 @@ class ContextManager {
       const caloriesTarget = calorieGoal;
       const caloriesRemaining = Math.round(calorieGoal - totalCalories);
 
-      console.log('📊 Calculated macro status:', {
-        calories: { consumed: caloriesConsumed, target: caloriesTarget, remaining: caloriesRemaining },
-        protein: { consumed: Math.round(totalProtein), target: proteinGoal, remaining: Math.round(proteinGoal - totalProtein) },
-        carbs: { consumed: Math.round(totalCarbs), target: carbsGoal, remaining: Math.round(carbsGoal - totalCarbs) },
-        fat: { consumed: Math.round(totalFat), target: fatGoal, remaining: Math.round(fatGoal - totalFat) }
-      });
-
       // Get food preferences
       let foodPreferences = null;
       try {
         foodPreferences = await getFoodPreferences(userId);
       } catch (error) {
-        console.error('Error fetching food preferences for context:', error);
+        // Silently fail - food preferences are optional
       }
 
-      console.log('🍽️ Building nutrition context...');
       const nutritionContext = {
         todaysMeals: meals.length,
         meals: meals.map(meal => ({
@@ -283,10 +260,9 @@ class ContextManager {
           remaining: Math.round(fatGoal - totalFat),
           percentage: Math.round((totalFat / fatGoal) * 100),
         },
-        foodPreferences: foodPreferences, // Add food preferences to context
+        foodPreferences: foodPreferences,
       };
 
-      console.log('✅ Nutrition context built successfully:', JSON.stringify(nutritionContext, null, 2));
       return nutritionContext;
     } catch (error) {
       console.error('❌ Error getting nutrition context:', error);

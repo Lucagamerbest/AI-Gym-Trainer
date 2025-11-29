@@ -12,7 +12,9 @@ import { useAuth } from '../context/AuthContext';
 import { getNutritionGoals, updateNutritionGoals } from '../services/userProfileService';
 import MealSyncService from '../services/backend/MealSyncService';
 import MealHistoryTabs from '../components/MealHistoryTabs';
+import MealCountModal from '../components/MealCountModal';
 import { getCurrentMealType } from '../config/aiSectionConfig';
+import { checkMealCountLimit } from '../services/mealCountService';
 
 const MACROS_KEY = '@macro_goals';
 const DAILY_NUTRITION_KEY = '@daily_nutrition';
@@ -36,6 +38,8 @@ export default function NutritionScreen({ navigation, route }) {
   const [expandedMeal, setExpandedMeal] = useState(null);
   const [disableBack, setDisableBack] = useState(false); // Track if back should be disabled
   const [dataLoaded, setDataLoaded] = useState(false); // Track if data has been loaded
+  const [showMealCountModal, setShowMealCountModal] = useState(false);
+  const [mealCountInfo, setMealCountInfo] = useState({ currentCount: 0, limit: 3, message: '', foodName: '' });
   const processedParams = useRef({}); // Track which params have been processed
 
   // Tab navigation state
@@ -238,6 +242,18 @@ export default function NutritionScreen({ navigation, route }) {
             // Store Firebase ID with the added food
             addedFood.firebaseId = firebaseId;
             console.log('✅ New meal synced to Firebase with ID:', firebaseId);
+
+            // Check meal count limit and show modal if exceeded
+            const mealCheck = await checkMealCountLimit(user.uid);
+            if (mealCheck.exceeded) {
+              setMealCountInfo({
+                currentCount: mealCheck.currentCount,
+                limit: mealCheck.limit,
+                message: mealCheck.message,
+                foodName: addedFood.name || 'Unknown food',
+              });
+              setShowMealCountModal(true);
+            }
           } catch (error) {
             console.log('⚠️ Failed to sync to Firebase:', error);
             // Continue without firebaseId if sync fails
@@ -1380,6 +1396,15 @@ export default function NutritionScreen({ navigation, route }) {
         visible={showMacroModal}
         onClose={() => setShowMacroModal(false)}
         onSave={handleSaveMacros}
+      />
+
+      <MealCountModal
+        visible={showMealCountModal}
+        onClose={() => setShowMealCountModal(false)}
+        currentCount={mealCountInfo.currentCount}
+        limit={mealCountInfo.limit}
+        message={mealCountInfo.message}
+        foodName={mealCountInfo.foodName}
       />
     </ScreenLayout>
   );

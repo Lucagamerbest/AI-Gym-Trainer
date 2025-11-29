@@ -31,6 +31,8 @@ import {
 } from '../services/foodDatabaseService';
 import SyncManager from '../services/backend/SyncManager';
 import { foodAPI } from '../services/foodAPI';
+import MealCountModal from '../components/MealCountModal';
+import { checkMealCountLimit } from '../services/mealCountService';
 import {
   smartSearchFoods,
   updateSearchHistory,
@@ -66,6 +68,8 @@ export default function EnhancedFoodSearchScreen({ navigation }) {
   const [offset, setOffset] = useState(0);
   const [allFoods, setAllFoods] = useState([]);
   const searchTimeoutRef = useRef(null);
+  const [showMealCountModal, setShowMealCountModal] = useState(false);
+  const [mealCountInfo, setMealCountInfo] = useState({ currentCount: 0, limit: 3, message: '' });
 
   // Initialize on mount
   useEffect(() => {
@@ -208,14 +212,26 @@ export default function EnhancedFoodSearchScreen({ navigation }) {
         await SyncManager.syncTodaysMeals(userId);
       }
 
-      Alert.alert(
-        'Added!',
-        `${selectedFood.name} (${quantity}g) added to ${mealType}`,
-        [{ text: 'OK' }]
-      );
-
-      setShowQuickAdd(false);
-      setSelectedFood(null);
+      // Check meal count limit
+      const mealCheck = await checkMealCountLimit(userId);
+      if (mealCheck.exceeded) {
+        setMealCountInfo({
+          currentCount: mealCheck.currentCount,
+          limit: mealCheck.limit,
+          message: mealCheck.message,
+        });
+        setShowQuickAdd(false);
+        setSelectedFood(null);
+        setShowMealCountModal(true);
+      } else {
+        Alert.alert(
+          'Added!',
+          `${selectedFood.name} (${quantity}g) added to ${mealType}`,
+          [{ text: 'OK' }]
+        );
+        setShowQuickAdd(false);
+        setSelectedFood(null);
+      }
     } catch (error) {
       Alert.alert('Error', 'Failed to add food');
     }
@@ -598,6 +614,7 @@ export default function EnhancedFoodSearchScreen({ navigation }) {
                   title="Add"
                   onPress={async () => {
                     const userId = user?.uid || 'guest';
+                    const foodName = selectedFood?.name || 'Food';
                     await addToDaily(
                       selectedFood.id || Date.now(),
                       parseFloat(servingSize) || 100,
@@ -610,10 +627,24 @@ export default function EnhancedFoodSearchScreen({ navigation }) {
                       await SyncManager.syncTodaysMeals(userId);
                     }
 
-                    Alert.alert('Success', 'Food added to daily log');
-                    setShowAddModal(false);
-                    setSelectedFood(null);
-                    setServingSize('100');
+                    // Check meal count limit
+                    const mealCheck = await checkMealCountLimit(userId);
+                    if (mealCheck.exceeded) {
+                      setMealCountInfo({
+                        currentCount: mealCheck.currentCount,
+                        limit: mealCheck.limit,
+                        message: mealCheck.message,
+                      });
+                      setShowAddModal(false);
+                      setSelectedFood(null);
+                      setServingSize('100');
+                      setShowMealCountModal(true);
+                    } else {
+                      Alert.alert('Success', 'Food added to daily log');
+                      setShowAddModal(false);
+                      setSelectedFood(null);
+                      setServingSize('100');
+                    }
                   }}
                   style={styles.addButton}
                 />
@@ -631,6 +662,16 @@ export default function EnhancedFoodSearchScreen({ navigation }) {
             </View>
           </View>
         </Modal>
+
+        {/* Meal Count Warning Modal */}
+        <MealCountModal
+          visible={showMealCountModal}
+          onClose={() => setShowMealCountModal(false)}
+          currentCount={mealCountInfo.currentCount}
+          limit={mealCountInfo.limit}
+          message={mealCountInfo.message}
+          foodName={selectedFood?.name}
+        />
       </KeyboardAvoidingView>
     </ScreenLayout>
   );

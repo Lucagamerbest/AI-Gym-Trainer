@@ -15,10 +15,12 @@ import ScreenLayout from '../components/ScreenLayout';
 import StyledButton from '../components/StyledButton';
 import StyledCard from '../components/StyledCard';
 import NutriScoreModal from '../components/NutriScoreModal';
+import MealCountModal from '../components/MealCountModal';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { saveFoodFromAPI, addToDaily, initDatabase } from '../services/foodDatabaseService';
 import { useAuth } from '../context/AuthContext';
 import SyncManager from '../services/backend/SyncManager';
+import { checkMealCountLimit } from '../services/mealCountService';
 
 const SCAN_HISTORY_KEY = '@food_scan_history';
 const DAILY_NUTRITION_KEY = '@daily_nutrition';
@@ -32,6 +34,8 @@ export default function FoodScanResultScreen({ navigation, route }) {
   const [isEditingServing, setIsEditingServing] = useState(false);
   const [showNutriScoreModal, setShowNutriScoreModal] = useState(false);
   const [showBarcodePhoto, setShowBarcodePhoto] = useState(false);
+  const [showMealCountModal, setShowMealCountModal] = useState(false);
+  const [mealCountInfo, setMealCountInfo] = useState({ currentCount: 0, limit: 3, message: '' });
 
   // Auto-detect if product is liquid based on common indicators
   const isLiquid = productData.name?.toLowerCase().includes('drink') ||
@@ -143,21 +147,34 @@ export default function FoodScanResultScreen({ navigation, route }) {
         }
       }
 
-      Alert.alert(
-        'Success',
-        `Added ${servingSize}g of ${productData.name} to your daily intake!`,
-        [
-          {
-            text: 'Scan Another',
-            onPress: () => navigation.navigate('Camera', { returnScreen: 'FoodScanning' })
-          },
-          {
-            text: 'Done',
-            onPress: () => navigation.navigate('Nutrition'),
-            style: 'cancel'
-          }
-        ]
-      );
+      // Check meal count limit
+      const mealCheck = await checkMealCountLimit(userId);
+      if (mealCheck.exceeded) {
+        // Show meal count modal with encouraging message
+        setMealCountInfo({
+          currentCount: mealCheck.currentCount,
+          limit: mealCheck.limit,
+          message: mealCheck.message,
+        });
+        setShowMealCountModal(true);
+      } else {
+        // Normal success alert
+        Alert.alert(
+          'Success',
+          `Added ${servingSize}g of ${productData.name} to your daily intake!`,
+          [
+            {
+              text: 'Scan Another',
+              onPress: () => navigation.navigate('Camera', { returnScreen: 'FoodScanning' })
+            },
+            {
+              text: 'Done',
+              onPress: () => navigation.navigate('Nutrition'),
+              style: 'cancel'
+            }
+          ]
+        );
+      }
     } catch (error) {
       Alert.alert('Error', 'Failed to save product. Please try again.');
     } finally {
@@ -388,6 +405,19 @@ export default function FoodScanResultScreen({ navigation, route }) {
         grade={productData.nutritionGrade}
         nutriscoreData={productData.nutriscoreData}
         productName={productData.name}
+      />
+
+      {/* Meal Count Warning Modal */}
+      <MealCountModal
+        visible={showMealCountModal}
+        onClose={() => {
+          setShowMealCountModal(false);
+          navigation.navigate('Nutrition');
+        }}
+        currentCount={mealCountInfo.currentCount}
+        limit={mealCountInfo.limit}
+        message={mealCountInfo.message}
+        foodName={productData.name}
       />
 
       {/* Barcode Photo Modal */}

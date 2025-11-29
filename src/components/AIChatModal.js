@@ -238,33 +238,25 @@ export default function AIChatModal({ visible, onClose, initialMessage = '', scr
 
       // Get real user ID from AuthContext
       const userId = user?.uid || 'guest';
-      console.log('🆔 User ID:', userId);
 
       const context = await ContextManager.getFullContext(userId);
-      console.log('📦 Full Context:', JSON.stringify(context, null, 2));
 
       // Add screen-specific context
       let screenContext = {};
       const currentScreen = context.screen;
-      console.log('📱 Current Screen:', currentScreen);
 
       // ALWAYS fetch nutrition context (not just on Nutrition screens)
-      // This allows AI to see macros from ANY screen
       const nutritionContext = await ContextManager.getNutritionContext(userId);
-      console.log('🍎 Nutrition Context (universal):', JSON.stringify(nutritionContext, null, 2));
 
       if (currentScreen?.includes('Workout')) {
         const workoutContext = await ContextManager.getWorkoutContext();
-        console.log('🏋️ Workout Context:', JSON.stringify(workoutContext, null, 2));
         screenContext = { ...nutritionContext, ...workoutContext };
       } else if (currentScreen?.includes('Nutrition') || currentScreen?.includes('Food')) {
         screenContext = nutritionContext;
       } else if (currentScreen?.includes('Progress')) {
         const progressContext = await ContextManager.getProgressContext();
-        console.log('📊 Progress Context:', JSON.stringify(progressContext, null, 2));
         screenContext = { ...nutritionContext, ...progressContext };
       } else {
-        // For all other screens, still include nutrition context
         screenContext = nutritionContext;
       }
 
@@ -298,16 +290,11 @@ export default function AIChatModal({ visible, onClose, initialMessage = '', scr
 
       const fullContext = {
         ...context,
+        userId: userId, // Ensure userId is always available for tool injection
         screenSpecific: screenContext,
         exerciseSpecific: exerciseContext,
-        lastGeneratedWorkout: lastGeneratedWorkout.current, // Pass last generated workout
+        lastGeneratedWorkout: lastGeneratedWorkout.current,
       };
-
-      console.log('🎯 FULL CONTEXT BEING SENT TO AI:');
-      console.log('   - Screen:', fullContext.screen);
-      console.log('   - User ID:', userId);
-      console.log('   - Screen Specific Data:', JSON.stringify(fullContext.screenSpecific, null, 2));
-      console.log('   - Exercise Specific Data:', JSON.stringify(fullContext.exerciseSpecific, null, 2));
 
       // Detect if this is a complex query that needs tools
       const needsTools = userMessage.toLowerCase().includes('plan') ||
@@ -545,11 +532,8 @@ export default function AIChatModal({ visible, onClose, initialMessage = '', scr
     const parsedContent = parseMarkdown(contentText);
 
     // Check if this message has a recipe card
-    console.log('🔍 Rendering message, toolResults:', item.toolResults);
     const toolResult = item.toolResults?.find(tool => tool.result?.recipeCard);
-    console.log('🔍 Found toolResult:', toolResult);
     const recipeCard = toolResult?.result?.recipeCard;
-    console.log('🔍 Recipe card:', recipeCard);
 
     // Check if this message has macro data from tools
     const macroToolResult = item.toolResults?.find(tool =>
