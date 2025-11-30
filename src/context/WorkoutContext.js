@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
+import { markWorkoutActive, markWorkoutInactive } from '../services/GymReminderTask';
 
 const WorkoutContext = createContext();
 
@@ -19,6 +20,8 @@ export const WorkoutProvider = ({ children }) => {
       id: Date.now().toString(),
       createdAt: new Date()
     });
+    // Persist workout state for background location task
+    markWorkoutActive();
   }, []);
 
   const updateWorkout = useCallback((updates) => {
@@ -36,11 +39,15 @@ export const WorkoutProvider = ({ children }) => {
 
   const finishWorkout = useCallback(() => {
     setActiveWorkout(null);
+    // Persist workout state for background location task
+    markWorkoutInactive();
   }, []);
 
   const discardWorkout = useCallback(() => {
     // Simply clear the workout without saving
     setActiveWorkout(null);
+    // Persist workout state for background location task
+    markWorkoutInactive();
   }, []);
 
   const isWorkoutActive = useCallback(() => {

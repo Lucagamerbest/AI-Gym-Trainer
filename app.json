@@ -14,32 +14,17 @@
       "infoPlist": {
         "UIBackgroundModes": [
           "audio",
-          "audio",
-          "audio",
-          "audio"
+          "location"
         ],
         "CFBundleURLTypes": [
           {
             "CFBundleURLSchemes": [
               "com.googleusercontent.apps.1011295206743-rl70k9ibahkkgkf41j8qr6vfneedgb8s"
             ]
-          },
-          {
-            "CFBundleURLSchemes": [
-              "com.googleusercontent.apps.1011295206743-rl70k9ibahkkgkf41j8qr6vfneedgb8s"
-            ]
-          },
-          {
-            "CFBundleURLSchemes": [
-              "com.googleusercontent.apps.1011295206743-rl70k9ibahkkgkf41j8qr6vfneedgb8s"
-            ]
-          },
-          {
-            "CFBundleURLSchemes": [
-              "com.googleusercontent.apps.1011295206743-rl70k9ibahkkgkf41j8qr6vfneedgb8s"
-            ]
           }
         ],
+        "NSLocationWhenInUseUsageDescription": "Workout Wave needs your location to remind you to start a workout when you arrive at your gym.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Workout Wave needs background location access to automatically remind you to start a workout when you arrive at your gym, even when the app is closed.",
         "ITSAppUsesNonExemptEncryption": false
       },
       "runtimeVersion": {
@@ -51,11 +36,19 @@
         "backgroundColor": "#000000"
       },
       "package": "com.rarau.workoutwave",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyDmoxsSG7py8RFCa5uOTH35zgQN909Mozo"
+        }
+      },
       "permissions": [
         "VIBRATE",
         "POST_NOTIFICATIONS",
-        "VIBRATE",
-        "POST_NOTIFICATIONS"
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_LOCATION"
       ],
       "runtimeVersion": "1.0.0"
     },
@@ -65,6 +58,14 @@
     "plugins": [
       "expo-web-browser",
       "expo-sqlite",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Workout Wave needs background location access to automatically remind you to start a workout when you arrive at your gym.",
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true
+        }
+      ],
       [
         "expo-notifications",
         {
@@ -117,7 +118,8 @@
     "extra": {
       "eas": {
         "projectId": "8c7c4170-bb4a-46c8-bc8e-8288147175cc"
-      }
+      },
+      "googleMapsApiKey": "AIzaSyDmoxsSG7py8RFCa5uOTH35zgQN909Mozo"
     },
     "updates": {
       "url": "https://u.expo.dev/8c7c4170-bb4a-46c8-bc8e-8288147175cc"

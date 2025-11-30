@@ -18,6 +18,11 @@ import ProactiveAIService from './src/services/ai/ProactiveAIService';
 import { navigationRef } from './src/services/NavigationService';
 import FreeRecipeService from './src/services/FreeRecipeService';
 import * as QuickActions from 'expo-quick-actions';
+import * as Notifications from 'expo-notifications';
+import { defineBackgroundTask } from './src/services/GymReminderTask';
+
+// Define background location task BEFORE any React components render
+defineBackgroundTask();
 
 // Import screens
 import SignInScreen from './src/screens/SignInScreen';
@@ -75,6 +80,8 @@ import AICoachAssessmentScreen from './src/screens/AICoachAssessmentScreen';
 import UserProfileScreen from './src/screens/UserProfileScreen';
 import EditProfileSectionScreen from './src/screens/EditProfileSectionScreen';
 import Model3DWebViewScreen from './src/screens/Model3DWebViewScreen';
+import GymLocationScreen from './src/screens/GymLocationScreen';
+import GymMapScreen from './src/screens/GymMapScreen';
 
 // Automated Testing (Dev only)
 import AutomatedTestRunner from './src/components/AutomatedTestRunner';
@@ -257,6 +264,27 @@ function AppNavigator() {
     };
   }, [user]);
 
+  // Handle gym reminder notification taps
+  useEffect(() => {
+    const notificationSubscription = Notifications.addNotificationResponseReceivedListener(
+      (response) => {
+        const data = response.notification.request.content.data;
+        console.log('Notification tapped:', data);
+
+        if (data?.type === 'gym_reminder' && data?.action === 'start_workout') {
+          // Navigate to start workout screen
+          if (navigationRef.current) {
+            navigationRef.current.navigate('StartWorkout');
+          }
+        }
+      }
+    );
+
+    return () => {
+      notificationSubscription.remove();
+    };
+  }, []);
+
   // Handle quick actions (3D Touch / long-press app icon shortcuts)
   useEffect(() => {
     // Set up quick actions
@@ -395,6 +423,8 @@ function AppNavigator() {
             <Stack.Screen name="Settings" component={SettingsScreen} />
             <Stack.Screen name="ExerciseSettings" component={ExerciseSettingsScreen} />
             <Stack.Screen name="FoodSettings" component={FoodSettingsScreen} />
+            <Stack.Screen name="GymLocation" component={GymLocationScreen} />
+            <Stack.Screen name="GymMap" component={GymMapScreen} />
             <Stack.Screen name="ProgressHub" component={ProgressHubScreen} />
             <Stack.Screen name="Progress" component={ProgressScreen} />
             <Stack.Screen name="Debug" component={DebugScreen} />
