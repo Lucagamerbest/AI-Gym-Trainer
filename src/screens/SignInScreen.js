@@ -18,8 +18,6 @@ import { Colors, Spacing, Typography, BorderRadius, Shadows } from '../constants
 import { useAuth } from '../context/AuthContext';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
-import * as AuthSession from 'expo-auth-session';
-import Constants from 'expo-constants';
 
 const { width } = Dimensions.get('window');
 
@@ -42,44 +40,18 @@ export default function SignInScreen({ navigation }) {
   const [name, setName] = useState('');
 
   // Check if we're on Android emulator
-  const isAndroidEmulator = Platform.OS === 'web' && 
+  const isAndroidEmulator = Platform.OS === 'web' &&
     typeof window !== 'undefined' &&
     (window.location.hostname === '10.0.2.2' || window.location.hostname === '10.0.3.2');
 
-  // Create proper redirect URI - use proxy for Expo Go
-  const isExpoGo = !Constants.appOwnership || Constants.appOwnership === 'expo';
-
-  // For native iOS builds, the redirect URI must use the reversed client ID scheme
-  const IOS_REVERSED_CLIENT_ID = 'com.googleusercontent.apps.1011295206743-rl70k9ibahkkgkf41j8qr6vfneedgb8s';
-
-  const redirectUri = isExpoGo
-    ? 'https://auth.expo.io/@workoutwave/workout-wave'
-    : Platform.OS === 'ios'
-      ? `${IOS_REVERSED_CLIENT_ID}:/oauth2redirect/google`
-      : AuthSession.makeRedirectUri({ scheme: 'workoutwave' });
-
-
-  // Google Sign-In configuration
-  // When using auth.expo.io proxy (Expo Go), we must use the web client ID with implicit flow
-  const googleAuthConfig = isExpoGo
-    ? {
-        // In Expo Go, use web client with proxy redirect and implicit flow
-        clientId: '1011295206743-8r4o53jb5bqm10035a4ushe160kgonf0.apps.googleusercontent.com',
-        redirectUri: redirectUri,
-        responseType: 'id_token',
-        scopes: ['openid', 'profile', 'email'],
-      }
-    : {
-        // In dev/production builds, use native client IDs
-        iosClientId: '1011295206743-rl70k9ibahkkgkf41j8qr6vfneedgb8s.apps.googleusercontent.com',
-        androidClientId: '1011295206743-ab4i5hlk0qoh9ojqm9itmp932peacv4q.apps.googleusercontent.com',
-        webClientId: '1011295206743-8r4o53jb5bqm10035a4ushe160kgonf0.apps.googleusercontent.com',
-        redirectUri: redirectUri,
-        scopes: ['openid', 'profile', 'email'],
-      };
-
-
-  const [request, response, promptAsync] = isAndroidEmulator ? [null, null, null] : Google.useAuthRequest(googleAuthConfig);
+  // Google Sign-In configuration - same as ProfileScreen (which works)
+  const [request, response, promptAsync] = isAndroidEmulator ? [null, null, null] : Google.useAuthRequest({
+    expoClientId: '1011295206743-8jkfemcg0fcss02fgm14b9lhv282uk33.apps.googleusercontent.com',
+    iosClientId: '1011295206743-rl70k9ibahkkgkf41j8qr6vfneedgb8s.apps.googleusercontent.com',
+    androidClientId: '1011295206743-ab4i5hlk0qoh9ojqm9itmp932peacv4q.apps.googleusercontent.com',
+    webClientId: '1011295206743-8jkfemcg0fcss02fgm14b9lhv282uk33.apps.googleusercontent.com',
+    scopes: ['openid', 'profile', 'email'],
+  });
 
   // Debug: Log request state
   useEffect(() => {
