@@ -526,23 +526,6 @@ class AIService {
    * Build system prompt optimized for tool use
    */
   buildSystemPromptForTools(context) {
-      screen: context.screen,
-      hasUserProfile: !!context.userProfile,
-      hasScreenSpecific: !!context.screenSpecific,
-      screenSpecificKeys: context.screenSpecific ? Object.keys(context.screenSpecific) : [],
-      hasNutritionData: !!(context.screenSpecific?.calories),
-    });
-
-    // Log nutrition data specifically
-    if (context.screenSpecific?.calories) {
-        calories: `${context.screenSpecific.calories.consumed}/${context.screenSpecific.calories.target}`,
-        protein: `${context.screenSpecific.protein.consumed}g/${context.screenSpecific.protein.target}g`,
-        carbs: `${context.screenSpecific.carbs.consumed}g/${context.screenSpecific.carbs.target}g`,
-        fat: `${context.screenSpecific.fat.consumed}g/${context.screenSpecific.fat.target}g`,
-      });
-    } else {
-    }
-
     // Extract user profile data for tools
     const profile = context.userProfile || {};
 
