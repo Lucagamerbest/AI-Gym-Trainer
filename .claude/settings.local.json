@@ -88,7 +88,13 @@
       "WebFetch(domain:www.npmjs.com)",
       "WebFetch(domain:expo.dev)",
       "Bash(timeout /t 15)",
-      "Bash(ipconfig:*)"
+      "Bash(ipconfig:*)",
+      "Bash(git lfs:*)",
+      "Bash(npx gltf-transform:*)",
+      "Bash(npx @gltf-transform/cli:*)",
+      "Bash(git rm:*)",
+      "Bash(if not exist \"C:\\Users\\lucar\\AI-Gym-Trainer\\scripts\" mkdir \"C:\\Users\\lucar\\AI-Gym-Trainer\\scripts\")",
+      "Bash(git reset:*)"
     ],
     "deny": [],
     "ask": []

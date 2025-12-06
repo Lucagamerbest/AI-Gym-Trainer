@@ -20,7 +20,8 @@ export default function FoodDetailScreen({ route, navigation }) {
     fromMealPlanTemplate,
     templateDayIndex,
     templateMealType,
-    screenId
+    screenId,
+    infoOnly = false, // If true, only show health rating info (no serving selector or add button)
   } = route.params;
 
   // Log screen ID when FoodDetailScreen receives it
@@ -29,9 +30,26 @@ export default function FoodDetailScreen({ route, navigation }) {
     }
   }, [fromMealPlanTemplate, screenId]);
 
+  // Check if this is a restaurant food (already has per-serving nutrition)
+  const isRestaurantFood = food.source === 'restaurant' || food.restaurant_id;
+
   // Determine if this food should be measured in units rather than grams
   const getServingInfo = () => {
     const name = food.name.toLowerCase();
+
+    // Restaurant foods - nutrition is already per serving, not per 100g
+    if (isRestaurantFood) {
+      const servingText = food.serving_size || food.serving || '1 serving';
+      return {
+        weight: 1, // Multiplier (1x, 2x, etc.)
+        unit: 'serving',
+        unitPlural: 'servings',
+        default: 1,
+        isUnit: true,
+        isRestaurant: true,
+        servingDescription: servingText,
+      };
+    }
 
     // Foods that are better measured by units
     const unitBasedFoods = {
@@ -88,6 +106,10 @@ export default function FoodDetailScreen({ route, navigation }) {
 
   // Calculate actual weight based on serving amount
   const calculateActualWeight = () => {
+    if (servingInfo.isRestaurant) {
+      // For restaurant foods, just return the multiplier
+      return servingAmount;
+    }
     if (servingInfo.isUnit) {
       return servingAmount * servingInfo.weight;
     }
@@ -96,6 +118,11 @@ export default function FoodDetailScreen({ route, navigation }) {
 
   // Calculate nutrition for current serving
   const calculateNutrition = (value) => {
+    if (servingInfo.isRestaurant) {
+      // Restaurant foods: nutrition is already per-serving, just multiply by quantity
+      return (value * servingAmount).toFixed(1);
+    }
+    // Regular foods: nutrition is per 100g, scale by weight
     const actualWeight = calculateActualWeight();
     return ((value * actualWeight) / 100).toFixed(1);
   };
@@ -380,21 +407,38 @@ export default function FoodDetailScreen({ route, navigation }) {
         ],
       });
     } else {
-      navigation.navigate('Nutrition', {
-        addedFood: foodData,
-        fromFoodAdd: true
+      // Reset navigation stack to prevent swiping back to food search/recipe screens
+      // Keep Main (Home) in stack so user can go back normally
+      navigation.reset({
+        index: 1,
+        routes: [
+          { name: 'Main' },
+          {
+            name: 'Nutrition',
+            params: {
+              addedFood: foodData,
+              fromFoodAdd: true
+            }
+          }
+        ],
       });
     }
   };
 
   const adjustServing = (adjustment) => {
-    if (servingInfo.isUnit) {
+    if (servingInfo.isRestaurant) {
+      // For restaurant foods, adjust by 0.5 servings at a time (allow half portions)
+      const step = adjustment > 0 ? 0.5 : -0.5;
+      const newAmount = Math.max(0.5, servingAmount + step);
+      setServingAmount(newAmount);
+    } else if (servingInfo.isUnit) {
       // For unit-based foods, adjust by 1 unit at a time
       const newAmount = Math.max(0.5, servingAmount + (adjustment > 0 ? 1 : -1));
       setServingAmount(newAmount);
     } else {
-      // For weight-based foods, adjust by 10g
-      const newAmount = Math.max(10, servingAmount + adjustment);
+      // For weight-based foods, adjust by 50g at a time
+      const step = adjustment > 0 ? 50 : -50;
+      const newAmount = Math.max(10, servingAmount + step);
       setServingAmount(newAmount);
     }
   };
@@ -410,6 +454,19 @@ export default function FoodDetailScreen({ route, navigation }) {
       {/* Food Header */}
       <View style={styles.header}>
         <Text style={styles.foodName}>{food.name || 'Unknown Food'}</Text>
+        {(food.brand || food.restaurant_name) ? (
+          <View style={[
+            styles.brandBadge,
+            food.restaurant_color && { backgroundColor: food.restaurant_color + '20', borderColor: food.restaurant_color }
+          ]}>
+            <Text style={[
+              styles.brandText,
+              food.restaurant_color && { color: food.restaurant_color }
+            ]}>
+              {food.brand || food.restaurant_name}
+            </Text>
+          </View>
+        ) : null}
         {food.category ? (
           <Text style={styles.category}>{food.category}</Text>
         ) : null}
@@ -494,199 +551,172 @@ export default function FoodDetailScreen({ route, navigation }) {
         )}
       </TouchableOpacity>
 
-      {/* Serving Size Selector */}
-      <View style={styles.servingCard}>
-        <Text style={styles.sectionTitle}>Serving Size</Text>
-        <View style={styles.servingControls}>
-          <TouchableOpacity
-            style={styles.servingButton}
-            onPress={() => adjustServing(-1)}
-          >
-            <Text style={styles.servingButtonText}>-</Text>
-          </TouchableOpacity>
+      {/* Serving Size Selector - hidden in info-only mode */}
+      {!infoOnly && (
+        <View style={styles.servingCard}>
+          <Text style={styles.sectionTitle}>Serving Size</Text>
+          <View style={styles.servingControls}>
+            <TouchableOpacity
+              style={styles.servingButton}
+              onPress={() => adjustServing(-1)}
+            >
+              <Text style={styles.servingButtonText}>-</Text>
+            </TouchableOpacity>
 
-          <View style={styles.servingDisplay}>
-            <Text style={styles.servingSize}>
-              {servingInfo.isUnit
-                ? `${servingAmount} ${servingAmount === 1 ? servingInfo.unit : servingInfo.unitPlural}`
-                : `${servingAmount}${servingInfo.unit}`
-              }
-            </Text>
-            <Text style={styles.servingHint}>
-              {servingInfo.isUnit
-                ? `(${calculateActualWeight()}g total)`
-                : servingInfo.apiServing
-                  ? `Standard serving`
-                  : `Recommended serving`
-              }
-            </Text>
-          </View>
-
-          <TouchableOpacity
-            style={styles.servingButton}
-            onPress={() => adjustServing(1)}
-          >
-            <Text style={styles.servingButtonText}>+</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Quick serving buttons */}
-        <View style={styles.quickServings}>
-          {servingInfo.isUnit ? (
-            <>
-              <TouchableOpacity
-                style={[styles.quickButton,
-                  servingAmount === 1 && styles.quickButtonActive
-                ]}
-                onPress={() => setServingAmount(1)}
-              >
-                <Text style={[styles.quickButtonText,
-                  servingAmount === 1 && styles.quickButtonTextActive
-                ]}>1 {servingInfo.unit}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.quickButton,
-                  servingAmount === 2 && styles.quickButtonActive
-                ]}
-                onPress={() => setServingAmount(2)}
-              >
-                <Text style={[styles.quickButtonText,
-                  servingAmount === 2 && styles.quickButtonTextActive
-                ]}>2 {servingInfo.unitPlural}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.quickButton,
-                  servingAmount === 3 && styles.quickButtonActive
-                ]}
-                onPress={() => setServingAmount(3)}
-              >
-                <Text style={[styles.quickButtonText,
-                  servingAmount === 3 && styles.quickButtonTextActive
-                ]}>3 {servingInfo.unitPlural}</Text>
-              </TouchableOpacity>
-            </>
-          ) : (
-            <>
-              <TouchableOpacity
-                style={[styles.quickButton,
-                  servingAmount === servingInfo.default && styles.quickButtonActive
-                ]}
-                onPress={() => setServingAmount(servingInfo.default)}
-              >
-                <Text style={[styles.quickButtonText,
-                  servingAmount === servingInfo.default && styles.quickButtonTextActive
-                ]}>
-                  {servingInfo.apiServing ? 'Standard' : 'Recommended'}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.quickButton,
-                  servingAmount === 100 && styles.quickButtonActive
-                ]}
-                onPress={() => setServingAmount(100)}
-              >
-                <Text style={[styles.quickButtonText,
-                  servingAmount === 100 && styles.quickButtonTextActive
-                ]}>100g</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.quickButton,
-                  servingAmount === 200 && styles.quickButtonActive
-                ]}
-                onPress={() => setServingAmount(200)}
-              >
-                <Text style={[styles.quickButtonText,
-                  servingAmount === 200 && styles.quickButtonTextActive
-                ]}>200g</Text>
-              </TouchableOpacity>
-            </>
-          )}
-        </View>
-      </View>
-
-      {/* Nutrition Information */}
-      <View style={styles.nutritionCard}>
-        <Text style={styles.sectionTitle}>Nutrition Facts</Text>
-        <Text style={styles.nutritionSubtitle}>
-          {servingInfo.isUnit
-            ? `Per ${servingAmount} ${servingAmount === 1 ? servingInfo.unit : servingInfo.unitPlural} (${calculateActualWeight()}g)`
-            : `Per ${servingAmount}${servingInfo.unit} serving`
-          }
-        </Text>
-
-        {/* Calories */}
-        <View style={styles.caloriesRow}>
-          <Text style={styles.caloriesLabel}>Calories</Text>
-          <Text style={styles.caloriesValue}>{`${calculateNutrition(food.calories || 0)}`}</Text>
-        </View>
-
-        <View style={styles.divider} />
-
-        {/* Macronutrients */}
-        <View style={styles.macroGrid}>
-          <View style={styles.macroItem}>
-            <Text style={styles.macroLabel}>Protein</Text>
-            <Text style={styles.macroValue}>{`${calculateNutrition(food.protein || 0)}g`}</Text>
-            <Text style={styles.macroPercent}>
-              {food.calories > 0 ? `${((food.protein * 4 / food.calories) * 100).toFixed(0)}%` : '0%'}
-            </Text>
-          </View>
-
-          <View style={styles.macroItem}>
-            <Text style={styles.macroLabel}>Carbs</Text>
-            <Text style={styles.macroValue}>{`${calculateNutrition(food.carbs || 0)}g`}</Text>
-            <Text style={styles.macroPercent}>
-              {food.calories > 0 ? `${((food.carbs * 4 / food.calories) * 100).toFixed(0)}%` : '0%'}
-            </Text>
-          </View>
-
-          <View style={styles.macroItem}>
-            <Text style={styles.macroLabel}>Fat</Text>
-            <Text style={styles.macroValue}>{`${calculateNutrition(food.fat || 0)}g`}</Text>
-            <Text style={styles.macroPercent}>
-              {food.calories > 0 ? `${((food.fat * 9 / food.calories) * 100).toFixed(0)}%` : '0%'}
-            </Text>
-          </View>
-        </View>
-
-        {/* Additional nutrients if available */}
-        {(food.fiber || food.sugar || food.sodium) ? (
-          <>
-            <View style={styles.divider} />
-            <View style={styles.additionalNutrients}>
-              {food.fiber ? (
-                <View style={styles.nutrientRow}>
-                  <Text style={styles.nutrientLabel}>Fiber</Text>
-                  <Text style={styles.nutrientValue}>{`${calculateNutrition(food.fiber)}g`}</Text>
-                </View>
-              ) : null}
-              {food.sugar ? (
-                <View style={styles.nutrientRow}>
-                  <Text style={styles.nutrientLabel}>Sugar</Text>
-                  <Text style={styles.nutrientValue}>{`${calculateNutrition(food.sugar)}g`}</Text>
-                </View>
-              ) : null}
-              {food.sodium ? (
-                <View style={styles.nutrientRow}>
-                  <Text style={styles.nutrientLabel}>Sodium</Text>
-                  <Text style={styles.nutrientValue}>{`${calculateNutrition(food.sodium)}mg`}</Text>
-                </View>
-              ) : null}
+            <View style={styles.servingDisplay}>
+              <Text style={styles.servingSize}>
+                {servingInfo.isRestaurant
+                  ? `${servingAmount} ${servingAmount === 1 ? servingInfo.unit : servingInfo.unitPlural}`
+                  : servingInfo.isUnit
+                    ? `${servingAmount} ${servingAmount === 1 ? servingInfo.unit : servingInfo.unitPlural}`
+                    : `${servingAmount}${servingInfo.unit}`
+                }
+              </Text>
+              <Text style={styles.servingCalories}>
+                {calculateNutrition(food.calories || 0)} cal
+              </Text>
             </View>
-          </>
-        ) : null}
-      </View>
 
-      {/* Add to Food Log Button */}
-      <TouchableOpacity
-        style={styles.addButton}
-        onPress={handleAddToLog}
-        activeOpacity={0.8}
-      >
-        <Text style={styles.addButtonText}>
-          Add to {mealType.charAt(0).toUpperCase() + mealType.slice(1)}
-        </Text>
-      </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.servingButton}
+              onPress={() => adjustServing(1)}
+            >
+              <Text style={styles.servingButtonText}>+</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      {/* Nutrition Information - hidden in info-only mode */}
+      {!infoOnly && (
+        <View style={styles.nutritionCard}>
+          <Text style={styles.sectionTitle}>Nutrition Facts</Text>
+          <Text style={styles.nutritionSubtitle}>
+            {servingInfo.isRestaurant
+              ? `Per ${servingAmount === 1 ? '' : servingAmount + 'x '}${servingInfo.servingDescription}`
+              : servingInfo.isUnit
+                ? `Per ${servingAmount} ${servingAmount === 1 ? servingInfo.unit : servingInfo.unitPlural} (${calculateActualWeight()}g)`
+                : `Per ${servingAmount}${servingInfo.unit} serving`
+            }
+          </Text>
+
+          {/* Calories */}
+          <View style={styles.caloriesRow}>
+            <Text style={styles.caloriesLabel}>Calories</Text>
+            <Text style={styles.caloriesValue}>{`${calculateNutrition(food.calories || 0)}`}</Text>
+          </View>
+
+          <View style={styles.divider} />
+
+          {/* Macronutrients */}
+          <View style={styles.macroGrid}>
+            <View style={styles.macroItem}>
+              <Text style={styles.macroLabel}>Protein</Text>
+              <Text style={styles.macroValue}>{`${calculateNutrition(food.protein || 0)}g`}</Text>
+              <Text style={styles.macroPercent}>
+                {food.calories > 0 ? `${((food.protein * 4 / food.calories) * 100).toFixed(0)}%` : '0%'}
+              </Text>
+            </View>
+
+            <View style={styles.macroItem}>
+              <Text style={styles.macroLabel}>Carbs</Text>
+              <Text style={styles.macroValue}>{`${calculateNutrition(food.carbs || 0)}g`}</Text>
+              <Text style={styles.macroPercent}>
+                {food.calories > 0 ? `${((food.carbs * 4 / food.calories) * 100).toFixed(0)}%` : '0%'}
+              </Text>
+            </View>
+
+            <View style={styles.macroItem}>
+              <Text style={styles.macroLabel}>Fat</Text>
+              <Text style={styles.macroValue}>{`${calculateNutrition(food.fat || 0)}g`}</Text>
+              <Text style={styles.macroPercent}>
+                {food.calories > 0 ? `${((food.fat * 9 / food.calories) * 100).toFixed(0)}%` : '0%'}
+              </Text>
+            </View>
+          </View>
+
+          {/* Additional nutrients if available */}
+          {(food.fiber || food.sugar || food.sodium) ? (
+            <>
+              <View style={styles.divider} />
+              <View style={styles.additionalNutrients}>
+                {food.fiber ? (
+                  <View style={styles.nutrientRow}>
+                    <Text style={styles.nutrientLabel}>Fiber</Text>
+                    <Text style={styles.nutrientValue}>{`${calculateNutrition(food.fiber)}g`}</Text>
+                  </View>
+                ) : null}
+                {food.sugar ? (
+                  <View style={styles.nutrientRow}>
+                    <Text style={styles.nutrientLabel}>Sugar</Text>
+                    <Text style={styles.nutrientValue}>{`${calculateNutrition(food.sugar)}g`}</Text>
+                  </View>
+                ) : null}
+                {food.sodium ? (
+                  <View style={styles.nutrientRow}>
+                    <Text style={styles.nutrientLabel}>Sodium</Text>
+                    <Text style={styles.nutrientValue}>{`${calculateNutrition(food.sodium)}mg`}</Text>
+                  </View>
+                ) : null}
+              </View>
+            </>
+          ) : null}
+        </View>
+      )}
+
+      {/* Quick Macros Summary - shown in info-only mode */}
+      {infoOnly && (
+        <View style={styles.nutritionCard}>
+          <Text style={styles.sectionTitle}>Nutrition per Serving</Text>
+          <Text style={styles.nutritionSubtitle}>{food.serving_size || '1 serving'}</Text>
+
+          <View style={styles.caloriesRow}>
+            <Text style={styles.caloriesLabel}>Calories</Text>
+            <Text style={styles.caloriesValue}>{food.calories || 0}</Text>
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.macroGrid}>
+            <View style={styles.macroItem}>
+              <Text style={styles.macroLabel}>Protein</Text>
+              <Text style={styles.macroValue}>{food.protein || 0}g</Text>
+              <Text style={styles.macroPercent}>
+                {food.calories > 0 ? `${((food.protein * 4 / food.calories) * 100).toFixed(0)}%` : '0%'}
+              </Text>
+            </View>
+
+            <View style={styles.macroItem}>
+              <Text style={styles.macroLabel}>Carbs</Text>
+              <Text style={styles.macroValue}>{food.carbs || 0}g</Text>
+              <Text style={styles.macroPercent}>
+                {food.calories > 0 ? `${((food.carbs * 4 / food.calories) * 100).toFixed(0)}%` : '0%'}
+              </Text>
+            </View>
+
+            <View style={styles.macroItem}>
+              <Text style={styles.macroLabel}>Fat</Text>
+              <Text style={styles.macroValue}>{food.fat || 0}g</Text>
+              <Text style={styles.macroPercent}>
+                {food.calories > 0 ? `${((food.fat * 9 / food.calories) * 100).toFixed(0)}%` : '0%'}
+              </Text>
+            </View>
+          </View>
+        </View>
+      )}
+
+      {/* Add to Food Log Button - hidden in info-only mode */}
+      {!infoOnly && (
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={handleAddToLog}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.addButtonText}>
+            Add to {mealType.charAt(0).toUpperCase() + mealType.slice(1)}
+          </Text>
+        </TouchableOpacity>
+      )}
       </ScreenLayout>
     </View>
   );
@@ -715,6 +745,20 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.md,
     color: Colors.textSecondary,
     marginTop: Spacing.xs,
+  },
+  brandBadge: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.lg,
+    backgroundColor: Colors.primary + '20',
+    borderWidth: 1,
+    borderColor: Colors.primary,
+    marginTop: Spacing.sm,
+  },
+  brandText: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
+    color: Colors.primary,
   },
   sectionTitle: {
     fontSize: Typography.fontSize.lg,
@@ -880,46 +924,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: Colors.text,
   },
-  servingHint: {
-    fontSize: Typography.fontSize.xs,
-    color: Colors.textMuted,
-    marginTop: 2,
-  },
-  quickServings: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    gap: Spacing.sm,
-  },
-  quickButton: {
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.lg,
-    backgroundColor: Colors.background,
-    borderRadius: BorderRadius.lg,
-    borderWidth: 2,
-    borderColor: Colors.border,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  quickButtonActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  quickButtonText: {
-    fontSize: Typography.fontSize.sm,
-    color: Colors.text,
+  servingCalories: {
+    fontSize: Typography.fontSize.lg,
     fontWeight: '600',
-  },
-  quickButtonTextActive: {
-    color: '#000',
-    fontWeight: '700',
+    color: Colors.primary,
+    marginTop: Spacing.xs,
   },
   nutritionCard: {
     backgroundColor: Colors.surface,

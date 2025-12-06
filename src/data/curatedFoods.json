@@ -1,0 +1,3358 @@
+{
+  "version": 1,
+  "generated_at": "2025-12-06T15:35:45.747Z",
+  "total_foods": 111,
+  "categories": [
+    "Protein",
+    "Dairy",
+    "Carbs",
+    "Fruits",
+    "Vegetables",
+    "Fats",
+    "Supplements",
+    "Beverages",
+    "Condiments"
+  ],
+  "foods": [
+    {
+      "id": "essential_1765035345742_zz4hk4dwn",
+      "name": "Chicken Breast (raw)",
+      "aliases": [],
+      "brand": null,
+      "category": "Protein",
+      "calories": 120,
+      "protein": 22.5,
+      "carbs": 0,
+      "fat": 2.6,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        },
+        {
+          "label": "1 breast (170g)",
+          "value": 170
+        },
+        {
+          "label": "4 oz (113g)",
+          "value": 113
+        },
+        {
+          "label": "6 oz (170g)",
+          "value": 170
+        }
+      ],
+      "verified": true,
+      "popularity_score": 80,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.743Z",
+      "updated_at": "2025-12-06T15:35:45.743Z"
+    },
+    {
+      "id": "essential_1765035345743_q94h7s9gv",
+      "name": "Chicken Breast (cooked)",
+      "aliases": [],
+      "brand": null,
+      "category": "Protein",
+      "calories": 165,
+      "protein": 31,
+      "carbs": 0,
+      "fat": 3.6,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        },
+        {
+          "label": "1 breast (170g)",
+          "value": 170
+        },
+        {
+          "label": "4 oz (113g)",
+          "value": 113
+        },
+        {
+          "label": "6 oz (170g)",
+          "value": 170
+        }
+      ],
+      "verified": true,
+      "popularity_score": 80,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.743Z",
+      "updated_at": "2025-12-06T15:35:45.743Z"
+    },
+    {
+      "id": "essential_1765035345743_8nu2pobtc",
+      "name": "Chicken Thigh (raw)",
+      "aliases": [],
+      "brand": null,
+      "category": "Protein",
+      "calories": 177,
+      "protein": 19.7,
+      "carbs": 0,
+      "fat": 10.9,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 80,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.743Z",
+      "updated_at": "2025-12-06T15:35:45.743Z"
+    },
+    {
+      "id": "essential_1765035345743_8r26oee8r",
+      "name": "Chicken Thigh (cooked)",
+      "aliases": [],
+      "brand": null,
+      "category": "Protein",
+      "calories": 209,
+      "protein": 26,
+      "carbs": 0,
+      "fat": 10.9,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 80,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.743Z",
+      "updated_at": "2025-12-06T15:35:45.743Z"
+    },
+    {
+      "id": "essential_1765035345743_samgb51ro",
+      "name": "Ground Beef 90% Lean",
+      "aliases": [],
+      "brand": null,
+      "category": "Protein",
+      "calories": 176,
+      "protein": 20,
+      "carbs": 0,
+      "fat": 10,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 80,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.743Z",
+      "updated_at": "2025-12-06T15:35:45.743Z"
+    },
+    {
+      "id": "essential_1765035345743_w611jet6l",
+      "name": "Ground Beef 80% Lean",
+      "aliases": [],
+      "brand": null,
+      "category": "Protein",
+      "calories": 254,
+      "protein": 17.2,
+      "carbs": 0,
+      "fat": 20,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 80,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.743Z",
+      "updated_at": "2025-12-06T15:35:45.743Z"
+    },
+    {
+      "id": "essential_1765035345744_eoxs7f0na",
+      "name": "Greek Yogurt (plain, nonfat)",
+      "aliases": [],
+      "brand": null,
+      "category": "Dairy",
+      "calories": 59,
+      "protein": 10,
+      "carbs": 3.6,
+      "fat": 0.7,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        },
+        {
+          "label": "1 container (170g)",
+          "value": 170
+        },
+        {
+          "label": "1 cup (245g)",
+          "value": 245
+        }
+      ],
+      "verified": true,
+      "popularity_score": 80,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_j16mnniq2",
+      "name": "Greek Yogurt (plain, 2%)",
+      "aliases": [],
+      "brand": null,
+      "category": "Dairy",
+      "calories": 73,
+      "protein": 9.7,
+      "carbs": 4,
+      "fat": 1.9,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        },
+        {
+          "label": "1 container (170g)",
+          "value": 170
+        },
+        {
+          "label": "1 cup (245g)",
+          "value": 245
+        }
+      ],
+      "verified": true,
+      "popularity_score": 80,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_cve8hz9hb",
+      "name": "Cottage Cheese (1% fat)",
+      "aliases": [],
+      "brand": null,
+      "category": "Dairy",
+      "calories": 72,
+      "protein": 12,
+      "carbs": 2.7,
+      "fat": 1,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 80,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_q4655iqg2",
+      "name": "Cottage Cheese (2% fat)",
+      "aliases": [],
+      "brand": null,
+      "category": "Dairy",
+      "calories": 86,
+      "protein": 11,
+      "carbs": 4.3,
+      "fat": 2.3,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 80,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_75uinxcpl",
+      "name": "White Rice (cooked)",
+      "aliases": [],
+      "brand": null,
+      "category": "Carbs",
+      "calories": 130,
+      "protein": 2.7,
+      "carbs": 28,
+      "fat": 0.3,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        },
+        {
+          "label": "1 cup cooked (158g)",
+          "value": 158
+        },
+        {
+          "label": "1/2 cup (79g)",
+          "value": 79
+        }
+      ],
+      "verified": true,
+      "popularity_score": 80,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_dzfpn2n2d",
+      "name": "Brown Rice (cooked)",
+      "aliases": [],
+      "brand": null,
+      "category": "Carbs",
+      "calories": 112,
+      "protein": 2.6,
+      "carbs": 24,
+      "fat": 0.9,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        },
+        {
+          "label": "1 cup cooked (158g)",
+          "value": 158
+        },
+        {
+          "label": "1/2 cup (79g)",
+          "value": 79
+        }
+      ],
+      "verified": true,
+      "popularity_score": 80,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_g0i4ptefc",
+      "name": "Jasmine Rice (cooked)",
+      "aliases": [],
+      "brand": null,
+      "category": "Carbs",
+      "calories": 129,
+      "protein": 2.4,
+      "carbs": 28,
+      "fat": 0.4,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        },
+        {
+          "label": "1 cup cooked (158g)",
+          "value": 158
+        },
+        {
+          "label": "1/2 cup (79g)",
+          "value": 79
+        }
+      ],
+      "verified": true,
+      "popularity_score": 80,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_2fau7yc51",
+      "name": "Oats (dry)",
+      "aliases": [],
+      "brand": null,
+      "category": "Carbs",
+      "calories": 389,
+      "protein": 17,
+      "carbs": 66,
+      "fat": 6.9,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 80,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_hlpbrk37j",
+      "name": "Banana",
+      "aliases": [],
+      "brand": null,
+      "category": "Fruits",
+      "calories": 89,
+      "protein": 1.1,
+      "carbs": 23,
+      "fat": 0.3,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        },
+        {
+          "label": "1 medium (118g)",
+          "value": 118
+        },
+        {
+          "label": "1 large (136g)",
+          "value": 136
+        }
+      ],
+      "verified": true,
+      "popularity_score": 80,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_xfmj9poaa",
+      "name": "Apple",
+      "aliases": [],
+      "brand": null,
+      "category": "Fruits",
+      "calories": 52,
+      "protein": 0.3,
+      "carbs": 14,
+      "fat": 0.2,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        },
+        {
+          "label": "1 medium (182g)",
+          "value": 182
+        },
+        {
+          "label": "1 small (149g)",
+          "value": 149
+        }
+      ],
+      "verified": true,
+      "popularity_score": 80,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345745_nzleicc3x",
+      "name": "Pineapple",
+      "aliases": [],
+      "brand": null,
+      "category": "Fruits",
+      "calories": 50,
+      "protein": 0.5,
+      "carbs": 13,
+      "fat": 0.1,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        },
+        {
+          "label": "1 medium (182g)",
+          "value": 182
+        },
+        {
+          "label": "1 small (149g)",
+          "value": 149
+        }
+      ],
+      "verified": true,
+      "popularity_score": 80,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.745Z",
+      "updated_at": "2025-12-06T15:35:45.745Z"
+    },
+    {
+      "id": "essential_1765035345743_sxk57zthj",
+      "name": "Salmon (raw)",
+      "aliases": [],
+      "brand": null,
+      "category": "Protein",
+      "calories": 208,
+      "protein": 20,
+      "carbs": 0,
+      "fat": 13,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 60,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.743Z",
+      "updated_at": "2025-12-06T15:35:45.743Z"
+    },
+    {
+      "id": "essential_1765035345743_tbrqk5yoq",
+      "name": "Salmon (cooked)",
+      "aliases": [],
+      "brand": null,
+      "category": "Protein",
+      "calories": 206,
+      "protein": 22,
+      "carbs": 0,
+      "fat": 12,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 60,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.743Z",
+      "updated_at": "2025-12-06T15:35:45.743Z"
+    },
+    {
+      "id": "essential_1765035345744_n8mza5m41",
+      "name": "Tuna (canned in water)",
+      "aliases": [],
+      "brand": null,
+      "category": "Protein",
+      "calories": 116,
+      "protein": 26,
+      "carbs": 0,
+      "fat": 0.8,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 60,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_w3c5drh10",
+      "name": "Quinoa (cooked)",
+      "aliases": [],
+      "brand": null,
+      "category": "Carbs",
+      "calories": 120,
+      "protein": 4.4,
+      "carbs": 21,
+      "fat": 1.9,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 60,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_ko129k8yg",
+      "name": "Sweet Potato (baked)",
+      "aliases": [],
+      "brand": null,
+      "category": "Carbs",
+      "calories": 90,
+      "protein": 2,
+      "carbs": 21,
+      "fat": 0.1,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 60,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_ms24xib2k",
+      "name": "Potato (baked)",
+      "aliases": [],
+      "brand": null,
+      "category": "Carbs",
+      "calories": 93,
+      "protein": 2.5,
+      "carbs": 21,
+      "fat": 0.1,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 60,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_45vfkiusu",
+      "name": "Broccoli",
+      "aliases": [],
+      "brand": null,
+      "category": "Vegetables",
+      "calories": 34,
+      "protein": 2.8,
+      "carbs": 7,
+      "fat": 0.4,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 60,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_8p3ctrnxe",
+      "name": "Spinach (raw)",
+      "aliases": [],
+      "brand": null,
+      "category": "Vegetables",
+      "calories": 23,
+      "protein": 2.9,
+      "carbs": 3.6,
+      "fat": 0.4,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 60,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_ydl1z8f10",
+      "name": "Spinach (cooked)",
+      "aliases": [],
+      "brand": null,
+      "category": "Vegetables",
+      "calories": 23,
+      "protein": 3,
+      "carbs": 3.8,
+      "fat": 0.3,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 60,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_l8t17ojev",
+      "name": "Kale",
+      "aliases": [],
+      "brand": null,
+      "category": "Vegetables",
+      "calories": 49,
+      "protein": 4.3,
+      "carbs": 9,
+      "fat": 0.9,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 60,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_3chy9c8ao",
+      "name": "Strawberries",
+      "aliases": [],
+      "brand": null,
+      "category": "Fruits",
+      "calories": 32,
+      "protein": 0.7,
+      "carbs": 7.7,
+      "fat": 0.3,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 60,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_283d6a913",
+      "name": "Blueberries",
+      "aliases": [],
+      "brand": null,
+      "category": "Fruits",
+      "calories": 57,
+      "protein": 0.7,
+      "carbs": 14,
+      "fat": 0.3,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 60,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_yp7469wss",
+      "name": "Raspberries",
+      "aliases": [],
+      "brand": null,
+      "category": "Fruits",
+      "calories": 52,
+      "protein": 1.2,
+      "carbs": 12,
+      "fat": 0.7,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 60,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345745_j6muyuuuc",
+      "name": "Avocado",
+      "aliases": [],
+      "brand": null,
+      "category": "Fruits",
+      "calories": 160,
+      "protein": 2,
+      "carbs": 9,
+      "fat": 15,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 60,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.745Z",
+      "updated_at": "2025-12-06T15:35:45.745Z"
+    },
+    {
+      "id": "essential_1765035345745_bffzwo4pu",
+      "name": "Olive Oil",
+      "aliases": [],
+      "brand": null,
+      "category": "Fats",
+      "calories": 884,
+      "protein": 0,
+      "carbs": 0,
+      "fat": 100,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100ml",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        },
+        {
+          "label": "1 tbsp (14g)",
+          "value": 14
+        },
+        {
+          "label": "1 tsp (5g)",
+          "value": 5
+        }
+      ],
+      "verified": true,
+      "popularity_score": 60,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.745Z",
+      "updated_at": "2025-12-06T15:35:45.745Z"
+    },
+    {
+      "id": "essential_1765035345745_t53p1qfnj",
+      "name": "Almonds",
+      "aliases": [],
+      "brand": null,
+      "category": "Fats",
+      "calories": 579,
+      "protein": 21,
+      "carbs": 22,
+      "fat": 50,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 60,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.745Z",
+      "updated_at": "2025-12-06T15:35:45.745Z"
+    },
+    {
+      "id": "essential_1765035345745_9w7ilg3u6",
+      "name": "Peanut Butter",
+      "aliases": [],
+      "brand": null,
+      "category": "Fats",
+      "calories": 588,
+      "protein": 25,
+      "carbs": 20,
+      "fat": 50,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        },
+        {
+          "label": "1 tbsp (16g)",
+          "value": 16
+        },
+        {
+          "label": "2 tbsp (32g)",
+          "value": 32
+        }
+      ],
+      "verified": true,
+      "popularity_score": 60,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.745Z",
+      "updated_at": "2025-12-06T15:35:45.745Z"
+    },
+    {
+      "id": "essential_1765035345745_70y0u5mdd",
+      "name": "Whey Protein Powder",
+      "aliases": [],
+      "brand": null,
+      "category": "Supplements",
+      "calories": 120,
+      "protein": 24,
+      "carbs": 3,
+      "fat": 1.5,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "1 scoop (30g)",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        },
+        {
+          "label": "1 scoop (30g)",
+          "value": 30
+        },
+        {
+          "label": "2 scoops (60g)",
+          "value": 60
+        }
+      ],
+      "verified": true,
+      "popularity_score": 60,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.745Z",
+      "updated_at": "2025-12-06T15:35:45.745Z"
+    },
+    {
+      "id": "essential_1765035345745_fgqlea6pz",
+      "name": "Casein Protein Powder",
+      "aliases": [],
+      "brand": null,
+      "category": "Supplements",
+      "calories": 120,
+      "protein": 24,
+      "carbs": 3,
+      "fat": 1,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "1 scoop (30g)",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        },
+        {
+          "label": "1 scoop (30g)",
+          "value": 30
+        },
+        {
+          "label": "2 scoops (60g)",
+          "value": 60
+        }
+      ],
+      "verified": true,
+      "popularity_score": 60,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.745Z",
+      "updated_at": "2025-12-06T15:35:45.745Z"
+    },
+    {
+      "id": "essential_1765035345744_y90rdilor",
+      "name": "Egg (whole, large)",
+      "aliases": [],
+      "brand": null,
+      "category": "Protein",
+      "calories": 72,
+      "protein": 6.3,
+      "carbs": 0.4,
+      "fat": 5,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "1 large (50g)",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        },
+        {
+          "label": "1 large egg (50g)",
+          "value": 50
+        },
+        {
+          "label": "2 large eggs (100g)",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 55,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_xz6tr1laz",
+      "name": "Egg White",
+      "aliases": [],
+      "brand": null,
+      "category": "Protein",
+      "calories": 17,
+      "protein": 3.6,
+      "carbs": 0.2,
+      "fat": 0.1,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "1 large (33g)",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        },
+        {
+          "label": "1 large egg (50g)",
+          "value": 50
+        },
+        {
+          "label": "2 large eggs (100g)",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 55,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_z96x0axod",
+      "name": "Egg Yolk",
+      "aliases": [],
+      "brand": null,
+      "category": "Protein",
+      "calories": 55,
+      "protein": 2.7,
+      "carbs": 0.6,
+      "fat": 4.5,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "1 large (17g)",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        },
+        {
+          "label": "1 large egg (50g)",
+          "value": 50
+        },
+        {
+          "label": "2 large eggs (100g)",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 55,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_04rhqnkkq",
+      "name": "Milk (whole)",
+      "aliases": [],
+      "brand": null,
+      "category": "Dairy",
+      "calories": 61,
+      "protein": 3.2,
+      "carbs": 4.8,
+      "fat": 3.3,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100ml",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        },
+        {
+          "label": "1 cup (244ml)",
+          "value": 244
+        },
+        {
+          "label": "1/2 cup (122ml)",
+          "value": 122
+        }
+      ],
+      "verified": true,
+      "popularity_score": 55,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_2jcx2q21i",
+      "name": "Milk (2%)",
+      "aliases": [],
+      "brand": null,
+      "category": "Dairy",
+      "calories": 50,
+      "protein": 3.3,
+      "carbs": 4.8,
+      "fat": 2,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100ml",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        },
+        {
+          "label": "1 cup (244ml)",
+          "value": 244
+        },
+        {
+          "label": "1/2 cup (122ml)",
+          "value": 122
+        }
+      ],
+      "verified": true,
+      "popularity_score": 55,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_a19w5hq30",
+      "name": "Milk (skim)",
+      "aliases": [],
+      "brand": null,
+      "category": "Dairy",
+      "calories": 34,
+      "protein": 3.4,
+      "carbs": 5,
+      "fat": 0.1,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100ml",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        },
+        {
+          "label": "1 cup (244ml)",
+          "value": 244
+        },
+        {
+          "label": "1/2 cup (122ml)",
+          "value": 122
+        }
+      ],
+      "verified": true,
+      "popularity_score": 55,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_bbmqng507",
+      "name": "Cheddar Cheese",
+      "aliases": [],
+      "brand": null,
+      "category": "Dairy",
+      "calories": 403,
+      "protein": 25,
+      "carbs": 1.3,
+      "fat": 33,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 55,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_zffhx135y",
+      "name": "Mozzarella Cheese",
+      "aliases": [],
+      "brand": null,
+      "category": "Dairy",
+      "calories": 280,
+      "protein": 28,
+      "carbs": 3.1,
+      "fat": 17,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 55,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_2t6283gkc",
+      "name": "Parmesan Cheese",
+      "aliases": [],
+      "brand": null,
+      "category": "Dairy",
+      "calories": 431,
+      "protein": 38,
+      "carbs": 4.1,
+      "fat": 29,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 55,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_eubxqylax",
+      "name": "Cream Cheese",
+      "aliases": [],
+      "brand": null,
+      "category": "Dairy",
+      "calories": 342,
+      "protein": 6,
+      "carbs": 4.1,
+      "fat": 34,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 55,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_yx82elrm8",
+      "name": "Oatmeal (cooked)",
+      "aliases": [],
+      "brand": null,
+      "category": "Carbs",
+      "calories": 68,
+      "protein": 2.5,
+      "carbs": 12,
+      "fat": 1.4,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 55,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_i8d0k86e0",
+      "name": "Pasta (cooked)",
+      "aliases": [],
+      "brand": null,
+      "category": "Carbs",
+      "calories": 131,
+      "protein": 5,
+      "carbs": 25,
+      "fat": 1.1,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        },
+        {
+          "label": "1 cup cooked (158g)",
+          "value": 158
+        },
+        {
+          "label": "1/2 cup (79g)",
+          "value": 79
+        }
+      ],
+      "verified": true,
+      "popularity_score": 55,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_iontdkmos",
+      "name": "Whole Wheat Bread",
+      "aliases": [],
+      "brand": null,
+      "category": "Carbs",
+      "calories": 247,
+      "protein": 13,
+      "carbs": 41,
+      "fat": 3.4,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        },
+        {
+          "label": "1 slice (30g)",
+          "value": 30
+        },
+        {
+          "label": "2 slices (60g)",
+          "value": 60
+        }
+      ],
+      "verified": true,
+      "popularity_score": 55,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_7qb01pgju",
+      "name": "White Bread",
+      "aliases": [],
+      "brand": null,
+      "category": "Carbs",
+      "calories": 265,
+      "protein": 9,
+      "carbs": 49,
+      "fat": 3.2,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        },
+        {
+          "label": "1 slice (30g)",
+          "value": 30
+        },
+        {
+          "label": "2 slices (60g)",
+          "value": 60
+        }
+      ],
+      "verified": true,
+      "popularity_score": 55,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345745_1u7imchja",
+      "name": "Almond Milk (unsweetened)",
+      "aliases": [],
+      "brand": null,
+      "category": "Beverages",
+      "calories": 13,
+      "protein": 0.4,
+      "carbs": 0.3,
+      "fat": 1.1,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100ml",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        },
+        {
+          "label": "1 cup (244ml)",
+          "value": 244
+        },
+        {
+          "label": "1/2 cup (122ml)",
+          "value": 122
+        }
+      ],
+      "verified": true,
+      "popularity_score": 55,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.745Z",
+      "updated_at": "2025-12-06T15:35:45.745Z"
+    },
+    {
+      "id": "essential_1765035345745_gnvc14z6s",
+      "name": "Oat Milk",
+      "aliases": [],
+      "brand": null,
+      "category": "Beverages",
+      "calories": 47,
+      "protein": 1,
+      "carbs": 7,
+      "fat": 1.5,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100ml",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        },
+        {
+          "label": "1 cup (244ml)",
+          "value": 244
+        },
+        {
+          "label": "1/2 cup (122ml)",
+          "value": 122
+        }
+      ],
+      "verified": true,
+      "popularity_score": 55,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.745Z",
+      "updated_at": "2025-12-06T15:35:45.745Z"
+    },
+    {
+      "id": "essential_1765035345745_016509iei",
+      "name": "Soy Milk",
+      "aliases": [],
+      "brand": null,
+      "category": "Beverages",
+      "calories": 33,
+      "protein": 2.8,
+      "carbs": 1.2,
+      "fat": 1.8,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100ml",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        },
+        {
+          "label": "1 cup (244ml)",
+          "value": 244
+        },
+        {
+          "label": "1/2 cup (122ml)",
+          "value": 122
+        }
+      ],
+      "verified": true,
+      "popularity_score": 55,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.745Z",
+      "updated_at": "2025-12-06T15:35:45.745Z"
+    },
+    {
+      "id": "essential_1765035345743_kb6fbz7mu",
+      "name": "Ground Turkey 93% Lean",
+      "aliases": [],
+      "brand": null,
+      "category": "Protein",
+      "calories": 150,
+      "protein": 21,
+      "carbs": 0,
+      "fat": 7,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.743Z",
+      "updated_at": "2025-12-06T15:35:45.743Z"
+    },
+    {
+      "id": "essential_1765035345744_8peorus1k",
+      "name": "Tilapia (cooked)",
+      "aliases": [],
+      "brand": null,
+      "category": "Protein",
+      "calories": 128,
+      "protein": 26,
+      "carbs": 0,
+      "fat": 2.7,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_w60qlwj2b",
+      "name": "Shrimp (cooked)",
+      "aliases": [],
+      "brand": null,
+      "category": "Protein",
+      "calories": 99,
+      "protein": 24,
+      "carbs": 0.2,
+      "fat": 0.3,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_vk4avqzp0",
+      "name": "Steak (Sirloin)",
+      "aliases": [],
+      "brand": null,
+      "category": "Protein",
+      "calories": 183,
+      "protein": 27,
+      "carbs": 0,
+      "fat": 8,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_zznm9y4s1",
+      "name": "Pork Tenderloin",
+      "aliases": [],
+      "brand": null,
+      "category": "Protein",
+      "calories": 143,
+      "protein": 26,
+      "carbs": 0,
+      "fat": 3.5,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_35y4yv5s9",
+      "name": "Bacon",
+      "aliases": [],
+      "brand": null,
+      "category": "Protein",
+      "calories": 541,
+      "protein": 37,
+      "carbs": 1.4,
+      "fat": 42,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_jostybwl9",
+      "name": "Turkey Breast (deli)",
+      "aliases": [],
+      "brand": null,
+      "category": "Protein",
+      "calories": 104,
+      "protein": 18,
+      "carbs": 4,
+      "fat": 1.7,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_7rl8mbyuv",
+      "name": "Tofu (firm)",
+      "aliases": [],
+      "brand": null,
+      "category": "Protein",
+      "calories": 76,
+      "protein": 8,
+      "carbs": 1.9,
+      "fat": 4.8,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_exazk2pt1",
+      "name": "Tempeh",
+      "aliases": [],
+      "brand": null,
+      "category": "Protein",
+      "calories": 192,
+      "protein": 20,
+      "carbs": 7.6,
+      "fat": 11,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_kylrewekv",
+      "name": "Butter",
+      "aliases": [],
+      "brand": null,
+      "category": "Fats",
+      "calories": 717,
+      "protein": 0.9,
+      "carbs": 0.1,
+      "fat": 81,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_mw21yl76u",
+      "name": "Tortilla (flour)",
+      "aliases": [],
+      "brand": null,
+      "category": "Carbs",
+      "calories": 312,
+      "protein": 8.3,
+      "carbs": 52,
+      "fat": 8,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_mgp23phav",
+      "name": "Tortilla (corn)",
+      "aliases": [],
+      "brand": null,
+      "category": "Carbs",
+      "calories": 218,
+      "protein": 5.7,
+      "carbs": 44,
+      "fat": 2.9,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_z2h25anvg",
+      "name": "Bagel",
+      "aliases": [],
+      "brand": null,
+      "category": "Carbs",
+      "calories": 257,
+      "protein": 10,
+      "carbs": 50,
+      "fat": 1.2,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_qfuubwdjx",
+      "name": "Asparagus",
+      "aliases": [],
+      "brand": null,
+      "category": "Vegetables",
+      "calories": 20,
+      "protein": 2.2,
+      "carbs": 3.9,
+      "fat": 0.1,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_fwycz2oeh",
+      "name": "Green Beans",
+      "aliases": [],
+      "brand": null,
+      "category": "Vegetables",
+      "calories": 31,
+      "protein": 1.8,
+      "carbs": 7,
+      "fat": 0.1,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_fjt0eu10y",
+      "name": "Bell Pepper",
+      "aliases": [],
+      "brand": null,
+      "category": "Vegetables",
+      "calories": 31,
+      "protein": 1,
+      "carbs": 6,
+      "fat": 0.3,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_qnxxauzpv",
+      "name": "Carrots",
+      "aliases": [],
+      "brand": null,
+      "category": "Vegetables",
+      "calories": 41,
+      "protein": 0.9,
+      "carbs": 10,
+      "fat": 0.2,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_mve3v3v4m",
+      "name": "Zucchini",
+      "aliases": [],
+      "brand": null,
+      "category": "Vegetables",
+      "calories": 17,
+      "protein": 1.2,
+      "carbs": 3.1,
+      "fat": 0.3,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_ea41l6nqf",
+      "name": "Cucumber",
+      "aliases": [],
+      "brand": null,
+      "category": "Vegetables",
+      "calories": 15,
+      "protein": 0.7,
+      "carbs": 3.6,
+      "fat": 0.1,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_ygqz2sq42",
+      "name": "Tomato",
+      "aliases": [],
+      "brand": null,
+      "category": "Vegetables",
+      "calories": 18,
+      "protein": 0.9,
+      "carbs": 3.9,
+      "fat": 0.2,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_8fvuj537b",
+      "name": "Onion",
+      "aliases": [],
+      "brand": null,
+      "category": "Vegetables",
+      "calories": 40,
+      "protein": 1.1,
+      "carbs": 9.3,
+      "fat": 0.1,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_i7dz984gn",
+      "name": "Garlic",
+      "aliases": [],
+      "brand": null,
+      "category": "Vegetables",
+      "calories": 149,
+      "protein": 6.4,
+      "carbs": 33,
+      "fat": 0.5,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_ka2u7n8sf",
+      "name": "Mushrooms",
+      "aliases": [],
+      "brand": null,
+      "category": "Vegetables",
+      "calories": 22,
+      "protein": 3.1,
+      "carbs": 3.3,
+      "fat": 0.3,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_8aw7jaji4",
+      "name": "Cauliflower",
+      "aliases": [],
+      "brand": null,
+      "category": "Vegetables",
+      "calories": 25,
+      "protein": 1.9,
+      "carbs": 5,
+      "fat": 0.3,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_lh7f9a16j",
+      "name": "Brussels Sprouts",
+      "aliases": [],
+      "brand": null,
+      "category": "Vegetables",
+      "calories": 43,
+      "protein": 3.4,
+      "carbs": 9,
+      "fat": 0.3,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_osk7hx943",
+      "name": "Lettuce (Romaine)",
+      "aliases": [],
+      "brand": null,
+      "category": "Vegetables",
+      "calories": 17,
+      "protein": 1.2,
+      "carbs": 3.3,
+      "fat": 0.3,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_xpez3x5uh",
+      "name": "Cabbage",
+      "aliases": [],
+      "brand": null,
+      "category": "Vegetables",
+      "calories": 25,
+      "protein": 1.3,
+      "carbs": 6,
+      "fat": 0.1,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_s0g8kibw8",
+      "name": "Celery",
+      "aliases": [],
+      "brand": null,
+      "category": "Vegetables",
+      "calories": 14,
+      "protein": 0.7,
+      "carbs": 3,
+      "fat": 0.2,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_wzxusq7kk",
+      "name": "Corn",
+      "aliases": [],
+      "brand": null,
+      "category": "Vegetables",
+      "calories": 86,
+      "protein": 3.3,
+      "carbs": 19,
+      "fat": 1.4,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_ekf9rbrqz",
+      "name": "Orange",
+      "aliases": [],
+      "brand": null,
+      "category": "Fruits",
+      "calories": 47,
+      "protein": 0.9,
+      "carbs": 12,
+      "fat": 0.1,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_7njr50s5y",
+      "name": "Grapes",
+      "aliases": [],
+      "brand": null,
+      "category": "Fruits",
+      "calories": 69,
+      "protein": 0.7,
+      "carbs": 18,
+      "fat": 0.2,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_fbsiwl4qq",
+      "name": "Watermelon",
+      "aliases": [],
+      "brand": null,
+      "category": "Fruits",
+      "calories": 30,
+      "protein": 0.6,
+      "carbs": 7.6,
+      "fat": 0.2,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.744Z",
+      "updated_at": "2025-12-06T15:35:45.744Z"
+    },
+    {
+      "id": "essential_1765035345744_4959ifi1q",
+      "name": "Mango",
+      "aliases": [],
+      "brand": null,
+      "category": "Fruits",
+      "calories": 60,
+      "protein": 0.8,
+      "carbs": 15,
+      "fat": 0.4,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.745Z",
+      "updated_at": "2025-12-06T15:35:45.745Z"
+    },
+    {
+      "id": "essential_1765035345745_nsmogwl3m",
+      "name": "Peach",
+      "aliases": [],
+      "brand": null,
+      "category": "Fruits",
+      "calories": 39,
+      "protein": 0.9,
+      "carbs": 10,
+      "fat": 0.3,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.745Z",
+      "updated_at": "2025-12-06T15:35:45.745Z"
+    },
+    {
+      "id": "essential_1765035345745_5ltd6a697",
+      "name": "Coconut Oil",
+      "aliases": [],
+      "brand": null,
+      "category": "Fats",
+      "calories": 862,
+      "protein": 0,
+      "carbs": 0,
+      "fat": 100,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100ml",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        },
+        {
+          "label": "1 tbsp (14g)",
+          "value": 14
+        },
+        {
+          "label": "1 tsp (5g)",
+          "value": 5
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.745Z",
+      "updated_at": "2025-12-06T15:35:45.745Z"
+    },
+    {
+      "id": "essential_1765035345745_3s279uj53",
+      "name": "Peanuts",
+      "aliases": [],
+      "brand": null,
+      "category": "Fats",
+      "calories": 567,
+      "protein": 26,
+      "carbs": 16,
+      "fat": 49,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.745Z",
+      "updated_at": "2025-12-06T15:35:45.745Z"
+    },
+    {
+      "id": "essential_1765035345745_6osxvocvo",
+      "name": "Almond Butter",
+      "aliases": [],
+      "brand": null,
+      "category": "Fats",
+      "calories": 614,
+      "protein": 21,
+      "carbs": 19,
+      "fat": 56,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        },
+        {
+          "label": "1 tbsp (16g)",
+          "value": 16
+        },
+        {
+          "label": "2 tbsp (32g)",
+          "value": 32
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.745Z",
+      "updated_at": "2025-12-06T15:35:45.745Z"
+    },
+    {
+      "id": "essential_1765035345745_ugzg15psm",
+      "name": "Walnuts",
+      "aliases": [],
+      "brand": null,
+      "category": "Fats",
+      "calories": 654,
+      "protein": 15,
+      "carbs": 14,
+      "fat": 65,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.745Z",
+      "updated_at": "2025-12-06T15:35:45.745Z"
+    },
+    {
+      "id": "essential_1765035345745_yx7fwn9je",
+      "name": "Cashews",
+      "aliases": [],
+      "brand": null,
+      "category": "Fats",
+      "calories": 553,
+      "protein": 18,
+      "carbs": 30,
+      "fat": 44,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.745Z",
+      "updated_at": "2025-12-06T15:35:45.745Z"
+    },
+    {
+      "id": "essential_1765035345745_9uvcszw4q",
+      "name": "Chia Seeds",
+      "aliases": [],
+      "brand": null,
+      "category": "Fats",
+      "calories": 486,
+      "protein": 17,
+      "carbs": 42,
+      "fat": 31,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.745Z",
+      "updated_at": "2025-12-06T15:35:45.745Z"
+    },
+    {
+      "id": "essential_1765035345745_9d2gasaf7",
+      "name": "Flax Seeds",
+      "aliases": [],
+      "brand": null,
+      "category": "Fats",
+      "calories": 534,
+      "protein": 18,
+      "carbs": 29,
+      "fat": 42,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.745Z",
+      "updated_at": "2025-12-06T15:35:45.745Z"
+    },
+    {
+      "id": "essential_1765035345745_8fq8m9thd",
+      "name": "Sunflower Seeds",
+      "aliases": [],
+      "brand": null,
+      "category": "Fats",
+      "calories": 584,
+      "protein": 21,
+      "carbs": 20,
+      "fat": 51,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.745Z",
+      "updated_at": "2025-12-06T15:35:45.745Z"
+    },
+    {
+      "id": "essential_1765035345745_2z726cd6j",
+      "name": "Black Beans (cooked)",
+      "aliases": [],
+      "brand": null,
+      "category": "Carbs",
+      "calories": 132,
+      "protein": 8.9,
+      "carbs": 24,
+      "fat": 0.5,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.745Z",
+      "updated_at": "2025-12-06T15:35:45.745Z"
+    },
+    {
+      "id": "essential_1765035345745_3tzvr7899",
+      "name": "Chickpeas (cooked)",
+      "aliases": [],
+      "brand": null,
+      "category": "Carbs",
+      "calories": 164,
+      "protein": 8.9,
+      "carbs": 27,
+      "fat": 2.6,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.745Z",
+      "updated_at": "2025-12-06T15:35:45.745Z"
+    },
+    {
+      "id": "essential_1765035345745_xczri4ydz",
+      "name": "Lentils (cooked)",
+      "aliases": [],
+      "brand": null,
+      "category": "Carbs",
+      "calories": 116,
+      "protein": 9,
+      "carbs": 20,
+      "fat": 0.4,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.745Z",
+      "updated_at": "2025-12-06T15:35:45.745Z"
+    },
+    {
+      "id": "essential_1765035345745_f0t0mtlg4",
+      "name": "Kidney Beans (cooked)",
+      "aliases": [],
+      "brand": null,
+      "category": "Carbs",
+      "calories": 127,
+      "protein": 8.7,
+      "carbs": 23,
+      "fat": 0.5,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.745Z",
+      "updated_at": "2025-12-06T15:35:45.745Z"
+    },
+    {
+      "id": "essential_1765035345745_3cwbtz1ju",
+      "name": "Edamame",
+      "aliases": [],
+      "brand": null,
+      "category": "Protein",
+      "calories": 121,
+      "protein": 11,
+      "carbs": 9,
+      "fat": 5,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.745Z",
+      "updated_at": "2025-12-06T15:35:45.745Z"
+    },
+    {
+      "id": "essential_1765035345745_ng8q0w3zp",
+      "name": "Hummus",
+      "aliases": [],
+      "brand": null,
+      "category": "Fats",
+      "calories": 166,
+      "protein": 8,
+      "carbs": 14,
+      "fat": 10,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.745Z",
+      "updated_at": "2025-12-06T15:35:45.745Z"
+    },
+    {
+      "id": "essential_1765035345745_f12r799vv",
+      "name": "Coffee (black)",
+      "aliases": [],
+      "brand": null,
+      "category": "Beverages",
+      "calories": 2,
+      "protein": 0.3,
+      "carbs": 0,
+      "fat": 0,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "240ml",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.745Z",
+      "updated_at": "2025-12-06T15:35:45.745Z"
+    },
+    {
+      "id": "essential_1765035345745_kdivof488",
+      "name": "Orange Juice",
+      "aliases": [],
+      "brand": null,
+      "category": "Beverages",
+      "calories": 45,
+      "protein": 0.7,
+      "carbs": 10,
+      "fat": 0.2,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100ml",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.745Z",
+      "updated_at": "2025-12-06T15:35:45.745Z"
+    },
+    {
+      "id": "essential_1765035345745_m10od0mf0",
+      "name": "Honey",
+      "aliases": [],
+      "brand": null,
+      "category": "Condiments",
+      "calories": 304,
+      "protein": 0.3,
+      "carbs": 82,
+      "fat": 0,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.745Z",
+      "updated_at": "2025-12-06T15:35:45.745Z"
+    },
+    {
+      "id": "essential_1765035345745_gep985qgr",
+      "name": "Maple Syrup",
+      "aliases": [],
+      "brand": null,
+      "category": "Condiments",
+      "calories": 260,
+      "protein": 0,
+      "carbs": 67,
+      "fat": 0.1,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.745Z",
+      "updated_at": "2025-12-06T15:35:45.745Z"
+    },
+    {
+      "id": "essential_1765035345745_gsm0wi00m",
+      "name": "Soy Sauce",
+      "aliases": [],
+      "brand": null,
+      "category": "Condiments",
+      "calories": 53,
+      "protein": 8.1,
+      "carbs": 4.9,
+      "fat": 0,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100ml",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.745Z",
+      "updated_at": "2025-12-06T15:35:45.745Z"
+    },
+    {
+      "id": "essential_1765035345745_8i7fn25tn",
+      "name": "Hot Sauce",
+      "aliases": [],
+      "brand": null,
+      "category": "Condiments",
+      "calories": 11,
+      "protein": 0.5,
+      "carbs": 2.3,
+      "fat": 0.1,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.745Z",
+      "updated_at": "2025-12-06T15:35:45.745Z"
+    },
+    {
+      "id": "essential_1765035345745_9i3hgj7e0",
+      "name": "Mustard",
+      "aliases": [],
+      "brand": null,
+      "category": "Condiments",
+      "calories": 66,
+      "protein": 4,
+      "carbs": 6,
+      "fat": 4,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.745Z",
+      "updated_at": "2025-12-06T15:35:45.745Z"
+    },
+    {
+      "id": "essential_1765035345745_n9iklaj5n",
+      "name": "Ketchup",
+      "aliases": [],
+      "brand": null,
+      "category": "Condiments",
+      "calories": 112,
+      "protein": 1.7,
+      "carbs": 26,
+      "fat": 0.1,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.745Z",
+      "updated_at": "2025-12-06T15:35:45.745Z"
+    },
+    {
+      "id": "essential_1765035345745_85xy8jv2h",
+      "name": "Mayonnaise",
+      "aliases": [],
+      "brand": null,
+      "category": "Condiments",
+      "calories": 680,
+      "protein": 1,
+      "carbs": 0.6,
+      "fat": 75,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.745Z",
+      "updated_at": "2025-12-06T15:35:45.745Z"
+    },
+    {
+      "id": "essential_1765035345745_3mj5phd6z",
+      "name": "Salsa",
+      "aliases": [],
+      "brand": null,
+      "category": "Condiments",
+      "calories": 36,
+      "protein": 1.5,
+      "carbs": 7,
+      "fat": 0.2,
+      "fiber": null,
+      "sugar": null,
+      "sodium": null,
+      "serving_size": "100g",
+      "serving_quantity": 100,
+      "common_servings": [
+        {
+          "label": "100g",
+          "value": 100
+        }
+      ],
+      "verified": true,
+      "popularity_score": 35,
+      "source": "essential",
+      "barcode": null,
+      "created_at": "2025-12-06T15:35:45.745Z",
+      "updated_at": "2025-12-06T15:35:45.745Z"
+    }
+  ]
+}

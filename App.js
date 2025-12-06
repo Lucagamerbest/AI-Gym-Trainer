@@ -55,6 +55,7 @@ import WorkoutDayEditScreen from './src/screens/WorkoutDayEditScreen';
 import ProgramDaySelectionScreen from './src/screens/ProgramDaySelectionScreen';
 import FoodSearchScreen from './src/screens/FoodSearchScreen';
 import FoodDetailScreen from './src/screens/FoodDetailScreen';
+import AddCustomFoodScreen from './src/screens/AddCustomFoodScreen';
 import EnhancedFoodSearchScreen from './src/screens/EnhancedFoodSearchScreen';
 import NutritionDashboard from './src/screens/NutritionDashboard';
 import RecipesScreen from './src/screens/RecipesScreen';
@@ -82,6 +83,7 @@ import EditProfileSectionScreen from './src/screens/EditProfileSectionScreen';
 import Model3DWebViewScreen from './src/screens/Model3DWebViewScreen';
 import GymLocationScreen from './src/screens/GymLocationScreen';
 import GymMapScreen from './src/screens/GymMapScreen';
+import RestaurantMenuScreen from './src/screens/RestaurantMenuScreen';
 
 // Automated Testing (Dev only)
 import AutomatedTestRunner from './src/components/AutomatedTestRunner';
@@ -376,6 +378,8 @@ function AppNavigator() {
               <Stack.Screen name="NutritionDashboard" component={NutritionDashboard} />
             <Stack.Screen name="FoodSearch" component={FoodSearchScreen} />
             <Stack.Screen name="FoodDetail" component={FoodDetailScreen} />
+            <Stack.Screen name="AddCustomFood" component={AddCustomFoodScreen} />
+            <Stack.Screen name="RestaurantMenu" component={RestaurantMenuScreen} />
             <Stack.Screen name="FoodScanning" component={FoodScanningScreen} />
             <Stack.Screen name="Recipes" component={RecipesScreen} />
             <Stack.Screen name="RecipeDetail" component={RecipeDetailScreen} />

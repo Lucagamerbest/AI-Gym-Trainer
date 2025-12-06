@@ -8,11 +8,13 @@ import {
   StyleSheet,
   Keyboard,
   Platform,
+  ScrollView,
 } from 'react-native';
 import ScreenLayout from '../components/ScreenLayout';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { searchFoods, initDatabase } from '../services/foodDatabaseService';
 import { unifiedFoodSearch } from '../services/unifiedFoodSearch';
+import userContributedFoods from '../services/userContributedFoods';
 
 // Popular foods to show initially
 const POPULAR_FOODS = [
@@ -35,10 +37,22 @@ export default function FoodSearchScreen({ route, navigation }) {
   const [searchText, setSearchText] = useState('');
   const [allFoods, setAllFoods] = useState([]);
   const [displayedFoods, setDisplayedFoods] = useState([]);
+  const [myFoods, setMyFoods] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSearching, setIsSearching] = useState(false);
 
   const searchTimeoutRef = useRef(null);
+
+  // Load user's custom foods
+  const loadMyFoods = async () => {
+    try {
+      await userContributedFoods.initialize();
+      const foods = await userContributedFoods.getRecentFoods(10);
+      setMyFoods(foods);
+    } catch (error) {
+      console.log('Failed to load user foods:', error);
+    }
+  };
 
   // Initialize database and load foods on mount
   useEffect(() => {
@@ -47,6 +61,9 @@ export default function FoodSearchScreen({ route, navigation }) {
         await initDatabase();
         const foods = await searchFoods('');
         setAllFoods(foods);
+
+        // Load user's custom foods
+        await loadMyFoods();
 
         // Show popular foods initially
         const popularItems = foods.filter(food =>
@@ -66,6 +83,14 @@ export default function FoodSearchScreen({ route, navigation }) {
 
     initializeData();
   }, []);
+
+  // Reload my foods when screen comes into focus
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      loadMyFoods();
+    });
+    return unsubscribe;
+  }, [navigation]);
 
   // Handle search with debouncing
   const performSearch = useCallback(async (query) => {
@@ -241,7 +266,53 @@ export default function FoodSearchScreen({ route, navigation }) {
               </TouchableOpacity>
             )}
           </View>
+
+          {/* Add Custom Food Button */}
+          <TouchableOpacity
+            style={styles.addCustomButton}
+            onPress={() => navigation.navigate('AddCustomFood', {
+              mealType,
+              isPlannedMeal,
+              plannedDateKey,
+              reopenDate,
+            })}
+          >
+            <Text style={styles.addCustomIcon}>+</Text>
+            <Text style={styles.addCustomText}>Create Custom Food</Text>
+          </TouchableOpacity>
         </View>
+
+        {/* My Foods Section - Always visible when user has custom foods */}
+        {myFoods.length > 0 && !searchText && (
+          <View style={styles.myFoodsSection}>
+            <View style={styles.myFoodsHeader}>
+              <Text style={styles.myFoodsTitle}>My Foods</Text>
+              <Text style={styles.myFoodsCount}>{myFoods.length}</Text>
+            </View>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.myFoodsScroll}
+            >
+              {myFoods.map((food, index) => (
+                <TouchableOpacity
+                  key={`my-food-${food.id || index}`}
+                  style={styles.myFoodCard}
+                  onPress={() => selectFood(food)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.myFoodName} numberOfLines={2}>{food.name}</Text>
+                  <Text style={styles.myFoodCalories}>{food.calories} cal</Text>
+                  <View style={styles.myFoodMacros}>
+                    <Text style={styles.myFoodMacro}>P: {food.protein || 0}g</Text>
+                    <Text style={styles.myFoodMacro}>C: {food.carbs || 0}g</Text>
+                    <Text style={styles.myFoodMacro}>F: {food.fat || 0}g</Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
 
         {/* Main Content */}
         {isLoading ? (
@@ -268,6 +339,16 @@ export default function FoodSearchScreen({ route, navigation }) {
                     <Text style={styles.foodName} numberOfLines={1}>
                       {item.name}
                     </Text>
+                    {item.source === 'user' && (
+                      <View style={styles.userIndicator}>
+                        <Text style={styles.userIndicatorText}>MY FOOD</Text>
+                      </View>
+                    )}
+                    {item.source === 'restaurant' && (
+                      <View style={[styles.restaurantIndicator, { backgroundColor: item.restaurant_color || '#FF6B35' }]}>
+                        <Text style={styles.restaurantIndicatorText}>{item.brand || 'RESTAURANT'}</Text>
+                      </View>
+                    )}
                     {item.source === 'openfoodfacts' && (
                       <View style={styles.apiIndicator}>
                         <Text style={styles.apiIndicatorText}>API</Text>
@@ -275,8 +356,11 @@ export default function FoodSearchScreen({ route, navigation }) {
                     )}
                   </View>
                   <Text style={styles.foodCalories}>
-                    {item.calories} cal/100g
+                    {item.calories} cal{item.source === 'restaurant' ? '' : '/100g'}
                   </Text>
+                  {item.source === 'restaurant' && item.serving_size && (
+                    <Text style={styles.servingSize}>{item.serving_size}</Text>
+                  )}
                 </View>
                 <View style={styles.macrosContainer}>
                   <View style={styles.macroItem}>
@@ -340,6 +424,90 @@ const styles = StyleSheet.create({
   },
   clearButtonText: {
     fontSize: 20,
+    color: Colors.textMuted,
+  },
+  addCustomButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.sm,
+    marginTop: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.primary + '40',
+    borderStyle: 'dashed',
+  },
+  addCustomIcon: {
+    fontSize: 20,
+    color: Colors.primary,
+    marginRight: Spacing.xs,
+    fontWeight: '600',
+  },
+  addCustomText: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.primary,
+    fontWeight: '500',
+  },
+  // My Foods Section
+  myFoodsSection: {
+    paddingTop: Spacing.sm,
+    paddingBottom: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    marginHorizontal: Spacing.lg,
+    marginBottom: Spacing.sm,
+  },
+  myFoodsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.sm,
+  },
+  myFoodsTitle: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  myFoodsCount: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textMuted,
+    backgroundColor: Colors.surface,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.round,
+  },
+  myFoodsScroll: {
+    gap: Spacing.sm,
+    paddingRight: Spacing.md,
+  },
+  myFoodCard: {
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    width: 140,
+    borderWidth: 1,
+    borderColor: Colors.success + '40',
+  },
+  myFoodName: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: Spacing.xs,
+    height: 36,
+  },
+  myFoodCalories: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: '700',
+    color: Colors.primary,
+    marginBottom: Spacing.xs,
+  },
+  myFoodMacros: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  myFoodMacro: {
+    fontSize: Typography.fontSize.xs,
     color: Colors.textMuted,
   },
   loadingContainer: {
@@ -432,10 +600,40 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 0.5,
   },
+  userIndicator: {
+    backgroundColor: Colors.success,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.md,
+    marginLeft: Spacing.sm,
+  },
+  userIndicatorText: {
+    fontSize: Typography.fontSize.xs,
+    color: '#000',
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+  restaurantIndicator: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.md,
+    marginLeft: Spacing.sm,
+  },
+  restaurantIndicatorText: {
+    fontSize: Typography.fontSize.xs - 1,
+    color: '#fff',
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
   foodCalories: {
     fontSize: Typography.fontSize.md,
     color: Colors.primary,
     fontWeight: '700',
+  },
+  servingSize: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textSecondary,
+    marginTop: 2,
   },
   macrosContainer: {
     flexDirection: 'row',
@@ -465,4 +663,4 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Colors.text,
   },
-});
+  });

@@ -127,16 +127,17 @@ export default function NutritionScreen({ navigation, route }) {
   }, [user]);
 
   // Reload data when screen is focused (e.g., coming back from CalorieBreakdown)
-  // Skip reload if we're coming back with edit/delete/add params (handled by useEffect)
+  // Always reload to ensure data is fresh from Firebase
   useFocusEffect(
     React.useCallback(() => {
-      // Reset processed params when screen is focused
+      // Reset processed params tracker since we clear route params after processing
+      // This allows new actions to be processed when navigating back to this screen
       processedParams.current = {};
 
-      if (!route.params?.deleteFood && !route.params?.deleteMeal && !route.params?.editFood && !route.params?.addedFood) {
-        loadDailyNutrition();
-      }
-    }, [route.params])
+      // Always reload from Firebase when screen is focused
+      // This ensures calorie breakdown updates after unlogging food
+      loadDailyNutrition();
+    }, [])
   );
 
   // Use focus effect to ensure swipe is disabled when screen is focused
@@ -174,6 +175,8 @@ export default function NutritionScreen({ navigation, route }) {
     if (route.params?.deleteFood && !processedParams.current.deleteFood) {
       const { mealType, foodIndex } = route.params.deleteFood;
       processedParams.current.deleteFood = true;
+      // Clear the param to prevent re-processing
+      navigation.setParams({ deleteFood: undefined });
       handleDeleteFood(mealType, foodIndex);
     }
 
@@ -181,6 +184,8 @@ export default function NutritionScreen({ navigation, route }) {
     if (route.params?.deleteMeal && !processedParams.current.deleteMeal) {
       const { mealType } = route.params.deleteMeal;
       processedParams.current.deleteMeal = true;
+      // Clear the param to prevent re-processing
+      navigation.setParams({ deleteMeal: undefined });
       const mealItems = meals[mealType] || [];
       const mealItemsCount = mealItems.length;
       for (let i = mealItemsCount - 1; i >= 0; i--) {
@@ -192,6 +197,8 @@ export default function NutritionScreen({ navigation, route }) {
     if (route.params?.editFood && !processedParams.current.editFood) {
       const { mealType, foodIndex, updatedFood } = route.params.editFood;
       processedParams.current.editFood = true;
+      // Clear the param to prevent re-processing
+      navigation.setParams({ editFood: undefined });
       handleEditFood(mealType, foodIndex, updatedFood);
     }
 
@@ -212,6 +219,9 @@ export default function NutritionScreen({ navigation, route }) {
       const mealType = addedFood.mealType || 'breakfast';
 
       processedParams.current.addedFood = true;
+
+      // Clear the param to prevent re-processing on future focus events
+      navigation.setParams({ addedFood: undefined, fromFoodAdd: undefined, fromRecipeAdd: undefined });
 
       // Update selected meal to match the added food's meal type
       setSelectedMeal(mealType);
@@ -273,7 +283,88 @@ export default function NutritionScreen({ navigation, route }) {
       // Save UI state to AsyncStorage
       saveDailyNutrition(updatedMeals, mealType);
     }
-  }, [route.params?.addedFood, route.params?.fromRecipeAdd, route.params?.deleteFood, route.params?.deleteMeal, route.params?.editFood, dataLoaded, meals]);
+
+    // Handle multiple added foods (from restaurant multi-select)
+    if (route.params?.addedFoods && dataLoaded && !processedParams.current.addedFoods) {
+      const { addedFoods } = route.params;
+
+      processedParams.current.addedFoods = true;
+
+      // Clear the param to prevent re-processing on future focus events
+      navigation.setParams({ addedFoods: undefined, fromFoodAdd: undefined });
+
+      // Process all foods
+      let updatedMeals = { ...meals };
+      const timestamp = new Date().toISOString();
+
+      addedFoods.forEach((food, index) => {
+        const mealType = food.mealType || 'lunch';
+
+        // Add created_at timestamp to the food item
+        food.created_at = new Date(Date.now() + index).toISOString(); // Slight offset for ordering
+
+        // Add to meals
+        if (!updatedMeals[mealType]) {
+          updatedMeals[mealType] = [];
+        }
+        updatedMeals[mealType] = [...updatedMeals[mealType], food];
+      });
+
+      // Update selected meal to the first item's meal type
+      if (addedFoods.length > 0) {
+        setSelectedMeal(addedFoods[0].mealType || 'lunch');
+      }
+
+      // Update meals state
+      setMeals(updatedMeals);
+
+      // Save UI state to AsyncStorage
+      if (addedFoods.length > 0) {
+        saveDailyNutrition(updatedMeals, addedFoods[0].mealType || 'lunch');
+      }
+
+      // Auto-sync all foods to Firebase
+      (async () => {
+        if (user?.uid && user.uid !== 'guest') {
+          const today = getLocalDateString();
+
+          for (const food of addedFoods) {
+            try {
+              const consumptionEntry = {
+                date: today,
+                meal_type: food.mealType || 'lunch',
+                food_name: food.name || 'Unknown food',
+                food_brand: food.restaurant || food.brand || '',
+                quantity_grams: food.quantity || 1,
+                calories_consumed: food.calories || 0,
+                protein_consumed: food.protein || 0,
+                carbs_consumed: food.carbs || 0,
+                fat_consumed: food.fat || 0,
+                created_at: food.created_at,
+              };
+              const firebaseId = await MealSyncService.uploadDailyConsumption(user.uid, consumptionEntry);
+              food.firebaseId = firebaseId;
+              console.log('✅ Multi-item synced to Firebase:', food.name);
+            } catch (error) {
+              console.log('⚠️ Failed to sync item to Firebase:', food.name, error);
+            }
+          }
+
+          // Check meal count after all items added
+          const mealCheck = await checkMealCountLimit(user.uid);
+          if (mealCheck.exceeded) {
+            setMealCountInfo({
+              currentCount: mealCheck.currentCount,
+              limit: mealCheck.limit,
+              message: mealCheck.message,
+              foodName: `${addedFoods.length} items from ${addedFoods[0]?.restaurant || 'restaurant'}`,
+            });
+            setShowMealCountModal(true);
+          }
+        }
+      })();
+    }
+  }, [route.params?.addedFood, route.params?.addedFoods, route.params?.fromRecipeAdd, route.params?.deleteFood, route.params?.deleteMeal, route.params?.editFood, dataLoaded, meals]);
 
   const loadMacroGoals = async () => {
     try {

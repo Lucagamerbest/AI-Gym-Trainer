@@ -48,9 +48,15 @@ export default function SignInScreen({ navigation }) {
 
   // Create proper redirect URI - use proxy for Expo Go
   const isExpoGo = !Constants.appOwnership || Constants.appOwnership === 'expo';
+
+  // For native iOS builds, the redirect URI must use the reversed client ID scheme
+  const IOS_REVERSED_CLIENT_ID = 'com.googleusercontent.apps.1011295206743-rl70k9ibahkkgkf41j8qr6vfneedgb8s';
+
   const redirectUri = isExpoGo
     ? 'https://auth.expo.io/@workoutwave/workout-wave'
-    : AuthSession.makeRedirectUri({ scheme: 'workoutwave' });
+    : Platform.OS === 'ios'
+      ? `${IOS_REVERSED_CLIENT_ID}:/oauth2redirect/google`
+      : AuthSession.makeRedirectUri({ scheme: 'workoutwave' });
 
   console.log('Is Expo Go:', isExpoGo);
   console.log('Redirect URI:', redirectUri);

@@ -10,6 +10,7 @@ import {
   Modal,
   ScrollView,
   Platform,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CommonActions, useFocusEffect } from '@react-navigation/native';
@@ -23,6 +24,13 @@ import FoodDetailsView from '../components/FoodDetailsView';
 import RecipeBrowser from '../components/RecipeBrowser';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { unifiedFoodSearch } from '../services/unifiedFoodSearch';
+// Import restaurant data with fallback
+let restaurantData = { restaurants: [] };
+try {
+  restaurantData = require('../data/restaurantDatabase.json');
+} catch (e) {
+  console.log('Failed to load restaurant data:', e);
+}
 
 const RECIPES_KEY = '@saved_recipes';
 
@@ -100,13 +108,15 @@ export default function RecipesScreen({ navigation, route }) {
   const [recipes, setRecipes] = useState(mockRecipes);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [modalView, setModalView] = useState('recipe'); // 'recipe' or 'ingredient'
-  const [activeTab, setActiveTab] = useState('my-recipes'); // 'my-recipes' or 'browse'
+  const [activeTab, setActiveTab] = useState('my-recipes'); // 'my-recipes', 'browse', or 'fast-food'
   const [searchText, setSearchText] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [selectedFood, setSelectedFood] = useState(null);
   const [showInstructionsModal, setShowInstructionsModal] = useState(false);
   const [selectedRecipeForInstructions, setSelectedRecipeForInstructions] = useState(null);
+  const [logoErrors, setLogoErrors] = useState({});
+  const [restaurantSearchText, setRestaurantSearchText] = useState('');
 
   const searchTimeoutRef = useRef(null);
 
@@ -353,9 +363,20 @@ export default function RecipesScreen({ navigation, route }) {
                 ],
               });
             } else {
-              navigation.navigate('Nutrition', {
-                addedFood: foodData,
-                fromRecipeAdd: true  // Flag to indicate we came from adding a recipe
+              // Reset navigation stack to prevent swiping back to recipes screen
+              // Keep Main (Home) in stack so user can go back normally
+              navigation.reset({
+                index: 1,
+                routes: [
+                  { name: 'Main' },
+                  {
+                    name: 'Nutrition',
+                    params: {
+                      addedFood: foodData,
+                      fromRecipeAdd: true  // Flag to indicate we came from adding a recipe
+                    }
+                  }
+                ],
               });
             }
           }
@@ -542,7 +563,7 @@ export default function RecipesScreen({ navigation, route }) {
         >
           <Ionicons
             name="book"
-            size={18}
+            size={16}
             color={activeTab === 'my-recipes' ? '#fff' : Colors.textSecondary}
           />
           <Text style={[styles.tabText, activeTab === 'my-recipes' && styles.tabTextActive]}>
@@ -556,16 +577,30 @@ export default function RecipesScreen({ navigation, route }) {
         >
           <Ionicons
             name="search"
-            size={18}
+            size={16}
             color={activeTab === 'browse' ? '#fff' : Colors.textSecondary}
           />
           <Text style={[styles.tabText, activeTab === 'browse' && styles.tabTextActive]}>
-            Browse Database
+            Browse
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'fast-food' && styles.tabActive]}
+          onPress={() => setActiveTab('fast-food')}
+        >
+          <Ionicons
+            name="fast-food"
+            size={16}
+            color={activeTab === 'fast-food' ? '#fff' : Colors.textSecondary}
+          />
+          <Text style={[styles.tabText, activeTab === 'fast-food' && styles.tabTextActive]}>
+            Fast Food
           </Text>
         </TouchableOpacity>
       </View>
 
-      {/* Show My Recipes or Browse Database based on active tab */}
+      {/* Show content based on active tab */}
       {activeTab === 'my-recipes' ? (
         <>
           <TouchableOpacity
@@ -601,7 +636,7 @@ export default function RecipesScreen({ navigation, route }) {
         </View>
       )}
         </>
-      ) : (
+      ) : activeTab === 'browse' ? (
         /* Browse Database Tab */
         <RecipeBrowser
           initialMealType={mealType}
@@ -614,6 +649,63 @@ export default function RecipesScreen({ navigation, route }) {
             });
           }}
         />
+      ) : (
+        /* Fast Food Tab */
+        <View style={styles.fastFoodContainer}>
+          {/* Search Bar */}
+          <View style={styles.restaurantSearchBar}>
+            <Ionicons name="search" size={20} color={Colors.textSecondary} />
+            <TextInput
+              style={styles.restaurantSearchInput}
+              placeholder="Search restaurants..."
+              placeholderTextColor={Colors.textMuted}
+              value={restaurantSearchText}
+              onChangeText={setRestaurantSearchText}
+              autoCorrect={false}
+              autoCapitalize="none"
+            />
+            {restaurantSearchText.length > 0 && (
+              <TouchableOpacity onPress={() => setRestaurantSearchText('')}>
+                <Ionicons name="close-circle" size={20} color={Colors.textSecondary} />
+              </TouchableOpacity>
+            )}
+          </View>
+
+          <View style={styles.restaurantGrid}>
+            {restaurantData.restaurants
+              .filter(r => r.name.toLowerCase().includes(restaurantSearchText.toLowerCase()))
+              .map((restaurant) => (
+              <TouchableOpacity
+                key={restaurant.id}
+                style={[styles.restaurantCard, { borderColor: restaurant.color + '40' }]}
+                onPress={() => navigation.navigate('RestaurantMenu', {
+                  restaurantId: restaurant.id,
+                  mealType,
+                  isPlannedMeal,
+                  plannedDateKey,
+                })}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.restaurantLogoContainer, { backgroundColor: restaurant.color + '15' }]}>
+                  {!logoErrors[restaurant.id] ? (
+                    <Image
+                      source={{ uri: restaurant.logo }}
+                      style={styles.restaurantLogo}
+                      resizeMode="contain"
+                      onError={() => setLogoErrors(prev => ({ ...prev, [restaurant.id]: true }))}
+                    />
+                  ) : (
+                    <View style={[styles.logoPlaceholder, { backgroundColor: restaurant.color }]}>
+                      <Text style={styles.logoPlaceholderText}>{restaurant.name.charAt(0)}</Text>
+                    </View>
+                  )}
+                </View>
+                <Text style={styles.restaurantName} numberOfLines={1}>{restaurant.name}</Text>
+                <Text style={styles.menuItemCount}>{restaurant.menu.length} items</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
       )}
 
       {/* Single Modal with Different Views */}
@@ -1674,5 +1766,87 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.sm,
     color: Colors.text,
     lineHeight: 20,
+  },
+  // Fast Food Tab Styles
+  fastFoodContainer: {
+    paddingHorizontal: Spacing.sm,
+    paddingBottom: 100,
+  },
+  restaurantSearchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    marginHorizontal: Spacing.sm,
+    marginBottom: Spacing.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  restaurantSearchInput: {
+    flex: 1,
+    fontSize: Typography.fontSize.md,
+    color: Colors.text,
+    marginLeft: Spacing.sm,
+    paddingVertical: Spacing.xs,
+  },
+  fastFoodSubtitle: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: Spacing.lg,
+    paddingHorizontal: Spacing.md,
+  },
+  restaurantGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-start',
+  },
+  restaurantCard: {
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    width: '46%',
+    marginHorizontal: '2%',
+    marginBottom: Spacing.md,
+    alignItems: 'center',
+    borderWidth: 2,
+  },
+  restaurantLogoContainer: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+    overflow: 'hidden',
+  },
+  restaurantLogo: {
+    width: 55,
+    height: 55,
+  },
+  logoPlaceholder: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  logoPlaceholderText: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  restaurantName: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
+    color: Colors.text,
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  menuItemCount: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textMuted,
   },
 });

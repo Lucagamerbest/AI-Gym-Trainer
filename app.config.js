@@ -12,6 +12,9 @@ export default {
     ios: {
       supportsTablet: true,
       bundleIdentifier: "com.rarau.workoutwave",
+      config: {
+        googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY
+      },
       infoPlist: {
         UIBackgroundModes: ["audio", "location"],
         CFBundleURLTypes: [

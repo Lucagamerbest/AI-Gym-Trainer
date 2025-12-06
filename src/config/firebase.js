@@ -3,6 +3,7 @@
 
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
 import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -30,12 +31,16 @@ const firebaseConfig = {
 let app;
 let db;
 let auth;
+let storage;
 
 try {
   app = initializeApp(firebaseConfig);
 
   // Initialize Firestore (database)
   db = getFirestore(app);
+
+  // Initialize Storage (for food database files)
+  storage = getStorage(app);
 
   // Initialize Authentication with AsyncStorage persistence
   auth = initializeAuth(app, {
@@ -47,5 +52,5 @@ try {
 }
 
 // Export for use in other files
-export { app, db, auth };
+export { app, db, auth, storage };
 export default app;

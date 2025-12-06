@@ -30,18 +30,20 @@ Notifications.setNotificationHandler({
 });
 
 // Helper function to play notification sound even in silent mode
+// This will duck/pause music briefly, play the timer sound, then restore music
 const playNotificationSound = async () => {
   try {
-    // Configure audio to play even in silent mode
-    // On Android: shouldDuckAndroid: false means it won't lower volume for other apps
-    // On iOS: playsInSilentModeIOS: true allows playback in silent mode
+    // Configure audio to duck (lower volume) other audio while our sound plays
+    // This creates the Hevy-like effect where music briefly pauses/lowers
     await Audio.setAudioModeAsync({
       playsInSilentModeIOS: true,
       allowsRecordingIOS: false,
-      staysActiveInBackground: true, // Keep playing if app goes to background briefly
-      interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX,
-      shouldDuckAndroid: false, // Don't duck - play at full volume
-      interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DO_NOT_MIX,
+      staysActiveInBackground: true,
+      // DUCK_OTHERS = lower other audio volume (music dims briefly)
+      // DO_NOT_MIX = completely pause other audio
+      interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DUCK_OTHERS,
+      shouldDuckAndroid: true, // Duck Android audio (lower music volume)
+      interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DUCK_OTHERS,
       playThroughEarpieceAndroid: false,
     });
 
@@ -51,17 +53,27 @@ const playNotificationSound = async () => {
       {
         shouldPlay: true,
         volume: 1.0,
-        // Android: Use ALARM stream to bypass silent mode
         androidImplementation: 'MediaPlayer',
       },
       null,
       false
     );
 
-    // Clean up after sound finishes
-    sound.setOnPlaybackStatusUpdate((status) => {
+    // Clean up after sound finishes AND restore audio mode so music resumes
+    sound.setOnPlaybackStatusUpdate(async (status) => {
       if (status.didJustFinish) {
-        sound.unloadAsync();
+        await sound.unloadAsync();
+
+        // Reset audio mode to allow other apps (music) to play normally again
+        await Audio.setAudioModeAsync({
+          playsInSilentModeIOS: false,
+          allowsRecordingIOS: false,
+          staysActiveInBackground: false,
+          interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_MIX_WITH_OTHERS,
+          shouldDuckAndroid: false,
+          interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DUCK_OTHERS,
+          playThroughEarpieceAndroid: false,
+        });
       }
     });
 

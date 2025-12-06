@@ -1,0 +1,2693 @@
+{
+  "version": 2,
+  "updated_at": "2025-12-06",
+  "source_notes": "Data sourced from official restaurant nutrition pages and calculators (Dec 2024/Jan 2025)",
+  "restaurants": [
+    {
+      "id": "tim-hortons",
+      "name": "Tim Hortons",
+      "logo": "https://cdn.freebiesupply.com/logos/large/2x/tim-hortons-logo-png-transparent.png",
+      "color": "#C8102E",
+      "categories": [
+        "Breakfast",
+        "Sandwiches",
+        "Donuts",
+        "Timbits",
+        "Coffee"
+      ],
+      "menu": [
+        {
+          "name": "Bacon Egg Cheese Biscuit",
+          "category": "Breakfast",
+          "calories": 410,
+          "protein": 17,
+          "carbs": 33,
+          "fat": 24,
+          "serving": "1 biscuit (140g)"
+        },
+        {
+          "name": "Bacon Egg Cheese English Muffin",
+          "category": "Breakfast",
+          "calories": 320,
+          "protein": 17,
+          "carbs": 28,
+          "fat": 16,
+          "serving": "1 sandwich (130g)"
+        },
+        {
+          "name": "Bacon Egg Cheese Wrap",
+          "category": "Breakfast",
+          "calories": 270,
+          "protein": 13,
+          "carbs": 18,
+          "fat": 16,
+          "serving": "1 wrap (120g)"
+        },
+        {
+          "name": "Grilled Breakfast Wrap",
+          "category": "Breakfast",
+          "calories": 310,
+          "protein": 15,
+          "carbs": 24,
+          "fat": 17,
+          "serving": "1 wrap (145g)"
+        },
+        {
+          "name": "Farmer's Breakfast Wrap",
+          "category": "Breakfast",
+          "calories": 530,
+          "protein": 23,
+          "carbs": 45,
+          "fat": 28,
+          "serving": "1 wrap (230g)"
+        },
+        {
+          "name": "Grilled Chicken Sandwich",
+          "category": "Sandwiches",
+          "calories": 430,
+          "protein": 30,
+          "carbs": 38,
+          "fat": 18,
+          "serving": "1 sandwich (228g)"
+        },
+        {
+          "name": "Crispy Chicken Sandwich",
+          "category": "Sandwiches",
+          "calories": 510,
+          "protein": 25,
+          "carbs": 45,
+          "fat": 25,
+          "serving": "1 sandwich (218g)"
+        },
+        {
+          "name": "BLT Sandwich",
+          "category": "Sandwiches",
+          "calories": 450,
+          "protein": 15,
+          "carbs": 44,
+          "fat": 24,
+          "serving": "1 sandwich (195g)"
+        },
+        {
+          "name": "Boston Cream Donut",
+          "category": "Donuts",
+          "calories": 250,
+          "protein": 4,
+          "carbs": 35,
+          "fat": 11,
+          "serving": "1 donut (75g)"
+        },
+        {
+          "name": "Apple Fritter",
+          "category": "Donuts",
+          "calories": 310,
+          "protein": 3,
+          "carbs": 49,
+          "fat": 12,
+          "serving": "1 fritter (101g)"
+        },
+        {
+          "name": "Honey Dip Donut",
+          "category": "Donuts",
+          "calories": 210,
+          "protein": 4,
+          "carbs": 31,
+          "fat": 8,
+          "serving": "1 donut (55g)"
+        },
+        {
+          "name": "Chocolate Dip Donut",
+          "category": "Donuts",
+          "calories": 210,
+          "protein": 4,
+          "carbs": 28,
+          "fat": 9,
+          "serving": "1 donut (52g)"
+        },
+        {
+          "name": "Vanilla Dip Donut",
+          "category": "Donuts",
+          "calories": 250,
+          "protein": 4,
+          "carbs": 32,
+          "fat": 11,
+          "serving": "1 donut (55g)"
+        },
+        {
+          "name": "Old Fashioned Plain Donut",
+          "category": "Donuts",
+          "calories": 260,
+          "protein": 4,
+          "carbs": 30,
+          "fat": 14,
+          "serving": "1 donut (60g)"
+        },
+        {
+          "name": "Honey Cruller",
+          "category": "Donuts",
+          "calories": 320,
+          "protein": 3,
+          "carbs": 37,
+          "fat": 18,
+          "serving": "1 donut (70g)"
+        },
+        {
+          "name": "Dutchie Donut",
+          "category": "Donuts",
+          "calories": 260,
+          "protein": 4,
+          "carbs": 39,
+          "fat": 10,
+          "serving": "1 donut (65g)"
+        },
+        {
+          "name": "Chocolate Timbit",
+          "category": "Timbits",
+          "calories": 70,
+          "protein": 1,
+          "carbs": 9,
+          "fat": 3,
+          "serving": "1 timbit (16g)"
+        },
+        {
+          "name": "Honey Dip Timbit",
+          "category": "Timbits",
+          "calories": 60,
+          "protein": 1,
+          "carbs": 9,
+          "fat": 2,
+          "serving": "1 timbit (14g)"
+        },
+        {
+          "name": "Old Fashioned Plain Timbit",
+          "category": "Timbits",
+          "calories": 70,
+          "protein": 1,
+          "carbs": 7,
+          "fat": 4,
+          "serving": "1 timbit (16g)"
+        },
+        {
+          "name": "Sour Cream Glazed Timbit",
+          "category": "Timbits",
+          "calories": 90,
+          "protein": 1,
+          "carbs": 11,
+          "fat": 5,
+          "serving": "1 timbit (20g)"
+        },
+        {
+          "name": "10 Assorted Timbits",
+          "category": "Timbits",
+          "calories": 700,
+          "protein": 10,
+          "carbs": 90,
+          "fat": 35,
+          "serving": "10 timbits"
+        },
+        {
+          "name": "Original Blend Coffee (Medium)",
+          "category": "Coffee",
+          "calories": 5,
+          "protein": 0,
+          "carbs": 0,
+          "fat": 0,
+          "serving": "14 fl oz (414ml)"
+        },
+        {
+          "name": "Double Double Coffee (Medium)",
+          "category": "Coffee",
+          "calories": 212,
+          "protein": 0,
+          "carbs": 22,
+          "fat": 14,
+          "serving": "14 fl oz (414ml)"
+        },
+        {
+          "name": "Double Double Coffee (Large)",
+          "category": "Coffee",
+          "calories": 270,
+          "protein": 2,
+          "carbs": 30,
+          "fat": 14,
+          "serving": "20 fl oz (591ml)"
+        },
+        {
+          "name": "Iced Capp (Medium)",
+          "category": "Coffee",
+          "calories": 360,
+          "protein": 5,
+          "carbs": 56,
+          "fat": 15,
+          "serving": "14 fl oz (414ml)"
+        },
+        {
+          "name": "French Vanilla (Medium)",
+          "category": "Coffee",
+          "calories": 240,
+          "protein": 1,
+          "carbs": 46,
+          "fat": 7,
+          "serving": "14 fl oz (414ml)"
+        },
+        {
+          "name": "Steeped Tea (Medium)",
+          "category": "Coffee",
+          "calories": 0,
+          "protein": 0,
+          "carbs": 0,
+          "fat": 0,
+          "serving": "14 fl oz (414ml)"
+        }
+      ]
+    },
+    {
+      "id": "aw",
+      "name": "A&W",
+      "logo": "https://logo.clearbit.com/awrestaurants.com",
+      "color": "#FF6600",
+      "categories": [
+        "Burgers",
+        "Chicken",
+        "Sides",
+        "Drinks"
+      ],
+      "menu": [
+        {
+          "name": "Papa Burger",
+          "category": "Burgers",
+          "calories": 690,
+          "protein": 32,
+          "carbs": 45,
+          "fat": 42,
+          "serving": "1 burger (269g)"
+        },
+        {
+          "name": "Mama Burger",
+          "category": "Burgers",
+          "calories": 470,
+          "protein": 22,
+          "carbs": 38,
+          "fat": 26,
+          "serving": "1 burger (182g)"
+        },
+        {
+          "name": "Teen Burger",
+          "category": "Burgers",
+          "calories": 500,
+          "protein": 25,
+          "carbs": 39,
+          "fat": 27,
+          "serving": "1 burger (200g)"
+        },
+        {
+          "name": "Buddy Burger",
+          "category": "Burgers",
+          "calories": 280,
+          "protein": 14,
+          "carbs": 28,
+          "fat": 13,
+          "serving": "1 burger (114g)"
+        },
+        {
+          "name": "Mozza Burger",
+          "category": "Burgers",
+          "calories": 610,
+          "protein": 29,
+          "carbs": 45,
+          "fat": 36,
+          "serving": "1 burger (232g)"
+        },
+        {
+          "name": "Uncle Burger",
+          "category": "Burgers",
+          "calories": 780,
+          "protein": 40,
+          "carbs": 46,
+          "fat": 49,
+          "serving": "1 burger (302g)"
+        },
+        {
+          "name": "Chubby Chicken Burger",
+          "category": "Chicken",
+          "calories": 480,
+          "protein": 26,
+          "carbs": 44,
+          "fat": 22,
+          "serving": "1 sandwich (198g)"
+        },
+        {
+          "name": "Chicken Strips (3pc)",
+          "category": "Chicken",
+          "calories": 340,
+          "protein": 23,
+          "carbs": 21,
+          "fat": 19,
+          "serving": "3 pieces (105g)"
+        },
+        {
+          "name": "Spicy Habanero Chicken Burger",
+          "category": "Chicken",
+          "calories": 520,
+          "protein": 28,
+          "carbs": 46,
+          "fat": 26,
+          "serving": "1 sandwich (210g)"
+        },
+        {
+          "name": "Onion Rings (Regular)",
+          "category": "Sides",
+          "calories": 350,
+          "protein": 5,
+          "carbs": 45,
+          "fat": 17,
+          "serving": "1 regular (99g)"
+        },
+        {
+          "name": "Fries (Regular)",
+          "category": "Sides",
+          "calories": 350,
+          "protein": 5,
+          "carbs": 46,
+          "fat": 17,
+          "serving": "1 regular (113g)"
+        },
+        {
+          "name": "Poutine",
+          "category": "Sides",
+          "calories": 740,
+          "protein": 18,
+          "carbs": 75,
+          "fat": 42,
+          "serving": "1 regular (340g)"
+        },
+        {
+          "name": "Root Beer Float",
+          "category": "Drinks",
+          "calories": 330,
+          "protein": 3,
+          "carbs": 68,
+          "fat": 5,
+          "serving": "1 regular (397g)"
+        },
+        {
+          "name": "Root Beer (Medium)",
+          "category": "Drinks",
+          "calories": 220,
+          "protein": 0,
+          "carbs": 60,
+          "fat": 0,
+          "serving": "1 medium (591ml)"
+        }
+      ]
+    },
+    {
+      "id": "mcdonalds",
+      "name": "McDonald's",
+      "logo": "https://logos-world.net/wp-content/uploads/2020/04/McDonalds-Logo.png",
+      "color": "#FFC72C",
+      "categories": [
+        "Burgers",
+        "Chicken",
+        "Breakfast",
+        "Sides",
+        "Drinks",
+        "Desserts"
+      ],
+      "menu": [
+        {
+          "name": "Big Mac",
+          "category": "Burgers",
+          "calories": 563,
+          "protein": 26,
+          "carbs": 44,
+          "fat": 33,
+          "serving": "1 burger (215g)"
+        },
+        {
+          "name": "Quarter Pounder with Cheese",
+          "category": "Burgers",
+          "calories": 520,
+          "protein": 30,
+          "carbs": 42,
+          "fat": 26,
+          "serving": "1 burger (200g)"
+        },
+        {
+          "name": "McDouble",
+          "category": "Burgers",
+          "calories": 400,
+          "protein": 22,
+          "carbs": 33,
+          "fat": 20,
+          "serving": "1 burger (155g)"
+        },
+        {
+          "name": "Cheeseburger",
+          "category": "Burgers",
+          "calories": 300,
+          "protein": 15,
+          "carbs": 33,
+          "fat": 12,
+          "serving": "1 burger (119g)"
+        },
+        {
+          "name": "Double Cheeseburger",
+          "category": "Burgers",
+          "calories": 450,
+          "protein": 25,
+          "carbs": 34,
+          "fat": 24,
+          "serving": "1 burger (168g)"
+        },
+        {
+          "name": "McChicken",
+          "category": "Chicken",
+          "calories": 400,
+          "protein": 14,
+          "carbs": 40,
+          "fat": 21,
+          "serving": "1 sandwich (143g)"
+        },
+        {
+          "name": "10pc Chicken McNuggets",
+          "category": "Chicken",
+          "calories": 420,
+          "protein": 25,
+          "carbs": 26,
+          "fat": 25,
+          "serving": "10 pieces (162g)"
+        },
+        {
+          "name": "6pc Chicken McNuggets",
+          "category": "Chicken",
+          "calories": 250,
+          "protein": 15,
+          "carbs": 15,
+          "fat": 15,
+          "serving": "6 pieces (97g)"
+        },
+        {
+          "name": "Crispy Chicken Sandwich",
+          "category": "Chicken",
+          "calories": 470,
+          "protein": 26,
+          "carbs": 46,
+          "fat": 20,
+          "serving": "1 sandwich (201g)"
+        },
+        {
+          "name": "Egg McMuffin",
+          "category": "Breakfast",
+          "calories": 310,
+          "protein": 17,
+          "carbs": 30,
+          "fat": 13,
+          "serving": "1 sandwich (137g)"
+        },
+        {
+          "name": "Sausage McMuffin with Egg",
+          "category": "Breakfast",
+          "calories": 480,
+          "protein": 21,
+          "carbs": 30,
+          "fat": 31,
+          "serving": "1 sandwich (167g)"
+        },
+        {
+          "name": "Hotcakes",
+          "category": "Breakfast",
+          "calories": 350,
+          "protein": 9,
+          "carbs": 60,
+          "fat": 9,
+          "serving": "3 hotcakes (151g)"
+        },
+        {
+          "name": "Hash Browns",
+          "category": "Breakfast",
+          "calories": 140,
+          "protein": 1,
+          "carbs": 15,
+          "fat": 8,
+          "serving": "1 piece (56g)"
+        },
+        {
+          "name": "Medium Fries",
+          "category": "Sides",
+          "calories": 320,
+          "protein": 5,
+          "carbs": 43,
+          "fat": 15,
+          "serving": "1 medium (111g)"
+        },
+        {
+          "name": "Large Fries",
+          "category": "Sides",
+          "calories": 480,
+          "protein": 7,
+          "carbs": 65,
+          "fat": 23,
+          "serving": "1 large (154g)"
+        },
+        {
+          "name": "Medium Coca-Cola",
+          "category": "Drinks",
+          "calories": 210,
+          "protein": 0,
+          "carbs": 58,
+          "fat": 0,
+          "serving": "21 fl oz (621ml)"
+        },
+        {
+          "name": "McFlurry with Oreo",
+          "category": "Desserts",
+          "calories": 510,
+          "protein": 13,
+          "carbs": 80,
+          "fat": 17,
+          "serving": "1 regular (285g)"
+        },
+        {
+          "name": "Apple Pie",
+          "category": "Desserts",
+          "calories": 230,
+          "protein": 2,
+          "carbs": 32,
+          "fat": 11,
+          "serving": "1 pie (77g)"
+        }
+      ]
+    },
+    {
+      "id": "subway",
+      "name": "Subway",
+      "logo": "https://cdn.freebiesupply.com/logos/large/2x/subway-logo-png-transparent.png",
+      "color": "#008C15",
+      "categories": [
+        "6-inch Subs",
+        "Footlong Subs",
+        "Salads",
+        "Sides"
+      ],
+      "menu": [
+        {
+          "name": "6\" Oven Roasted Turkey",
+          "category": "6-inch Subs",
+          "calories": 260,
+          "protein": 18,
+          "carbs": 39,
+          "fat": 3,
+          "serving": "1 sub (219g)"
+        },
+        {
+          "name": "6\" Italian B.M.T.",
+          "category": "6-inch Subs",
+          "calories": 410,
+          "protein": 20,
+          "carbs": 42,
+          "fat": 18,
+          "serving": "1 sub (238g)"
+        },
+        {
+          "name": "6\" Chicken Teriyaki",
+          "category": "6-inch Subs",
+          "calories": 340,
+          "protein": 26,
+          "carbs": 46,
+          "fat": 5,
+          "serving": "1 sub (269g)"
+        },
+        {
+          "name": "6\" Meatball Marinara",
+          "category": "6-inch Subs",
+          "calories": 480,
+          "protein": 22,
+          "carbs": 52,
+          "fat": 20,
+          "serving": "1 sub (287g)"
+        },
+        {
+          "name": "6\" Tuna",
+          "category": "6-inch Subs",
+          "calories": 480,
+          "protein": 20,
+          "carbs": 40,
+          "fat": 26,
+          "serving": "1 sub (252g)"
+        },
+        {
+          "name": "6\" Veggie Delite",
+          "category": "6-inch Subs",
+          "calories": 200,
+          "protein": 8,
+          "carbs": 38,
+          "fat": 2,
+          "serving": "1 sub (166g)"
+        },
+        {
+          "name": "Footlong Oven Roasted Turkey",
+          "category": "Footlong Subs",
+          "calories": 520,
+          "protein": 36,
+          "carbs": 78,
+          "fat": 6,
+          "serving": "1 sub (438g)"
+        },
+        {
+          "name": "Footlong Italian B.M.T.",
+          "category": "Footlong Subs",
+          "calories": 820,
+          "protein": 40,
+          "carbs": 84,
+          "fat": 36,
+          "serving": "1 sub (476g)"
+        },
+        {
+          "name": "Footlong Chicken Teriyaki",
+          "category": "Footlong Subs",
+          "calories": 680,
+          "protein": 52,
+          "carbs": 92,
+          "fat": 10,
+          "serving": "1 sub (538g)"
+        },
+        {
+          "name": "Turkey Breast Salad",
+          "category": "Salads",
+          "calories": 110,
+          "protein": 12,
+          "carbs": 10,
+          "fat": 3,
+          "serving": "1 salad (323g)"
+        },
+        {
+          "name": "Chips",
+          "category": "Sides",
+          "calories": 230,
+          "protein": 2,
+          "carbs": 24,
+          "fat": 13,
+          "serving": "1 bag (42g)"
+        },
+        {
+          "name": "Chocolate Chip Cookie",
+          "category": "Sides",
+          "calories": 220,
+          "protein": 2,
+          "carbs": 30,
+          "fat": 10,
+          "serving": "1 cookie (45g)"
+        }
+      ]
+    },
+    {
+      "id": "wendys",
+      "name": "Wendy's",
+      "logo": "https://cdn.freebiesupply.com/logos/large/2x/wendys-logo-png-transparent.png",
+      "color": "#E2203A",
+      "categories": [
+        "Burgers",
+        "Chicken",
+        "Breakfast",
+        "Sides",
+        "Drinks",
+        "Frosty"
+      ],
+      "menu": [
+        {
+          "name": "Dave's Single",
+          "category": "Burgers",
+          "calories": 590,
+          "protein": 30,
+          "carbs": 45,
+          "fat": 32,
+          "serving": "1 burger (227g)"
+        },
+        {
+          "name": "Dave's Double",
+          "category": "Burgers",
+          "calories": 850,
+          "protein": 49,
+          "carbs": 46,
+          "fat": 52,
+          "serving": "1 burger (318g)"
+        },
+        {
+          "name": "Baconator",
+          "category": "Burgers",
+          "calories": 920,
+          "protein": 57,
+          "carbs": 38,
+          "fat": 60,
+          "serving": "1 burger (310g)"
+        },
+        {
+          "name": "Jr. Cheeseburger",
+          "category": "Burgers",
+          "calories": 290,
+          "protein": 16,
+          "carbs": 26,
+          "fat": 14,
+          "serving": "1 burger (117g)"
+        },
+        {
+          "name": "Classic Chicken Sandwich",
+          "category": "Chicken",
+          "calories": 490,
+          "protein": 29,
+          "carbs": 46,
+          "fat": 21,
+          "serving": "1 sandwich (218g)"
+        },
+        {
+          "name": "Spicy Chicken Sandwich",
+          "category": "Chicken",
+          "calories": 500,
+          "protein": 30,
+          "carbs": 47,
+          "fat": 22,
+          "serving": "1 sandwich (223g)"
+        },
+        {
+          "name": "10pc Crispy Chicken Nuggets",
+          "category": "Chicken",
+          "calories": 450,
+          "protein": 22,
+          "carbs": 28,
+          "fat": 28,
+          "serving": "10 pieces (128g)"
+        },
+        {
+          "name": "Bacon Egg & Cheese Biscuit",
+          "category": "Breakfast",
+          "calories": 460,
+          "protein": 17,
+          "carbs": 36,
+          "fat": 27,
+          "serving": "1 biscuit (156g)"
+        },
+        {
+          "name": "Medium Fries",
+          "category": "Sides",
+          "calories": 350,
+          "protein": 5,
+          "carbs": 47,
+          "fat": 16,
+          "serving": "1 medium (142g)"
+        },
+        {
+          "name": "Small Chili",
+          "category": "Sides",
+          "calories": 170,
+          "protein": 13,
+          "carbs": 15,
+          "fat": 6,
+          "serving": "1 small (227g)"
+        },
+        {
+          "name": "Medium Chocolate Frosty",
+          "category": "Frosty",
+          "calories": 350,
+          "protein": 9,
+          "carbs": 57,
+          "fat": 9,
+          "serving": "1 medium (298g)"
+        },
+        {
+          "name": "Medium Vanilla Frosty",
+          "category": "Frosty",
+          "calories": 340,
+          "protein": 9,
+          "carbs": 56,
+          "fat": 9,
+          "serving": "1 medium (298g)"
+        }
+      ]
+    },
+    {
+      "id": "burger-king",
+      "name": "Burger King",
+      "logo": "https://logos-world.net/wp-content/uploads/2020/05/Burger-King-Logo.png",
+      "color": "#D62300",
+      "categories": [
+        "Burgers",
+        "Chicken",
+        "Breakfast",
+        "Sides",
+        "Drinks"
+      ],
+      "menu": [
+        {
+          "name": "Whopper",
+          "category": "Burgers",
+          "calories": 670,
+          "protein": 28,
+          "carbs": 49,
+          "fat": 40,
+          "serving": "1 burger (270g)"
+        },
+        {
+          "name": "Whopper with Cheese",
+          "category": "Burgers",
+          "calories": 770,
+          "protein": 32,
+          "carbs": 50,
+          "fat": 46,
+          "serving": "1 burger (285g)"
+        },
+        {
+          "name": "Double Whopper",
+          "category": "Burgers",
+          "calories": 900,
+          "protein": 48,
+          "carbs": 49,
+          "fat": 58,
+          "serving": "1 burger (374g)"
+        },
+        {
+          "name": "Bacon King",
+          "category": "Burgers",
+          "calories": 1150,
+          "protein": 61,
+          "carbs": 49,
+          "fat": 79,
+          "serving": "1 burger (365g)"
+        },
+        {
+          "name": "Cheeseburger",
+          "category": "Burgers",
+          "calories": 280,
+          "protein": 14,
+          "carbs": 27,
+          "fat": 13,
+          "serving": "1 burger (113g)"
+        },
+        {
+          "name": "Original Chicken Sandwich",
+          "category": "Chicken",
+          "calories": 660,
+          "protein": 28,
+          "carbs": 48,
+          "fat": 40,
+          "serving": "1 sandwich (218g)"
+        },
+        {
+          "name": "Chicken Fries (9pc)",
+          "category": "Chicken",
+          "calories": 280,
+          "protein": 17,
+          "carbs": 17,
+          "fat": 17,
+          "serving": "9 pieces (91g)"
+        },
+        {
+          "name": "Chicken Nuggets (8pc)",
+          "category": "Chicken",
+          "calories": 310,
+          "protein": 15,
+          "carbs": 20,
+          "fat": 19,
+          "serving": "8 pieces (113g)"
+        },
+        {
+          "name": "Croissan'wich Sausage Egg Cheese",
+          "category": "Breakfast",
+          "calories": 500,
+          "protein": 19,
+          "carbs": 27,
+          "fat": 35,
+          "serving": "1 sandwich (147g)"
+        },
+        {
+          "name": "Medium Fries",
+          "category": "Sides",
+          "calories": 380,
+          "protein": 5,
+          "carbs": 53,
+          "fat": 17,
+          "serving": "1 medium (128g)"
+        },
+        {
+          "name": "Onion Rings (Medium)",
+          "category": "Sides",
+          "calories": 410,
+          "protein": 5,
+          "carbs": 51,
+          "fat": 21,
+          "serving": "1 medium (113g)"
+        },
+        {
+          "name": "Medium Coca-Cola",
+          "category": "Drinks",
+          "calories": 240,
+          "protein": 0,
+          "carbs": 65,
+          "fat": 0,
+          "serving": "22 fl oz"
+        }
+      ]
+    },
+    {
+      "id": "kfc",
+      "name": "KFC",
+      "logo": "https://logos-world.net/wp-content/uploads/2020/04/KFC-Logo.png",
+      "color": "#F40027",
+      "categories": [
+        "Chicken",
+        "Sandwiches",
+        "Sides",
+        "Drinks"
+      ],
+      "menu": [
+        {
+          "name": "Original Recipe Chicken Breast",
+          "category": "Chicken",
+          "calories": 390,
+          "protein": 39,
+          "carbs": 11,
+          "fat": 21,
+          "serving": "1 piece (163g)"
+        },
+        {
+          "name": "Original Recipe Chicken Thigh",
+          "category": "Chicken",
+          "calories": 280,
+          "protein": 19,
+          "carbs": 8,
+          "fat": 19,
+          "serving": "1 piece (126g)"
+        },
+        {
+          "name": "Original Recipe Drumstick",
+          "category": "Chicken",
+          "calories": 130,
+          "protein": 14,
+          "carbs": 3,
+          "fat": 7,
+          "serving": "1 piece (59g)"
+        },
+        {
+          "name": "Extra Crispy Chicken Breast",
+          "category": "Chicken",
+          "calories": 530,
+          "protein": 34,
+          "carbs": 19,
+          "fat": 35,
+          "serving": "1 piece (176g)"
+        },
+        {
+          "name": "Chicken Tenders (3pc)",
+          "category": "Chicken",
+          "calories": 310,
+          "protein": 28,
+          "carbs": 14,
+          "fat": 16,
+          "serving": "3 pieces (125g)"
+        },
+        {
+          "name": "Popcorn Chicken (Large)",
+          "category": "Chicken",
+          "calories": 620,
+          "protein": 30,
+          "carbs": 36,
+          "fat": 39,
+          "serving": "1 large (198g)"
+        },
+        {
+          "name": "Classic Chicken Sandwich",
+          "category": "Sandwiches",
+          "calories": 650,
+          "protein": 28,
+          "carbs": 49,
+          "fat": 38,
+          "serving": "1 sandwich (207g)"
+        },
+        {
+          "name": "Spicy Chicken Sandwich",
+          "category": "Sandwiches",
+          "calories": 700,
+          "protein": 28,
+          "carbs": 50,
+          "fat": 42,
+          "serving": "1 sandwich (211g)"
+        },
+        {
+          "name": "Mashed Potatoes with Gravy",
+          "category": "Sides",
+          "calories": 130,
+          "protein": 2,
+          "carbs": 19,
+          "fat": 5,
+          "serving": "1 individual (136g)"
+        },
+        {
+          "name": "Coleslaw",
+          "category": "Sides",
+          "calories": 170,
+          "protein": 1,
+          "carbs": 14,
+          "fat": 12,
+          "serving": "1 individual (128g)"
+        },
+        {
+          "name": "Mac & Cheese",
+          "category": "Sides",
+          "calories": 140,
+          "protein": 5,
+          "carbs": 16,
+          "fat": 6,
+          "serving": "1 individual (131g)"
+        },
+        {
+          "name": "Biscuit",
+          "category": "Sides",
+          "calories": 180,
+          "protein": 4,
+          "carbs": 22,
+          "fat": 8,
+          "serving": "1 biscuit (52g)"
+        }
+      ]
+    },
+    {
+      "id": "dairy-queen",
+      "name": "Dairy Queen",
+      "logo": "https://cdn.freebiesupply.com/logos/large/2x/dairy-queen-logo-png-transparent.png",
+      "color": "#ED1C24",
+      "categories": [
+        "Burgers",
+        "Chicken",
+        "Sides",
+        "Blizzards",
+        "Treats"
+      ],
+      "menu": [
+        {
+          "name": "1/3lb Flamethrower Burger",
+          "category": "Burgers",
+          "calories": 870,
+          "protein": 47,
+          "carbs": 43,
+          "fat": 57,
+          "serving": "1 burger (288g)"
+        },
+        {
+          "name": "Original Cheeseburger",
+          "category": "Burgers",
+          "calories": 400,
+          "protein": 20,
+          "carbs": 33,
+          "fat": 20,
+          "serving": "1 burger (148g)"
+        },
+        {
+          "name": "1/4lb GrillBurger with Cheese",
+          "category": "Burgers",
+          "calories": 530,
+          "protein": 27,
+          "carbs": 35,
+          "fat": 31,
+          "serving": "1 burger (194g)"
+        },
+        {
+          "name": "Bacon Cheeseburger",
+          "category": "Burgers",
+          "calories": 630,
+          "protein": 32,
+          "carbs": 34,
+          "fat": 41,
+          "serving": "1 burger (218g)"
+        },
+        {
+          "name": "Crispy Chicken Sandwich",
+          "category": "Chicken",
+          "calories": 540,
+          "protein": 24,
+          "carbs": 49,
+          "fat": 28,
+          "serving": "1 sandwich (201g)"
+        },
+        {
+          "name": "Chicken Strip Basket (4pc)",
+          "category": "Chicken",
+          "calories": 1040,
+          "protein": 37,
+          "carbs": 103,
+          "fat": 53,
+          "serving": "1 basket (340g)"
+        },
+        {
+          "name": "Regular Fries",
+          "category": "Sides",
+          "calories": 290,
+          "protein": 3,
+          "carbs": 39,
+          "fat": 13,
+          "serving": "1 regular (113g)"
+        },
+        {
+          "name": "Onion Rings",
+          "category": "Sides",
+          "calories": 360,
+          "protein": 5,
+          "carbs": 45,
+          "fat": 18,
+          "serving": "1 regular (113g)"
+        },
+        {
+          "name": "Oreo Blizzard (Medium)",
+          "category": "Blizzards",
+          "calories": 690,
+          "protein": 14,
+          "carbs": 99,
+          "fat": 26,
+          "serving": "1 medium (340g)"
+        },
+        {
+          "name": "Reese's Blizzard (Medium)",
+          "category": "Blizzards",
+          "calories": 740,
+          "protein": 17,
+          "carbs": 94,
+          "fat": 33,
+          "serving": "1 medium (340g)"
+        },
+        {
+          "name": "Chocolate Chip Cookie Dough Blizzard (Medium)",
+          "category": "Blizzards",
+          "calories": 720,
+          "protein": 14,
+          "carbs": 103,
+          "fat": 27,
+          "serving": "1 medium (340g)"
+        },
+        {
+          "name": "M&M's Blizzard (Medium)",
+          "category": "Blizzards",
+          "calories": 660,
+          "protein": 14,
+          "carbs": 96,
+          "fat": 24,
+          "serving": "1 medium (340g)"
+        },
+        {
+          "name": "Vanilla Cone (Medium)",
+          "category": "Treats",
+          "calories": 330,
+          "protein": 8,
+          "carbs": 53,
+          "fat": 9,
+          "serving": "1 cone (198g)"
+        },
+        {
+          "name": "Dipped Cone (Medium)",
+          "category": "Treats",
+          "calories": 440,
+          "protein": 8,
+          "carbs": 58,
+          "fat": 20,
+          "serving": "1 cone (220g)"
+        },
+        {
+          "name": "Banana Split",
+          "category": "Treats",
+          "calories": 540,
+          "protein": 10,
+          "carbs": 90,
+          "fat": 16,
+          "serving": "1 split (369g)"
+        }
+      ]
+    },
+    {
+      "id": "starbucks",
+      "name": "Starbucks",
+      "logo": "https://logos-world.net/wp-content/uploads/2020/09/Starbucks-Logo.png",
+      "color": "#00704A",
+      "categories": [
+        "Breakfast",
+        "Snacks",
+        "Hot Coffee",
+        "Cold Drinks"
+      ],
+      "menu": [
+        {
+          "name": "Bacon Gouda Sandwich",
+          "category": "Breakfast",
+          "calories": 360,
+          "protein": 18,
+          "carbs": 34,
+          "fat": 16,
+          "serving": "1 sandwich (109g)"
+        },
+        {
+          "name": "Sausage Cheddar Egg Sandwich",
+          "category": "Breakfast",
+          "calories": 480,
+          "protein": 15,
+          "carbs": 40,
+          "fat": 28,
+          "serving": "1 sandwich (119g)"
+        },
+        {
+          "name": "Spinach Feta Wrap",
+          "category": "Breakfast",
+          "calories": 290,
+          "protein": 20,
+          "carbs": 34,
+          "fat": 8,
+          "serving": "1 wrap (145g)"
+        },
+        {
+          "name": "Chocolate Croissant",
+          "category": "Snacks",
+          "calories": 340,
+          "protein": 5,
+          "carbs": 38,
+          "fat": 18,
+          "serving": "1 pastry (72g)"
+        },
+        {
+          "name": "Blueberry Muffin",
+          "category": "Snacks",
+          "calories": 380,
+          "protein": 6,
+          "carbs": 55,
+          "fat": 15,
+          "serving": "1 muffin (113g)"
+        },
+        {
+          "name": "Butter Croissant",
+          "category": "Snacks",
+          "calories": 260,
+          "protein": 5,
+          "carbs": 32,
+          "fat": 12,
+          "serving": "1 pastry (65g)"
+        },
+        {
+          "name": "Pike Place Roast (Grande)",
+          "category": "Hot Coffee",
+          "calories": 5,
+          "protein": 1,
+          "carbs": 0,
+          "fat": 0,
+          "serving": "16 fl oz (473ml)"
+        },
+        {
+          "name": "Caffe Latte (Grande)",
+          "category": "Hot Coffee",
+          "calories": 190,
+          "protein": 13,
+          "carbs": 18,
+          "fat": 7,
+          "serving": "16 fl oz (473ml)"
+        },
+        {
+          "name": "Caramel Macchiato (Grande)",
+          "category": "Hot Coffee",
+          "calories": 250,
+          "protein": 10,
+          "carbs": 35,
+          "fat": 7,
+          "serving": "16 fl oz (473ml)"
+        },
+        {
+          "name": "Pumpkin Spice Latte (Grande)",
+          "category": "Hot Coffee",
+          "calories": 380,
+          "protein": 14,
+          "carbs": 52,
+          "fat": 14,
+          "serving": "16 fl oz (473ml)"
+        },
+        {
+          "name": "Caramel Frappuccino (Grande)",
+          "category": "Cold Drinks",
+          "calories": 380,
+          "protein": 5,
+          "carbs": 54,
+          "fat": 16,
+          "serving": "16 fl oz (473ml)"
+        },
+        {
+          "name": "Iced Caffe Latte (Grande)",
+          "category": "Cold Drinks",
+          "calories": 130,
+          "protein": 8,
+          "carbs": 13,
+          "fat": 5,
+          "serving": "16 fl oz (473ml)"
+        },
+        {
+          "name": "Cold Brew (Grande)",
+          "category": "Cold Drinks",
+          "calories": 5,
+          "protein": 0,
+          "carbs": 0,
+          "fat": 0,
+          "serving": "16 fl oz (473ml)"
+        },
+        {
+          "name": "Vanilla Sweet Cream Cold Brew (Grande)",
+          "category": "Cold Drinks",
+          "calories": 110,
+          "protein": 1,
+          "carbs": 14,
+          "fat": 5,
+          "serving": "16 fl oz (473ml)"
+        },
+        {
+          "name": "Pink Drink (Grande)",
+          "category": "Cold Drinks",
+          "calories": 140,
+          "protein": 1,
+          "carbs": 27,
+          "fat": 2,
+          "serving": "16 fl oz (473ml)"
+        }
+      ]
+    },
+    {
+      "id": "pizza-hut",
+      "name": "Pizza Hut",
+      "logo": "https://cdn.freebiesupply.com/logos/large/2x/pizza-hut-logo-png-transparent.png",
+      "color": "#EE3A23",
+      "categories": [
+        "Pizza",
+        "Wings",
+        "Sides"
+      ],
+      "menu": [
+        {
+          "name": "Pepperoni Pizza (1 slice, Medium)",
+          "category": "Pizza",
+          "calories": 210,
+          "protein": 9,
+          "carbs": 25,
+          "fat": 8,
+          "serving": "1 slice (85g)"
+        },
+        {
+          "name": "Cheese Pizza (1 slice, Medium)",
+          "category": "Pizza",
+          "calories": 200,
+          "protein": 8,
+          "carbs": 25,
+          "fat": 7,
+          "serving": "1 slice (80g)"
+        },
+        {
+          "name": "Supreme Pizza (1 slice, Medium)",
+          "category": "Pizza",
+          "calories": 240,
+          "protein": 10,
+          "carbs": 26,
+          "fat": 10,
+          "serving": "1 slice (100g)"
+        },
+        {
+          "name": "Meat Lover's Pizza (1 slice, Medium)",
+          "category": "Pizza",
+          "calories": 310,
+          "protein": 14,
+          "carbs": 26,
+          "fat": 17,
+          "serving": "1 slice (112g)"
+        },
+        {
+          "name": "Veggie Lover's Pizza (1 slice, Medium)",
+          "category": "Pizza",
+          "calories": 190,
+          "protein": 8,
+          "carbs": 26,
+          "fat": 6,
+          "serving": "1 slice (95g)"
+        },
+        {
+          "name": "BBQ Chicken Pizza (1 slice, Medium)",
+          "category": "Pizza",
+          "calories": 230,
+          "protein": 12,
+          "carbs": 28,
+          "fat": 8,
+          "serving": "1 slice (95g)"
+        },
+        {
+          "name": "Bone-Out Wings (4pc)",
+          "category": "Wings",
+          "calories": 180,
+          "protein": 16,
+          "carbs": 8,
+          "fat": 9,
+          "serving": "4 pieces (72g)"
+        },
+        {
+          "name": "Traditional Wings (4pc)",
+          "category": "Wings",
+          "calories": 200,
+          "protein": 16,
+          "carbs": 2,
+          "fat": 14,
+          "serving": "4 pieces (92g)"
+        },
+        {
+          "name": "Breadsticks (1 piece)",
+          "category": "Sides",
+          "calories": 140,
+          "protein": 4,
+          "carbs": 21,
+          "fat": 5,
+          "serving": "1 stick (42g)"
+        },
+        {
+          "name": "Cheese Sticks (2pc)",
+          "category": "Sides",
+          "calories": 180,
+          "protein": 7,
+          "carbs": 20,
+          "fat": 8,
+          "serving": "2 pieces (64g)"
+        },
+        {
+          "name": "Cinnamon Sticks (2pc)",
+          "category": "Sides",
+          "calories": 160,
+          "protein": 3,
+          "carbs": 27,
+          "fat": 5,
+          "serving": "2 pieces (56g)"
+        }
+      ]
+    },
+    {
+      "id": "dominos",
+      "name": "Domino's",
+      "logo": "https://cdn.freebiesupply.com/logos/large/2x/dominos-pizza-logo-png-transparent.png",
+      "color": "#006491",
+      "categories": [
+        "Pizza",
+        "Chicken",
+        "Sides",
+        "Desserts"
+      ],
+      "menu": [
+        {
+          "name": "Pepperoni Pizza (1 slice, Medium Hand Tossed)",
+          "category": "Pizza",
+          "calories": 200,
+          "protein": 9,
+          "carbs": 26,
+          "fat": 8,
+          "serving": "1 slice (81g)"
+        },
+        {
+          "name": "Cheese Pizza (1 slice, Medium Hand Tossed)",
+          "category": "Pizza",
+          "calories": 200,
+          "protein": 8,
+          "carbs": 26,
+          "fat": 7,
+          "serving": "1 slice (75g)"
+        },
+        {
+          "name": "ExtravaganZZa Pizza (1 slice, Medium)",
+          "category": "Pizza",
+          "calories": 260,
+          "protein": 11,
+          "carbs": 27,
+          "fat": 12,
+          "serving": "1 slice (105g)"
+        },
+        {
+          "name": "MeatZZa Pizza (1 slice, Medium)",
+          "category": "Pizza",
+          "calories": 280,
+          "protein": 12,
+          "carbs": 26,
+          "fat": 14,
+          "serving": "1 slice (105g)"
+        },
+        {
+          "name": "Pacific Veggie Pizza (1 slice, Medium)",
+          "category": "Pizza",
+          "calories": 220,
+          "protein": 9,
+          "carbs": 27,
+          "fat": 8,
+          "serving": "1 slice (95g)"
+        },
+        {
+          "name": "Chicken Wings (4pc)",
+          "category": "Chicken",
+          "calories": 200,
+          "protein": 17,
+          "carbs": 2,
+          "fat": 13,
+          "serving": "4 pieces (90g)"
+        },
+        {
+          "name": "Boneless Chicken (4pc)",
+          "category": "Chicken",
+          "calories": 170,
+          "protein": 13,
+          "carbs": 11,
+          "fat": 8,
+          "serving": "4 pieces (72g)"
+        },
+        {
+          "name": "Stuffed Cheesy Bread (2pc)",
+          "category": "Sides",
+          "calories": 230,
+          "protein": 7,
+          "carbs": 26,
+          "fat": 11,
+          "serving": "2 pieces (78g)"
+        },
+        {
+          "name": "Garlic Bread Twists (2pc)",
+          "category": "Sides",
+          "calories": 220,
+          "protein": 6,
+          "carbs": 36,
+          "fat": 6,
+          "serving": "2 pieces (64g)"
+        },
+        {
+          "name": "Cinnamon Bread Twists (2pc)",
+          "category": "Desserts",
+          "calories": 250,
+          "protein": 5,
+          "carbs": 40,
+          "fat": 8,
+          "serving": "2 pieces (78g)"
+        },
+        {
+          "name": "Marbled Cookie Brownie (1 piece)",
+          "category": "Desserts",
+          "calories": 210,
+          "protein": 2,
+          "carbs": 26,
+          "fat": 11,
+          "serving": "1 piece (46g)"
+        }
+      ]
+    },
+    {
+      "id": "popeyes",
+      "name": "Popeyes",
+      "logo": "https://cdn.freebiesupply.com/logos/large/2x/popeyes-logo-png-transparent.png",
+      "color": "#F15A22",
+      "categories": [
+        "Chicken",
+        "Sandwiches",
+        "Sides"
+      ],
+      "menu": [
+        {
+          "name": "Classic Chicken Sandwich",
+          "category": "Sandwiches",
+          "calories": 700,
+          "protein": 28,
+          "carbs": 50,
+          "fat": 42,
+          "serving": "1 sandwich (225g)"
+        },
+        {
+          "name": "Spicy Chicken Sandwich",
+          "category": "Sandwiches",
+          "calories": 700,
+          "protein": 28,
+          "carbs": 50,
+          "fat": 42,
+          "serving": "1 sandwich (225g)"
+        },
+        {
+          "name": "Chicken Breast (Mild)",
+          "category": "Chicken",
+          "calories": 380,
+          "protein": 27,
+          "carbs": 16,
+          "fat": 23,
+          "serving": "1 piece (156g)"
+        },
+        {
+          "name": "Chicken Breast (Spicy)",
+          "category": "Chicken",
+          "calories": 360,
+          "protein": 27,
+          "carbs": 14,
+          "fat": 22,
+          "serving": "1 piece (156g)"
+        },
+        {
+          "name": "Chicken Leg (Mild)",
+          "category": "Chicken",
+          "calories": 160,
+          "protein": 13,
+          "carbs": 5,
+          "fat": 10,
+          "serving": "1 piece (79g)"
+        },
+        {
+          "name": "Chicken Thigh (Mild)",
+          "category": "Chicken",
+          "calories": 280,
+          "protein": 16,
+          "carbs": 8,
+          "fat": 21,
+          "serving": "1 piece (109g)"
+        },
+        {
+          "name": "5pc Chicken Tenders",
+          "category": "Chicken",
+          "calories": 620,
+          "protein": 43,
+          "carbs": 29,
+          "fat": 37,
+          "serving": "5 pieces (198g)"
+        },
+        {
+          "name": "Cajun Fries (Regular)",
+          "category": "Sides",
+          "calories": 260,
+          "protein": 4,
+          "carbs": 35,
+          "fat": 12,
+          "serving": "1 regular (99g)"
+        },
+        {
+          "name": "Red Beans & Rice",
+          "category": "Sides",
+          "calories": 230,
+          "protein": 8,
+          "carbs": 24,
+          "fat": 11,
+          "serving": "1 regular (156g)"
+        },
+        {
+          "name": "Coleslaw",
+          "category": "Sides",
+          "calories": 170,
+          "protein": 1,
+          "carbs": 14,
+          "fat": 13,
+          "serving": "1 regular (128g)"
+        },
+        {
+          "name": "Mashed Potatoes with Gravy",
+          "category": "Sides",
+          "calories": 110,
+          "protein": 2,
+          "carbs": 18,
+          "fat": 4,
+          "serving": "1 regular (142g)"
+        },
+        {
+          "name": "Biscuit",
+          "category": "Sides",
+          "calories": 200,
+          "protein": 3,
+          "carbs": 26,
+          "fat": 9,
+          "serving": "1 biscuit (60g)"
+        }
+      ]
+    },
+    {
+      "id": "five-guys",
+      "name": "Five Guys",
+      "logo": "https://logo.clearbit.com/fiveguys.com",
+      "color": "#D0021B",
+      "categories": [
+        "Burgers",
+        "Hot Dogs",
+        "Fries"
+      ],
+      "menu": [
+        {
+          "name": "Hamburger",
+          "category": "Burgers",
+          "calories": 700,
+          "protein": 39,
+          "carbs": 39,
+          "fat": 43,
+          "serving": "1 burger (302g)"
+        },
+        {
+          "name": "Cheeseburger",
+          "category": "Burgers",
+          "calories": 840,
+          "protein": 47,
+          "carbs": 40,
+          "fat": 55,
+          "serving": "1 burger (355g)"
+        },
+        {
+          "name": "Bacon Burger",
+          "category": "Burgers",
+          "calories": 780,
+          "protein": 43,
+          "carbs": 39,
+          "fat": 50,
+          "serving": "1 burger (330g)"
+        },
+        {
+          "name": "Bacon Cheeseburger",
+          "category": "Burgers",
+          "calories": 920,
+          "protein": 51,
+          "carbs": 40,
+          "fat": 62,
+          "serving": "1 burger (383g)"
+        },
+        {
+          "name": "Little Hamburger",
+          "category": "Burgers",
+          "calories": 480,
+          "protein": 23,
+          "carbs": 39,
+          "fat": 26,
+          "serving": "1 burger (206g)"
+        },
+        {
+          "name": "Little Cheeseburger",
+          "category": "Burgers",
+          "calories": 550,
+          "protein": 27,
+          "carbs": 40,
+          "fat": 32,
+          "serving": "1 burger (232g)"
+        },
+        {
+          "name": "Hot Dog",
+          "category": "Hot Dogs",
+          "calories": 545,
+          "protein": 18,
+          "carbs": 40,
+          "fat": 35,
+          "serving": "1 hot dog (167g)"
+        },
+        {
+          "name": "Cheese Dog",
+          "category": "Hot Dogs",
+          "calories": 615,
+          "protein": 22,
+          "carbs": 41,
+          "fat": 41,
+          "serving": "1 hot dog (193g)"
+        },
+        {
+          "name": "Bacon Dog",
+          "category": "Hot Dogs",
+          "calories": 625,
+          "protein": 22,
+          "carbs": 40,
+          "fat": 42,
+          "serving": "1 hot dog (195g)"
+        },
+        {
+          "name": "Regular Fries",
+          "category": "Fries",
+          "calories": 530,
+          "protein": 8,
+          "carbs": 72,
+          "fat": 23,
+          "serving": "1 regular (227g)"
+        },
+        {
+          "name": "Large Fries",
+          "category": "Fries",
+          "calories": 953,
+          "protein": 15,
+          "carbs": 131,
+          "fat": 41,
+          "serving": "1 large (411g)"
+        },
+        {
+          "name": "Cajun Fries (Regular)",
+          "category": "Fries",
+          "calories": 530,
+          "protein": 8,
+          "carbs": 72,
+          "fat": 23,
+          "serving": "1 regular (227g)"
+        }
+      ]
+    },
+    {
+      "id": "taco-bell",
+      "name": "Taco Bell",
+      "logo": "https://1000logos.net/wp-content/uploads/2017/06/Taco-Bell-Logo.png",
+      "color": "#702082",
+      "categories": [
+        "Tacos",
+        "Burritos",
+        "Specialties",
+        "Sides",
+        "Drinks"
+      ],
+      "menu": [
+        {
+          "name": "Crunchy Taco",
+          "category": "Tacos",
+          "calories": 170,
+          "protein": 8,
+          "carbs": 13,
+          "fat": 10,
+          "serving": "1 taco (78g)"
+        },
+        {
+          "name": "Crunchy Taco Supreme",
+          "category": "Tacos",
+          "calories": 190,
+          "protein": 8,
+          "carbs": 14,
+          "fat": 11,
+          "serving": "1 taco (92g)"
+        },
+        {
+          "name": "Soft Taco",
+          "category": "Tacos",
+          "calories": 180,
+          "protein": 9,
+          "carbs": 18,
+          "fat": 8,
+          "serving": "1 taco (99g)"
+        },
+        {
+          "name": "Doritos Locos Taco",
+          "category": "Tacos",
+          "calories": 170,
+          "protein": 8,
+          "carbs": 13,
+          "fat": 10,
+          "serving": "1 taco (78g)"
+        },
+        {
+          "name": "Chalupa Supreme - Beef",
+          "category": "Tacos",
+          "calories": 350,
+          "protein": 14,
+          "carbs": 31,
+          "fat": 19,
+          "serving": "1 chalupa (153g)"
+        },
+        {
+          "name": "Bean Burrito",
+          "category": "Burritos",
+          "calories": 350,
+          "protein": 13,
+          "carbs": 54,
+          "fat": 9,
+          "serving": "1 burrito (198g)"
+        },
+        {
+          "name": "Beef Burrito",
+          "category": "Burritos",
+          "calories": 430,
+          "protein": 18,
+          "carbs": 48,
+          "fat": 18,
+          "serving": "1 burrito (198g)"
+        },
+        {
+          "name": "Crunchwrap Supreme",
+          "category": "Specialties",
+          "calories": 530,
+          "protein": 16,
+          "carbs": 55,
+          "fat": 27,
+          "serving": "1 wrap (254g)"
+        },
+        {
+          "name": "Mexican Pizza",
+          "category": "Specialties",
+          "calories": 540,
+          "protein": 20,
+          "carbs": 47,
+          "fat": 30,
+          "serving": "1 pizza (213g)"
+        },
+        {
+          "name": "Quesadilla - Chicken",
+          "category": "Specialties",
+          "calories": 500,
+          "protein": 27,
+          "carbs": 37,
+          "fat": 27,
+          "serving": "1 quesadilla (184g)"
+        },
+        {
+          "name": "Nachos BellGrande",
+          "category": "Sides",
+          "calories": 740,
+          "protein": 16,
+          "carbs": 82,
+          "fat": 38,
+          "serving": "1 order (308g)"
+        },
+        {
+          "name": "Cinnamon Twists",
+          "category": "Sides",
+          "calories": 170,
+          "protein": 1,
+          "carbs": 27,
+          "fat": 6,
+          "serving": "1 order (35g)"
+        }
+      ]
+    },
+    {
+      "id": "dunkin",
+      "name": "Dunkin'",
+      "logo": "https://logo.clearbit.com/dunkindonuts.com",
+      "color": "#FF671F",
+      "categories": [
+        "Breakfast Sandwiches",
+        "Bagels",
+        "Donuts",
+        "Coffee"
+      ],
+      "menu": [
+        {
+          "name": "Bacon Egg Cheese on Croissant",
+          "category": "Breakfast Sandwiches",
+          "calories": 560,
+          "protein": 20,
+          "carbs": 36,
+          "fat": 38,
+          "serving": "1 sandwich (156g)"
+        },
+        {
+          "name": "Sausage Egg Cheese on English Muffin",
+          "category": "Breakfast Sandwiches",
+          "calories": 530,
+          "protein": 21,
+          "carbs": 35,
+          "fat": 35,
+          "serving": "1 sandwich (154g)"
+        },
+        {
+          "name": "Bacon Egg Cheese on English Muffin",
+          "category": "Breakfast Sandwiches",
+          "calories": 400,
+          "protein": 18,
+          "carbs": 35,
+          "fat": 21,
+          "serving": "1 sandwich (140g)"
+        },
+        {
+          "name": "Turkey Sausage Egg White Wrap",
+          "category": "Breakfast Sandwiches",
+          "calories": 280,
+          "protein": 18,
+          "carbs": 32,
+          "fat": 9,
+          "serving": "1 wrap (130g)"
+        },
+        {
+          "name": "Plain Bagel",
+          "category": "Bagels",
+          "calories": 310,
+          "protein": 11,
+          "carbs": 64,
+          "fat": 1,
+          "serving": "1 bagel (105g)"
+        },
+        {
+          "name": "Everything Bagel with Cream Cheese",
+          "category": "Bagels",
+          "calories": 480,
+          "protein": 14,
+          "carbs": 65,
+          "fat": 18,
+          "serving": "1 bagel (142g)"
+        },
+        {
+          "name": "Cinnamon Raisin Bagel",
+          "category": "Bagels",
+          "calories": 330,
+          "protein": 10,
+          "carbs": 68,
+          "fat": 2,
+          "serving": "1 bagel (110g)"
+        },
+        {
+          "name": "Glazed Donut",
+          "category": "Donuts",
+          "calories": 260,
+          "protein": 3,
+          "carbs": 31,
+          "fat": 14,
+          "serving": "1 donut (55g)"
+        },
+        {
+          "name": "Boston Kreme Donut",
+          "category": "Donuts",
+          "calories": 300,
+          "protein": 3,
+          "carbs": 38,
+          "fat": 15,
+          "serving": "1 donut (85g)"
+        },
+        {
+          "name": "Chocolate Frosted Donut",
+          "category": "Donuts",
+          "calories": 270,
+          "protein": 3,
+          "carbs": 32,
+          "fat": 15,
+          "serving": "1 donut (60g)"
+        },
+        {
+          "name": "Jelly Donut",
+          "category": "Donuts",
+          "calories": 270,
+          "protein": 4,
+          "carbs": 36,
+          "fat": 13,
+          "serving": "1 donut (75g)"
+        },
+        {
+          "name": "Strawberry Frosted Donut",
+          "category": "Donuts",
+          "calories": 280,
+          "protein": 3,
+          "carbs": 33,
+          "fat": 15,
+          "serving": "1 donut (60g)"
+        },
+        {
+          "name": "Hot Coffee (Medium)",
+          "category": "Coffee",
+          "calories": 5,
+          "protein": 0,
+          "carbs": 0,
+          "fat": 0,
+          "serving": "14 fl oz (414ml)"
+        },
+        {
+          "name": "Iced Coffee (Medium)",
+          "category": "Coffee",
+          "calories": 5,
+          "protein": 0,
+          "carbs": 0,
+          "fat": 0,
+          "serving": "24 fl oz (710ml)"
+        },
+        {
+          "name": "Latte (Medium)",
+          "category": "Coffee",
+          "calories": 120,
+          "protein": 8,
+          "carbs": 11,
+          "fat": 5,
+          "serving": "14 fl oz (414ml)"
+        },
+        {
+          "name": "Caramel Swirl Iced Coffee (Medium)",
+          "category": "Coffee",
+          "calories": 260,
+          "protein": 3,
+          "carbs": 39,
+          "fat": 9,
+          "serving": "24 fl oz (710ml)"
+        }
+      ]
+    },
+    {
+      "id": "papa-johns",
+      "name": "Papa John's",
+      "logo": "https://cdn.freebiesupply.com/logos/large/2x/papa-johns-pizza-logo-png-transparent.png",
+      "color": "#007735",
+      "categories": [
+        "Pizza",
+        "Sides",
+        "Desserts"
+      ],
+      "menu": [
+        {
+          "name": "Pepperoni Pizza (1 slice, Large Original)",
+          "category": "Pizza",
+          "calories": 310,
+          "protein": 13,
+          "carbs": 36,
+          "fat": 13,
+          "serving": "1 slice (122g)"
+        },
+        {
+          "name": "Cheese Pizza (1 slice, Large Original)",
+          "category": "Pizza",
+          "calories": 290,
+          "protein": 12,
+          "carbs": 36,
+          "fat": 11,
+          "serving": "1 slice (115g)"
+        },
+        {
+          "name": "The Works Pizza (1 slice, Large)",
+          "category": "Pizza",
+          "calories": 340,
+          "protein": 14,
+          "carbs": 37,
+          "fat": 15,
+          "serving": "1 slice (140g)"
+        },
+        {
+          "name": "The Meats Pizza (1 slice, Large)",
+          "category": "Pizza",
+          "calories": 370,
+          "protein": 17,
+          "carbs": 36,
+          "fat": 17,
+          "serving": "1 slice (138g)"
+        },
+        {
+          "name": "Garden Fresh Pizza (1 slice, Large)",
+          "category": "Pizza",
+          "calories": 280,
+          "protein": 11,
+          "carbs": 36,
+          "fat": 10,
+          "serving": "1 slice (130g)"
+        },
+        {
+          "name": "Garlic Parmesan Breadsticks (2pc)",
+          "category": "Sides",
+          "calories": 340,
+          "protein": 9,
+          "carbs": 46,
+          "fat": 13,
+          "serving": "2 pieces (88g)"
+        },
+        {
+          "name": "Chicken Wings (4pc)",
+          "category": "Sides",
+          "calories": 220,
+          "protein": 18,
+          "carbs": 2,
+          "fat": 16,
+          "serving": "4 pieces (100g)"
+        },
+        {
+          "name": "Cheesesticks (4pc)",
+          "category": "Sides",
+          "calories": 370,
+          "protein": 14,
+          "carbs": 36,
+          "fat": 18,
+          "serving": "4 pieces (112g)"
+        },
+        {
+          "name": "Cinnapie",
+          "category": "Desserts",
+          "calories": 800,
+          "protein": 10,
+          "carbs": 120,
+          "fat": 30,
+          "serving": "1/4 pie (148g)"
+        },
+        {
+          "name": "Chocolate Chip Cookie (1pc)",
+          "category": "Desserts",
+          "calories": 180,
+          "protein": 2,
+          "carbs": 23,
+          "fat": 9,
+          "serving": "1 cookie (43g)"
+        }
+      ]
+    },
+    {
+      "id": "chipotle",
+      "name": "Chipotle",
+      "logo": "https://cdn.freebiesupply.com/logos/large/2x/chipotle-mexican-grill-logo-png-transparent.png",
+      "color": "#441500",
+      "categories": [
+        "Burritos",
+        "Bowls",
+        "Tacos",
+        "Sides"
+      ],
+      "menu": [
+        {
+          "name": "Chicken Burrito",
+          "category": "Burritos",
+          "calories": 1050,
+          "protein": 53,
+          "carbs": 105,
+          "fat": 42,
+          "serving": "1 burrito (510g)"
+        },
+        {
+          "name": "Steak Burrito",
+          "category": "Burritos",
+          "calories": 1030,
+          "protein": 50,
+          "carbs": 105,
+          "fat": 40,
+          "serving": "1 burrito (520g)"
+        },
+        {
+          "name": "Carnitas Burrito",
+          "category": "Burritos",
+          "calories": 1075,
+          "protein": 48,
+          "carbs": 105,
+          "fat": 45,
+          "serving": "1 burrito (515g)"
+        },
+        {
+          "name": "Barbacoa Burrito",
+          "category": "Burritos",
+          "calories": 1010,
+          "protein": 51,
+          "carbs": 105,
+          "fat": 37,
+          "serving": "1 burrito (515g)"
+        },
+        {
+          "name": "Chicken Bowl",
+          "category": "Bowls",
+          "calories": 740,
+          "protein": 53,
+          "carbs": 58,
+          "fat": 32,
+          "serving": "1 bowl (460g)"
+        },
+        {
+          "name": "Steak Bowl",
+          "category": "Bowls",
+          "calories": 720,
+          "protein": 50,
+          "carbs": 58,
+          "fat": 30,
+          "serving": "1 bowl (470g)"
+        },
+        {
+          "name": "Carnitas Bowl",
+          "category": "Bowls",
+          "calories": 765,
+          "protein": 48,
+          "carbs": 58,
+          "fat": 35,
+          "serving": "1 bowl (465g)"
+        },
+        {
+          "name": "Chicken Tacos (3)",
+          "category": "Tacos",
+          "calories": 630,
+          "protein": 40,
+          "carbs": 45,
+          "fat": 30,
+          "serving": "3 tacos (340g)"
+        },
+        {
+          "name": "Steak Tacos (3)",
+          "category": "Tacos",
+          "calories": 615,
+          "protein": 38,
+          "carbs": 45,
+          "fat": 28,
+          "serving": "3 tacos (345g)"
+        },
+        {
+          "name": "Chips",
+          "category": "Sides",
+          "calories": 540,
+          "protein": 7,
+          "carbs": 68,
+          "fat": 26,
+          "serving": "1 bag (128g)"
+        },
+        {
+          "name": "Chips & Guacamole",
+          "category": "Sides",
+          "calories": 770,
+          "protein": 10,
+          "carbs": 77,
+          "fat": 48,
+          "serving": "1 order (200g)"
+        },
+        {
+          "name": "Guacamole",
+          "category": "Sides",
+          "calories": 230,
+          "protein": 3,
+          "carbs": 9,
+          "fat": 22,
+          "serving": "1 side (72g)"
+        }
+      ]
+    },
+    {
+      "id": "chick-fil-a",
+      "name": "Chick-fil-A",
+      "logo": "https://logo.clearbit.com/chick-fil-a.com",
+      "color": "#E51636",
+      "categories": [
+        "Chicken Sandwiches",
+        "Nuggets & Strips",
+        "Breakfast",
+        "Sides",
+        "Drinks"
+      ],
+      "menu": [
+        {
+          "name": "Chick-fil-A Chicken Sandwich",
+          "category": "Chicken Sandwiches",
+          "calories": 440,
+          "protein": 28,
+          "carbs": 40,
+          "fat": 18,
+          "serving": "1 sandwich (167g)"
+        },
+        {
+          "name": "Deluxe Chicken Sandwich",
+          "category": "Chicken Sandwiches",
+          "calories": 500,
+          "protein": 29,
+          "carbs": 42,
+          "fat": 22,
+          "serving": "1 sandwich (199g)"
+        },
+        {
+          "name": "Spicy Chicken Sandwich",
+          "category": "Chicken Sandwiches",
+          "calories": 450,
+          "protein": 28,
+          "carbs": 43,
+          "fat": 18,
+          "serving": "1 sandwich (168g)"
+        },
+        {
+          "name": "Grilled Chicken Sandwich",
+          "category": "Chicken Sandwiches",
+          "calories": 320,
+          "protein": 28,
+          "carbs": 36,
+          "fat": 6,
+          "serving": "1 sandwich (183g)"
+        },
+        {
+          "name": "8pc Chicken Nuggets",
+          "category": "Nuggets & Strips",
+          "calories": 250,
+          "protein": 27,
+          "carbs": 11,
+          "fat": 11,
+          "serving": "8 pieces (113g)"
+        },
+        {
+          "name": "12pc Chicken Nuggets",
+          "category": "Nuggets & Strips",
+          "calories": 380,
+          "protein": 40,
+          "carbs": 17,
+          "fat": 17,
+          "serving": "12 pieces (170g)"
+        },
+        {
+          "name": "4pc Chick-n-Strips",
+          "category": "Nuggets & Strips",
+          "calories": 360,
+          "protein": 39,
+          "carbs": 17,
+          "fat": 15,
+          "serving": "4 pieces (137g)"
+        },
+        {
+          "name": "Chicken Biscuit",
+          "category": "Breakfast",
+          "calories": 450,
+          "protein": 18,
+          "carbs": 46,
+          "fat": 21,
+          "serving": "1 biscuit (159g)"
+        },
+        {
+          "name": "Hash Brown Scramble Burrito",
+          "category": "Breakfast",
+          "calories": 680,
+          "protein": 30,
+          "carbs": 47,
+          "fat": 41,
+          "serving": "1 burrito (227g)"
+        },
+        {
+          "name": "Waffle Fries (Medium)",
+          "category": "Sides",
+          "calories": 420,
+          "protein": 5,
+          "carbs": 45,
+          "fat": 24,
+          "serving": "1 medium (125g)"
+        },
+        {
+          "name": "Fruit Cup (Medium)",
+          "category": "Sides",
+          "calories": 60,
+          "protein": 1,
+          "carbs": 16,
+          "fat": 0,
+          "serving": "1 medium (145g)"
+        },
+        {
+          "name": "Chick-fil-A Sauce",
+          "category": "Sides",
+          "calories": 140,
+          "protein": 0,
+          "carbs": 7,
+          "fat": 13,
+          "serving": "1 packet (28g)"
+        }
+      ]
+    },
+    {
+      "id": "panda-express",
+      "name": "Panda Express",
+      "logo": "https://logo.clearbit.com/pandaexpress.com",
+      "color": "#D12028",
+      "categories": [
+        "Entrees",
+        "Sides",
+        "Appetizers"
+      ],
+      "menu": [
+        {
+          "name": "Orange Chicken",
+          "category": "Entrees",
+          "calories": 490,
+          "protein": 25,
+          "carbs": 51,
+          "fat": 23,
+          "serving": "1 entree (5.7oz)"
+        },
+        {
+          "name": "Beijing Beef",
+          "category": "Entrees",
+          "calories": 470,
+          "protein": 14,
+          "carbs": 46,
+          "fat": 26,
+          "serving": "1 entree (162g)"
+        },
+        {
+          "name": "Kung Pao Chicken",
+          "category": "Entrees",
+          "calories": 290,
+          "protein": 16,
+          "carbs": 14,
+          "fat": 19,
+          "serving": "1 entree (162g)"
+        },
+        {
+          "name": "Broccoli Beef",
+          "category": "Entrees",
+          "calories": 150,
+          "protein": 9,
+          "carbs": 13,
+          "fat": 7,
+          "serving": "1 entree (162g)"
+        },
+        {
+          "name": "Honey Walnut Shrimp",
+          "category": "Entrees",
+          "calories": 360,
+          "protein": 14,
+          "carbs": 35,
+          "fat": 23,
+          "serving": "1 entree (162g)"
+        },
+        {
+          "name": "Grilled Teriyaki Chicken",
+          "category": "Entrees",
+          "calories": 300,
+          "protein": 36,
+          "carbs": 8,
+          "fat": 13,
+          "serving": "1 entree (162g)"
+        },
+        {
+          "name": "Black Pepper Angus Steak",
+          "category": "Entrees",
+          "calories": 180,
+          "protein": 19,
+          "carbs": 11,
+          "fat": 7,
+          "serving": "1 entree (162g)"
+        },
+        {
+          "name": "Fried Rice",
+          "category": "Sides",
+          "calories": 520,
+          "protein": 11,
+          "carbs": 85,
+          "fat": 16,
+          "serving": "1 serving (303g)"
+        },
+        {
+          "name": "Chow Mein",
+          "category": "Sides",
+          "calories": 510,
+          "protein": 13,
+          "carbs": 80,
+          "fat": 18,
+          "serving": "1 serving (303g)"
+        },
+        {
+          "name": "White Steamed Rice",
+          "category": "Sides",
+          "calories": 380,
+          "protein": 8,
+          "carbs": 87,
+          "fat": 0,
+          "serving": "1 serving (303g)"
+        },
+        {
+          "name": "Chicken Egg Roll (1pc)",
+          "category": "Appetizers",
+          "calories": 200,
+          "protein": 8,
+          "carbs": 20,
+          "fat": 10,
+          "serving": "1 roll (79g)"
+        },
+        {
+          "name": "Cream Cheese Rangoon (3pc)",
+          "category": "Appetizers",
+          "calories": 190,
+          "protein": 5,
+          "carbs": 24,
+          "fat": 8,
+          "serving": "3 pieces (64g)"
+        }
+      ]
+    },
+    {
+      "id": "arbys",
+      "name": "Arby's",
+      "logo": "https://cdn.freebiesupply.com/logos/large/2x/arbys-logo-png-transparent.png",
+      "color": "#D2232A",
+      "categories": [
+        "Roast Beef",
+        "Chicken",
+        "Sides"
+      ],
+      "menu": [
+        {
+          "name": "Classic Roast Beef",
+          "category": "Roast Beef",
+          "calories": 360,
+          "protein": 23,
+          "carbs": 37,
+          "fat": 14,
+          "serving": "1 sandwich (154g)"
+        },
+        {
+          "name": "Beef 'n Cheddar",
+          "category": "Roast Beef",
+          "calories": 450,
+          "protein": 23,
+          "carbs": 45,
+          "fat": 20,
+          "serving": "1 sandwich (195g)"
+        },
+        {
+          "name": "French Dip & Swiss",
+          "category": "Roast Beef",
+          "calories": 510,
+          "protein": 32,
+          "carbs": 50,
+          "fat": 19,
+          "serving": "1 sandwich (252g)"
+        },
+        {
+          "name": "Double Roast Beef",
+          "category": "Roast Beef",
+          "calories": 510,
+          "protein": 35,
+          "carbs": 37,
+          "fat": 24,
+          "serving": "1 sandwich (209g)"
+        },
+        {
+          "name": "Crispy Chicken Sandwich",
+          "category": "Chicken",
+          "calories": 530,
+          "protein": 23,
+          "carbs": 52,
+          "fat": 26,
+          "serving": "1 sandwich (198g)"
+        },
+        {
+          "name": "Spicy Chicken Sandwich",
+          "category": "Chicken",
+          "calories": 560,
+          "protein": 23,
+          "carbs": 53,
+          "fat": 28,
+          "serving": "1 sandwich (206g)"
+        },
+        {
+          "name": "Chicken Tenders (3pc)",
+          "category": "Chicken",
+          "calories": 360,
+          "protein": 26,
+          "carbs": 22,
+          "fat": 19,
+          "serving": "3 pieces (119g)"
+        },
+        {
+          "name": "Curly Fries (Medium)",
+          "category": "Sides",
+          "calories": 410,
+          "protein": 5,
+          "carbs": 49,
+          "fat": 22,
+          "serving": "1 medium (128g)"
+        },
+        {
+          "name": "Mozzarella Sticks (4pc)",
+          "category": "Sides",
+          "calories": 440,
+          "protein": 18,
+          "carbs": 38,
+          "fat": 24,
+          "serving": "4 pieces (112g)"
+        },
+        {
+          "name": "Jamocha Shake (Medium)",
+          "category": "Sides",
+          "calories": 540,
+          "protein": 13,
+          "carbs": 81,
+          "fat": 15,
+          "serving": "1 medium (397g)"
+        }
+      ]
+    }
+  ]
+}

@@ -987,6 +987,28 @@ export async function logMeal({ foodName, amount, calories, protein, carbs, fat,
       };
     }
 
+    const today = new Date().toISOString().split('T')[0];
+
+    // Check meal count limit
+    let mealCountWarning = null;
+    try {
+      const profileData = await AsyncStorage.getItem('@user_profile');
+      const profile = profileData ? JSON.parse(profileData) : {};
+      const mealsPerDay = profile.nutrition?.mealsPerDay || 3;
+
+      // Get today's meals count
+      const todaysMeals = await MealSyncService.getMealsByDate(userId, today);
+      const todaysMealCount = todaysMeals?.length || 0;
+
+      console.log(`📊 Meal count check: ${todaysMealCount}/${mealsPerDay} meals today`);
+
+      if (todaysMealCount >= mealsPerDay) {
+        mealCountWarning = `⚠️ Note: You've now logged ${todaysMealCount + 1} meals today (your goal is ${mealsPerDay} meals/day). That's okay if you're hungry, just be mindful of your daily totals!`;
+      }
+    } catch (checkError) {
+      console.log('Could not check meal count:', checkError.message);
+    }
+
     // Create meal object
     const meal = {
       food_name: foodName,
@@ -996,15 +1018,20 @@ export async function logMeal({ foodName, amount, calories, protein, carbs, fat,
       carbs_consumed: carbs || 0,
       fat_consumed: fat || 0,
       meal_time: new Date().toISOString(),
+      date: today,
+      created_at: new Date().toISOString(),
     };
 
     // Save to Firebase
-    await MealSyncService.addMeal(userId, meal);
+    await MealSyncService.syncMealEntry(userId, meal);
+
+    const baseMessage = `Logged ${amount || ''} ${foodName} - ${calories || '?'} cal, ${protein || '?'}g protein`;
 
     return {
       success: true,
-      message: `Logged ${amount || ''} ${foodName} - ${calories || '?'} cal, ${protein || '?'}g protein`,
+      message: mealCountWarning ? `${baseMessage}\n\n${mealCountWarning}` : baseMessage,
       data: meal,
+      mealCountWarning: mealCountWarning,
     };
   } catch (error) {
     console.error('❌ logMeal error:', error);

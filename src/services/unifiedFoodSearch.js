@@ -1,9 +1,86 @@
 // Unified Food Search Service
 // Provides consistent search results across all screens with accurate nutrition data
+//
+// 3-Tier Search System:
+// 1. CURATED DATABASE - Fast (<50ms), offline, high-quality (PRIMARY)
+// 2. LOCAL OVERRIDES - Manual corrections for common foods
+// 3. EXTERNAL APIS - USDA, Open Food Facts (FALLBACK)
 
 import { searchFoods } from './foodDatabaseService';
 import { smartSearchFoods } from './smartFoodSearch';
 import { hybridSearch } from './openFoodFactsService';
+import curatedFoodDatabase from './curatedFoodDatabase';
+import userContributedFoods from './userContributedFoods';
+import restaurantData from '../data/restaurantDatabase.json';
+
+/**
+ * Search restaurant menu items
+ * @param {string} query - Search query
+ * @param {number} maxResults - Maximum results to return
+ * @returns {Array} Array of matching restaurant food items
+ */
+const searchRestaurantFoods = (query, maxResults = 20) => {
+  if (!query || query.trim().length < 2) return [];
+
+  const queryLower = query.toLowerCase().trim();
+  const searchTerms = queryLower.split(/\s+/);
+  const results = [];
+
+  for (const restaurant of restaurantData.restaurants) {
+    const restaurantNameLower = restaurant.name.toLowerCase();
+
+    for (const item of restaurant.menu) {
+      const itemNameLower = item.name.toLowerCase();
+      let score = 0;
+
+      // Check if any search term matches
+      for (const term of searchTerms) {
+        if (term.length < 2) continue;
+
+        // Item name match (highest priority)
+        if (itemNameLower.includes(term)) {
+          score += 100;
+        }
+        // Restaurant name match
+        if (restaurantNameLower.includes(term)) {
+          score += 50;
+        }
+        // Category match
+        if (item.category.toLowerCase().includes(term)) {
+          score += 25;
+        }
+      }
+
+      if (score > 0) {
+        results.push({
+          id: `${restaurant.id}-${item.name.toLowerCase().replace(/\s+/g, '-')}`,
+          name: item.name,
+          brand: restaurant.name,
+          calories: item.calories,
+          protein: item.protein,
+          carbs: item.carbs,
+          fat: item.fat,
+          fiber: 0,
+          sugar: 0,
+          sodium: 0,
+          serving_size: item.serving,
+          serving_quantity: 1,
+          category: item.category,
+          source: 'restaurant',
+          restaurant_id: restaurant.id,
+          restaurant_name: restaurant.name,
+          restaurant_color: restaurant.color,
+          relevanceScore: score,
+        });
+      }
+    }
+  }
+
+  // Sort by score and return top results
+  return results
+    .sort((a, b) => b.relevanceScore - a.relevanceScore)
+    .slice(0, maxResults);
+};
 
 // Accurate common food entries that often have confusing database entries
 const ACCURATE_FOOD_OVERRIDES = {
@@ -98,7 +175,11 @@ export const unifiedFoodSearch = async (query, options = {}) => {
   const {
     includeAPI = false,  // Only FoodSearchScreen should use API
     limit = 50,
-    localOnly = false
+    localOnly = false,
+    minProtein = null,
+    maxCalories = null,
+    minCalories = null,
+    category = null,
   } = options;
 
   if (!query || !query.trim()) {
@@ -106,14 +187,77 @@ export const unifiedFoodSearch = async (query, options = {}) => {
   }
 
   const queryLower = query.toLowerCase().trim();
+  const startTime = Date.now();
 
-  // Check for accurate overrides first
+  // ═══════════════════════════════════════════════════════════════
+  // TIER 1: USER FOODS + RESTAURANT + CURATED DATABASE (Fast, Offline, High Quality)
+  // ═══════════════════════════════════════════════════════════════
+  let curatedResultsForLater = [];
+  let userFoodsResults = [];
+  let restaurantResults = [];
+
+  // Search user contributed foods first (highest priority for user's own foods)
+  try {
+    userFoodsResults = await userContributedFoods.search(query, {
+      maxResults: 10,
+      category,
+    });
+    if (userFoodsResults.length > 0) {
+      console.log(`👤 User foods: ${userFoodsResults.length} results`);
+    }
+  } catch (error) {
+    console.log('⚠️ User foods search failed:', error.message);
+  }
+
+  // Search restaurant menu items
+  try {
+    restaurantResults = searchRestaurantFoods(query, 10);
+    if (restaurantResults.length > 0) {
+      console.log(`🍟 Restaurant foods: ${restaurantResults.length} results`);
+    }
+  } catch (error) {
+    console.log('⚠️ Restaurant foods search failed:', error.message);
+  }
+
+  try {
+    const curatedResults = curatedFoodDatabase.searchForApp(query, {
+      maxResults: limit,
+      minProtein,
+      maxCalories,
+      minCalories,
+      category,
+    });
+
+    curatedResultsForLater = curatedResults; // Save for later use
+
+    const tier1Time = Date.now() - startTime;
+    console.log(`🍔 Curated search: ${curatedResults.length} results in ${tier1Time}ms`);
+
+    // Combine user foods (first), then restaurant foods, then curated results
+    const tier1Combined = [...userFoodsResults, ...restaurantResults, ...curatedResults];
+
+    // If we have ANY tier 1 results and NOT explicitly asking for API, return them
+    // This prevents waiting for slow APIs when we have good local data
+    if (tier1Combined.length >= 1 && !includeAPI) {
+      console.log(`✅ Using tier 1 results (${tier1Combined.length} foods)`);
+      return tier1Combined.slice(0, limit);
+    }
+  } catch (error) {
+    console.log('⚠️ Curated database search failed:', error.message);
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // TIER 2: LOCAL OVERRIDES + EXISTING DATABASE
+  // ═══════════════════════════════════════════════════════════════
+
+  // Check for accurate overrides
   const overrideResults = [];
   for (const [key, food] of Object.entries(ACCURATE_FOOD_OVERRIDES)) {
     if (key.includes(queryLower) || queryLower.includes(key)) {
       overrideResults.push({
         ...food,
-        relevanceScore: 10000  // Highest priority
+        relevanceScore: 10000,  // Highest priority
+        source: 'override',
       });
     }
   }
@@ -121,6 +265,14 @@ export const unifiedFoodSearch = async (query, options = {}) => {
   try {
     // Search local database
     const localResults = await searchFoods(query);
+
+    // Get curated results to merge
+    let curatedResults = [];
+    try {
+      curatedResults = curatedFoodDatabase.searchForApp(query, { maxResults: 20 });
+    } catch (e) {
+      // Ignore curated errors
+    }
 
     // Filter out inaccurate entries if we have overrides
     const filteredLocal = localResults.filter(food => {
@@ -131,48 +283,207 @@ export const unifiedFoodSearch = async (query, options = {}) => {
       );
     });
 
-    // Combine overrides with filtered local results
-    const combinedLocal = [...overrideResults, ...filteredLocal];
+    // Combine: User foods first, restaurant foods, then curated, overrides, then filtered local
+    const combinedLocal = [
+      ...userFoodsResults,
+      ...restaurantResults,
+      ...curatedResults,
+      ...overrideResults,
+      ...filteredLocal,
+    ];
+
+    // Get the main search terms (ignore modifiers)
+    const modifiers = ['frozen', 'fresh', 'raw', 'cooked', 'grilled', 'baked', 'fried', 'steamed', 'organic', 'natural', 'the', 'a', 'an', 'of', 'with'];
+    const mainSearchTerms = queryLower.split(/\s+/).filter(term =>
+      term.length > 2 && !modifiers.includes(term)
+    );
+
+    // Helper function to check if a food name matches a search term
+    const matchesTerm = (nameLower, term) => {
+      if (!term || term.length < 2) return true; // Empty term matches everything
+
+      // Direct match
+      if (nameLower.includes(term)) return true;
+
+      // Plural/singular variations
+      if (term.endsWith('s') && nameLower.includes(term.slice(0, -1))) return true;
+      if (!term.endsWith('s') && nameLower.includes(term + 's')) return true;
+
+      // 'y' -> 'ies' conversion
+      if (term.endsWith('y') && nameLower.includes(term.slice(0, -1) + 'ies')) return true;
+      if (term.endsWith('ies') && nameLower.includes(term.slice(0, -3) + 'y')) return true;
+
+      // Common spelling variations (pita/pitta, yogurt/yoghurt, etc.)
+      const spellingVariations = {
+        'pita': ['pitta', 'pitas', 'pittas'],
+        'pitta': ['pita', 'pitas', 'pittas'],
+        'yogurt': ['yoghurt', 'yogurts', 'yoghurts'],
+        'yoghurt': ['yogurt', 'yogurts', 'yoghurts'],
+        'donut': ['doughnut', 'donuts', 'doughnuts'],
+        'doughnut': ['donut', 'donuts', 'doughnuts'],
+        'fiber': ['fibre'],
+        'fibre': ['fiber'],
+      };
+
+      if (spellingVariations[term]) {
+        for (const variant of spellingVariations[term]) {
+          if (nameLower.includes(variant)) return true;
+        }
+      }
+
+      // Fuzzy match - allow 1 character difference for terms > 4 chars
+      if (term.length > 4) {
+        const words = nameLower.split(/\s+/);
+        for (const word of words) {
+          if (word.length >= term.length - 1 && word.length <= term.length + 1) {
+            let diff = 0;
+            const minLen = Math.min(word.length, term.length);
+            for (let i = 0; i < minLen; i++) {
+              if (word[i] !== term[i]) diff++;
+              if (diff > 1) break;
+            }
+            if (diff <= 1) return true;
+          }
+        }
+      }
+
+      return false;
+    };
+
+    // Remove duplicates, junk data, and irrelevant results
+    const seen = new Set();
+    const dedupedLocal = combinedLocal.filter(food => {
+      // Remove duplicates
+      const key = (food.name || '').toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+
+      // Remove foods with no nutritional value (0 protein, 0 carbs, 0 fat)
+      const hasNoNutrition = (
+        (!food.protein || food.protein === 0) &&
+        (!food.carbs || food.carbs === 0) &&
+        (!food.fat || food.fat === 0)
+      );
+      if (hasNoNutrition) return false;
+
+      // Remove foods with 0 calories
+      if (!food.calories || food.calories === 0) return false;
+
+      // STRICT MATCHING: Food name MUST contain at least one main search term
+      const nameLower = key;
+      const matchesMainTerm = mainSearchTerms.length === 0 || mainSearchTerms.some(term => matchesTerm(nameLower, term));
+
+      if (!matchesMainTerm) return false;
+
+      // Skip foods with non-Latin characters in parentheses (foreign text)
+      // Allow apostrophes, ampersands, and common punctuation
+      if (/\([^)]*[^\w\s,.\-()''&/]+[^)]*\)/.test(food.name || '')) return false;
+
+      return true;
+    });
 
     // Apply smart ranking
-    const rankedResults = await smartSearchFoods(combinedLocal, query, {
+    const rankedResults = await smartSearchFoods(dedupedLocal, query, {
       limit: includeAPI ? 100 : limit,
       includeCategories: false,
       includeSuggestions: false
     });
+
+    const tier2Time = Date.now() - startTime;
+    console.log(`📦 Combined search: ${rankedResults.all.length} results in ${tier2Time}ms`);
 
     // If local only or no API needed, return now
     if (localOnly || !includeAPI) {
       return rankedResults.all.slice(0, limit);
     }
 
-    // For FoodSearchScreen: include API results
-    const { combined } = await hybridSearch(query, rankedResults.all.slice(0, 20));
+    // ═══════════════════════════════════════════════════════════════
+    // TIER 3: EXTERNAL APIS (Fallback for rare foods)
+    // ═══════════════════════════════════════════════════════════════
 
-    // Filter out overly specific products
+    // For FoodSearchScreen: include API results with TIMEOUT
+    // If API takes too long, return local results instead
+    const API_TIMEOUT_MS = 8000; // 8 seconds max for API
+
+    let apiResults = { combined: rankedResults.all };
+    try {
+      const apiPromise = hybridSearch(query, rankedResults.all.slice(0, 20));
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('API timeout')), API_TIMEOUT_MS)
+      );
+
+      apiResults = await Promise.race([apiPromise, timeoutPromise]);
+    } catch (error) {
+      console.log(`⚠️ API search skipped (${error.message}), using local results`);
+      // Return local results if API times out or fails
+      return rankedResults.all.slice(0, limit);
+    }
+
+    const { combined } = apiResults;
+
+    // Filter out junk data and irrelevant results (reuse mainSearchTerms from above)
     const filtered = combined.filter(food => {
-      const nameLower = food.name.toLowerCase();
+      // IMPORTANT: Remove foods with no nutritional value (0 protein, 0 carbs, 0 fat)
+      const hasNoNutrition = (
+        (!food.protein || food.protein === 0) &&
+        (!food.carbs || food.carbs === 0) &&
+        (!food.fat || food.fat === 0)
+      );
+      if (hasNoNutrition) {
+        return false;
+      }
 
-      // Keep whole foods
-      if (!food.brand && food.category) return true;
+      // Remove foods with 0 calories (incomplete data)
+      if (!food.calories || food.calories === 0) {
+        return false;
+      }
 
-      // Keep if it's a close match
-      if (nameLower.includes(queryLower)) return true;
+      const nameLower = (food.name || '').toLowerCase();
 
-      // Skip overly specific branded products
-      if (food.brand && nameLower.split(' ').length > 5) return false;
+      // STRICT MATCHING: Food name MUST contain at least one main search term
+      const matchesMainTerm = mainSearchTerms.length === 0 || mainSearchTerms.some(term => matchesTerm(nameLower, term));
+
+      if (!matchesMainTerm) {
+        return false;
+      }
+
+      // Skip overly long/specific branded products
+      if (food.brand && nameLower.split(' ').length > 6) {
+        return false;
+      }
+
+      // Skip foods with non-Latin characters in parentheses (foreign text)
+      // Allow apostrophes, ampersands, and common punctuation
+      if (/\([^)]*[^\w\s,.\-()''&/]+[^)]*\)/.test(food.name)) {
+        return false;
+      }
 
       return true;
     });
 
     // Final ranking
     const finalRanked = await smartSearchFoods(filtered, query, { limit });
+
+    const totalTime = Date.now() - startTime;
+    console.log(`🌐 API search: ${finalRanked.all.length} results in ${totalTime}ms`);
+
     return finalRanked.all;
 
   } catch (error) {
-    // Fallback to overrides + basic local search
-    const localResults = await searchFoods(query);
-    return [...overrideResults, ...localResults].slice(0, limit);
+    console.error('❌ Unified search error:', error.message);
+
+    // Fallback to user foods + restaurant + curated + overrides
+    let fallbackResults = [...userFoodsResults, ...restaurantResults, ...overrideResults];
+    try {
+      const curatedFallback = curatedFoodDatabase.searchForApp(query, { maxResults: limit });
+      fallbackResults = [...userFoodsResults, ...restaurantResults, ...curatedFallback, ...overrideResults];
+    } catch (e) {
+      // Last resort: user foods + restaurant + overrides + basic local
+      const localResults = await searchFoods(query);
+      fallbackResults = [...userFoodsResults, ...restaurantResults, ...overrideResults, ...localResults];
+    }
+
+    return fallbackResults.slice(0, limit);
   }
 };
 
