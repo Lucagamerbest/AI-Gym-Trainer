@@ -445,12 +445,6 @@ class AIService {
           },
         });
 
-          responseLength: responseText.length,
-          toolsUsedCount: functionCallCount,
-          toolResultsCount: toolsUsedLog.length,
-          toolNames: toolsUsedLog.map(t => t.name),
-        });
-
         // Extract toolResults from the last tool if it has any
         let finalToolResults = null;
         if (toolsUsedLog.length > 0) {
