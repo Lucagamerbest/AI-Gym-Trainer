@@ -46,26 +46,25 @@ const playNotificationSound = async () => {
       playThroughEarpieceAndroid: false,
     });
 
-    // Try primary sound file, fallback to secondary if it fails
+    // Load sound first (don't autoplay - more reliable on iOS)
     let sound = null;
-    try {
-      const result = await Audio.Sound.createAsync(
-        require('../../assets/timer_beep.wav'),
-        { shouldPlay: true, volume: 1.0 }
-      );
-      sound = result.sound;
-    } catch (primaryError) {
-      // Fallback to original notification.mp3
+
+    // Try mp3 first (more reliable on iOS), then wav as fallback
+    const soundFiles = [
+      require('../../assets/notification.mp3'),
+      require('../../assets/timer_beep.wav'),
+    ];
+
+    for (const soundFile of soundFiles) {
       try {
-        const result = await Audio.Sound.createAsync(
-          require('../../assets/notification.mp3'),
-          { shouldPlay: true, volume: 1.0 }
+        const { sound: loadedSound } = await Audio.Sound.createAsync(
+          soundFile,
+          { volume: 1.0 }  // Don't autoplay
         );
-        sound = result.sound;
-      } catch (fallbackError) {
-        // Both failed - just use haptic feedback
-        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-        return;
+        sound = loadedSound;
+        break;
+      } catch (err) {
+        // Try next file
       }
     }
 
@@ -73,6 +72,9 @@ const playNotificationSound = async () => {
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
       return;
     }
+
+    // Explicitly play (more reliable on iOS production builds)
+    await sound.playAsync();
 
     // Clean up after sound finishes AND restore audio mode so music resumes
     sound.setOnPlaybackStatusUpdate(async (status) => {
