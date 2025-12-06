@@ -94,7 +94,12 @@
       "Bash(npx @gltf-transform/cli:*)",
       "Bash(git rm:*)",
       "Bash(if not exist \"C:\\Users\\lucar\\AI-Gym-Trainer\\scripts\" mkdir \"C:\\Users\\lucar\\AI-Gym-Trainer\\scripts\")",
-      "Bash(git reset:*)"
+      "Bash(git reset:*)",
+      "Bash(do echo \"Checking $f...\")",
+      "Bash(echo:*)",
+      "Bash(do node -c \"$f\")",
+      "Bash(grep:*)",
+      "Bash(perl:*)"
     ],
     "deny": [],
     "ask": []

@@ -44,15 +44,8 @@ class WorkoutCacheService {
       const profile = await getUserProfile(userId);
 
       if (!profile) {
-        console.error('❌ [WorkoutCache] No profile found for user');
         return { success: false, error: 'No profile found' };
       }
-
-        experienceLevel: profile.experienceLevel,
-        equipmentCount: profile.equipmentAccess?.length || 0,
-        goal: profile.primaryGoal,
-        blacklistedExercises: profile.dislikedExercises?.length || 0,
-      });
 
       // Generate variations for each workout type
       const cache = {

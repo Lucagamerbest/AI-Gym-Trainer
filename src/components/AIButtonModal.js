@@ -997,23 +997,6 @@ export default function AIButtonModal({
       // Send to AI with tools
       const result = await AIService.sendMessageWithTools(messageToSend, context);
 
-        hasResponse: !!result.response,
-        responseLength: result.response?.length,
-        responsePreview: result.response?.substring(0, 100),
-        keys: Object.keys(result),
-        hasToolResults: !!result.toolResults,
-        toolResultsKeys: result.toolResults ? Object.keys(result.toolResults) : null,
-        hasMealSuggestions: !!result.toolResults?.mealSuggestions,
-        mealSuggestionsCount: result.toolResults?.mealSuggestions?.length,
-        source: result.toolResults?.source
-      });
-
-      // Debug: Log meal macros if available
-      if (result.toolResults?.mealSuggestions?.length > 0) {
-        result.toolResults.mealSuggestions.forEach((meal, index) => {
-        });
-      }
-
       // Store response and tool results
       setLastResponse(result.response);
       setLastToolResults(result.toolResults || null);

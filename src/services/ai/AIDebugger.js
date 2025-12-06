@@ -123,21 +123,6 @@ export async function logAIInteraction({
 
     await AsyncStorage.setItem(AI_DEBUG_LOG_KEY, JSON.stringify(trimmedLog));
 
-    // Also log to console in dev mode
-    if (__DEV__) {
-      if (success) {
-          message: userMessage.substring(0, 50) + '...',
-          tools: toolsUsed.length,
-          responseLength: aiResponse?.length,
-        });
-      } else {
-        console.error('❌ AI Interaction Failed:', {
-          message: userMessage.substring(0, 50) + '...',
-          error: errorCategory,
-          details: error?.message,
-        });
-      }
-    }
 
     return logEntry.id;
   } catch (error) {

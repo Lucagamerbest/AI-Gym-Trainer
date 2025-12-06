@@ -152,17 +152,6 @@ export async function generateRecipeFromIngredients({
   userId
 }) {
   try {
-      ingredients,
-      targetProtein,
-      targetCalories,
-      cuisine,
-      dietaryRestrictions,
-      mealType,
-      maxPrepTime,
-      minPrepTime,
-      mealPrepFriendly
-    });
-
     // Validate inputs
     if (!ingredients || ingredients.length === 0) {
       return {
@@ -509,13 +498,6 @@ export async function generateHighProteinRecipe({
   userId
 }) {
   try {
-      targetProtein,
-      targetCalories,
-      cuisine,
-      dietaryRestrictions,
-      mealType
-    });
-
     // Get meal type constraints
     const mealConstraints = getMealTypeConstraints(mealType);
     const { min, max, ideal } = mealConstraints.calorieRange;
@@ -815,14 +797,6 @@ export async function adaptRecipeToMacros({
   userId
 }) {
   try {
-      recipeId,
-      recipeName,
-      targetCalories,
-      targetProtein,
-      targetCarbs,
-      targetFat
-    });
-
     // Load user's recipes
     const RECIPES_KEY = '@saved_recipes';
     const savedRecipesStr = await AsyncStorage.getItem(RECIPES_KEY);
@@ -983,12 +957,6 @@ export async function suggestIngredientSubstitutions({
   userId
 }) {
   try {
-      recipeId,
-      recipeName,
-      missingIngredient,
-      availableIngredients
-    });
-
     // Load user's recipes
     const RECIPES_KEY = '@saved_recipes';
     const savedRecipesStr = await AsyncStorage.getItem(RECIPES_KEY);
@@ -1113,13 +1081,6 @@ export async function generateMealComponents({
   userId,
 }) {
   try {
-      componentTypes,
-      optionsPerComponent,
-      dietaryRestrictions,
-      cuisineStyle,
-      userId,
-    });
-
     const prompt = `Generate ${optionsPerComponent} options for each of these meal components: ${componentTypes.join(', ')}.
 
 REQUIREMENTS:

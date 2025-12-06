@@ -21,13 +21,6 @@ export async function predictGoalCompletionDate({
   userId
 }) {
   try {
-      goalType,
-      exerciseName,
-      currentValue,
-      targetValue,
-      userId
-    });
-
     let progressData = [];
     let progressRate = 0;
     let currentActual = currentValue;
@@ -561,16 +554,6 @@ export async function estimateBodyFatPercentage({
   userId
 }) {
   try {
-      gender,
-      weight,
-      height,
-      waist,
-      neck,
-      hips,
-      age,
-      usePhotos
-    });
-
     // Load user profile if measurements not provided
     const PROFILE_KEY = '@user_profile_assessment';
     const profileStr = await AsyncStorage.getItem(PROFILE_KEY);

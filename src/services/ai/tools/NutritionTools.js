@@ -419,15 +419,6 @@ export async function generateWeeklyMealPlan({
   userId
 }) {
   try {
-      dailyCalories,
-      dailyProtein,
-      dailyCarbs,
-      dailyFat,
-      mealsPerDay,
-      dietaryRestrictions,
-      preferences
-    });
-
     // Calculate macros if not all provided
     if (!dailyCarbs || !dailyFat) {
       // Use standard macro ratios
