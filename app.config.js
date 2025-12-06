@@ -58,7 +58,12 @@ export default {
     web: {
       bundler: "metro"
     },
+    assetBundlePatterns: [
+      "assets/*",
+      "assets/**/*"
+    ],
     plugins: [
+      "expo-av",
       "expo-web-browser",
       "expo-sqlite",
       [
