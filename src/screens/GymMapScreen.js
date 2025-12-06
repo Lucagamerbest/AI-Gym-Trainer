@@ -10,7 +10,7 @@ import {
   Platform,
   Keyboard,
 } from 'react-native';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { Marker, PROVIDER_GOOGLE, PROVIDER_DEFAULT } from 'react-native-maps';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import { Spacing, Typography, BorderRadius } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
@@ -194,11 +194,11 @@ export default function GymMapScreen({ navigation, route }) {
 
   return (
     <View style={styles.container}>
-      {/* Map */}
+      {/* Map - Use Apple Maps on iOS (more reliable), Google Maps on Android */}
       <MapView
         ref={mapRef}
         style={styles.map}
-        provider={PROVIDER_GOOGLE}
+        provider={Platform.OS === 'ios' ? PROVIDER_DEFAULT : PROVIDER_GOOGLE}
         initialRegion={region}
         showsUserLocation
         showsMyLocationButton={false}
