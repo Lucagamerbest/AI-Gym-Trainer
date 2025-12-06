@@ -40,24 +40,39 @@ const playNotificationSound = async () => {
       allowsRecordingIOS: false,
       staysActiveInBackground: true,
       // DUCK_OTHERS = lower other audio volume (music dims briefly)
-      // DO_NOT_MIX = completely pause other audio
       interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DUCK_OTHERS,
-      shouldDuckAndroid: true, // Duck Android audio (lower music volume)
+      shouldDuckAndroid: true,
       interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DUCK_OTHERS,
       playThroughEarpieceAndroid: false,
     });
 
-    // Create and play the notification sound using local file (works offline!)
-    const { sound } = await Audio.Sound.createAsync(
-      require('../../assets/notification.mp3'),
-      {
-        shouldPlay: true,
-        volume: 1.0,
-        androidImplementation: 'MediaPlayer',
-      },
-      null,
-      false
-    );
+    // Try primary sound file, fallback to secondary if it fails
+    let sound = null;
+    try {
+      const result = await Audio.Sound.createAsync(
+        require('../../assets/timer_beep.wav'),
+        { shouldPlay: true, volume: 1.0 }
+      );
+      sound = result.sound;
+    } catch (primaryError) {
+      // Fallback to original notification.mp3
+      try {
+        const result = await Audio.Sound.createAsync(
+          require('../../assets/notification.mp3'),
+          { shouldPlay: true, volume: 1.0 }
+        );
+        sound = result.sound;
+      } catch (fallbackError) {
+        // Both failed - just use haptic feedback
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+        return;
+      }
+    }
+
+    if (!sound) {
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      return;
+    }
 
     // Clean up after sound finishes AND restore audio mode so music resumes
     sound.setOnPlaybackStatusUpdate(async (status) => {
@@ -77,8 +92,14 @@ const playNotificationSound = async () => {
       }
     });
 
+    // Also trigger haptic feedback as backup
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
   } catch (error) {
-    console.error('Error playing notification sound:', error);
+    // Last resort - haptic feedback
+    try {
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+    } catch (e) {}
   }
 };
 
