@@ -4,7 +4,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
-import { Audio } from 'expo-av';
+import { Audio, InterruptionModeIOS, InterruptionModeAndroid } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import ScreenLayout from '../components/ScreenLayout';
@@ -40,9 +40,9 @@ const playNotificationSound = async () => {
       allowsRecordingIOS: false,
       staysActiveInBackground: true,
       // DUCK_OTHERS = lower other audio volume (music dims briefly)
-      interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DUCK_OTHERS,
+      interruptionModeIOS: InterruptionModeIOS.DuckOthers,
       shouldDuckAndroid: true,
-      interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DUCK_OTHERS,
+      interruptionModeAndroid: InterruptionModeAndroid.DuckOthers,
       playThroughEarpieceAndroid: false,
     });
 
@@ -84,9 +84,9 @@ const playNotificationSound = async () => {
           playsInSilentModeIOS: false,
           allowsRecordingIOS: false,
           staysActiveInBackground: false,
-          interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_MIX_WITH_OTHERS,
+          interruptionModeIOS: InterruptionModeIOS.MixWithOthers,
           shouldDuckAndroid: false,
-          interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DUCK_OTHERS,
+          interruptionModeAndroid: InterruptionModeAndroid.DuckOthers,
           playThroughEarpieceAndroid: false,
         });
       }
