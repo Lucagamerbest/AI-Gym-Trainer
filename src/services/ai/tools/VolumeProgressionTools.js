@@ -30,7 +30,6 @@ import {
  */
 export async function analyzeWeeklyVolume({ userId, muscleGroup, timeframe = 7 }) {
   try {
-    console.log('📊 Analyzing weekly volume:', { userId, muscleGroup, timeframe });
 
     // Get recent workouts
     const workouts = await WorkoutSyncService.getUserWorkouts(userId, timeframe);
@@ -94,7 +93,6 @@ export async function analyzeWeeklyVolume({ userId, muscleGroup, timeframe = 7 }
  */
 export async function getProgressiveOverloadAdvice({ userId, exerciseName, muscleGroup }) {
   try {
-    console.log('💪 Getting progressive overload advice:', { userId, exerciseName, muscleGroup });
 
     // Get workout history for this exercise
     const workouts = await WorkoutSyncService.getUserWorkouts(userId, 30); // Last 30 days
@@ -202,7 +200,6 @@ export async function getProgressiveOverloadAdvice({ userId, exerciseName, muscl
  */
 export async function checkDeloadStatus({ userId }) {
   try {
-    console.log('🔵 Checking deload status:', { userId });
 
     // Get all workouts (last 60 days to calculate training weeks)
     const workouts = await WorkoutSyncService.getUserWorkouts(userId, 60);
@@ -262,7 +259,6 @@ export async function checkDeloadStatus({ userId }) {
  */
 export async function analyzeExerciseProgression({ userId, exerciseName }) {
   try {
-    console.log('📈 Analyzing exercise progression:', { userId, exerciseName });
 
     // Get workout history (last 90 days for long-term trend)
     const workouts = await WorkoutSyncService.getUserWorkouts(userId, 90);

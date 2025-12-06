@@ -170,11 +170,7 @@ export default function MealsHistoryScreen({ navigation, route }) {
 
         // Load today's meals from meal plans
         const today = getLocalDateString();
-        console.log('📆 [MealsHistory] Today is:', today);
         const todayData = plans[today];
-        console.log('📋 [MealsHistory] Today\'s data:', todayData);
-        console.log('📋 [MealsHistory] Today\'s logged meals:', todayData?.logged);
-        console.log('📅 [MealsHistory] Today\'s planned meals:', todayData?.planned);
 
         if (todayData?.logged) {
           setTodayMeals(todayData.logged);

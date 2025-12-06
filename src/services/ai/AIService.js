@@ -39,7 +39,6 @@ class AIService {
       tools: [{ functionDeclarations: tools }],
     });
 
-    console.log(`✅ AI Service initialized with ${ToolRegistry.getToolCount()} tools`);
   }
 
   // Check if service is initialized
@@ -176,9 +175,7 @@ class AIService {
         }
 
         if (attempt > 0) {
-          console.log(`🔄 Retry attempt ${attempt}/${maxRetries - 1}`);
         } else {
-          console.log('🔧 Using AI with function calling enabled');
         }
 
         // 🎯 BUTTON PRESS DETECTION: Use cached workouts for instant response
@@ -193,13 +190,11 @@ class AIService {
         // Check if message exactly matches a button phrase
         const buttonMatch = buttonPhraseMap[userMessage.trim()];
         if (buttonMatch) {
-          console.log(`🎯 BUTTON PRESS DETECTED: "${userMessage}"`);
 
           // 🚨 BYPASS CACHE - Let AI think and generate workout respecting user preferences
           // The cached workouts were generated before profile was properly loaded
           // We need the AI to THINK and create workouts that respect disliked exercises
 
-          console.log(`🤖 Letting AI generate ${buttonMatch.type} workout (thinking mode)...`);
 
           // Inject button press context so AI knows to generate workout immediately
           context.buttonPress = {
@@ -214,7 +209,6 @@ class AIService {
         // Convert conversation history to Gemini format if provided
         const history = [];
         if (context.conversationHistory && context.conversationHistory.length > 0) {
-          console.log(`💬 Using conversation history (${context.conversationHistory.length} turns)`);
           context.conversationHistory.forEach(turn => {
             // Add user message
             history.push({
@@ -245,16 +239,12 @@ class AIService {
         let result = await chat.sendMessage(fullMessage);
         let response = result.response;
 
-      console.log('🔍 Full Response Object:', response);
-      console.log('🔍 Response candidates:', response.candidates);
-      console.log('🔍 Response text attempt:', response.text?.());
 
       // Try to get function calls from candidates
       let functionCalls = response.candidates?.[0]?.content?.parts?.filter(
         part => part.functionCall
       ).map(part => part.functionCall) || [];
 
-      console.log('🔍 Extracted function calls:', functionCalls);
 
       // Handle function calls (may be multiple rounds)
       let functionCallCount = 0;
@@ -269,7 +259,6 @@ class AIService {
           break;
         }
 
-        console.log(`📞 AI called function: ${functionCall.name}`);
 
         try {
           const toolStartTime = Date.now();
@@ -281,7 +270,6 @@ class AIService {
           if (!toolArgs.userId || toolArgs.userId === '' || placeholderUserIds.includes(toolArgs.userId)) {
             const originalUserId = toolArgs.userId;
             toolArgs.userId = context.userId || 'guest';
-            console.log(`🔧 Injected real userId: ${toolArgs.userId} (was: ${originalUserId || 'undefined'})`);
           }
 
           // Auto-inject food preferences for recipe generation tools
@@ -292,7 +280,6 @@ class AIService {
             // 0. Auto-inject mealType from screen params (RecipesScreen passes this)
             if (context.screenParams?.mealType && !toolArgs.mealType) {
               toolArgs.mealType = context.screenParams.mealType;
-              console.log(`🔧 Auto-injected mealType: ${toolArgs.mealType} (from RecipesScreen)`);
             }
 
             // 1. Auto-inject dietary restrictions
@@ -300,14 +287,12 @@ class AIService {
             if (userDietaryRestrictions.length > 0) {
               const existingRestrictions = toolArgs.dietaryRestrictions || [];
               toolArgs.dietaryRestrictions = [...new Set([...userDietaryRestrictions, ...existingRestrictions])];
-              console.log(`🔧 Auto-injected dietary restrictions: ${toolArgs.dietaryRestrictions.join(', ')}`);
             }
 
             // 2. Auto-inject meal-specific macro targets if not provided
             if (foodPrefs?.mealPreferences && !toolArgs.targetCalories && !toolArgs.targetProtein) {
               // Determine meal type from screenParams (e.g., RecipesScreen route params), tool args, or default to 'any'
               const mealType = context.screenParams?.mealType || toolArgs.mealType || 'any';
-              console.log(`🔧 Detected mealType for recipe generation: ${mealType}`);
 
               // IMPORTANT: Don't use old exact macro targets - use max calories instead
               const mealTargets = foodPrefs.mealPreferences[mealType];
@@ -315,7 +300,6 @@ class AIService {
               if (mealTargets) {
                 toolArgs.targetCalories = toolArgs.targetCalories || mealTargets.targetCalories;
                 toolArgs.targetProtein = toolArgs.targetProtein || mealTargets.targetProtein;
-                console.log(`🔧 Auto-injected ${mealType} targets: ${mealTargets.targetCalories} cal, ${mealTargets.targetProtein}g protein`);
               }
             }
 
@@ -325,7 +309,6 @@ class AIService {
 
               // Note: These are informational - the AI uses them from the system prompt
               // But we can log them for debugging
-              console.log(`🔧 Recipe preferences: max ${recipePrefs.maxCookingTime}min cook, ${recipePrefs.recipeComplexity} complexity`);
             }
           }
 
@@ -337,13 +320,11 @@ class AIService {
             // Auto-inject equipment from profile if not provided
             if (!toolArgs.equipment && profile.equipmentAccess && profile.equipmentAccess.length > 0) {
               toolArgs.equipment = profile.equipmentAccess;
-              console.log(`🔧 Auto-injected equipment: ${toolArgs.equipment.join(', ')}`);
             }
 
             // Auto-inject experience level if not provided
             if (!toolArgs.experienceLevel && profile.experienceLevel) {
               toolArgs.experienceLevel = profile.experienceLevel;
-              console.log(`🔧 Auto-injected experienceLevel: ${toolArgs.experienceLevel}`);
             }
 
             // Auto-inject goal if not provided
@@ -357,10 +338,8 @@ class AIService {
               };
               const mappedGoal = goalMap[profile.primaryGoal] || 'hypertrophy';
               toolArgs.goal = mappedGoal;
-              console.log(`🔧 Auto-injected goal: ${toolArgs.goal} (from ${profile.primaryGoal})`);
             }
 
-            console.log(`🔧 Workout generation with profile data: experienceLevel=${toolArgs.experienceLevel}, goal=${toolArgs.goal}, equipment=${toolArgs.equipment?.length || 0} items`);
           }
 
           // Execute the tool
@@ -380,7 +359,6 @@ class AIService {
             success: toolResult?.success !== false,
           });
 
-          console.log(`✅ Function ${functionCall.name} returned:`, toolResult);
 
           // Send function result back to AI
           const functionResponse = {
@@ -467,7 +445,6 @@ class AIService {
           },
         });
 
-        console.log('🎉 AIService returning result with:', {
           responseLength: responseText.length,
           toolsUsedCount: functionCallCount,
           toolResultsCount: toolsUsedLog.length,
@@ -510,8 +487,6 @@ class AIService {
           // Use suggested delay or exponential backoff
           const delay = suggestedDelay || (baseDelay * Math.pow(2, attempt));
 
-          console.log(`⏳ Rate limit/overload detected. Retrying in ${(delay/1000).toFixed(1)}s... (attempt ${attempt + 1}/${maxRetries})`);
-          console.log(`   Error: ${errorMessage.substring(0, 100)}...`);
 
           // Wait before retrying
           await new Promise(resolve => setTimeout(resolve, delay));
@@ -557,7 +532,6 @@ class AIService {
    * Build system prompt optimized for tool use
    */
   buildSystemPromptForTools(context) {
-    console.log('🔧 buildSystemPromptForTools called with context:', {
       screen: context.screen,
       hasUserProfile: !!context.userProfile,
       hasScreenSpecific: !!context.screenSpecific,
@@ -567,14 +541,12 @@ class AIService {
 
     // Log nutrition data specifically
     if (context.screenSpecific?.calories) {
-      console.log('✅ NUTRITION DATA AVAILABLE FOR AI:', {
         calories: `${context.screenSpecific.calories.consumed}/${context.screenSpecific.calories.target}`,
         protein: `${context.screenSpecific.protein.consumed}g/${context.screenSpecific.protein.target}g`,
         carbs: `${context.screenSpecific.carbs.consumed}g/${context.screenSpecific.carbs.target}g`,
         fat: `${context.screenSpecific.fat.consumed}g/${context.screenSpecific.fat.target}g`,
       });
     } else {
-      console.log('⚠️ NO NUTRITION DATA in context.screenSpecific');
     }
 
     // Extract user profile data for tools

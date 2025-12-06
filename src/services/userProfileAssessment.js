@@ -357,7 +357,6 @@ export const updateProfileSection = async (section, data) => {
       await setDoc(userProfileRef, updatedProfile, { merge: true });
     }
 
-    console.log(`✅ Profile section '${section}' updated successfully`);
     return { success: true };
   } catch (error) {
     console.error(`Error updating profile section '${section}':`, error);

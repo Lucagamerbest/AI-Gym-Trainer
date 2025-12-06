@@ -19,7 +19,6 @@ export async function generateWorkoutWithAI({
   userProfile,
   variationIndex = 0
 }) {
-  console.log(`🤖 [AI Generator] Generating ${workoutType} workout variation ${variationIndex + 1} using Gemini AI...`);
 
   try {
     // Initialize Gemini AI
@@ -43,19 +42,16 @@ export async function generateWorkoutWithAI({
       exerciseList,
     });
 
-    console.log(`📝 [AI Generator] Sending prompt to Gemini (this takes 10-30 seconds)...`);
 
     // Call AI
     const result = await model.generateContent(prompt);
     const response = result.response.text();
 
-    console.log(`✅ [AI Generator] Received response from AI (${response.length} chars)`);
 
     // Parse response
     const workout = parseAIResponse(response, allExercises);
 
     if (workout && workout.exercises && workout.exercises.length > 0) {
-      console.log(`✅ [AI Generator] Generated ${workout.exercises.length} exercises`);
       return {
         success: true,
         workout: {
@@ -615,7 +611,6 @@ function getExerciseCount(duration, type) {
 function parseAIResponse(response, exerciseDatabase) {
   try {
     // Log raw AI response for debugging
-    console.log('🔍 Raw AI response (first 800 chars):', response.substring(0, 800));
 
     // Remove markdown code blocks if present
     let jsonStr = response.trim();
@@ -628,7 +623,6 @@ function parseAIResponse(response, exerciseDatabase) {
     }
 
     const parsed = JSON.parse(jsonStr);
-    console.log('🔍 Parsed JSON from AI:', JSON.stringify(parsed, null, 2));
 
     if (!parsed.exercises || !Array.isArray(parsed.exercises)) {
       throw new Error('No exercises array in response');
@@ -648,7 +642,6 @@ function parseAIResponse(response, exerciseDatabase) {
         // Extract first equipment type before comma
         const firstPart = cleanedName.split(',')[0].trim();
         cleanedName = firstPart;
-        console.log(`✅ Cleaned name to: "${cleanedName}"`);
       }
 
       // Check for comma-separated equipment in EQUIPMENT field (AI mistake)
@@ -658,7 +651,6 @@ function parseAIResponse(response, exerciseDatabase) {
         // Extract first equipment type before comma
         const firstPart = cleanedEquipment.split(',')[0].trim();
         cleanedEquipment = firstPart;
-        console.log(`✅ Cleaned equipment to: "${cleanedEquipment}"`);
       }
 
       // Also check for complex equipment names (e.g., "Cable Rope" → "Cable")
@@ -670,7 +662,6 @@ function parseAIResponse(response, exerciseDatabase) {
         const matchedKeyword = equipmentKeywords.find(kw => equipLower.startsWith(kw));
         if (matchedKeyword) {
           cleanedEquipment = matchedKeyword;
-          console.log(`✅ Normalized equipment to: "${cleanedEquipment}"`);
         } else {
           // If no match, just take first word
           const firstWord = cleanedEquipment.split(' ')[0];
@@ -699,11 +690,9 @@ function parseAIResponse(response, exerciseDatabase) {
           const dbEquipments = dbExercise.equipment.split(',').map(e => e.trim());
           const matchedEquip = dbEquipments.find(e => e.toLowerCase() === equipmentLower);
           equipment = matchedEquip || cleanedEquipment;
-          console.log(`✅ Selected equipment variant: "${equipment}"`);
         } else {
           // No target equipment, take first variant
           equipment = dbExercise.equipment.split(',')[0].trim();
-          console.log(`✅ Using first equipment variant: "${equipment}"`);
         }
       }
 
@@ -729,7 +718,6 @@ function parseAIResponse(response, exerciseDatabase) {
       };
 
       // Log each parsed exercise for debugging
-      console.log(`✅ Parsed exercise: "${finalExercise.name}" (${finalExercise.equipment})`);
 
       return finalExercise;
     });
@@ -741,7 +729,6 @@ function parseAIResponse(response, exerciseDatabase) {
 
   } catch (error) {
     console.error('❌ Failed to parse AI response:', error);
-    console.log('Raw response:', response.substring(0, 500));
     return null;
   }
 }
@@ -810,7 +797,6 @@ function findExerciseInDatabase(name, database, targetEquipment = null) {
   });
 
   if (match) {
-    console.log(`🔄 Matched "${name}" → "${match.name}" (${match.equipment})`);
   }
 
   return match;

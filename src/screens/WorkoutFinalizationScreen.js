@@ -141,7 +141,6 @@ export default function WorkoutFinalizationScreen({ navigation, route }) {
         try {
           await SyncManager.syncWorkout(userId, finalWorkoutData);
         } catch (error) {
-          console.log('Sync will retry later:', error);
         }
       }
 
@@ -190,7 +189,6 @@ export default function WorkoutFinalizationScreen({ navigation, route }) {
         try {
           await SyncManager.syncWorkout(userId, finalWorkoutData);
         } catch (error) {
-          console.log('Sync will retry later:', error);
         }
       }
 

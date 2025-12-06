@@ -170,7 +170,6 @@ export function initializeTools() {
   ToolRegistry.registerTool('detectProgressPlateau', progressToolSchemas[1], detectProgressPlateau);
   ToolRegistry.registerTool('estimateBodyFatPercentage', progressToolSchemas[2], estimateBodyFatPercentage);
 
-  console.log(`✅ Initialized ${ToolRegistry.getToolCount()} AI tools (including navigation, recipes, progress & 2024 research tools)`);
 }
 
 export { ToolRegistry };

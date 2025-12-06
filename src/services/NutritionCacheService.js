@@ -33,14 +33,12 @@ class NutritionCacheService {
    * This is called after food preferences setup or when preferences change
    */
   static async generateAllCachedRecipes(userId) {
-    console.log('🔄 [NutritionCache] Starting cache generation for user:', userId);
 
     try {
       // Get user food preferences
       const foodPrefs = await getFoodPreferences(userId);
 
       if (!foodPrefs || userId === 'guest') {
-        console.log('⚠️ [NutritionCache] Cannot cache for guest user');
         return { success: false, error: 'Guest users cannot use caching' };
       }
 
@@ -54,12 +52,10 @@ class NutritionCacheService {
 
       // Generate regular recipes
       for (const type of RECIPE_TYPES) {
-        console.log(`🍳 [NutritionCache] Generating ${VARIATIONS_PER_TYPE} ${type} recipes...`);
 
         try {
           const variations = await this.generateRecipeVariations(type, foodPrefs, userId, false);
           cache.recipes[type] = variations;
-          console.log(`✅ [NutritionCache] Generated ${variations.length} ${type} recipes`);
         } catch (error) {
           console.error(`❌ [NutritionCache] Failed to generate ${type} recipes:`, error);
           cache.recipes[type] = [];
@@ -68,12 +64,10 @@ class NutritionCacheService {
 
       // Generate high-protein recipes (breakfast, lunch, dinner only)
       for (const type of HIGH_PROTEIN_TYPES) {
-        console.log(`💪 [NutritionCache] Generating ${VARIATIONS_PER_TYPE} high-protein ${type} recipes...`);
 
         try {
           const variations = await this.generateRecipeVariations(type, foodPrefs, userId, true);
           cache.highProtein[type] = variations;
-          console.log(`✅ [NutritionCache] Generated ${variations.length} high-protein ${type} recipes`);
         } catch (error) {
           console.error(`❌ [NutritionCache] Failed to generate high-protein ${type}:`, error);
           cache.highProtein[type] = [];
@@ -83,7 +77,6 @@ class NutritionCacheService {
       // Save to Firebase
       await BackendService.setCachedRecipes(userId, cache);
 
-      console.log('✅ [NutritionCache] All recipes cached successfully');
       return { success: true, cache };
 
     } catch (error) {
@@ -182,11 +175,9 @@ class NutritionCacheService {
    * Get a cached recipe (random from unseen ones, or any if all seen)
    */
   static async getCachedRecipe(userId, mealType, highProtein = false) {
-    console.log(`🔍 [NutritionCache] Fetching cached ${highProtein ? 'high-protein ' : ''}${mealType} recipe for user:`, userId);
 
     try {
       if (userId === 'guest') {
-        console.log('⚠️ [NutritionCache] Guest user, skipping cache');
         return null;
       }
 
@@ -197,7 +188,6 @@ class NutritionCacheService {
       const isValid = await this.isCacheValid(cache, userId);
 
       if (!isValid) {
-        console.log('⚠️ [NutritionCache] Cache invalid or expired, will regenerate');
 
         // Trigger background regeneration (don't wait for it)
         this.generateAllCachedRecipes(userId).catch(err => {
@@ -212,7 +202,6 @@ class NutritionCacheService {
       const recipes = recipeCategory?.[mealType] || [];
 
       if (recipes.length === 0) {
-        console.log(`⚠️ [NutritionCache] No cached ${mealType} recipes found`);
         return null;
       }
 
@@ -231,7 +220,6 @@ class NutritionCacheService {
       // Mark this variation as seen
       await BackendService.markRecipeAsSeen(userId, mealType, highProtein, selectedRecipe.variationIndex);
 
-      console.log(`✅ [NutritionCache] Retrieved ${mealType} recipe (variation ${selectedRecipe.variationIndex})`);
       return selectedRecipe;
 
     } catch (error) {
@@ -245,14 +233,12 @@ class NutritionCacheService {
    */
   static async isCacheValid(cache, userId) {
     if (!cache || !cache.lastGenerated || !cache.recipes) {
-      console.log('⚠️ [NutritionCache] Cache missing or incomplete');
       return false;
     }
 
     // Check age (7 days max)
     const age = Date.now() - cache.lastGenerated;
     if (age > CACHE_MAX_AGE) {
-      console.log(`⚠️ [NutritionCache] Cache expired (${Math.round(age / (24 * 60 * 60 * 1000))} days old)`);
       return false;
     }
 
@@ -261,11 +247,9 @@ class NutritionCacheService {
     const currentHash = this.hashFoodPreferences(foodPrefs);
 
     if (currentHash !== cache.profileHash) {
-      console.log('⚠️ [NutritionCache] Food preferences changed, cache invalid');
       return false;
     }
 
-    console.log('✅ [NutritionCache] Cache valid');
     return true;
   }
 
@@ -291,7 +275,6 @@ class NutritionCacheService {
    * Invalidate cache and regenerate (called when user updates food preferences)
    */
   static async invalidateAndRegenerate(userId) {
-    console.log('🔄 [NutritionCache] Invalidating cache and regenerating...');
 
     try {
       // Delete old cache

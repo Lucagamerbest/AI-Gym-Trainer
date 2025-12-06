@@ -62,7 +62,6 @@ export class LocationService {
     } catch (error) {
       // In Expo Go, background permissions aren't available
       // This is expected - background location requires a custom build
-      console.log('Background location permission not available (requires custom build):', error.message);
       return false;
     }
   }
@@ -76,7 +75,6 @@ export class LocationService {
         background = await Location.getBackgroundPermissionsAsync();
       } catch (bgError) {
         // Background permissions not available in Expo Go
-        console.log('Background permission check not available (Expo Go)');
       }
 
       return {
@@ -451,7 +449,6 @@ export class LocationService {
         trigger: null, // Immediate
       });
 
-      console.log('Gym reminder notification sent');
       return true;
     } catch (error) {
       console.error('Error sending gym reminder notification:', error);
@@ -465,14 +462,12 @@ export class LocationService {
     try {
       const hasPermission = await this.requestBackgroundPermission();
       if (!hasPermission) {
-        console.log('Background location permission not granted');
         return false;
       }
 
       // Check if task is already running
       const isRegistered = await TaskManager.isTaskRegisteredAsync(BACKGROUND_LOCATION_TASK);
       if (isRegistered) {
-        console.log('Background location task already running');
         return true;
       }
 
@@ -489,7 +484,6 @@ export class LocationService {
         },
       });
 
-      console.log('Background location tracking started');
       return true;
     } catch (error) {
       console.error('Error starting background location tracking:', error);
@@ -502,7 +496,6 @@ export class LocationService {
       const isRegistered = await TaskManager.isTaskRegisteredAsync(BACKGROUND_LOCATION_TASK);
       if (isRegistered) {
         await Location.stopLocationUpdatesAsync(BACKGROUND_LOCATION_TASK);
-        console.log('Background location tracking stopped');
       }
       return true;
     } catch (error) {

@@ -23,7 +23,6 @@ async function generateWithRetry(prompt, options = {}) {
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
-      console.log(`🤖 AI Generation attempt ${attempt}/${maxAttempts}`);
 
       const { GoogleGenerativeAI } = await import('@google/generative-ai');
       const { default: AIService } = await import('../AIService');
@@ -49,7 +48,6 @@ async function generateWithRetry(prompt, options = {}) {
         throw new Error('AI response too short, likely incomplete');
       }
 
-      console.log('✅ AI generation successful');
       return response;
 
     } catch (error) {
@@ -69,31 +67,26 @@ async function generateWithRetry(prompt, options = {}) {
  * Multiple extraction methods for robustness
  */
 function extractAndParseJSON(response) {
-  console.log('🔍 Extracting JSON from AI response...');
 
   // Method 1: Extract from ```json code blocks
   let jsonMatch = response.match(/```json\s*\n([\s\S]*?)\n```/);
   if (jsonMatch) {
-    console.log('✓ Found JSON in ```json block');
     return parseJSONSafely(jsonMatch[1]);
   }
 
   // Method 2: Extract from regular ``` code blocks
   jsonMatch = response.match(/```\s*\n([\s\S]*?)\n```/);
   if (jsonMatch) {
-    console.log('✓ Found JSON in ``` block');
     return parseJSONSafely(jsonMatch[1]);
   }
 
   // Method 3: Try to find JSON object directly
   jsonMatch = response.match(/\{[\s\S]*\}/);
   if (jsonMatch) {
-    console.log('✓ Found JSON object directly');
     return parseJSONSafely(jsonMatch[0]);
   }
 
   // Method 4: Try parsing the entire response
-  console.log('⚠ No code blocks found, trying to parse entire response');
   return parseJSONSafely(response);
 }
 
@@ -109,7 +102,6 @@ function parseJSONSafely(jsonStr) {
       .trim();
 
     const parsed = JSON.parse(cleaned);
-    console.log('✅ JSON parsed successfully');
     return parsed;
 
   } catch (error) {
@@ -286,7 +278,6 @@ export async function getNutritionStatus({ userId }) {
  */
 export async function suggestMealsForMacros({ targetCalories = 500, targetProtein = 30, targetCarbs = 50, targetFat = 15, mealType = 'any' }) {
   try {
-    console.log('🍽️ suggestMealsForMacros called with:', { targetCalories, targetProtein, targetCarbs, targetFat, mealType });
     // Meal database (simplified - could be expanded)
     const mealDatabase = [
       // High protein meals
@@ -428,7 +419,6 @@ export async function generateWeeklyMealPlan({
   userId
 }) {
   try {
-    console.log('📅 Generating weekly meal plan:', {
       dailyCalories,
       dailyProtein,
       dailyCarbs,
@@ -604,7 +594,6 @@ export async function suggestNextMealForBalance({
   mealType = null
 }) {
   try {
-    console.log('🍽️ Suggesting next meal for balance:', { userId, mealType });
 
     // Validate userId
     if (!userId) {
@@ -732,7 +721,6 @@ Fat:      [${createProgressBar(fatPercent)}] ${fatPercent}% (${consumed.fat}g/${
  */
 export async function predictDailyMacroShortfall({ userId }) {
   try {
-    console.log('📊 Predicting daily macro shortfall:', { userId });
 
     // Validate userId
     if (!userId) {

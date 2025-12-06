@@ -105,22 +105,18 @@ const AICoachAssessmentScreen = ({ navigation }) => {
           : profileData.favoriteExercises || [],
       };
 
-      console.log('📝 [Assessment] Saving profile with disliked exercises:', finalProfileData.dislikedExercises);
-      console.log('📝 [Assessment] Saving profile with favorite exercises:', finalProfileData.favoriteExercises);
 
       const result = await completeAssessment(finalProfileData);
       if (result.success) {
         // 🚀 Trigger background cache generation for instant workouts & recipes
         const userId = auth.currentUser?.uid;
         if (userId) {
-          console.log('🚀 Starting background cache generation...');
 
           // Import cache services dynamically and INVALIDATE first (profile just changed!)
           import('../services/WorkoutCacheService').then(module => {
             const WorkoutCacheService = module.default;
             // Force regeneration with new profile data
             WorkoutCacheService.invalidateAndRegenerate(userId).then(() => {
-              console.log('✅ Workout cache generation complete with new profile');
             }).catch(err => {
               console.error('❌ Workout cache generation failed:', err);
             });
@@ -130,7 +126,6 @@ const AICoachAssessmentScreen = ({ navigation }) => {
             const NutritionCacheService = module.default;
             // Force regeneration with new profile data
             NutritionCacheService.invalidateAndRegenerate(userId).then(() => {
-              console.log('✅ Recipe cache generation complete with new profile');
             }).catch(err => {
               console.error('❌ Recipe cache generation failed:', err);
             });

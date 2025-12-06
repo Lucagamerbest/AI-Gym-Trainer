@@ -143,7 +143,6 @@ export default function FoodScanResultScreen({ navigation, route }) {
         try {
           await SyncManager.syncTodaysMeals(userId);
         } catch (syncError) {
-          console.log('Sync will retry later:', syncError);
         }
       }
 

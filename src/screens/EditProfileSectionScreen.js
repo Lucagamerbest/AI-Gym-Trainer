@@ -114,7 +114,6 @@ const EditProfileSectionScreen = ({ navigation, route }) => {
           const userId = auth.currentUser?.uid;
 
           if (userId && userId !== 'guest') {
-            console.log(`🔄 [EditProfile] ${section} updated, invalidating workout cache...`);
             WorkoutCacheService.invalidateAndRegenerate(userId).catch(err => {
               console.error('❌ [EditProfile] Failed to invalidate cache:', err);
             });

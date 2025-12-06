@@ -58,7 +58,6 @@ export default function AIChatModal({ visible, onClose, initialMessage = '', scr
   const clearCorruptedMessages = async () => {
     try {
       await AsyncStorage.removeItem('@ai_chat_messages');
-      console.log('✅ Cleared any corrupted chat history');
     } catch (error) {
       console.error('Error clearing chat history:', error);
     }
@@ -232,9 +231,6 @@ export default function AIChatModal({ visible, onClose, initialMessage = '', scr
     setLoading(true);
     try {
       // Log user question
-      console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.log('👤 USER:', userMessage);
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
       // Get real user ID from AuthContext
       const userId = user?.uid || 'guest';
@@ -318,32 +314,23 @@ export default function AIChatModal({ visible, onClose, initialMessage = '', scr
                          userMessage.toLowerCase().includes('on track');
 
       // Use tool-enabled AI for complex queries, regular AI for simple questions
-      console.log('🔧 needsTools:', needsTools, 'for message:', userMessage.substring(0, 50));
 
-      console.log('⏳ About to call AIService...');
       const result = needsTools
         ? await AIService.sendMessageWithTools(userMessage, fullContext)
         : await AIService.sendMessage(userMessage, fullContext);
-      console.log('✅ AIService call completed!');
 
-      console.log('📦 AI Result:', { hasResponse: !!result.response, hasToolResults: !!result.toolResults });
-      console.log('📦 Full response text:', result.response);
-      console.log('📦 Tool results:', result.toolResults);
 
       // Store generated workout if one was created
       if (result.toolResults) {
         const workoutGenerated = result.toolResults.find(t => t.name === 'generateWorkoutPlan');
         if (workoutGenerated && workoutGenerated.result?.success) {
           lastGeneratedWorkout.current = workoutGenerated.result.workout;
-          console.log('💾 Stored workout for saving:', lastGeneratedWorkout.current.title);
         }
       }
 
       // Detect if AI is asking for muscle focus or program creation
       const responseText = result.response.toLowerCase();
 
-      console.log('🔍 Checking for contextual buttons...');
-      console.log('   Response snippet:', responseText.substring(0, 100));
 
       const isAskingMuscleGroup =
         responseText.includes('muscle group') ||
@@ -354,13 +341,8 @@ export default function AIChatModal({ visible, onClose, initialMessage = '', scr
         responseText.includes('hypertrophy') ||
         responseText.includes('strength');
 
-      console.log('   Triggers: muscle group?', responseText.includes('muscle group'));
-      console.log('   Triggers: focus on?', responseText.includes('focus on'));
-      console.log('   Triggers: program+create?', responseText.includes('program') && responseText.includes('create'));
-      console.log('   Final decision:', isAskingMuscleGroup ? 'SHOW BUTTONS' : 'NO BUTTONS');
 
       if (isAskingMuscleGroup) {
-        console.log('🎯 SHOWING MUSCLE FOCUS BUTTONS');
         setContextualButtons({
           type: 'muscle_focus',
           options: [
@@ -373,21 +355,13 @@ export default function AIChatModal({ visible, onClose, initialMessage = '', scr
           ]
         });
       } else {
-        console.log('❌ Not showing buttons');
         setContextualButtons(null);
       }
 
       // Log AI response
-      console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.log('🤖 AI:', result.response);
       if (result.toolsUsed) {
-        console.log(`🔧 Tools used: ${result.toolsUsed}`);
       }
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
-      console.log('📦 Adding message with toolResults:', result.toolResults);
-      console.log('📦 toolResults array length:', result.toolResults?.length);
-      console.log('📦 toolResults[0]:', result.toolResults?.[0]);
 
       const messageToAdd = {
         role: 'assistant',
@@ -398,12 +372,9 @@ export default function AIChatModal({ visible, onClose, initialMessage = '', scr
         toolResults: result.toolResults, // Pass tool results for recipe cards, etc.
       };
 
-      console.log('📦 About to add message:', messageToAdd);
       addMessage(messageToAdd);
-      console.log('✅ Message added to state');
 
       // Debug: Log contextual buttons state
-      console.log('📊 Contextual Buttons State:', contextualButtons);
     } catch (error) {
       console.error('AI error:', error);
 
@@ -683,11 +654,9 @@ export default function AIChatModal({ visible, onClose, initialMessage = '', scr
   };
 
   const handleSuggestionPress = (suggestionText) => {
-    console.log('💬 Quick suggestion pressed:', suggestionText);
     setShowSuggestions(false); // Hide suggestions after selection
 
     // Send the message directly (don't set input text to avoid showing it in the box)
-    console.log('📤 Auto-sending suggestion...');
     handleSendMessage(suggestionText);
   };
 
@@ -800,13 +769,11 @@ export default function AIChatModal({ visible, onClose, initialMessage = '', scr
                 contentContainerStyle={styles.contextualButtonsScroll}
               >
                 {contextualButtons.options.map((option, index) => {
-                  console.log(`🔘 Rendering button ${index}:`, option.text);
                   return (
                     <TouchableOpacity
                       key={index}
                       style={styles.contextualButton}
                       onPress={() => {
-                        console.log('🔘 Button pressed:', option.text);
                         handleContextualButtonPress(option);
                       }}
                     >

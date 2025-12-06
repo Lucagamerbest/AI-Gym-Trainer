@@ -135,7 +135,6 @@ const sendGymReminderNotification = async (gymName) => {
       trigger: null, // Send immediately
     });
 
-    console.log('✅ Gym reminder notification sent');
     await recordReminderSent();
     return true;
   } catch (error) {
@@ -148,7 +147,6 @@ const sendGymReminderNotification = async (gymName) => {
  * Process a location update from the background task
  */
 export const processLocationUpdate = async (latitude, longitude) => {
-  console.log('📍 Processing location update:', { latitude, longitude });
 
   try {
     // Get user ID
@@ -157,14 +155,12 @@ export const processLocationUpdate = async (latitude, longitude) => {
     // Check if gym reminders are enabled
     const settings = await LocationService.getSettings(userId);
     if (!settings.enabled) {
-      console.log('Gym reminders disabled, skipping');
       return;
     }
 
     // Get saved gym locations
     const gyms = await LocationService.getGymLocations(userId);
     if (gyms.length === 0) {
-      console.log('No gyms saved, skipping');
       return;
     }
 
@@ -172,7 +168,6 @@ export const processLocationUpdate = async (latitude, longitude) => {
     let nearbyGym = null;
     for (const gym of gyms) {
       const distance = calculateDistance(latitude, longitude, gym.latitude, gym.longitude);
-      console.log(`Distance to ${gym.name}: ${distance.toFixed(0)}m`);
 
       if (distance <= GEOFENCE_RADIUS) {
         nearbyGym = gym;
@@ -183,16 +178,13 @@ export const processLocationUpdate = async (latitude, longitude) => {
     if (!nearbyGym) {
       // User left gym area - clear any arrival record
       await LocationService.clearGymArrival(userId);
-      console.log('User not near any gym');
       return;
     }
 
-    console.log(`User is near ${nearbyGym.name}`);
 
     // Check if workout is already active
     const workoutActive = await isWorkoutCurrentlyActive();
     if (workoutActive) {
-      console.log('Workout is active, no reminder needed');
       await LocationService.clearGymArrival(userId);
       return;
     }
@@ -202,41 +194,34 @@ export const processLocationUpdate = async (latitude, longitude) => {
 
     if (!arrival || arrival.gymId !== nearbyGym.id) {
       // First time arriving at this gym (or different gym)
-      console.log('Recording new gym arrival');
       arrival = await LocationService.recordGymArrival(nearbyGym.id, userId);
     }
 
     // Check if 5 minutes have passed since arrival
     const timeAtGym = Date.now() - arrival.timestamp;
-    console.log(`Time at gym: ${(timeAtGym / 1000 / 60).toFixed(1)} minutes`);
 
     if (timeAtGym < REMINDER_DELAY_MS) {
-      console.log('Waiting for 5-minute delay...');
       return;
     }
 
     // Check if we already sent a notification for this arrival
     if (arrival.notificationSent) {
-      console.log('Notification already sent for this arrival');
       return;
     }
 
     // Check cooldown
     const canSend = await shouldSendReminder();
     if (!canSend) {
-      console.log('Reminder on cooldown');
       return;
     }
 
     // Re-check workout status (in case it started while we were waiting)
     const stillNoWorkout = !(await isWorkoutCurrentlyActive());
     if (!stillNoWorkout) {
-      console.log('Workout started during delay period');
       return;
     }
 
     // Send the reminder!
-    console.log('🔔 Sending gym reminder notification');
     await sendGymReminderNotification(nearbyGym.name);
     await LocationService.markNotificationSent(userId);
 
@@ -269,5 +254,4 @@ export const defineBackgroundTask = () => {
     }
   });
 
-  console.log('✅ Background location task defined');
 };

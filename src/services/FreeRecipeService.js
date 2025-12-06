@@ -145,7 +145,6 @@ class FreeRecipeService {
         filtered = filtered.filter(recipe => recipe.nutrition.protein >= minProtein);
       }
 
-      console.log(`🔍 Found ${filtered.length} recipes matching filters`);
       return filtered;
     } catch (error) {
       console.error('❌ Error searching recipes:', error);
@@ -371,7 +370,6 @@ class FreeRecipeService {
     });
 
     await this._setCache(cacheKey, allRecipes);
-    console.log(`📦 Cached ${allRecipes.length} recipes from TheMealDB`);
 
     return allRecipes;
   }
@@ -540,7 +538,6 @@ class FreeRecipeService {
       const keys = await AsyncStorage.getAllKeys();
       const cacheKeys = keys.filter(key => key.startsWith(CACHE_PREFIX));
       await AsyncStorage.multiRemove(cacheKeys);
-      console.log(`🗑️ Cleared ${cacheKeys.length} cached entries`);
     } catch (error) {
       console.error('Error clearing cache:', error);
     }
@@ -553,14 +550,12 @@ class FreeRecipeService {
    */
   async preCacheRecipes(onProgress = null) {
     try {
-      console.log('🚀 Starting recipe pre-cache...');
 
       // Check if already cached
       const cacheKey = `${CACHE_PREFIX}all_recipes`;
       const cached = await this._getCached(cacheKey);
 
       if (cached) {
-        console.log(`✅ Recipes already cached (${cached.length} recipes)`);
         if (onProgress) onProgress({ completed: true, count: cached.length });
         return cached;
       }
@@ -603,7 +598,6 @@ class FreeRecipeService {
 
       // Cache the results
       await this._setCache(cacheKey, allRecipes);
-      console.log(`✅ Pre-cached ${allRecipes.length} recipes from TheMealDB`);
 
       if (onProgress) {
         onProgress({ completed: true, count: allRecipes.length });

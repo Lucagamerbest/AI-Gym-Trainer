@@ -119,18 +119,13 @@ class SyncManager {
 
   // Sync all pending operations
   async syncPendingOperations() {
-    console.log('📤 SYNC_MANAGER: syncPendingOperations called');
-    console.log('📤 SYNC_MANAGER: auth.currentUser:', auth.currentUser?.uid || 'null');
-    console.log('📤 SYNC_MANAGER: Queue length:', this.syncQueue.length);
 
     // Don't sync if not authenticated
     if (!auth.currentUser) {
-      console.log('📤 SYNC_MANAGER: ❌ Not authenticated, skipping sync');
       return { success: false, reason: 'Not authenticated' };
     }
 
     if (this.isSyncing || !this.isOnline) {
-      console.log('📤 SYNC_MANAGER: ❌ Skipping -', this.isSyncing ? 'Already syncing' : 'Offline');
       return { success: false, reason: this.isSyncing ? 'Already syncing' : 'Offline' };
     }
 
@@ -146,15 +141,12 @@ class SyncManager {
         errors: []
       };
 
-      console.log('📤 SYNC_MANAGER: Processing', operations.length, 'operations');
 
       for (let i = 0; i < operations.length; i++) {
         const operation = operations[i];
-        console.log('📤 SYNC_MANAGER: Executing operation', i + 1, ':', operation.type);
         try {
           await this.executeOperation(operation);
           results.successful++;
-          console.log('📤 SYNC_MANAGER: ✅ Operation', i + 1, 'successful');
 
           // Remove from queue after successful sync
           this.syncQueue.shift();
@@ -177,7 +169,6 @@ class SyncManager {
       // Update last sync time
       await AsyncStorage.setItem(LAST_SYNC_KEY, new Date().toISOString());
 
-      console.log('📤 SYNC_MANAGER: Sync complete - Success:', results.successful, 'Failed:', results.failed);
 
       this.notifyListeners({
         syncCompleted: true,
@@ -290,9 +281,6 @@ class SyncManager {
 
   // Auto-sync workout after save
   async syncWorkout(userId, workout) {
-    console.log('📤 SYNC_MANAGER: syncWorkout called');
-    console.log('📤 SYNC_MANAGER: userId:', userId);
-    console.log('📤 SYNC_MANAGER: workout title:', workout?.workoutTitle);
 
     if (!userId) {
       console.warn('📤 SYNC_MANAGER: No user ID provided for workout sync');
@@ -306,14 +294,11 @@ class SyncManager {
       data: workout,
       timestamp: new Date().toISOString()
     });
-    console.log('📤 SYNC_MANAGER: Operation queued');
 
     // If online, sync immediately
     if (this.isOnline) {
-      console.log('📤 SYNC_MANAGER: Online, syncing immediately');
       await this.syncPendingOperations();
     } else {
-      console.log('📤 SYNC_MANAGER: Offline, will sync later');
     }
   }
 

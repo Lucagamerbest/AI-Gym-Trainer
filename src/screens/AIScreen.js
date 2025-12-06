@@ -91,7 +91,6 @@ export default function AIScreen({ navigation }) {
       // Use local date instead of UTC to avoid timezone issues
       const now = new Date();
       const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-      console.log('📆 Today is:', today, '(', new Date().toLocaleDateString(), ')');
 
       // Load nutrition data
       const goals = await getNutritionGoals(userId);
@@ -106,7 +105,6 @@ export default function AIScreen({ navigation }) {
             consumed += meal.calories_consumed || 0;
           });
         } catch (error) {
-          console.log('Could not load meals:', error);
         }
       }
 
@@ -137,7 +135,6 @@ export default function AIScreen({ navigation }) {
             // Streak and weekly stats removed - no longer needed
           }
         } catch (error) {
-          console.log('Could not load workouts:', error);
         }
       }
 
@@ -145,43 +142,32 @@ export default function AIScreen({ navigation }) {
       try {
         const MEAL_PLANS_KEY = '@meal_plans';
         const savedPlans = await AsyncStorage.getItem(MEAL_PLANS_KEY);
-        console.log('📅 Checking meal plans for today:', today);
         if (savedPlans) {
           const mealPlans = JSON.parse(savedPlans);
-          console.log('📦 All meal plans:', Object.keys(mealPlans));
           const todayPlanned = mealPlans[today]?.planned;
-          console.log('🍽️ Today\'s planned meals:', todayPlanned);
 
           if (todayPlanned) {
             // Check if there are any planned meals for today
             const hasPlannedMeals = Object.values(todayPlanned).some(meals => meals && meals.length > 0);
-            console.log('✅ Has planned meals:', hasPlannedMeals);
             if (hasPlannedMeals) {
               setTodayMealPlan(todayPlanned);
-              console.log('🎯 Set meal plan state:', todayPlanned);
             }
           }
         } else {
-          console.log('❌ No meal plans found in storage');
         }
       } catch (error) {
-        console.log('Could not load planned meals:', error);
       }
 
       // Check for today's planned workout
       if (userId && userId !== 'guest') {
         try {
           const plannedWorkout = await WorkoutStorageService.getPlannedWorkoutByDate(today, userId);
-          console.log('💪 Planned workout for today:', plannedWorkout);
           if (plannedWorkout) {
             const workoutName = plannedWorkout.workoutName || plannedWorkout.workoutTitle || 'Unnamed workout';
-            console.log('✅ Setting workout plan state:', workoutName);
             setTodayWorkoutPlan(plannedWorkout);
           } else {
-            console.log('❌ No planned workout found for today');
           }
         } catch (error) {
-          console.log('Could not load planned workout:', error);
         }
       }
     } catch (error) {

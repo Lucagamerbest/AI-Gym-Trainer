@@ -12,7 +12,6 @@ try {
   ExpoSpeechRecognitionModule = speechModule.ExpoSpeechRecognitionModule;
   useSpeechRecognitionEvent = speechModule.useSpeechRecognitionEvent;
 } catch (error) {
-  console.log('Voice input not available (requires native build)');
 }
 
 /**
@@ -53,7 +52,6 @@ export default function VoiceInputButton({
   useSpeechRecognitionEvent('error', (event) => {
     if (!ExpoSpeechRecognitionModule) return;
 
-    console.log('Speech recognition error:', event.error);
     setIsListening(false);
 
     if (event.error === 'no-speech') {

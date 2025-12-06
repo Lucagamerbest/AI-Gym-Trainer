@@ -16,7 +16,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
  */
 export async function addExerciseToWorkout({ exerciseName, sets = 3, reps = '8-12', userId }) {
   try {
-    console.log('➕ Adding exercise to workout:', { exerciseName, sets, reps, userId });
 
     // Get current active workout (if user is in a workout)
     const activeWorkoutKey = '@active_workout';
@@ -75,7 +74,6 @@ export async function addExerciseToWorkout({ exerciseName, sets = 3, reps = '8-1
  */
 export async function modifyActiveWorkout({ action, exerciseName, position, userId }) {
   try {
-    console.log('🔧 Modifying active workout:', { action, exerciseName, position });
 
     const activeWorkoutKey = '@active_workout';
     const activeWorkoutStr = await AsyncStorage.getItem(activeWorkoutKey);
@@ -165,12 +163,9 @@ export async function modifyActiveWorkout({ action, exerciseName, position, user
 
         if (oldIndex !== -1 && oldSets[oldIndex.toString()]) {
           newSets[newIndex.toString()] = oldSets[oldIndex.toString()];
-          console.log(`🔄 [modifyActiveWorkout] Remapping sets: ${ex.name} from position ${oldIndex} → ${newIndex}`);
         }
       });
 
-      console.log('📊 [modifyActiveWorkout] Old sets:', oldSets);
-      console.log('📊 [modifyActiveWorkout] New sets:', newSets);
 
       // Update workout with remapped sets
       activeWorkout.exerciseSets = newSets;
@@ -210,7 +205,6 @@ export async function modifyActiveWorkout({ action, exerciseName, position, user
  */
 export async function finishWorkout({ workoutTitle, notes, rating, userId }) {
   try {
-    console.log('🏁 Finishing workout:', { workoutTitle, notes, rating });
 
     const activeWorkoutKey = '@active_workout';
     const activeWorkoutStr = await AsyncStorage.getItem(activeWorkoutKey);
@@ -322,7 +316,6 @@ export async function finishWorkout({ workoutTitle, notes, rating, userId }) {
  */
 export async function skipToNextExercise({ userId }) {
   try {
-    console.log('⏭️ Skipping to next exercise');
 
     const activeWorkoutKey = '@active_workout';
     const activeWorkoutStr = await AsyncStorage.getItem(activeWorkoutKey);
@@ -415,7 +408,6 @@ export async function skipToNextExercise({ userId }) {
  */
 export async function getActiveWorkoutStatus({ userId }) {
   try {
-    console.log('📊 Getting active workout status');
 
     const activeWorkoutKey = '@active_workout';
     const activeWorkoutStr = await AsyncStorage.getItem(activeWorkoutKey);
@@ -522,7 +514,6 @@ export async function getActiveWorkoutStatus({ userId }) {
  */
 export async function startRestTimer({ duration, userId }) {
   try {
-    console.log('⏱️ Starting rest timer:', { duration });
 
     // Validate duration
     if (!duration || duration <= 0) {
@@ -605,7 +596,6 @@ export async function logWorkoutSet({
   userId
 }) {
   try {
-    console.log('📝 Logging set:', { exerciseName, weight, reps, setNumber, rpe, setType, notes });
 
     const activeWorkoutKey = '@active_workout';
     const activeWorkoutStr = await AsyncStorage.getItem(activeWorkoutKey);
@@ -643,7 +633,6 @@ export async function logWorkoutSet({
     // Get sets from exerciseSets object (keyed by exercise index)
     const sets = activeWorkout.exerciseSets?.[exerciseIndex.toString()] || [];
 
-    console.log(`📊 Sets for exercise ${exerciseIndex} (${exerciseName}):`, JSON.stringify(sets, null, 2));
 
     if (!Array.isArray(sets) || sets.length === 0) {
       return {
@@ -656,7 +645,6 @@ export async function logWorkoutSet({
     const setIndex = setNumber ? setNumber - 1 :
                      sets.findIndex(s => !s.completed);
 
-    console.log(`🎯 Target set index: ${setIndex}, setNumber param: ${setNumber}`);
 
     if (setIndex === -1 || setIndex >= sets.length) {
       return {
@@ -930,12 +918,9 @@ export async function reorderExercise({ exerciseName, newPosition, direction, us
       const oldIndex = originalExercises.findIndex(e => e.id === ex.id);
       if (oldIndex !== -1 && oldSets[oldIndex.toString()]) {
         newSets[newIndex.toString()] = oldSets[oldIndex.toString()];
-        console.log(`🔄 Remapping sets: ${ex.name} from position ${oldIndex} → ${newIndex}`);
       }
     });
 
-    console.log('📊 Old sets:', oldSets);
-    console.log('📊 New sets:', newSets);
 
     // Update workout
     activeWorkout.exercises = exercises;
@@ -978,7 +963,6 @@ export async function reorderExercise({ exerciseName, newPosition, direction, us
  */
 export async function logMeal({ foodName, amount, calories, protein, carbs, fat, userId }) {
   try {
-    console.log('🍽️ Logging meal:', { foodName, amount, calories, protein });
 
     if (!userId || userId === 'guest') {
       return {
@@ -1000,13 +984,11 @@ export async function logMeal({ foodName, amount, calories, protein, carbs, fat,
       const todaysMeals = await MealSyncService.getMealsByDate(userId, today);
       const todaysMealCount = todaysMeals?.length || 0;
 
-      console.log(`📊 Meal count check: ${todaysMealCount}/${mealsPerDay} meals today`);
 
       if (todaysMealCount >= mealsPerDay) {
         mealCountWarning = `⚠️ Note: You've now logged ${todaysMealCount + 1} meals today (your goal is ${mealsPerDay} meals/day). That's okay if you're hungry, just be mindful of your daily totals!`;
       }
     } catch (checkError) {
-      console.log('Could not check meal count:', checkError.message);
     }
 
     // Create meal object
@@ -1049,7 +1031,6 @@ export async function logMeal({ foodName, amount, calories, protein, carbs, fat,
  */
 export async function getRecentWorkouts({ limit = 5, userId }) {
   try {
-    console.log('📋 Getting recent workouts:', { limit, userId });
 
     const workouts = await WorkoutSyncService.getAllWorkouts(limit);
 
@@ -1094,7 +1075,6 @@ export async function getRecentWorkouts({ limit = 5, userId }) {
  */
 export async function updateUserProfile({ field, value, userId }) {
   try {
-    console.log('👤 Updating profile:', { field, value });
 
     const validFields = ['currentWeight', 'age', 'height', 'primaryGoal'];
 
@@ -1135,7 +1115,6 @@ export async function updateUserProfile({ field, value, userId }) {
  */
 export async function startWorkout({ workoutName = 'Workout', userId }) {
   try {
-    console.log('🏋️ Starting workout:', { workoutName });
 
     const workout = {
       id: `workout_${Date.now()}`,
@@ -1170,7 +1149,6 @@ export async function startWorkout({ workoutName = 'Workout', userId }) {
  */
 export async function savePlannedWorkout({ workoutData, userId }) {
   try {
-    console.log('💾 Saving workout to My Plans:', { workoutData });
 
     if (!workoutData) {
       return {
@@ -1245,7 +1223,6 @@ export async function savePlannedWorkout({ workoutData, userId }) {
  */
 export async function scheduleWorkoutForDate({ workoutData, date = 'today', userId }) {
   try {
-    console.log('📅 Scheduling workout for date:', { workoutData, date, userId });
 
     if (!workoutData) {
       return {

@@ -44,7 +44,6 @@ class ToolRegistry {
   async executeTool(name, args) {
     // Redirect meal suggestion tools to suggestMeal action for browsable UI
     if (name === 'getMealRecommendation' || name === 'suggestNextMealForBalance') {
-      console.log(`🔀 Redirecting ${name} to suggestMeal action for multiple browsable options`);
 
       // Import suggestMeal action
       const { suggestMeal } = require('../actions/NutritionActions');
@@ -68,7 +67,6 @@ class ToolRegistry {
 
       // Call suggestMeal with the meal type
       const result = await suggestMeal({ mealType }, {});
-      console.log('✅ suggestMeal action completed');
 
       // Return in tool format with toolResults for UI rendering
       return result;
@@ -81,9 +79,7 @@ class ToolRegistry {
     }
 
     try {
-      console.log(`🔧 Executing tool: ${name}`, args);
       const result = await tool.handler(args);
-      console.log(`✅ Tool ${name} completed`);
       return result;
     } catch (error) {
       console.error(`❌ Tool ${name} failed:`, error);

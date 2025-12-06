@@ -62,7 +62,6 @@ function HomeScreen({ navigation }) {
             consumedCals += meal.calories_consumed || 0;
           });
         } catch (error) {
-          console.log('⚠️ Could not load meals from Firebase:', error);
         }
       }
 

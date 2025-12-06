@@ -40,8 +40,6 @@ function filterExcludedExercises(exercises) {
  */
 export async function generateWorkoutPlan({ muscleGroups, experienceLevel, duration, goal, equipment, userId }) {
   try {
-    console.log(`🤖 [WorkoutTools] Using NEW AI Generator with scientific principles`);
-    console.log(`🔍 [WorkoutTools] Received userId: ${userId}`);
 
     // Fetch full user profile for AI generator
     let userProfile = {
@@ -59,14 +57,12 @@ export async function generateWorkoutPlan({ muscleGroups, experienceLevel, durat
       try {
         const fetchedProfile = await getUserProfile(userId);
         if (fetchedProfile) {
-          console.log(`✅ [WorkoutTools] User profile fetched successfully`);
           userProfile = {
             ...userProfile,
             ...fetchedProfile, // Merge with fetched profile
           };
 
           if (userProfile.dislikedExercises?.length > 0) {
-            console.log(`🚫 Blacklisted exercises: ${userProfile.dislikedExercises.join(', ')}`);
           }
         }
       } catch (error) {
@@ -76,12 +72,10 @@ export async function generateWorkoutPlan({ muscleGroups, experienceLevel, durat
 
     // Determine workout type from muscle groups
     const workoutType = muscleGroups[0]?.toLowerCase() || 'full_body';
-    console.log(`🎯 [WorkoutTools] Workout type: ${workoutType}`);
 
     // Generate random variation index (0-5) for workout variety
     // 6 different variation strategies to ensure diverse workouts
     const variationIndex = Math.floor(Math.random() * 6);
-    console.log(`🎲 [WorkoutTools] Using variation index: ${variationIndex} (1-6)`);
 
     // Call NEW AI Generator with scientific principles
     const aiResult = await generateWorkoutWithAI({
@@ -110,7 +104,6 @@ export async function generateWorkoutPlan({ muscleGroups, experienceLevel, durat
       instructions: ex.notes || '',
     }));
 
-    console.log(`✅ [WorkoutTools] AI generated ${workoutExercises.length} exercises`);
 
     const generatedWorkout = {
       title: workout.name || generateWorkoutTitle(muscleGroups, goal),
@@ -126,7 +119,6 @@ export async function generateWorkoutPlan({ muscleGroups, experienceLevel, durat
     // Store as last generated workout for replace function
     try {
       await AsyncStorage.setItem('@last_generated_workout', JSON.stringify(generatedWorkout));
-      console.log('💾 [WorkoutTools] Stored last generated workout for replacement');
     } catch (storageError) {
       console.warn('⚠️ [WorkoutTools] Failed to store workout for replacement:', storageError);
       // Don't fail the whole operation if storage fails
@@ -157,7 +149,6 @@ function generateWorkoutTitle(muscleGroups, goal) {
  */
 export async function generateWorkoutProgram({ days, muscleGroups, experienceLevel, goal }) {
   try {
-    console.log('📋 Generating program:', { days, muscleGroups, experienceLevel, goal });
 
     const programDays = parseInt(days) || 4;
     const workouts = [];
@@ -352,7 +343,6 @@ export async function replaceExerciseInWorkout({
       };
     }
 
-    console.log(`✅ Found old exercise: "${oldExercise.name}" (parsed from "${oldExerciseName}")`);
 
     let newExercise;
     let requestedEquipment = equipment;
@@ -486,7 +476,6 @@ export async function replaceExerciseInWorkout({
       workoutData = JSON.parse(lastGeneratedStr);
       workoutKey = '@last_generated_workout';
       isLastGenerated = true;
-      console.log('🔄 [Replace] Using last generated workout');
     }
 
     // If no last generated, try active workout
@@ -495,7 +484,6 @@ export async function replaceExerciseInWorkout({
       if (activeWorkoutStr) {
         workoutData = JSON.parse(activeWorkoutStr);
         workoutKey = '@active_workout';
-        console.log('🔄 [Replace] Using active workout');
       }
     }
 
@@ -524,7 +512,6 @@ export async function replaceExerciseInWorkout({
         if (matches.length === 1) {
           // Only ONE match found - use it!
           exerciseIndex = matches[0].idx;
-          console.log(`✅ Smart match: "${oldExerciseName}" → "${matches[0].ex.name}"`);
         } else if (matches.length > 1) {
           // Multiple matches - return structured data for UI to create quick reply buttons
           const matchNames = matches.map(m => m.ex.name);
@@ -678,7 +665,6 @@ export async function analyzeWorkoutHistory({ userId, days = 30 }) {
  */
 export async function recommendTodaysWorkout({ userId }) {
   try {
-    console.log('🧠 Analyzing workout history for intelligent recommendation...');
 
     // Get recent workouts (last 30 days)
     const workouts = await WorkoutSyncService.getAllWorkouts(100);
@@ -735,7 +721,6 @@ export async function recommendTodaysWorkout({ userId }) {
       if (legMuscles.some(lm => muscle.includes(lm))) legCount += count;
     });
 
-    console.log(`📊 Muscle balance (30 days): Push ${pushCount}, Pull ${pullCount}, Legs ${legCount}`);
 
     // ANALYSIS 3: Detect workout pattern/program
     const workoutTitles = last7DaysWorkouts.map(w => w.title?.toLowerCase() || '').filter(t => t);
@@ -748,11 +733,9 @@ export async function recommendTodaysWorkout({ userId }) {
     const daysSinceLastWorkout = lastWorkoutDate ?
       Math.floor((now - lastWorkoutDate) / (1000 * 60 * 60 * 24)) : 999;
 
-    console.log(`📅 Days since last workout: ${daysSinceLastWorkout}`);
 
     // ANALYSIS 5: Weekly workout frequency
     const weeklyFrequency = last7DaysWorkouts.length;
-    console.log(`📈 Weekly frequency: ${weeklyFrequency} workouts`);
 
     // ============================================================
     // DECISION LOGIC

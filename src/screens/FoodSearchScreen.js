@@ -50,7 +50,6 @@ export default function FoodSearchScreen({ route, navigation }) {
       const foods = await userContributedFoods.getRecentFoods(10);
       setMyFoods(foods);
     } catch (error) {
-      console.log('Failed to load user foods:', error);
     }
   };
 

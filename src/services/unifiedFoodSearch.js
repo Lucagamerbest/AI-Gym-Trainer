@@ -203,20 +203,16 @@ export const unifiedFoodSearch = async (query, options = {}) => {
       category,
     });
     if (userFoodsResults.length > 0) {
-      console.log(`👤 User foods: ${userFoodsResults.length} results`);
     }
   } catch (error) {
-    console.log('⚠️ User foods search failed:', error.message);
   }
 
   // Search restaurant menu items
   try {
     restaurantResults = searchRestaurantFoods(query, 10);
     if (restaurantResults.length > 0) {
-      console.log(`🍟 Restaurant foods: ${restaurantResults.length} results`);
     }
   } catch (error) {
-    console.log('⚠️ Restaurant foods search failed:', error.message);
   }
 
   try {
@@ -231,7 +227,6 @@ export const unifiedFoodSearch = async (query, options = {}) => {
     curatedResultsForLater = curatedResults; // Save for later use
 
     const tier1Time = Date.now() - startTime;
-    console.log(`🍔 Curated search: ${curatedResults.length} results in ${tier1Time}ms`);
 
     // Combine user foods (first), then restaurant foods, then curated results
     const tier1Combined = [...userFoodsResults, ...restaurantResults, ...curatedResults];
@@ -239,11 +234,9 @@ export const unifiedFoodSearch = async (query, options = {}) => {
     // If we have ANY tier 1 results and NOT explicitly asking for API, return them
     // This prevents waiting for slow APIs when we have good local data
     if (tier1Combined.length >= 1 && !includeAPI) {
-      console.log(`✅ Using tier 1 results (${tier1Combined.length} foods)`);
       return tier1Combined.slice(0, limit);
     }
   } catch (error) {
-    console.log('⚠️ Curated database search failed:', error.message);
   }
 
   // ═══════════════════════════════════════════════════════════════
@@ -390,7 +383,6 @@ export const unifiedFoodSearch = async (query, options = {}) => {
     });
 
     const tier2Time = Date.now() - startTime;
-    console.log(`📦 Combined search: ${rankedResults.all.length} results in ${tier2Time}ms`);
 
     // If local only or no API needed, return now
     if (localOnly || !includeAPI) {
@@ -414,7 +406,6 @@ export const unifiedFoodSearch = async (query, options = {}) => {
 
       apiResults = await Promise.race([apiPromise, timeoutPromise]);
     } catch (error) {
-      console.log(`⚠️ API search skipped (${error.message}), using local results`);
       // Return local results if API times out or fails
       return rankedResults.all.slice(0, limit);
     }
@@ -465,7 +456,6 @@ export const unifiedFoodSearch = async (query, options = {}) => {
     const finalRanked = await smartSearchFoods(filtered, query, { limit });
 
     const totalTime = Date.now() - startTime;
-    console.log(`🌐 API search: ${finalRanked.all.length} results in ${totalTime}ms`);
 
     return finalRanked.all;
 

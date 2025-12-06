@@ -17,7 +17,6 @@ import { useAICoach } from '../context/AICoachContext';
  * Usage:
  * <AISectionPanel
  *   screenName="WorkoutScreen"
- *   onResponse={(response) => console.log(response)}
  * />
  */
 export default function AISectionPanel({

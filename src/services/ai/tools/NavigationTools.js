@@ -69,7 +69,6 @@ export async function navigateToScreen({ screenName, params = {} }) {
     // Navigate to the screen
     NavigationService.navigate(screenName, params);
 
-    console.log(`✅ AI navigated to: ${screenName}`, params);
 
     return {
       success: true,

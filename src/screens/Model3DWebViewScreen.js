@@ -23,12 +23,10 @@ export default function Model3DWebViewScreen({ navigation, route }) {
 
       if (expoGo) {
         // Expo Go - must use remote URL
-        console.log('Running in Expo Go - using remote URL for 3D model');
         setModelUri(MODEL_REMOTE_URL);
       } else {
         // Dev build or production - use local Android asset (works offline!)
         if (Platform.OS === 'android') {
-          console.log('Running in dev/production build - using local asset for 3D model (offline ready)');
           setModelUri('file:///android_asset/models/human.glb');
         } else {
           // iOS - use remote for now (TODO: bundle for iOS)
@@ -152,7 +150,6 @@ export default function Model3DWebViewScreen({ navigation, route }) {
       };
 
   // Log which mode we're using
-  console.log(`3D Model Viewer: isExpoGo=${isExpoGo}, Platform=${Platform.OS}, useLocalAssets=${useLocalAssets}`);
 
   // HTML content - inline to avoid path issues
   const htmlContent = `
@@ -445,8 +442,6 @@ export default function Model3DWebViewScreen({ navigation, route }) {
             bodyMeshMaterial.uniforms.selectedMuscles.value = selectedArray;
             bodyMeshMaterial.needsUpdate = true;
 
-            console.log('Updated shader with selected muscles:', Array.from(selectedMuscleGroups));
-            console.log('Shader array:', selectedArray);
         }
 
         function init() {
@@ -552,11 +547,9 @@ export default function Model3DWebViewScreen({ navigation, route }) {
                                     roughness: 0.7,
                                     metalness: 0.1,
                                 });
-                                console.log('Skipping eye mesh:', child.name);
                             } else {
                                 // Apply shader material to body meshes
                                 child.material = bodyMeshMaterial;
-                                console.log('Applied shader material to body mesh:', child.name);
                             }
                         }
                     });
@@ -573,7 +566,6 @@ export default function Model3DWebViewScreen({ navigation, route }) {
                     scene.add(model);
 
                     document.getElementById('loading').style.display = 'none';
-                    console.log('Model loaded successfully with', meshCount, 'meshes');
                 },
                 function(xhr) {
                     const percent = xhr.total ? (xhr.loaded / xhr.total * 100).toFixed(0) : 'unknown';

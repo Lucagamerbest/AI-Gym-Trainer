@@ -58,8 +58,6 @@ export default function SignInScreen({ navigation }) {
       ? `${IOS_REVERSED_CLIENT_ID}:/oauth2redirect/google`
       : AuthSession.makeRedirectUri({ scheme: 'workoutwave' });
 
-  console.log('Is Expo Go:', isExpoGo);
-  console.log('Redirect URI:', redirectUri);
 
   // Google Sign-In configuration
   // When using auth.expo.io proxy (Expo Go), we must use the web client ID with implicit flow
@@ -80,39 +78,24 @@ export default function SignInScreen({ navigation }) {
         scopes: ['openid', 'profile', 'email'],
       };
 
-  console.log('Google Auth Config:', JSON.stringify(googleAuthConfig, null, 2));
 
   const [request, response, promptAsync] = isAndroidEmulator ? [null, null, null] : Google.useAuthRequest(googleAuthConfig);
 
   // Debug: Log request state
   useEffect(() => {
-    console.log('=== GOOGLE AUTH DEBUG ===');
-    console.log('Platform:', Platform.OS);
-    console.log('Request object exists:', !!request);
     if (request) {
-      console.log('Request URL:', request.url);
-      console.log('Request codeVerifier:', !!request.codeVerifier);
-      console.log('Request state:', request.state);
     }
-    console.log('=========================');
   }, [request]);
 
   // Debug: Log response changes
   useEffect(() => {
-    console.log('=== GOOGLE AUTH RESPONSE ===');
-    console.log('Response:', JSON.stringify(response, null, 2));
     if (response) {
-      console.log('Response type:', response.type);
       if (response.type === 'error') {
-        console.log('Error:', response.error);
         Alert.alert('Google Auth Error', `Type: ${response.type}\nError: ${JSON.stringify(response.error)}\nParams: ${JSON.stringify(response.params)}`);
       } else if (response.type === 'dismiss') {
-        console.log('User dismissed the auth flow');
       } else if (response.type === 'success') {
-        console.log('Success! Authentication:', response.authentication);
       }
     }
-    console.log('============================');
   }, [response]);
 
   useEffect(() => {
@@ -408,9 +391,6 @@ export default function SignInScreen({ navigation }) {
               style={styles.socialButton} 
               activeOpacity={0.8}
               onPress={async () => {
-                console.log('=== GOOGLE BUTTON PRESSED ===');
-                console.log('isAndroidEmulator:', isAndroidEmulator);
-                console.log('request exists:', !!request);
 
                 // Development bypass for Android emulator
                 if (isAndroidEmulator) {
@@ -439,17 +419,12 @@ export default function SignInScreen({ navigation }) {
                   return;
                 }
                 if (request) {
-                  console.log('Calling promptAsync...');
-                  console.log('Request URL:', request.url);
                   try {
                     const result = await promptAsync();
-                    console.log('promptAsync result:', JSON.stringify(result, null, 2));
                   } catch (error) {
-                    console.log('promptAsync error:', error);
                     Alert.alert('Google Auth Error', `promptAsync failed: ${error.message}`);
                   }
                 } else {
-                  console.log('Request is null/undefined');
                   Alert.alert('Debug Info', `Request: ${request}\nPlatform: ${Platform.OS}\nCheck console for more details`);
                 }
               }}

@@ -12,14 +12,11 @@ import MacroProgressBar from './MacroProgressBar';
  * @param {string} subtitle - Card subtitle (optional, e.g., "92% through the day")
  */
 export default function MacroProgressCard({ macros, title = "📊 Today's Macros", subtitle }) {
-  console.log('🎨 MacroProgressCard rendered with props:', { macros, title, subtitle });
 
   if (!macros || !macros.calories) {
-    console.log('⚠️ MacroProgressCard: Missing macros data, returning null');
     return null;
   }
 
-  console.log('✅ MacroProgressCard: Rendering card with', {
     calories: `${macros.calories.consumed}/${macros.calories.target}`,
     protein: `${macros.protein.consumed}/${macros.protein.target}`,
   });

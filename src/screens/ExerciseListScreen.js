@@ -402,7 +402,6 @@ export default function ExerciseListScreen({ navigation, route }) {
   const logDebug = (message, data = null) => {
     if (debugMode) {
       const logEntry = data ? `${message}: ${JSON.stringify(data)}` : message;
-      console.log(logEntry);
       setDebugLogs(prev => [...prev.slice(-19), logEntry]); // Keep last 20 logs
     }
   };

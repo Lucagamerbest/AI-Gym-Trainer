@@ -27,9 +27,6 @@ export function AuthProvider({ children }) {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         // User is signed in
-        console.log('🔐 AUTH: User signed in');
-        console.log('🔐 AUTH: Email:', firebaseUser.email);
-        console.log('🔐 AUTH: UID:', firebaseUser.uid);
 
         const userData = {
           uid: firebaseUser.uid,
@@ -44,49 +41,34 @@ export function AuthProvider({ children }) {
         // Create or update user profile in Firestore
         try {
           await BackendService.createOrUpdateUserProfile(firebaseUser);
-          console.log('🔐 AUTH: User profile updated in Firestore');
         } catch (error) {
-          console.log('🔐 AUTH: Profile update failed:', error.message);
         }
 
         // Download cloud workouts to local storage (restores data after reinstall)
         try {
-          console.log('🔐 AUTH: Starting cloud workout download for UID:', firebaseUser.uid);
           const workouts = await WorkoutSyncService.downloadCloudWorkouts(firebaseUser.uid);
-          console.log('✅ AUTH: Cloud workouts synced to local storage, count:', workouts?.length || 0);
         } catch (error) {
-          console.log('🔐 AUTH: Cloud workout sync failed:', error.message);
         }
 
         // Upload any local workouts that haven't been synced to Firebase yet
         try {
-          console.log('🔐 AUTH: Uploading unsynced local workouts to Firebase...');
           const syncResult = await WorkoutSyncService.syncLocalWorkouts(firebaseUser.uid);
-          console.log('✅ AUTH: Local workouts synced to Firebase:', syncResult);
         } catch (error) {
-          console.log('🔐 AUTH: Local workout upload failed:', error.message);
         }
 
         // Download cloud meals to local storage (restores food log after reinstall)
         try {
-          console.log('🔐 AUTH: Starting cloud meal download for UID:', firebaseUser.uid);
           const meals = await MealSyncService.downloadCloudMeals(firebaseUser.uid);
-          console.log('✅ AUTH: Cloud meals synced to local storage, count:', meals?.length || 0);
         } catch (error) {
-          console.log('🔐 AUTH: Cloud meal sync failed:', error.message);
         }
 
         // Upload any local meals that haven't been synced to Firebase yet
         try {
-          console.log('🔐 AUTH: Uploading unsynced local meals to Firebase...');
           const mealSyncResult = await MealSyncService.syncLocalMeals(firebaseUser.uid);
-          console.log('✅ AUTH: Local meals synced to Firebase:', mealSyncResult);
         } catch (error) {
-          console.log('🔐 AUTH: Local meal upload failed:', error.message);
         }
       } else {
         // User is signed out
-        console.log('🔐 AUTH: User signed out');
         setUser(null);
       }
 

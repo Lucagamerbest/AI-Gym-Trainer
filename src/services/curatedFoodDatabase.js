@@ -46,18 +46,15 @@ class CuratedFoodDatabase {
     if (this.isLoaded) return;
 
     try {
-      console.log('🍔 Initializing Curated Food Database...');
 
       // Try to load from cache first (fastest)
       const cached = await this.loadFromCache();
 
       if (cached) {
         this.loadData(cached);
-        console.log(`✅ Loaded ${this.foods.length} foods from cache (v${this.version})`);
       } else {
         // Fall back to bundled JSON
         this.loadData(curatedFoodsData);
-        console.log(`✅ Loaded ${this.foods.length} bundled foods (v${this.version})`);
       }
 
       this.isLoaded = true;
@@ -90,7 +87,6 @@ class CuratedFoodDatabase {
       this.foodsByCategory[cat].push(food);
     });
 
-    console.log(`   Categories: ${Object.keys(this.foodsByCategory).join(', ')}`);
   }
 
   /**
@@ -103,7 +99,6 @@ class CuratedFoodDatabase {
         return JSON.parse(cached);
       }
     } catch (error) {
-      console.log('Cache read failed:', error.message);
     }
     return null;
   }
@@ -115,9 +110,7 @@ class CuratedFoodDatabase {
     try {
       await AsyncStorage.setItem(CACHE_KEY, JSON.stringify(data));
       await AsyncStorage.setItem(VERSION_KEY, String(data.version));
-      console.log(`💾 Cached ${data.foods.length} foods (v${data.version})`);
     } catch (error) {
-      console.log('Cache write failed:', error.message);
     }
   }
 
@@ -134,7 +127,6 @@ class CuratedFoodDatabase {
       const now = Date.now();
 
       if (lastCheck && (now - parseInt(lastCheck)) < UPDATE_CHECK_INTERVAL) {
-        console.log('⏳ Skipping update check (checked recently)');
         return;
       }
 
@@ -145,11 +137,9 @@ class CuratedFoodDatabase {
       const hasUpdate = await this.checkForUpdates();
 
       if (hasUpdate) {
-        console.log('📥 Downloading food database update...');
         await this.downloadFromFirebase();
       }
     } catch (error) {
-      console.log('Background update check failed:', error.message);
     }
   }
 
@@ -158,7 +148,6 @@ class CuratedFoodDatabase {
    */
   async checkForUpdates() {
     if (!storage) {
-      console.log('⚠️ Firebase Storage not available');
       return false;
     }
 
@@ -169,12 +158,10 @@ class CuratedFoodDatabase {
       const versionData = await response.json();
 
       const remoteVersion = versionData.version || 0;
-      console.log(`🔍 Version check: local=${this.version}, remote=${remoteVersion}`);
 
       return remoteVersion > this.version;
     } catch (error) {
       // Version file doesn't exist yet or network error
-      console.log('Version check failed:', error.message);
       return false;
     }
   }
@@ -202,12 +189,10 @@ class CuratedFoodDatabase {
           // Update in memory
           this.loadData(data);
 
-          console.log(`✅ Updated to v${this.version} (${this.foods.length} foods)`);
           return true;
         }
       }
     } catch (error) {
-      console.log('Download failed:', error.message);
     } finally {
       this.isUpdating = false;
     }
@@ -219,7 +204,6 @@ class CuratedFoodDatabase {
    * Force refresh from Firebase (manual update)
    */
   async forceRefresh() {
-    console.log('🔄 Force refreshing food database...');
     await AsyncStorage.removeItem(LAST_CHECK_KEY);
     return await this.downloadFromFirebase();
   }
@@ -544,7 +528,6 @@ class CuratedFoodDatabase {
    */
   async clearCache() {
     await AsyncStorage.multiRemove([CACHE_KEY, VERSION_KEY, LAST_CHECK_KEY]);
-    console.log('🗑️ Cleared food database cache');
   }
 }
 

@@ -29,7 +29,6 @@ let restaurantData = { restaurants: [] };
 try {
   restaurantData = require('../data/restaurantDatabase.json');
 } catch (e) {
-  console.log('Failed to load restaurant data:', e);
 }
 
 const RECIPES_KEY = '@saved_recipes';
@@ -163,7 +162,6 @@ export default function RecipesScreen({ navigation, route }) {
   // Reload when refreshTimestamp changes (triggered by AI modal saving a recipe)
   useEffect(() => {
     if (refreshTimestamp) {
-      console.log('🔄 Refreshing recipes due to refreshTimestamp:', refreshTimestamp);
       loadRecipes();
     }
   }, [refreshTimestamp, loadRecipes]);
@@ -641,7 +639,6 @@ export default function RecipesScreen({ navigation, route }) {
         <RecipeBrowser
           initialMealType={mealType}
           onSelectRecipe={(recipe) => {
-            console.log('Selected recipe from database:', recipe);
             // Navigate to full-page recipe detail screen
             navigation.navigate('RecipeDetail', {
               recipe: recipe,

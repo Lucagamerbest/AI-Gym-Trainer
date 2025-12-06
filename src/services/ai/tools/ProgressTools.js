@@ -21,7 +21,6 @@ export async function predictGoalCompletionDate({
   userId
 }) {
   try {
-    console.log('📅 Predicting goal completion date:', {
       goalType,
       exerciseName,
       currentValue,
@@ -348,7 +347,6 @@ export async function detectProgressPlateau({
   userId
 }) {
   try {
-    console.log('🔍 Detecting plateau:', { exerciseName, metric, timeframe });
 
     const workouts = await WorkoutStorageService.getAllWorkouts(50);
 
@@ -563,7 +561,6 @@ export async function estimateBodyFatPercentage({
   userId
 }) {
   try {
-    console.log('📏 Estimating body fat percentage:', {
       gender,
       weight,
       height,
@@ -594,7 +591,6 @@ export async function estimateBodyFatPercentage({
 
     // METHOD 1: Navy Method (circumference measurements)
     if (waist && neck && (!gender.includes('female') || hips)) {
-      console.log('Using Navy Method for body fat calculation');
 
       let bodyFat;
 
@@ -707,7 +703,6 @@ export async function estimateBodyFatPercentage({
 
     // METHOD 2: AI Visual Estimation (from progress photos)
     else if (usePhotos) {
-      console.log('Using AI visual estimation from photos');
 
       // Load progress photos
       const PROGRESS_KEY = '@progress_data';
@@ -756,7 +751,6 @@ Be honest and constructive. Focus on health, not just appearance.`;
 
     // METHOD 3: BMI-based rough estimate (least accurate)
     else if (weight && height) {
-      console.log('Using BMI-based estimation (least accurate)');
 
       const heightInMeters = height * 0.0254;
       const weightInKg = weight * 0.453592;

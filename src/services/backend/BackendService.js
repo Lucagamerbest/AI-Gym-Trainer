@@ -255,7 +255,6 @@ class BackendService {
     try {
       const cacheRef = doc(db, 'users', userId, 'cache', 'workouts');
       await setDoc(cacheRef, cache);
-      console.log('✅ Cached workouts saved to Firebase');
     } catch (error) {
       console.error('❌ Failed to save workout cache:', error);
       throw error;
@@ -292,7 +291,6 @@ class BackendService {
     try {
       const cacheRef = doc(db, 'users', userId, 'cache', 'workouts');
       await deleteDoc(cacheRef);
-      console.log('✅ Workout cache deleted');
     } catch (error) {
       console.error('❌ Failed to delete workout cache:', error);
       throw error;
@@ -362,7 +360,6 @@ class BackendService {
     try {
       const cacheRef = doc(db, 'users', userId, 'cache', 'recipes');
       await setDoc(cacheRef, cache);
-      console.log('✅ Cached recipes saved to Firebase');
     } catch (error) {
       console.error('❌ Failed to save recipe cache:', error);
       throw error;
@@ -399,7 +396,6 @@ class BackendService {
     try {
       const cacheRef = doc(db, 'users', userId, 'cache', 'recipes');
       await deleteDoc(cacheRef);
-      console.log('✅ Recipe cache deleted');
     } catch (error) {
       console.error('❌ Failed to delete recipe cache:', error);
       throw error;

@@ -48,7 +48,6 @@ class SpoonacularService {
       // Check cache first
       const cached = await this._getCached(cacheKey);
       if (cached) {
-        console.log('📦 Returning cached recipe search results');
         return cached;
       }
 
@@ -74,7 +73,6 @@ class SpoonacularService {
       if (maxReadyTime) params.append('maxReadyTime', maxReadyTime);
 
       const url = `${BASE_URL}/recipes/complexSearch?${params.toString()}`;
-      console.log('🔍 Searching Spoonacular recipes:', { mealType, minCalories, maxCalories, minProtein });
 
       const response = await fetch(url);
 
@@ -109,12 +107,10 @@ class SpoonacularService {
       // Check cache first
       const cached = await this._getCached(cacheKey);
       if (cached) {
-        console.log('📦 Returning cached recipe details');
         return cached;
       }
 
       const url = `${BASE_URL}/recipes/${recipeId}/information?apiKey=${this.apiKey}&includeNutrition=true`;
-      console.log(`🔍 Fetching recipe details: ${recipeId}`);
 
       const response = await fetch(url);
 
@@ -157,7 +153,6 @@ class SpoonacularService {
       }
 
       const url = `${BASE_URL}/recipes/random?${params.toString()}`;
-      console.log('🎲 Fetching random recipes');
 
       const response = await fetch(url);
 
@@ -372,7 +367,6 @@ class SpoonacularService {
       const keys = await AsyncStorage.getAllKeys();
       const cacheKeys = keys.filter(key => key.startsWith(CACHE_PREFIX));
       await AsyncStorage.multiRemove(cacheKeys);
-      console.log(`🗑️ Cleared ${cacheKeys.length} cached recipe entries`);
     } catch (error) {
       console.error('Error clearing cache:', error);
     }

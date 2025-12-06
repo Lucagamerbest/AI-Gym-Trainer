@@ -24,7 +24,6 @@ const USER_PROFILE_KEY = '@user_profile';
  */
 export async function getMealRecommendation(userId, mealType = 'dinner') {
   try {
-    console.log(`🍽️ Getting meal recommendation for ${mealType}`);
 
     // Get user's nutrition context (remaining macros)
     const nutritionContext = await ContextManager.getNutritionContext(userId);
@@ -43,7 +42,6 @@ export async function getMealRecommendation(userId, mealType = 'dinner') {
     // Default to 3 meals if not set
     const mealsPerDay = profile.nutrition?.mealsPerDay || 3;
 
-    console.log(`📊 User eats ${mealsPerDay} meals per day`);
 
     // Get current time and determine how many meals are left today
     const now = new Date();
@@ -52,7 +50,6 @@ export async function getMealRecommendation(userId, mealType = 'dinner') {
     // Estimate meals left based on time of day
     let mealsRemaining = estimateMealsRemaining(currentHour, mealsPerDay, mealType);
 
-    console.log(`⏰ Current hour: ${currentHour}, Meals remaining: ${mealsRemaining}`);
 
     // Calculate remaining macros
     const remainingCalories = nutritionContext.calories?.remaining || 0;
@@ -85,7 +82,6 @@ export async function getMealRecommendation(userId, mealType = 'dinner') {
     // Get meal-specific recommendations
     const mealGuidance = getMealTypeGuidance(mealType, currentHour);
 
-    console.log(`✅ Meal recommendation: ${caloriesForMeal} cal, ${proteinForMeal}p/${carbsForMeal}c/${fatForMeal}f`);
 
     return {
       success: true,

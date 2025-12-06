@@ -528,20 +528,16 @@ export default function AIButtonModal({
   const handleSaveRecipe = async (recipeCard) => {
     try {
       const recipe = recipeCard.fullRecipe;
-      console.log('💾 Attempting to save recipe:', recipe.title, 'ID:', recipe.id);
 
       // Save to AsyncStorage
       const existingRecipes = await AsyncStorage.getItem('@saved_recipes');
       const recipes = existingRecipes ? JSON.parse(existingRecipes) : [];
-      console.log('💾 Existing recipes count:', recipes.length);
 
       // Check if recipe already exists
       if (!recipes.find(r => r.id === recipe.id)) {
         recipes.push(recipe);
         await AsyncStorage.setItem('@saved_recipes', JSON.stringify(recipes));
-        console.log('✅ Recipe saved successfully! New count:', recipes.length);
       } else {
-        console.log('⚠️ Recipe already exists, skipping save');
       }
 
       // Clear the recipe card and show success message
@@ -568,7 +564,6 @@ export default function AIButtonModal({
 
   const handleSaveMealToPlan = async (meal) => {
     try {
-      console.log('💾 Attempting to save meal to planned meals:', meal.name);
 
       // Get today's date
       const today = new Date().toISOString().split('T')[0];
@@ -1002,7 +997,6 @@ export default function AIButtonModal({
       // Send to AI with tools
       const result = await AIService.sendMessageWithTools(messageToSend, context);
 
-      console.log(`📥 [AIButtonModal] Received result:`, {
         hasResponse: !!result.response,
         responseLength: result.response?.length,
         responsePreview: result.response?.substring(0, 100),
@@ -1017,11 +1011,6 @@ export default function AIButtonModal({
       // Debug: Log meal macros if available
       if (result.toolResults?.mealSuggestions?.length > 0) {
         result.toolResults.mealSuggestions.forEach((meal, index) => {
-          console.log(`🔍 [MEAL DEBUG ${index + 1}] Name: ${meal.name}`);
-          console.log(`🔍 [MEAL DEBUG ${index + 1}] Calories: ${meal.calories}`);
-          console.log(`🔍 [MEAL DEBUG ${index + 1}] Protein: ${meal.protein}g`);
-          console.log(`🔍 [MEAL DEBUG ${index + 1}] Carbs: ${meal.carbs}g`);
-          console.log(`🔍 [MEAL DEBUG ${index + 1}] Fat: ${meal.fat}g`);
         });
       }
 
@@ -1029,7 +1018,6 @@ export default function AIButtonModal({
       setLastResponse(result.response);
       setLastToolResults(result.toolResults || null);
 
-      console.log('🔍 [AIButtonModal] lastToolResults set to:', result.toolResults);
 
       // Add to conversation history (use button.text for display, not the full prompt)
       setConversationHistory(prev => [

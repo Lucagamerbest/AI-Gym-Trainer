@@ -69,7 +69,6 @@ export async function checkMealCountLimit(userId) {
       message: null,
     };
   } catch (error) {
-    console.log('Could not check meal count:', error.message);
     return { exceeded: false, currentCount: 0, limit: 3, message: null };
   }
 }

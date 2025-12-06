@@ -76,7 +76,6 @@ class UserContributedFoodsService {
         this.localFoods = JSON.parse(stored);
       }
       this.isLoaded = true;
-      console.log(`🍽️ Loaded ${this.localFoods.length} user foods from storage`);
     } catch (error) {
       console.error('Failed to load user foods:', error);
       this.localFoods = [];
@@ -154,11 +153,9 @@ class UserContributedFoodsService {
       try {
         await this.syncFoodToFirebase(newFood, userId);
       } catch (error) {
-        console.log('Firebase sync failed, will retry later:', error.message);
       }
     }
 
-    console.log(`✅ Added custom food: ${newFood.name}`);
     return newFood;
   }
 
@@ -197,7 +194,6 @@ class UserContributedFoodsService {
       try {
         await this.updateFoodInFirebase(food.firebase_id, updates);
       } catch (error) {
-        console.log('Firebase update failed:', error.message);
       }
     }
 
@@ -233,11 +229,9 @@ class UserContributedFoodsService {
       try {
         await deleteDoc(doc(db, COLLECTIONS.USER_FOODS, food.firebase_id));
       } catch (error) {
-        console.log('Firebase delete failed:', error.message);
       }
     }
 
-    console.log(`🗑️ Deleted food: ${food.name}`);
   }
 
   /**
@@ -368,7 +362,6 @@ class UserContributedFoodsService {
       await this.saveLocal();
     }
 
-    console.log(`☁️ Synced food to Firebase: ${food.name}`);
   }
 
   /**
@@ -396,11 +389,9 @@ class UserContributedFoodsService {
       try {
         await this.syncFoodToFirebase(food, userId);
       } catch (error) {
-        console.log(`Failed to sync ${food.name}:`, error.message);
       }
     }
 
-    console.log(`☁️ Synced ${unsyncedFoods.length} foods to Firebase`);
   }
 
   /**
@@ -438,9 +429,7 @@ class UserContributedFoodsService {
       this.localFoods = [...firebaseFoods, ...localOnlyFoods];
       await this.saveLocal();
 
-      console.log(`☁️ Downloaded ${firebaseFoods.length} foods from Firebase`);
     } catch (error) {
-      console.log('Failed to download from Firebase:', error.message);
     }
   }
 
@@ -498,7 +487,6 @@ class UserContributedFoodsService {
       await this.checkForVerification(food);
     }
 
-    console.log(`👍 Voted ${isAccurate ? 'up' : 'down'} on food: ${foodId}`);
   }
 
   /**
@@ -523,7 +511,6 @@ class UserContributedFoodsService {
             verified_at: serverTimestamp(),
           });
 
-          console.log(`✅ Food verified and added to community: ${food.name}`);
         }
       }
     }
@@ -556,7 +543,6 @@ class UserContributedFoodsService {
 
       return foods;
     } catch (error) {
-      console.log('Failed to get community foods:', error.message);
       return [];
     }
   }
@@ -617,7 +603,6 @@ class UserContributedFoodsService {
   async clearAll() {
     this.localFoods = [];
     await AsyncStorage.removeItem(USER_FOODS_KEY);
-    console.log('🗑️ Cleared all user foods');
   }
 }
 

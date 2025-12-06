@@ -126,7 +126,6 @@ export async function logAIInteraction({
     // Also log to console in dev mode
     if (__DEV__) {
       if (success) {
-        console.log('✅ AI Interaction Logged:', {
           message: userMessage.substring(0, 50) + '...',
           tools: toolsUsed.length,
           responseLength: aiResponse?.length,
@@ -297,7 +296,6 @@ export async function exportDebugLog(includeSuccessful = false) {
 export async function clearDebugLog() {
   try {
     await AsyncStorage.removeItem(AI_DEBUG_LOG_KEY);
-    console.log('✅ AI debug log cleared');
     return true;
   } catch (error) {
     console.error('Failed to clear debug log:', error);

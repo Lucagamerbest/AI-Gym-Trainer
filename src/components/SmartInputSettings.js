@@ -27,7 +27,6 @@ export default function SmartInputSettings({ visible, onClose }) {
 
   useEffect(() => {
     if (visible) {
-      console.log('⚙️ SmartInputSettings modal opened');
       loadStats();
     }
   }, [visible]);
@@ -36,7 +35,6 @@ export default function SmartInputSettings({ visible, onClose }) {
     try {
       setLoading(true);
       const usageStats = await SmartInputLearning.getUsageStats();
-      console.log('📊 Smart Input Stats:', usageStats);
       setStats(usageStats);
     } catch (error) {
       console.error('❌ Error loading stats:', error);

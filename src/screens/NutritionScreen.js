@@ -111,15 +111,12 @@ export default function NutritionScreen({ navigation, route }) {
           const alreadyMigrated = await AsyncStorage.getItem(migrationKey);
 
           if (!alreadyMigrated) {
-            console.log('🔄 Starting one-time meal migration to Firebase...');
             const result = await MealSyncService.migrateAsyncStorageMeals(user.uid);
-            console.log(`🎉 Migration result: ${result.migrated} migrated, ${result.failed} failed`);
 
             // Mark migration as complete
             await AsyncStorage.setItem(migrationKey, 'true');
           }
         } catch (error) {
-          console.log('⚠️ Migration error (will retry next time):', error);
         }
       }
     };
@@ -251,7 +248,6 @@ export default function NutritionScreen({ navigation, route }) {
 
             // Store Firebase ID with the added food
             addedFood.firebaseId = firebaseId;
-            console.log('✅ New meal synced to Firebase with ID:', firebaseId);
 
             // Check meal count limit and show modal if exceeded
             const mealCheck = await checkMealCountLimit(user.uid);
@@ -265,7 +261,6 @@ export default function NutritionScreen({ navigation, route }) {
               setShowMealCountModal(true);
             }
           } catch (error) {
-            console.log('⚠️ Failed to sync to Firebase:', error);
             // Continue without firebaseId if sync fails
           }
         }
@@ -344,9 +339,7 @@ export default function NutritionScreen({ navigation, route }) {
               };
               const firebaseId = await MealSyncService.uploadDailyConsumption(user.uid, consumptionEntry);
               food.firebaseId = firebaseId;
-              console.log('✅ Multi-item synced to Firebase:', food.name);
             } catch (error) {
-              console.log('⚠️ Failed to sync item to Firebase:', food.name, error);
             }
           }
 
@@ -504,9 +497,7 @@ export default function NutritionScreen({ navigation, route }) {
             }
           });
 
-          console.log('✅ Loaded meals from Firebase:', firebaseMeals.length);
         } catch (error) {
-          console.log('⚠️ Could not load meals from Firebase:', error);
           // Fall back to empty meals
         }
       }
@@ -518,7 +509,6 @@ export default function NutritionScreen({ navigation, route }) {
 
       // TEMPORARY: Always use smart default until we confirm it works
       // Then we'll add back saved meal type persistence
-      console.log('🍽️ Using smart meal type default:', getCurrentMealType());
       savedSelectedMeal = getCurrentMealType();
 
       const saved = await AsyncStorage.getItem(DAILY_NUTRITION_KEY);
@@ -533,17 +523,13 @@ export default function NutritionScreen({ navigation, route }) {
       // ALWAYS check @meal_plans for today's planned meals
       const todayKey = getLocalDateString();
       const savedPlans = await AsyncStorage.getItem(MEAL_PLANS_KEY);
-      console.log('📅 [Nutrition] Checking meal plans for:', todayKey);
       const mealPlans = savedPlans ? JSON.parse(savedPlans) : {};
       const todayPlanned = mealPlans[todayKey]?.planned;
-      console.log('🍽️ [Nutrition] Today\'s planned meals:', todayPlanned);
 
       // If there are planned meals for today in @meal_plans, use them
       if (todayPlanned && Object.values(todayPlanned).some(meals => meals && meals.length > 0)) {
         loadedPlannedMeals = todayPlanned;
-        console.log('✅ [Nutrition] Loaded planned meals from @meal_plans');
       } else {
-        console.log('❌ [Nutrition] No planned meals found in @meal_plans for today');
       }
 
       // Update meals state (consumed will auto-calculate from useMemo)
@@ -652,15 +638,12 @@ export default function NutritionScreen({ navigation, route }) {
 
         // Check if this was originally a planned meal
         if (foodToDelete.wasPlanned) {
-          console.log('🔄 Restoring planned meal instead of deleting');
 
           // Delete from Firebase first (if it has a Firebase ID)
           if (user?.uid && user.uid !== 'guest' && foodToDelete.firebaseId) {
             try {
               await MealSyncService.deleteMeal(user.uid, foodToDelete.firebaseId);
-              console.log('✅ Meal deleted from Firebase');
             } catch (error) {
-              console.log('⚠️ Failed to delete from Firebase:', error);
               // Continue with local restore even if Firebase delete fails
             }
           }
@@ -690,7 +673,6 @@ export default function NutritionScreen({ navigation, route }) {
 
             mealPlans[todayKey].planned[mealType] = updatedPlannedMeals[mealType];
             await AsyncStorage.setItem(MEAL_PLANS_KEY, JSON.stringify(mealPlans));
-            console.log('✅ Restored meal to @meal_plans');
           } catch (error) {
             console.error('Failed to update @meal_plans:', error);
           }
@@ -703,15 +685,12 @@ export default function NutritionScreen({ navigation, route }) {
 
         } else {
           // Normal delete flow for manually added meals
-          console.log('🗑️ Deleting manually added meal');
 
           // Delete from Firebase first (if it has a Firebase ID)
           if (user?.uid && user.uid !== 'guest' && foodToDelete.firebaseId) {
             try {
               await MealSyncService.deleteMeal(user.uid, foodToDelete.firebaseId);
-              console.log('✅ Meal deleted from Firebase');
             } catch (error) {
-              console.log('⚠️ Failed to delete from Firebase:', error);
               // Continue with local delete even if Firebase delete fails
             }
           }
@@ -755,12 +734,10 @@ export default function NutritionScreen({ navigation, route }) {
               fat_consumed: updatedFood.fat || 0,
             };
             await MealSyncService.updateMeal(user.uid, oldFood.firebaseId, firebaseUpdateData);
-            console.log('✅ Meal updated in Firebase');
 
             // Preserve firebaseId in updated food
             updatedFood.firebaseId = oldFood.firebaseId;
           } catch (error) {
-            console.log('⚠️ Failed to update in Firebase:', error);
             // Continue with local update even if Firebase update fails
           }
         }
@@ -820,9 +797,7 @@ export default function NutritionScreen({ navigation, route }) {
 
           // Store Firebase ID with the planned food
           plannedFood.firebaseId = firebaseId;
-          console.log('✅ Consumed planned meal synced to Firebase with ID:', firebaseId);
         } catch (error) {
-          console.log('⚠️ Failed to sync to Firebase:', error);
           // Continue without firebaseId if sync fails
         }
       }
@@ -854,7 +829,6 @@ export default function NutritionScreen({ navigation, route }) {
           if (mealPlans[todayKey]?.planned?.[mealType]) {
             mealPlans[todayKey].planned[mealType] = [...updatedPlannedMeals[mealType]];
             await AsyncStorage.setItem(MEAL_PLANS_KEY, JSON.stringify(mealPlans));
-            console.log('✅ Updated @meal_plans to remove consumed planned meal');
           }
         }
       } catch (error) {
@@ -887,7 +861,6 @@ export default function NutritionScreen({ navigation, route }) {
           if (mealPlans[todayKey]?.planned?.[mealType]) {
             mealPlans[todayKey].planned[mealType] = [...updatedPlannedMeals[mealType]];
             await AsyncStorage.setItem(MEAL_PLANS_KEY, JSON.stringify(mealPlans));
-            console.log('✅ Updated @meal_plans to remove deleted planned meal');
           }
         }
       } catch (error) {

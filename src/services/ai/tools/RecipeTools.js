@@ -24,7 +24,6 @@ async function generateWithRetry(prompt, options = {}) {
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
-      console.log(`🤖 AI Generation attempt ${attempt}/${maxAttempts}`);
 
       // Import GoogleGenerativeAI and get API key
       const { GoogleGenerativeAI } = await import('@google/generative-ai');
@@ -52,7 +51,6 @@ async function generateWithRetry(prompt, options = {}) {
         throw new Error('AI response too short, likely incomplete');
       }
 
-      console.log('✅ AI generation successful');
       return response;
 
     } catch (error) {
@@ -74,31 +72,26 @@ async function generateWithRetry(prompt, options = {}) {
  * Uses multiple extraction methods for robustness
  */
 function extractAndParseJSON(response) {
-  console.log('🔍 Extracting JSON from AI response...');
 
   // Method 1: Extract from ```json code blocks
   let jsonMatch = response.match(/```json\s*\n([\s\S]*?)\n```/);
   if (jsonMatch) {
-    console.log('✓ Found JSON in ```json block');
     return parseJSONSafely(jsonMatch[1]);
   }
 
   // Method 2: Extract from regular ``` code blocks
   jsonMatch = response.match(/```\s*\n([\s\S]*?)\n```/);
   if (jsonMatch) {
-    console.log('✓ Found JSON in ``` block');
     return parseJSONSafely(jsonMatch[1]);
   }
 
   // Method 3: Try to find JSON object directly
   jsonMatch = response.match(/\{[\s\S]*\}/);
   if (jsonMatch) {
-    console.log('✓ Found JSON object directly');
     return parseJSONSafely(jsonMatch[0]);
   }
 
   // Method 4: Try parsing the entire response
-  console.log('⚠ No code blocks found, trying to parse entire response');
   return parseJSONSafely(response);
 }
 
@@ -132,7 +125,6 @@ function parseJSONSafely(jsonStr) {
       throw new Error(`Missing nutrition fields: ${missingNutrition.join(', ')}`);
     }
 
-    console.log('✅ JSON parsed and validated successfully');
     return parsed;
 
   } catch (error) {
@@ -160,7 +152,6 @@ export async function generateRecipeFromIngredients({
   userId
 }) {
   try {
-    console.log('🍳 Generating recipe from ingredients:', {
       ingredients,
       targetProtein,
       targetCalories,
@@ -203,7 +194,6 @@ export async function generateRecipeFromIngredients({
     // 🚀 NEW FEATURE: Search database first for faster results!
     // Try to find matching recipes from free database before using AI
     if (targetCalories || targetProtein) {
-      console.log('🔍 Searching free recipe database first...');
       try {
         const dbRecipes = await FreeRecipeService.searchRecipes({
           mealType: mealType !== 'any' ? mealType : null,
@@ -228,7 +218,6 @@ export async function generateRecipeFromIngredients({
         // If we found good matches, offer them
         if (matchingRecipes.length > 0) {
           const topMatches = matchingRecipes.slice(0, 3);
-          console.log(`✅ Found ${topMatches.length} matching recipes in database!`);
 
           return {
             success: true,
@@ -239,7 +228,6 @@ export async function generateRecipeFromIngredients({
           };
         }
       } catch (error) {
-        console.log('⚠️ Database search failed, falling back to AI generation:', error.message);
         // Continue to AI generation if database search fails
       }
     }
@@ -416,7 +404,6 @@ ${mealPrepFriendly ? `📦 MEAL PREP FOCUS: This MUST be meal prep friendly! Mak
     // Normalize ingredients structure
     // RecipesScreen expects: { food: { name, calories, protein, carbs, fat }, quantity }
     // AI generates: { item, amount, calories, protein, carbs, fat }
-    console.log('🔧 Normalizing ingredients:', recipe.ingredients);
 
     recipe.ingredients = recipe.ingredients.map(ingredient => {
       // Extract numeric value from amount string
@@ -451,7 +438,6 @@ ${mealPrepFriendly ? `📦 MEAL PREP FOCUS: This MUST be meal prep friendly! Mak
       const carbsPer100g = (ingredient.carbs || 0) / quantity * 100;
       const fatPer100g = (ingredient.fat || 0) / quantity * 100;
 
-      console.log(`  ${ingredient.item}: ${quantity}g, ${ingredient.calories}cal total -> ${caloriesPer100g.toFixed(1)}cal/100g`);
 
       return {
         food: {
@@ -523,7 +509,6 @@ export async function generateHighProteinRecipe({
   userId
 }) {
   try {
-    console.log('💪 Generating high-protein recipe:', {
       targetProtein,
       targetCalories,
       cuisine,
@@ -745,7 +730,6 @@ IMPORTANT: The nutrition.caloriesPerServing MUST be within ${adjustedCalories - 
     };
 
     // Normalize ingredients structure
-    console.log('🔧 Normalizing ingredients:', recipe.ingredients);
 
     recipe.ingredients = recipe.ingredients.map(ingredient => {
       let quantity = 100; // default
@@ -770,7 +754,6 @@ IMPORTANT: The nutrition.caloriesPerServing MUST be within ${adjustedCalories - 
       const carbsPer100g = (ingredient.carbs || 0) / quantity * 100;
       const fatPer100g = (ingredient.fat || 0) / quantity * 100;
 
-      console.log(`  ${ingredient.item}: ${quantity}g, ${ingredient.protein}g protein, ${ingredient.calories}cal total`);
 
       return {
         food: {
@@ -832,7 +815,6 @@ export async function adaptRecipeToMacros({
   userId
 }) {
   try {
-    console.log('🔧 Adapting recipe to macros:', {
       recipeId,
       recipeName,
       targetCalories,
@@ -1001,7 +983,6 @@ export async function suggestIngredientSubstitutions({
   userId
 }) {
   try {
-    console.log('🔄 Suggesting ingredient substitutions:', {
       recipeId,
       recipeName,
       missingIngredient,
@@ -1132,7 +1113,6 @@ export async function generateMealComponents({
   userId,
 }) {
   try {
-    console.log('🍱 generateMealComponents called with:', {
       componentTypes,
       optionsPerComponent,
       dietaryRestrictions,
@@ -1237,7 +1217,6 @@ IMPORTANT: Return ONLY the JSON object, no other text.`;
     const response = await result.response;
     const text = response.text();
 
-    console.log('🤖 Gemini response:', text);
 
     // Parse JSON response
     const jsonMatch = text.match(/\{[\s\S]*\}/);
