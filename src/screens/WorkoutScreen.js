@@ -32,6 +32,8 @@ Notifications.setNotificationHandler({
 // Helper function to play notification sound even in silent mode
 // This will duck/pause music briefly, play the timer sound, then restore music
 const playNotificationSound = async () => {
+  let sound = null;
+
   try {
     // Configure audio to duck (lower volume) other audio while our sound plays
     // This creates the Hevy-like effect where music briefly pauses/lowers
@@ -47,8 +49,6 @@ const playNotificationSound = async () => {
     });
 
     // Load sound first (don't autoplay - more reliable on iOS)
-    let sound = null;
-
     // Try mp3 first (more reliable on iOS), then wav as fallback
     const soundFiles = [
       require('../../assets/notification.mp3'),
@@ -59,45 +59,70 @@ const playNotificationSound = async () => {
       try {
         const { sound: loadedSound } = await Audio.Sound.createAsync(
           soundFile,
-          { volume: 1.0 }  // Don't autoplay
+          { volume: 1.0, shouldPlay: false }
         );
         sound = loadedSound;
+        console.log('Sound file loaded successfully');
         break;
       } catch (err) {
-        // Try next file
+        console.log('Failed to load sound file, trying next:', err.message);
       }
     }
 
     if (!sound) {
+      console.log('No sound file could be loaded, using haptic feedback');
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
       return;
     }
 
-    // Explicitly play (more reliable on iOS production builds)
-    await sound.playAsync();
-
-    // Clean up after sound finishes AND restore audio mode so music resumes
+    // Set up status update callback BEFORE playing
     sound.setOnPlaybackStatusUpdate(async (status) => {
       if (status.didJustFinish) {
-        await sound.unloadAsync();
-
-        // Reset audio mode to allow other apps (music) to play normally again
-        await Audio.setAudioModeAsync({
-          playsInSilentModeIOS: false,
-          allowsRecordingIOS: false,
-          staysActiveInBackground: false,
-          interruptionModeIOS: InterruptionModeIOS.MixWithOthers,
-          shouldDuckAndroid: false,
-          interruptionModeAndroid: InterruptionModeAndroid.DuckOthers,
-          playThroughEarpieceAndroid: false,
-        });
+        try {
+          await sound.unloadAsync();
+          // Reset audio mode to allow other apps (music) to play normally again
+          await Audio.setAudioModeAsync({
+            playsInSilentModeIOS: false,
+            allowsRecordingIOS: false,
+            staysActiveInBackground: false,
+            interruptionModeIOS: InterruptionModeIOS.MixWithOthers,
+            shouldDuckAndroid: false,
+            interruptionModeAndroid: InterruptionModeAndroid.DuckOthers,
+            playThroughEarpieceAndroid: false,
+          });
+        } catch (cleanupErr) {
+          console.log('Error during sound cleanup:', cleanupErr.message);
+        }
       }
     });
+
+    // Explicitly play (more reliable on iOS production builds)
+    const playResult = await sound.playAsync();
+    console.log('Sound playback started:', playResult.isPlaying);
 
     // Also trigger haptic feedback as backup
     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
   } catch (error) {
+    console.log('Error playing notification sound:', error.message);
+    // Clean up sound if it was loaded
+    if (sound) {
+      try {
+        await sound.unloadAsync();
+      } catch (e) {}
+    }
+    // Reset audio mode
+    try {
+      await Audio.setAudioModeAsync({
+        playsInSilentModeIOS: false,
+        allowsRecordingIOS: false,
+        staysActiveInBackground: false,
+        interruptionModeIOS: InterruptionModeIOS.MixWithOthers,
+        shouldDuckAndroid: false,
+        interruptionModeAndroid: InterruptionModeAndroid.DuckOthers,
+        playThroughEarpieceAndroid: false,
+      });
+    } catch (e) {}
     // Last resort - haptic feedback
     try {
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
@@ -465,6 +490,7 @@ export default function WorkoutScreen({ navigation, route }) {
   const [restTargetSeconds, setRestTargetSeconds] = useState(60);
   const [restTimerEndTime, setRestTimerEndTime] = useState(null);
   const restIntervalRef = useRef(null);
+  const restNotificationIdRef = useRef(null);
   const appState = useRef(AppState.currentState);
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [isWorkoutPaused, setIsWorkoutPaused] = useState(false);
@@ -1101,8 +1127,12 @@ export default function WorkoutScreen({ navigation, route }) {
   // Handle rest timer completion (only for in-app handling)
   const handleRestTimerComplete = async () => {
     try {
+      // Clear notification ID ref
+      restNotificationIdRef.current = null;
+
       // Clear from AsyncStorage
       await AsyncStorage.removeItem('@rest_timer_end');
+      await AsyncStorage.removeItem('@rest_timer_notification_id');
 
       const currentState = AppState.currentState;
 
@@ -1135,7 +1165,8 @@ export default function WorkoutScreen({ navigation, route }) {
       }
       // If app is background/inactive - scheduled notification already fired, do nothing
     } catch (error) {
-          }
+      console.log('Error in handleRestTimerComplete:', error.message);
+    }
   };
 
   // Start rest timer
@@ -1157,8 +1188,13 @@ export default function WorkoutScreen({ navigation, route }) {
     try {
       await AsyncStorage.setItem('@rest_timer_end', endTime.toString());
 
+      // Cancel any existing notification first
+      if (restNotificationIdRef.current) {
+        await Notifications.cancelScheduledNotificationAsync(restNotificationIdRef.current);
+      }
+
       // Schedule notification using proper TIME_INTERVAL type
-      await Notifications.scheduleNotificationAsync({
+      const notificationId = await Notifications.scheduleNotificationAsync({
         content: {
           title: '⏰ Rest Time Complete!',
           body: 'Time to get back to your workout!',
@@ -1171,8 +1207,13 @@ export default function WorkoutScreen({ navigation, route }) {
           repeats: false,
         },
       });
+
+      // Store notification ID so we can cancel it if timer is stopped
+      restNotificationIdRef.current = notificationId;
+      await AsyncStorage.setItem('@rest_timer_notification_id', notificationId);
     } catch (error) {
-          }
+      console.log('Error scheduling rest timer notification:', error.message);
+    }
   };
 
   // Stop rest timer (full reset)
@@ -1181,11 +1222,24 @@ export default function WorkoutScreen({ navigation, route }) {
     setRestTimer(0);
     setRestTimerEndTime(null);
 
+    // Cancel scheduled notification
+    try {
+      const notificationId = restNotificationIdRef.current || await AsyncStorage.getItem('@rest_timer_notification_id');
+      if (notificationId) {
+        await Notifications.cancelScheduledNotificationAsync(notificationId);
+        restNotificationIdRef.current = null;
+      }
+    } catch (error) {
+      console.log('Error cancelling notification:', error.message);
+    }
+
     // Clear from AsyncStorage
     try {
       await AsyncStorage.removeItem('@rest_timer_end');
+      await AsyncStorage.removeItem('@rest_timer_notification_id');
     } catch (error) {
-          }
+      console.log('Error clearing timer data:', error.message);
+    }
   };
 
   // Pause rest timer (preserves current time)
@@ -1193,11 +1247,24 @@ export default function WorkoutScreen({ navigation, route }) {
     setIsRestTimerRunning(false);
     setRestTimerEndTime(null);
 
+    // Cancel scheduled notification
+    try {
+      const notificationId = restNotificationIdRef.current || await AsyncStorage.getItem('@rest_timer_notification_id');
+      if (notificationId) {
+        await Notifications.cancelScheduledNotificationAsync(notificationId);
+        restNotificationIdRef.current = null;
+      }
+    } catch (error) {
+      console.log('Error cancelling notification on pause:', error.message);
+    }
+
     // Clear from AsyncStorage
     try {
       await AsyncStorage.removeItem('@rest_timer_end');
+      await AsyncStorage.removeItem('@rest_timer_notification_id');
     } catch (error) {
-          }
+      console.log('Error clearing timer data on pause:', error.message);
+    }
   };
 
   // Cardio timer functions

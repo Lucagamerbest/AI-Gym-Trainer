@@ -197,7 +197,9 @@ const EXERCISE_IMAGE_MAPPING = {
   "One Arm Bicep Curl": {
     "Dumbbell": "Dumbbell_Alternate_Bicep_Curl",
     "Cable Low": "Standing_Biceps_Cable_Curl",
-    "Cable Mid": "Standing_Biceps_Cable_Curl"
+    "Cable Mid": "Standing_Biceps_Cable_Curl",
+    "Cable Front": "Standing_Biceps_Cable_Curl",
+    "Cable Back": "Standing_Biceps_Cable_Curl"
   },
 
   "Hammer Curl": {
@@ -246,6 +248,12 @@ const EXERCISE_IMAGE_MAPPING = {
   "Zottman Curl": {
     "Dumbbell": "Zottman_Curl",
     "Cable": "Standing_Biceps_Cable_Curl"
+  },
+
+  "Cable Bicep Curl": {
+    "Cable Bar": "Standing_Biceps_Cable_Curl",
+    "Cable Rope": "Cable_Hammer_Curls_-_Rope_Attachment",
+    "Cable EZ Bar": "Standing_Biceps_Cable_Curl"
   },
 
   // ============ TRICEPS (10 exercises) ============

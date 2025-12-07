@@ -26,6 +26,11 @@ const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 // Get API key from app config
 const GOOGLE_MAPS_API_KEY = Constants.expoConfig?.extra?.googleMapsApiKey || '';
 
+// Log for debugging
+if (!GOOGLE_MAPS_API_KEY) {
+  console.log('Warning: Google Maps API key not found. Search functionality may not work.');
+}
+
 export default function GymMapScreen({ navigation, route }) {
   const { colors } = useTheme();
   const { user } = useAuth();
@@ -203,6 +208,9 @@ export default function GymMapScreen({ navigation, route }) {
         showsUserLocation
         showsMyLocationButton={false}
         onPress={handleMapPress}
+        mapType="standard"
+        onMapReady={() => console.log('Map is ready')}
+        onMapLoaded={() => console.log('Map tiles loaded')}
       >
         {/* Saved gym markers */}
         {savedGyms.map((gym) => (

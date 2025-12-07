@@ -2464,7 +2464,7 @@ export const exerciseDatabase = {
       "muscleGroup": "Biceps",
       "primaryMuscles": ["Biceps Long Head", "Biceps Short Head"],
       "secondaryMuscles": ["Forearms"],
-      "equipment": "Dumbbell, Cable Low, Cable Mid",
+      "equipment": "Dumbbell, Cable Low, Cable Mid, Cable Front, Cable Back",
       "difficulty": "Beginner",
       "instructions": "A unilateral biceps curl allowing you to focus on each arm independently. Curl one arm at a time while keeping your elbow stationary. This variation helps correct strength imbalances and allows for greater mind-muscle connection with each bicep.",
       "variants": [
@@ -2532,6 +2532,50 @@ export const exerciseDatabase = {
             "Grasp handle with arm extended toward pulley",
             "Curl across body or straight up maintaining elbow position",
             "Focus on peak contraction at top of curl"
+          ]
+        },
+        {
+          "equipment": "Cable Front",
+          "difficulty": "Beginner",
+          "pros": [
+            "Resistance increases throughout curl (hardest at top)",
+            "Excellent for peak contraction training",
+            "Natural cable path matches curl movement",
+            "Great for building biceps peak"
+          ],
+          "cons": [
+            "Less tension at bottom of movement",
+            "May need to lean slightly forward",
+            "Cable can interfere with movement if too close"
+          ],
+          "setupTips": [
+            "Set cable pulley to low position with D-handle",
+            "Stand facing the cable machine",
+            "Grasp handle with working arm, palm facing up",
+            "Keep elbow pinned at side throughout movement",
+            "Curl handle toward shoulder, squeezing hard at top"
+          ]
+        },
+        {
+          "equipment": "Cable Back",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Resistance highest at stretched position (bottom)",
+            "Emphasizes biceps long head and stretch",
+            "Great for muscle building through loaded stretch",
+            "Unique resistance curve compared to other variations"
+          ],
+          "cons": [
+            "Requires good shoulder mobility",
+            "Less tension at contracted (top) position",
+            "Positioning takes practice"
+          ],
+          "setupTips": [
+            "Set cable pulley to low position with D-handle",
+            "Stand with back to the cable machine",
+            "Reach behind to grasp handle, arm extended back",
+            "Step forward to create tension in stretched position",
+            "Curl handle forward and up while keeping upper arm steady"
           ]
         }
       ]
@@ -3156,6 +3200,84 @@ export const exerciseDatabase = {
             "Curl cable up while maintaining supinated grip",
             "Rotate to pronated grip at top of movement",
             "Lower with overhand grip maintaining cable tension"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "biceps-11",
+      "name": "Cable Bicep Curl",
+      "muscleGroup": "Biceps",
+      "primaryMuscles": ["Biceps Long Head", "Biceps Short Head"],
+      "secondaryMuscles": ["Forearms", "Brachialis"],
+      "equipment": "Cable Bar, Cable Rope, Cable EZ Bar",
+      "difficulty": "Beginner",
+      "instructions": "A classic biceps curl performed using a cable machine. The cable provides constant tension throughout the entire range of motion, unlike free weights where tension varies. Stand facing the low pulley and curl the attachment up while keeping your elbows stationary at your sides.",
+      "variants": [
+        {
+          "equipment": "Cable Bar",
+          "difficulty": "Beginner",
+          "pros": [
+            "Constant tension throughout entire range of motion",
+            "No momentum possible - pure biceps isolation",
+            "Easy to adjust weight for drop sets",
+            "Smooth resistance curve prevents joint stress"
+          ],
+          "cons": [
+            "Requires cable machine access",
+            "Fixed bar path may not suit all body types",
+            "Less stabilizer muscle activation than free weights"
+          ],
+          "setupTips": [
+            "Attach straight bar to low cable pulley",
+            "Stand facing machine with feet shoulder-width apart",
+            "Grasp bar with underhand grip, arms extended",
+            "Keep elbows pinned to sides throughout movement",
+            "Curl bar up to shoulder level, squeeze biceps at top"
+          ]
+        },
+        {
+          "equipment": "Cable Rope",
+          "difficulty": "Beginner",
+          "pros": [
+            "Neutral grip is easier on wrists",
+            "Can rotate wrists during curl for supination",
+            "Constant cable tension isolates biceps",
+            "Rope allows natural arm path"
+          ],
+          "cons": [
+            "Grip may fatigue before biceps",
+            "Requires proper rope technique",
+            "Less total weight than bar variations"
+          ],
+          "setupTips": [
+            "Attach rope to low cable pulley",
+            "Hold rope ends with thumbs up (neutral grip)",
+            "Curl up while keeping elbows at sides",
+            "Can rotate thumbs outward at top for extra contraction",
+            "Lower with control maintaining tension"
+          ]
+        },
+        {
+          "equipment": "Cable EZ Bar",
+          "difficulty": "Beginner",
+          "pros": [
+            "Angled grip reduces wrist strain",
+            "Constant tension throughout movement",
+            "Comfortable grip angle for heavy sets",
+            "Combines EZ bar ergonomics with cable benefits"
+          ],
+          "cons": [
+            "EZ bar attachment not always available",
+            "Fixed grip positions may not suit everyone",
+            "Less wrist rotation possible"
+          ],
+          "setupTips": [
+            "Attach EZ bar to low cable pulley",
+            "Grip on angled portions for wrist comfort",
+            "Stand with feet shoulder-width, slight lean back",
+            "Curl bar keeping elbows stationary at sides",
+            "Full extension at bottom, full contraction at top"
           ]
         }
       ]
