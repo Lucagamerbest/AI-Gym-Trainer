@@ -118,6 +118,7 @@ const sendGymReminderNotification = async (gymName) => {
       importance: Notifications.AndroidImportance.HIGH,
       vibrationPattern: [0, 250, 250, 250],
       lightColor: '#4CAF50',
+      sound: 'notification.mp3', // Custom bundled sound
     });
 
     await Notifications.scheduleNotificationAsync({
@@ -129,7 +130,8 @@ const sendGymReminderNotification = async (gymName) => {
           action: 'start_workout',
           gymName,
         },
-        sound: 'default',
+        sound: 'notification.mp3', // Custom bundled sound for reliable playback
+        vibrate: [0, 250, 250, 250],
         categoryIdentifier: 'gym-reminder',
       },
       trigger: null, // Send immediately

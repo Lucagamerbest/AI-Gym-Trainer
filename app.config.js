@@ -78,7 +78,8 @@ export default {
       [
         "expo-notifications",
         {
-          color: "#4CAF50"
+          color: "#4CAF50",
+          sounds: ["./assets/notification.mp3"]
         }
       ],
       [

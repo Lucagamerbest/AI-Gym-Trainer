@@ -444,7 +444,8 @@ export class LocationService {
           title: "You're at the gym! 💪",
           body: `Did you forget to start a workout? You're at ${gym.name}. Tap to begin tracking!`,
           data: { type: 'gym_reminder', gymId: gym.id, action: 'start_workout' },
-          sound: 'default',
+          sound: 'notification.mp3', // Custom bundled sound
+          vibrate: [0, 250, 250, 250],
         },
         trigger: null, // Immediate
       });

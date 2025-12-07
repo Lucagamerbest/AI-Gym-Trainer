@@ -1194,12 +1194,14 @@ export default function WorkoutScreen({ navigation, route }) {
       }
 
       // Schedule notification using proper TIME_INTERVAL type
+      // Use custom bundled sound for reliable playback when phone is locked
       const notificationId = await Notifications.scheduleNotificationAsync({
         content: {
           title: '⏰ Rest Time Complete!',
           body: 'Time to get back to your workout!',
-          sound: 'default',
+          sound: 'notification.mp3', // Custom sound bundled in app
           priority: Notifications.AndroidNotificationPriority.HIGH,
+          vibrate: [0, 250, 250, 250], // Vibration pattern for locked phone
         },
         trigger: {
           type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
