@@ -191,15 +191,16 @@ const EXERCISE_IMAGE_MAPPING = {
     "Incline Dumbbell": "Alternate_Incline_Dumbbell_Curl",
     "Barbell": "Barbell_Curl",
     "EZ Bar": "EZ-Bar_Curl",
-    "Dumbbell Standing": "Dumbbell_Bicep_Curl"
+    "Dumbbell Standing": "Dumbbell_Bicep_Curl",
+    "Cable Standing": "Standing_Biceps_Cable_Curl"
   },
 
   "One Arm Bicep Curl": {
     "Dumbbell": "Dumbbell_Alternate_Bicep_Curl",
     "Cable Low": "Standing_One-Arm_Cable_Curl",
-    "Cable Mid": "Standing_Biceps_Cable_Curl",
-    "Cable Front": "Lying_Cable_Curl",
-    "Cable Back": "Overhead_Cable_Curl"
+    "Cable Mid": "Standing_One-Arm_Cable_Curl",
+    "Cable Front": "Standing_One-Arm_Cable_Curl",
+    "Cable Back": "Standing_One-Arm_Cable_Curl"
   },
 
   "Hammer Curl": {

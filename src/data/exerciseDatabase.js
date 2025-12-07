@@ -2364,7 +2364,7 @@ export const exerciseDatabase = {
       "muscleGroup": "Biceps",
       "primaryMuscles": ["Biceps Long Head", "Biceps Short Head"],
       "secondaryMuscles": ["Forearms"],
-      "equipment": "Incline Dumbbell, Barbell, EZ Bar, Dumbbell Standing",
+      "equipment": "Incline Dumbbell, Barbell, EZ Bar, Dumbbell Standing, Cable Standing",
       "difficulty": "Beginner",
       "instructions": "A classic biceps exercise targeting both heads of the biceps. Curl the weight upward while keeping your elbows stationary and close to your torso. Focus on the contraction at the top of the movement, then lower with control. Available with various equipment to target the biceps from different angles.",
       "variants": [
@@ -2454,6 +2454,28 @@ export const exerciseDatabase = {
             "Curl one or both arms while maintaining upper arm position",
             "Supinate wrists at top for peak contraction",
             "Lower with control, resisting the weight down"
+          ]
+        },
+        {
+          "equipment": "Cable Standing",
+          "difficulty": "Beginner",
+          "pros": [
+            "Constant tension throughout entire range of motion",
+            "No momentum possible - pure biceps isolation",
+            "Easy to adjust weight quickly for drop sets",
+            "Smooth resistance curve prevents joint stress"
+          ],
+          "cons": [
+            "Requires cable machine access",
+            "Fixed cable path may not suit all body types",
+            "Less natural movement pattern than free weights"
+          ],
+          "setupTips": [
+            "Attach straight bar or EZ bar to low pulley",
+            "Stand facing the cable machine, feet shoulder-width apart",
+            "Grip bar with palms up, elbows pinned to sides",
+            "Curl bar up while keeping upper arms stationary",
+            "Squeeze biceps at top, then lower with control"
           ]
         }
       ]
