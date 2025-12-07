@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Switch,
   ScrollView,
+  Platform,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import ScreenLayout from '../components/ScreenLayout';
@@ -301,6 +302,9 @@ export default function GymLocationScreen({ navigation }) {
                   )}
                 </View>
                 {gym.address && <Text style={styles.gymAddress}>{gym.address}</Text>}
+                <Text style={styles.gymCoords}>
+                  Exact location: {gym.latitude.toFixed(6)}, {gym.longitude.toFixed(6)}
+                </Text>
               </View>
             </View>
             <View style={styles.gymActions}>
@@ -567,6 +571,12 @@ const createStyles = (Colors) =>
       fontSize: Typography.fontSize.sm,
       color: Colors.textSecondary,
       marginTop: 4,
+    },
+    gymCoords: {
+      fontSize: Typography.fontSize.xs,
+      color: Colors.textMuted,
+      marginTop: 2,
+      fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     },
     gymActions: {
       flexDirection: 'row',

@@ -27,9 +27,7 @@ const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 const GOOGLE_MAPS_API_KEY = Constants.expoConfig?.extra?.googleMapsApiKey || '';
 
 // Log for debugging
-if (!GOOGLE_MAPS_API_KEY) {
-  console.log('Warning: Google Maps API key not found. Search functionality may not work.');
-}
+console.log('Google Maps API Key status:', GOOGLE_MAPS_API_KEY ? 'Present (' + GOOGLE_MAPS_API_KEY.substring(0, 8) + '...)' : 'MISSING');
 
 export default function GymMapScreen({ navigation, route }) {
   const { colors } = useTheme();
@@ -242,31 +240,61 @@ export default function GymMapScreen({ navigation, route }) {
 
       {/* Search bar overlay */}
       <View style={styles.searchContainer}>
-        <GooglePlacesAutocomplete
-          placeholder="Search for a gym..."
-          onPress={handlePlaceSelect}
-          query={{
-            key: GOOGLE_MAPS_API_KEY,
-            language: 'en',
-            types: 'gym|health|fitness',
-          }}
-          fetchDetails
-          enablePoweredByContainer={false}
-          styles={{
-            container: styles.autocompleteContainer,
-            textInputContainer: styles.textInputContainer,
-            textInput: [styles.textInput, { color: colors.text }],
-            listView: styles.listView,
-            row: styles.row,
-            description: { color: colors.text },
-            separator: { backgroundColor: colors.border },
-          }}
-          textInputProps={{
-            placeholderTextColor: colors.textMuted,
-          }}
-          nearbyPlacesAPI="GooglePlacesSearch"
-          debounce={300}
-        />
+        {!GOOGLE_MAPS_API_KEY ? (
+          <View style={[styles.textInput, styles.searchDisabled]}>
+            <Text style={{ color: colors.textMuted, textAlign: 'center' }}>
+              Search unavailable - tap map to select location
+            </Text>
+          </View>
+        ) : (
+          <GooglePlacesAutocomplete
+            placeholder="Search for a gym (e.g. Planet Fitness)..."
+            onPress={handlePlaceSelect}
+            query={{
+              key: GOOGLE_MAPS_API_KEY,
+              language: 'en',
+              types: 'establishment',
+              keyword: 'gym fitness',
+            }}
+            fetchDetails
+            enablePoweredByContainer={false}
+            minLength={2}
+            onFail={(error) => {
+              console.error('Google Places error:', error);
+              Alert.alert(
+                'Search Error',
+                'Could not search for gyms. Please tap on the map to select your gym location manually.'
+              );
+            }}
+            onNotFound={() => {
+              console.log('No results found');
+            }}
+            listEmptyComponent={() => (
+              <View style={styles.emptyList}>
+                <Text style={{ color: colors.textSecondary, padding: 16 }}>
+                  No gyms found. Try a different search or tap the map.
+                </Text>
+              </View>
+            )}
+            styles={{
+              container: styles.autocompleteContainer,
+              textInputContainer: styles.textInputContainer,
+              textInput: [styles.textInput, { color: colors.text }],
+              listView: styles.listView,
+              row: styles.row,
+              description: { color: colors.text },
+              separator: { backgroundColor: colors.border },
+            }}
+            textInputProps={{
+              placeholderTextColor: colors.textMuted,
+            }}
+            GooglePlacesDetailsQuery={{
+              fields: 'geometry,formatted_address,name,place_id',
+            }}
+            nearbyPlacesAPI="GooglePlacesSearch"
+            debounce={300}
+          />
+        )}
       </View>
 
       {/* Back button */}
@@ -374,6 +402,15 @@ const createStyles = (Colors) =>
     row: {
       backgroundColor: Colors.surface,
       padding: Spacing.md,
+    },
+    searchDisabled: {
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    emptyList: {
+      backgroundColor: Colors.surface,
+      borderRadius: BorderRadius.md,
+      marginTop: Spacing.xs,
     },
     backButton: {
       position: 'absolute',
