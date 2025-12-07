@@ -186,7 +186,7 @@ const EXERCISE_IMAGE_MAPPING = {
     "Cable Cross": "Cable_Rear_Delt_Fly"
   },
 
-  // ============ BICEPS (10 exercises) ============
+  // ============ BICEPS (11 exercises) ============
   "Bicep Curl": {
     "Incline Dumbbell": "Alternate_Incline_Dumbbell_Curl",
     "Barbell": "Barbell_Curl",
@@ -196,64 +196,64 @@ const EXERCISE_IMAGE_MAPPING = {
 
   "One Arm Bicep Curl": {
     "Dumbbell": "Dumbbell_Alternate_Bicep_Curl",
-    "Cable Low": "Standing_Biceps_Cable_Curl",
+    "Cable Low": "Standing_One-Arm_Cable_Curl",
     "Cable Mid": "Standing_Biceps_Cable_Curl",
-    "Cable Front": "Standing_Biceps_Cable_Curl",
-    "Cable Back": "Standing_Biceps_Cable_Curl"
+    "Cable Front": "Lying_Cable_Curl",
+    "Cable Back": "Overhead_Cable_Curl"
   },
 
   "Hammer Curl": {
     "Cable Rope": "Cable_Hammer_Curls_-_Rope_Attachment",
     "Dumbbell": "Alternate_Hammer_Curl",
-    "Dumbbell Seated": "Seated_Dumbbell_Curl"
+    "Dumbbell Seated": "Incline_Hammer_Curls"
   },
 
   "Preacher Curl": {
     "Machine": "Machine_Preacher_Curls",
     "Dumbbell": "One_Arm_Dumbbell_Preacher_Curl",
     "Cable Single": "Cable_Preacher_Curl",
-    "Cable Rope": "Cable_Preacher_Curl",
+    "Cable Rope": "Lying_Close-Grip_Bar_Curl_On_High_Pulley",
     "EZ Bar": "Preacher_Curl"
   },
 
   "Concentration Curl": {
     "Dumbbell Seated": "Concentration_Curls",
-    "Cable Kneeling": "Cable_Hammer_Curls_-_Rope_Attachment",
-    "Cable Seated": "Cable_Hammer_Curls_-_Rope_Attachment"
+    "Cable Kneeling": "Standing_Concentration_Curl",
+    "Cable Seated": "Seated_Close-Grip_Concentration_Barbell_Curl"
   },
 
   "Cross Body Hammer Curl": {
     "Dumbbell": "Cross_Body_Hammer_Curl",
-    "Cable Low": "Standing_Biceps_Cable_Curl",
-    "Cable Rope": "Cable_Hammer_Curls_-_Rope_Attachment"
+    "Cable Low": "Incline_Inner_Biceps_Curl",
+    "Cable Rope": "Preacher_Hammer_Dumbbell_Curl"
   },
 
   "High Cable Curl": {
     "Double Cable": "High_Cable_Curls",
-    "Single Cable": "High_Cable_Curls"
+    "Single Cable": "Overhead_Cable_Curl"
   },
 
   "Reverse Curl": {
     "Barbell": "Reverse_Barbell_Curl",
-    "EZ Bar": "EZ-Bar_Curl",
-    "Dumbbell": "Dumbbell_Bicep_Curl"
+    "EZ Bar": "Reverse_Cable_Curl",
+    "Dumbbell": "Standing_Dumbbell_Reverse_Curl"
   },
 
   "Spider Curl": {
     "EZ Bar": "Spider_Curl",
-    "Dumbbell": "Dumbbell_Bicep_Curl",
-    "Cable": "Cable_Preacher_Curl"
+    "Dumbbell": "Dumbbell_Prone_Incline_Curl",
+    "Cable": "Lying_Cable_Curl"
   },
 
   "Zottman Curl": {
     "Dumbbell": "Zottman_Curl",
-    "Cable": "Standing_Biceps_Cable_Curl"
+    "Cable": "Zottman_Preacher_Curl"
   },
 
   "Cable Bicep Curl": {
     "Cable Bar": "Standing_Biceps_Cable_Curl",
     "Cable Rope": "Cable_Hammer_Curls_-_Rope_Attachment",
-    "Cable EZ Bar": "Standing_Biceps_Cable_Curl"
+    "Cable EZ Bar": "Close-Grip_EZ_Bar_Curl"
   },
 
   // ============ TRICEPS (10 exercises) ============
@@ -265,22 +265,22 @@ const EXERCISE_IMAGE_MAPPING = {
 
   "One Arm Tricep Pushdown": {
     "Single Handle": "Cable_One_Arm_Tricep_Extension",
-    "Rope": "Cable_One_Arm_Tricep_Extension"
+    "Rope": "Standing_Low-Pulley_One-Arm_Triceps_Extension"
   },
 
   "Overhead Tricep Extension": {
-    "Cable Rope": "Triceps_Overhead_Extension_with_Rope",
-    "Dumbbell Two-Handed": "Dumbbell_One-Arm_Triceps_Extension",
-    "EZ Bar": "Lying_Triceps_Press"
+    "Cable Rope": "Cable_Rope_Overhead_Triceps_Extension",
+    "Dumbbell Two-Handed": "Standing_Dumbbell_Triceps_Extension",
+    "EZ Bar": "Incline_Barbell_Triceps_Extension"
   },
 
   "One Arm Overhead Extension": {
     "Dumbbell": "Dumbbell_One-Arm_Triceps_Extension",
-    "Cable": "Cable_One_Arm_Tricep_Extension"
+    "Cable": "Kneeling_Cable_Triceps_Extension"
   },
 
   "Skull Crusher": {
-    "EZ Bar": "Lying_Triceps_Press",
+    "EZ Bar": "EZ-Bar_Skullcrusher",
     "Barbell": "Lying_Triceps_Press",
     "Dumbbell": "Decline_Dumbbell_Triceps_Extension"
   },
@@ -294,7 +294,7 @@ const EXERCISE_IMAGE_MAPPING = {
   "Close Grip Bench Press": {
     "Barbell": "Close-Grip_Barbell_Bench_Press",
     "Smith Machine": "Smith_Machine_Close-Grip_Bench_Press",
-    "Dumbbell": "Dumbbell_Bench_Press"
+    "Dumbbell": "Close-Grip_Dumbbell_Press"
   },
 
   "Cable Incline Tricep Extension": {
@@ -304,14 +304,14 @@ const EXERCISE_IMAGE_MAPPING = {
 
   "Diamond Push-ups": {
     "Bodyweight": "Push-Ups_-_Close_Triceps_Position",
-    "Weight Vest": "Push-Ups_-_Close_Triceps_Position",
-    "Elevated": null
+    "Weight Vest": "Close-Grip_Push-Up_off_of_a_Dumbbell",
+    "Elevated": "Incline_Push-Up_Close-Grip"
   },
 
   "Weighted Dips": {
-    "Dip Belt": "Dips_-_Triceps_Version",
-    "Dumbbell Between Legs": "Dips_-_Triceps_Version",
-    "Weight Vest": "Dips_-_Triceps_Version"
+    "Dip Belt": "Parallel_Bar_Dip",
+    "Dumbbell Between Legs": "Ring_Dips",
+    "Weight Vest": "Weighted_Bench_Dip"
   },
 
   // ============ ABS (10 exercises) ============

@@ -99,7 +99,9 @@
       "Bash(echo:*)",
       "Bash(do node -c \"$f\")",
       "Bash(grep:*)",
-      "Bash(perl:*)"
+      "Bash(perl:*)",
+      "WebFetch(domain:api.github.com)",
+      "WebFetch(domain:www.exercisedb.dev)"
     ],
     "deny": [],
     "ask": []
