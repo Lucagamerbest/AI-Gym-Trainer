@@ -16,6 +16,7 @@ import { useWorkout } from '../context/WorkoutContext';
 import AIButtonModal from '../components/AIButtonModal';
 import PlatePicker from '../components/PlatePicker';
 import { usesBarbellPlates, getBarType } from '../constants/weightEquipment';
+import BackgroundTimerService from '../services/BackgroundTimerService';
 
 // Configure notification handler - always show notifications
 Notifications.setNotificationHandler({
@@ -614,12 +615,14 @@ export default function WorkoutScreen({ navigation, route }) {
     }, [])
   );
 
-  // Cleanup auto-save timeout on unmount
+  // Cleanup auto-save timeout and BackgroundTimerService on unmount
   useEffect(() => {
     return () => {
       if (autoSaveTimeoutRef.current) {
         clearTimeout(autoSaveTimeoutRef.current);
       }
+      // Stop BackgroundTimerService if running when component unmounts
+      BackgroundTimerService.stop();
     };
   }, []);
 
@@ -660,20 +663,35 @@ export default function WorkoutScreen({ navigation, route }) {
         let finalStatus = existingStatus;
 
         if (existingStatus !== 'granted') {
-          const { status } = await Notifications.requestPermissionsAsync();
+          // Request with iOS-specific options for time-sensitive alerts
+          const { status } = await Notifications.requestPermissionsAsync({
+            ios: {
+              allowAlert: true,
+              allowBadge: true,
+              allowSound: true,
+              allowAnnouncements: true,
+              allowCriticalAlerts: true, // Request critical alerts (requires Apple entitlement)
+              provideAppNotificationSettings: true,
+            },
+          });
           finalStatus = status;
         }
 
         // Permissions handled silently
 
-        // Set up notification channel for Android
+        // Set up notification channel for Android with maximum priority
         if (Platform.OS === 'android') {
           await Notifications.setNotificationChannelAsync('rest-timer', {
             name: 'Rest Timer',
-            importance: Notifications.AndroidImportance.HIGH,
-            vibrationPattern: [0, 250, 250, 250],
-            sound: 'default',
+            description: 'Alerts when your rest period is complete',
+            importance: Notifications.AndroidImportance.MAX, // Highest priority
+            vibrationPattern: [0, 500, 200, 500, 200, 500], // Stronger vibration
+            sound: 'notification.mp3',
             enableVibrate: true,
+            enableLights: true,
+            lightColor: '#FF0000',
+            lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+            bypassDnd: true, // Request DND bypass (user must grant permission in settings)
           });
         }
       } catch (error) {
@@ -681,8 +699,12 @@ export default function WorkoutScreen({ navigation, route }) {
     };
 
     // Set up notification listeners
-    const notificationReceivedSubscription = Notifications.addNotificationReceivedListener(notification => {
-      // Notification received
+    const notificationReceivedSubscription = Notifications.addNotificationReceivedListener(async (notification) => {
+      // When rest timer notification arrives, play sound with music ducking
+      if (notification.request.content.title?.includes('Rest Time Complete')) {
+        console.log('Rest timer notification received - playing sound with music duck');
+        await playNotificationSound();
+      }
     });
 
     const notificationResponseSubscription = Notifications.addNotificationResponseReceivedListener(response => {
@@ -1071,36 +1093,17 @@ export default function WorkoutScreen({ navigation, route }) {
 
   // Removed problematic sync effect that was causing infinite loops
 
-  // Rest timer logic - using timestamp-based calculation for background support
+  // Rest timer UI sync - BackgroundTimerService handles the actual timing
+  // This is just a backup to ensure UI stays in sync if component re-renders
   useEffect(() => {
-    if (isRestTimerRunning && restTimerEndTime) {
-      restIntervalRef.current = setInterval(() => {
-        const now = new Date().getTime();
-        const remaining = Math.max(0, Math.ceil((restTimerEndTime - now) / 1000));
-
-        setRestTimer(remaining);
-
-        if (remaining <= 0) {
-          handleRestTimerComplete(); // This triggers notification + alert
-          setIsRestTimerRunning(false);
-          setRestTimerEndTime(null);
-          clearInterval(restIntervalRef.current);
-          restIntervalRef.current = null;
-        }
-      }, 100); // Check every 100ms for smoother countdown
-    } else {
+    // Cleanup interval ref on unmount
+    return () => {
       if (restIntervalRef.current) {
         clearInterval(restIntervalRef.current);
         restIntervalRef.current = null;
       }
-    }
-
-    return () => {
-      if (restIntervalRef.current) {
-        clearInterval(restIntervalRef.current);
-      }
     };
-  }, [isRestTimerRunning, restTimerEndTime]);
+  }, []);
 
   // Calculate elapsed time
   const getElapsedTime = () => {
@@ -1169,7 +1172,7 @@ export default function WorkoutScreen({ navigation, route }) {
     }
   };
 
-  // Start rest timer
+  // Start rest timer using BackgroundTimerService for proper background audio
   const startRestTimer = async (seconds = restTargetSeconds) => {
     // Prevent starting if already running
     if (isRestTimerRunning) {
@@ -1178,43 +1181,97 @@ export default function WorkoutScreen({ navigation, route }) {
 
     const now = new Date();
     const endTime = now.getTime() + (seconds * 1000);
-    const expectedEndTime = new Date(endTime);
 
     setRestTimerEndTime(endTime);
     setRestTimer(seconds);
     setIsRestTimerRunning(true);
 
-    // Store in AsyncStorage for background persistence
+    // Store in AsyncStorage for state recovery
     try {
       await AsyncStorage.setItem('@rest_timer_end', endTime.toString());
+    } catch (error) {
+      console.log('Error storing timer data:', error.message);
+    }
 
+    // Start the BackgroundTimerService - this keeps app alive via audio
+    // and plays sound with music ducking when timer completes
+    await BackgroundTimerService.start(
+      seconds,
+      // onTick callback - update UI
+      (remainingSeconds) => {
+        setRestTimer(remainingSeconds);
+      },
+      // onComplete callback - timer finished
+      async () => {
+        console.log('Rest timer completed via BackgroundTimerService');
+        setIsRestTimerRunning(false);
+        setRestTimer(0);
+        setRestTimerEndTime(null);
+
+        // Clear from AsyncStorage
+        try {
+          await AsyncStorage.removeItem('@rest_timer_end');
+        } catch (error) {
+          console.log('Error clearing timer data:', error.message);
+        }
+
+        // Show alert if app is in foreground
+        const currentState = AppState.currentState;
+        if (currentState === 'active') {
+          Alert.alert(
+            '⏰ Rest Time Complete!',
+            'Time to get back to your workout!',
+            [{ text: 'Let\'s Go!', style: 'default' }]
+          );
+        }
+
+        // Also send a notification (for notification center)
+        try {
+          await Notifications.scheduleNotificationAsync({
+            content: {
+              title: '⏰ Rest Time Complete!',
+              body: 'Time to get back to your workout!',
+              sound: false, // Sound already played by BackgroundTimerService
+            },
+            trigger: null,
+          });
+        } catch (error) {
+          console.log('Error sending completion notification:', error.message);
+        }
+      }
+    );
+
+    // Also schedule a backup notification in case the background service fails
+    // (e.g., if iOS kills the app despite background audio)
+    try {
       // Cancel any existing notification first
       if (restNotificationIdRef.current) {
         await Notifications.cancelScheduledNotificationAsync(restNotificationIdRef.current);
       }
 
-      // Schedule notification using proper TIME_INTERVAL type
-      // Use custom bundled sound for reliable playback when phone is locked
       const notificationId = await Notifications.scheduleNotificationAsync({
         content: {
           title: '⏰ Rest Time Complete!',
           body: 'Time to get back to your workout!',
-          sound: 'notification.mp3', // Custom sound bundled in app
-          priority: Notifications.AndroidNotificationPriority.HIGH,
-          vibrate: [0, 250, 250, 250], // Vibration pattern for locked phone
+          sound: 'notification.mp3',
+          priority: Notifications.AndroidNotificationPriority.MAX,
+          vibrate: [0, 500, 200, 500, 200, 500],
+          ...(Platform.OS === 'ios' && {
+            interruptionLevel: 'timeSensitive',
+          }),
         },
         trigger: {
           type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
           seconds: seconds,
           repeats: false,
+          channelId: 'rest-timer',
         },
       });
 
-      // Store notification ID so we can cancel it if timer is stopped
       restNotificationIdRef.current = notificationId;
       await AsyncStorage.setItem('@rest_timer_notification_id', notificationId);
     } catch (error) {
-      console.log('Error scheduling rest timer notification:', error.message);
+      console.log('Error scheduling backup notification:', error.message);
     }
   };
 
@@ -1224,7 +1281,10 @@ export default function WorkoutScreen({ navigation, route }) {
     setRestTimer(0);
     setRestTimerEndTime(null);
 
-    // Cancel scheduled notification
+    // Stop the BackgroundTimerService
+    await BackgroundTimerService.stop();
+
+    // Cancel scheduled backup notification
     try {
       const notificationId = restNotificationIdRef.current || await AsyncStorage.getItem('@rest_timer_notification_id');
       if (notificationId) {
@@ -1249,7 +1309,10 @@ export default function WorkoutScreen({ navigation, route }) {
     setIsRestTimerRunning(false);
     setRestTimerEndTime(null);
 
-    // Cancel scheduled notification
+    // Pause the BackgroundTimerService (preserves remaining time)
+    await BackgroundTimerService.pause();
+
+    // Cancel scheduled backup notification
     try {
       const notificationId = restNotificationIdRef.current || await AsyncStorage.getItem('@rest_timer_notification_id');
       if (notificationId) {

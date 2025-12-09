@@ -1,7 +1,9 @@
 // Dynamic Expo config - uses environment variables for sensitive data
+const IS_DEV = process.env.APP_VARIANT === "development";
+
 export default {
   expo: {
-    name: "Workout Wave",
+    name: IS_DEV ? "Workout Wave (Dev)" : "Workout Wave",
     slug: "workout-wave",
     owner: "workoutwave",
     version: "1.0.0",
@@ -11,7 +13,7 @@ export default {
     scheme: "workoutwave",
     ios: {
       supportsTablet: true,
-      bundleIdentifier: "com.rarau.workoutwave",
+      bundleIdentifier: IS_DEV ? "com.rarau.workoutwave.dev" : "com.rarau.workoutwave",
       config: {
         googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY
       },
@@ -51,7 +53,11 @@ export default {
         "ACCESS_FINE_LOCATION",
         "ACCESS_BACKGROUND_LOCATION",
         "FOREGROUND_SERVICE",
-        "FOREGROUND_SERVICE_LOCATION"
+        "FOREGROUND_SERVICE_LOCATION",
+        "SCHEDULE_EXACT_ALARM",
+        "USE_EXACT_ALARM",
+        "WAKE_LOCK",
+        "RECEIVE_BOOT_COMPLETED"
       ],
       runtimeVersion: "1.0.0"
     },

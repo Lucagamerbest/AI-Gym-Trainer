@@ -25,7 +25,7 @@ const SCHEDULED_NOTIFICATION_KEY = '@scheduled_gym_notification';
 const DEBUG_MODE = false; // Set to true for 30s testing, false for 5 minute production delay
 const REMINDER_DELAY_MS = DEBUG_MODE ? 30 * 1000 : 5 * 60 * 1000; // 30 seconds for testing, 5 minutes for production
 const REMINDER_DELAY_SECONDS = DEBUG_MODE ? 30 : 5 * 60; // 30 seconds for testing, 5 minutes for production
-const REMINDER_COOLDOWN_MS = DEBUG_MODE ? 60 * 1000 : 10 * 60 * 1000; // 1 minute for testing, 10 minutes for production
+const REMINDER_COOLDOWN_MS = DEBUG_MODE ? 60 * 1000 : 12 * 60 * 60 * 1000; // 1 minute for testing, 12 hours for production
 const GEOFENCE_RADIUS = 100; // meters
 
 // ==================== HELPER FUNCTIONS ====================
@@ -167,6 +167,27 @@ const scheduleDelayedGymReminder = async (gymName, gymId) => {
     console.log(`⏱️ Delay: ${REMINDER_DELAY_SECONDS} seconds (DEBUG_MODE: ${DEBUG_MODE})`);
     console.log('========================================');
 
+    // Check if there's already a valid scheduled notification for this gym
+    // This prevents restarting the timer on app reload
+    try {
+      const existingData = await AsyncStorage.getItem(SCHEDULED_NOTIFICATION_KEY);
+      if (existingData) {
+        const { gymId: existingGymId, scheduledAt } = JSON.parse(existingData);
+        const elapsed = Date.now() - scheduledAt;
+        const remainingMs = (REMINDER_DELAY_SECONDS * 1000) - elapsed;
+
+        // If notification is for the same gym and still has time remaining, don't reschedule
+        if (existingGymId === gymId && remainingMs > 0) {
+          const remainingSec = Math.ceil(remainingMs / 1000);
+          console.log(`⏳ Existing notification still valid - ${remainingSec}s remaining`);
+          console.log('✅ Skipping reschedule to avoid resetting timer');
+          return null;
+        }
+      }
+    } catch (e) {
+      // Ignore errors checking existing notification
+    }
+
     // Ensure notification permissions
     const hasPermission = await ensureNotificationPermissions();
     if (!hasPermission) {
@@ -191,7 +212,7 @@ const scheduleDelayedGymReminder = async (gymName, gymId) => {
     }
     console.log('✅ No active workout');
 
-    // Cancel any existing scheduled notification
+    // Cancel any existing scheduled notification (it's either expired or for a different gym)
     await cancelScheduledGymReminder();
     console.log('✅ Cleared any previous scheduled notifications');
 
