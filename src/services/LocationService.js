@@ -4,8 +4,9 @@ import * as Notifications from 'expo-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
 
-// Task name for background location updates
+// Task names for background location updates
 const BACKGROUND_LOCATION_TASK = 'background-gym-location-task';
+const GEOFENCING_TASK = 'gym-geofencing-task';
 
 // Storage keys
 const STORAGE_KEYS = {
@@ -319,6 +320,11 @@ export class LocationService {
   }
 
   static async setGymReminderEnabled(enabled, userId = 'guest') {
+    // Also store the userId so background tasks can find it
+    if (enabled && userId !== 'guest') {
+      await AsyncStorage.setItem('@gym_reminder_user_id', userId);
+      console.log(`💾 Stored user ID for background task: ${userId}`);
+    }
     return this.updateSettings({ enabled }, userId);
   }
 
@@ -513,10 +519,98 @@ export class LocationService {
       return false;
     }
   }
+
+  // ==================== iOS GEOFENCING ====================
+  // Geofencing is more reliable on iOS for detecting entry/exit from specific areas
+
+  static async startGeofencing(userId = 'guest') {
+    try {
+      console.log('========================================');
+      console.log('🌍 STARTING GEOFENCING');
+      console.log('========================================');
+
+      const hasPermission = await this.requestBackgroundPermission();
+      if (!hasPermission) {
+        console.log('❌ Background permission not granted for geofencing');
+        return false;
+      }
+      console.log('✅ Background permission granted');
+
+      const gyms = await this.getGymLocations(userId);
+      if (gyms.length === 0) {
+        console.log('❌ No gym locations to geofence');
+        return false;
+      }
+      console.log(`✅ Found ${gyms.length} gym(s) to monitor`);
+
+      // Stop existing geofencing first
+      await this.stopGeofencing();
+
+      // Create geofence regions for each gym
+      const regions = gyms.map((gym) => ({
+        identifier: gym.id,
+        latitude: gym.latitude,
+        longitude: gym.longitude,
+        radius: 100, // 100 meters
+        notifyOnEnter: true,
+        notifyOnExit: true,
+      }));
+
+      // Log each geofence region
+      regions.forEach((r, i) => {
+        const gym = gyms.find(g => g.id === r.identifier);
+        console.log(`📍 Geofence ${i + 1}: ${gym?.name || r.identifier}`);
+        console.log(`   Location: ${r.latitude.toFixed(6)}, ${r.longitude.toFixed(6)}`);
+        console.log(`   Radius: ${r.radius}m`);
+      });
+
+      await Location.startGeofencingAsync(GEOFENCING_TASK, regions);
+
+      console.log('========================================');
+      console.log(`✅ GEOFENCING ACTIVE for ${regions.length} gym(s)`);
+      console.log('📱 You will be notified when entering/exiting these areas');
+      console.log('========================================');
+      return true;
+    } catch (error) {
+      console.error('❌ Error starting geofencing:', error);
+      return false;
+    }
+  }
+
+  static async stopGeofencing() {
+    try {
+      const isRegistered = await TaskManager.isTaskRegisteredAsync(GEOFENCING_TASK);
+      if (isRegistered) {
+        await Location.stopGeofencingAsync(GEOFENCING_TASK);
+      }
+      return true;
+    } catch (error) {
+      console.error('Error stopping geofencing:', error);
+      return false;
+    }
+  }
+
+  static async isGeofencingActive() {
+    try {
+      return await TaskManager.isTaskRegisteredAsync(GEOFENCING_TASK);
+    } catch (error) {
+      console.error('Error checking geofencing status:', error);
+      return false;
+    }
+  }
+
+  static async updateGeofenceRegions(userId = 'guest') {
+    // Call this when gyms are added/removed to update geofence regions
+    const settings = await this.getSettings(userId);
+    if (settings.enabled) {
+      await this.startGeofencing(userId);
+    }
+  }
 }
 
-// Export task name for registration in App.js
+// Export task names for registration in App.js
 export const LOCATION_TASK_NAME = BACKGROUND_LOCATION_TASK;
+export const GEOFENCING_TASK_NAME = GEOFENCING_TASK;
 
 // Export distance calculation for external use
 export { calculateDistance };

@@ -111,6 +111,12 @@ export default function GymLocationScreen({ navigation }) {
         setAddingGym(false);
         setNewGymName('');
         setCurrentLocation(null);
+
+        // Update geofence regions if reminders are enabled
+        if (reminderEnabled && !permissions.isExpoGo) {
+          await LocationService.updateGeofenceRegions(userId);
+        }
+
         Alert.alert('Success', `${result.gym.name} has been added!`);
       } else {
         Alert.alert('Error', result.error || 'Failed to save gym');
@@ -133,6 +139,11 @@ export default function GymLocationScreen({ navigation }) {
             const result = await LocationService.deleteGymLocation(gym.id, userId);
             if (result.success) {
               setGyms((prev) => prev.filter((g) => g.id !== gym.id));
+
+              // Update geofence regions if reminders are enabled
+              if (reminderEnabled && !permissions.isExpoGo) {
+                await LocationService.updateGeofenceRegions(userId);
+              }
             }
           },
         },
@@ -153,6 +164,11 @@ export default function GymLocationScreen({ navigation }) {
   };
 
   const handleToggleReminder = async (value) => {
+    console.log('========================================');
+    console.log(`🔄 TOGGLE CHANGED: ${value ? 'ON' : 'OFF'}`);
+    console.log(`👤 User ID: ${userId}`);
+    console.log('========================================');
+
     // In Expo Go, we can still save the setting but background won't work
     if (value && !permissions.background && !permissions.isExpoGo) {
       // Request background permission (only in custom build)
@@ -168,19 +184,28 @@ export default function GymLocationScreen({ navigation }) {
       setPermissions((prev) => ({ ...prev, background: true }));
     }
 
-    await LocationService.setGymReminderEnabled(value, userId);
+    const result = await LocationService.setGymReminderEnabled(value, userId);
+    console.log(`💾 Setting saved:`, JSON.stringify(result));
     setReminderEnabled(value);
 
     // Only start/stop background tracking if not in Expo Go
     if (!permissions.isExpoGo) {
       if (value) {
-        // Start background tracking
+        // Start both geofencing (more reliable on iOS) and background location tracking (Android fallback)
+        await LocationService.startGeofencing(userId);
         await LocationService.startBackgroundLocationTracking();
+        console.log('✅ Geofencing and background tracking STARTED');
       } else {
-        // Stop background tracking
+        // Stop all background tracking
+        await LocationService.stopGeofencing();
         await LocationService.stopBackgroundLocationTracking();
+        console.log('🛑 Geofencing and background tracking STOPPED');
       }
     }
+
+    // Verify the setting was saved
+    const verifySettings = await LocationService.getSettings(userId);
+    console.log(`✅ Verified settings:`, JSON.stringify(verifySettings));
   };
 
   const handleRequestPermissions = async () => {
@@ -411,6 +436,7 @@ export default function GymLocationScreen({ navigation }) {
           </View>
         </StyledCard>
       )}
+
 
       {/* Info Section */}
       <StyledCard variant="elevated" style={[styles.card, styles.infoCard]}>
