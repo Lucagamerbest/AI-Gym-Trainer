@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { CommonActions } from '@react-navigation/native';
 import ScreenLayout from '../components/ScreenLayout';
+import DetailedNutritionCard from '../components/DetailedNutritionCard';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 
 export default function FoodDetailScreen({ route, navigation }) {
@@ -662,6 +663,14 @@ export default function FoodDetailScreen({ route, navigation }) {
             </>
           ) : null}
         </View>
+      )}
+
+      {/* Detailed Nutrition Insights - only shows if enabled in settings */}
+      {!infoOnly && (
+        <DetailedNutritionCard
+          food={food}
+          servingMultiplier={servingInfo.isUnit ? (calculateActualWeight() / 100) : (servingAmount / 100)}
+        />
       )}
 
       {/* Quick Macros Summary - shown in info-only mode */}

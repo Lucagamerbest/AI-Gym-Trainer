@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, Alert, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TextInput, Alert, ScrollView, TouchableOpacity, Switch } from 'react-native';
 import ScreenLayout from '../components/ScreenLayout';
 import StyledCard from '../components/StyledCard';
 import StyledButton from '../components/StyledButton';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { useAuth } from '../context/AuthContext';
 import { getNutritionGoals, updateNutritionGoals, getFoodPreferences, updateFoodPreferences } from '../services/userProfileService';
+import nutritionInsightsService from '../services/NutritionInsightsService';
 
 export default function FoodSettingsScreen({ navigation }) {
   const { user } = useAuth();
@@ -22,10 +23,24 @@ export default function FoodSettingsScreen({ navigation }) {
   const [favoriteCuisines, setFavoriteCuisines] = useState([]);
   const [dietaryRestrictions, setDietaryRestrictions] = useState([]);
 
+  // Detailed Nutrition Settings
+  const [showDetailedNutrition, setShowDetailedNutrition] = useState(false);
+
   useEffect(() => {
     loadGoals();
     loadPreferences();
+    loadDetailedNutritionSetting();
   }, [user]);
+
+  const loadDetailedNutritionSetting = async () => {
+    const enabled = await nutritionInsightsService.loadSettings();
+    setShowDetailedNutrition(enabled);
+  };
+
+  const handleToggleDetailedNutrition = async (value) => {
+    setShowDetailedNutrition(value);
+    await nutritionInsightsService.setShowDetailedNutrition(value);
+  };
 
   const loadGoals = async () => {
     try {
@@ -234,6 +249,39 @@ export default function FoodSettingsScreen({ navigation }) {
               <Text style={styles.unit}>g</Text>
             </View>
           </View>
+        </StyledCard>
+
+        {/* NUTRITION INSIGHTS SECTION */}
+        <StyledCard variant="elevated" style={styles.goalCard}>
+          <Text style={styles.sectionTitle}>Nutrition Insights</Text>
+          <Text style={styles.hint}>Advanced nutrition tracking options</Text>
+
+          {/* Detailed Nutrition Toggle */}
+          <View style={styles.toggleRow}>
+            <View style={styles.toggleContent}>
+              <Text style={styles.toggleLabel}>Show Detailed Nutrition</Text>
+              <Text style={styles.toggleDescription}>
+                Display vitamins, minerals, and food quality scores when viewing foods
+              </Text>
+            </View>
+            <Switch
+              value={showDetailedNutrition}
+              onValueChange={handleToggleDetailedNutrition}
+              trackColor={{ false: Colors.border, true: Colors.primary + '60' }}
+              thumbColor={showDetailedNutrition ? Colors.primary : Colors.textMuted}
+            />
+          </View>
+
+          {showDetailedNutrition && (
+            <View style={styles.insightPreview}>
+              <Text style={styles.insightPreviewTitle}>What you'll see:</Text>
+              <Text style={styles.insightPreviewItem}>• Vitamin content (A, B, C, D, E, K)</Text>
+              <Text style={styles.insightPreviewItem}>• Mineral content (Iron, Calcium, Zinc, etc.)</Text>
+              <Text style={styles.insightPreviewItem}>• Nutrient density score (0-100)</Text>
+              <Text style={styles.insightPreviewItem}>• Food processing level</Text>
+              <Text style={styles.insightPreviewItem}>• Allergen warnings</Text>
+            </View>
+          )}
         </StyledCard>
 
         {/* FOOD PREFERENCES SECTION */}
@@ -619,5 +667,47 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: Colors.primary,
     fontWeight: 'bold',
+  },
+  toggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: Spacing.lg,
+    paddingVertical: Spacing.sm,
+  },
+  toggleContent: {
+    flex: 1,
+    marginRight: Spacing.md,
+  },
+  toggleLabel: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: Spacing.xs,
+  },
+  toggleDescription: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+    lineHeight: 18,
+  },
+  insightPreview: {
+    marginTop: Spacing.lg,
+    padding: Spacing.md,
+    backgroundColor: Colors.primary + '10',
+    borderRadius: BorderRadius.md,
+    borderLeftWidth: 3,
+    borderLeftColor: Colors.primary,
+  },
+  insightPreviewTitle: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
+    color: Colors.primary,
+    marginBottom: Spacing.sm,
+  },
+  insightPreviewItem: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+    marginBottom: 4,
+    lineHeight: 18,
   },
 });
