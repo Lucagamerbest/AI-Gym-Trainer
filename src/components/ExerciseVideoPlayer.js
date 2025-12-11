@@ -52,7 +52,7 @@ function SwipeableImageVideoCarousel({ fallbackImage, exerciseName, style }) {
         <View style={[styles.slide, { width: contentWidth }]}>
           {fallbackImage ? (
             <Image
-              source={{ uri: fallbackImage }}
+              source={typeof fallbackImage === 'string' ? { uri: fallbackImage } : fallbackImage}
               style={styles.slideImage}
               resizeMode="cover"
             />

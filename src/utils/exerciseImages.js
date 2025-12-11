@@ -1,10 +1,20 @@
 /**
  * COMPLETE Exercise Image Mapping
- * All 92 exercises mapped to Free Exercise DB
- * Updated: 2025-01-24
+ * All 87 exercises mapped to Free Exercise DB
+ * Updated: 2025-12-11
  */
 
 const BASE_URL = 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/';
+
+// Local exercise images - use require() for bundled assets
+const LOCAL_IMAGES = {
+  'benchpressmachine': require('../../assets/exercises/benchpressmachine.jpg'),
+  'cable_crossover_high_to_low': require('../../assets/exercises/cable_crossover_high_to_low.jpg'),
+  'cable_crossover_middle': require('../../assets/exercises/cable_crossover_middle.jpg'),
+  'chest_dip': require('../../assets/exercises/chest_dip.jpg'),
+  'weighted_chest_dip': require('../../assets/exercises/weighted_chest_dip.jpg'),
+  'machine_chest_press': require('../../assets/exercises/machine_chest_press.jpg'),
+};
 
 const EXERCISE_IMAGE_MAPPING = {
   // ============ CHEST (8 exercises) ============
@@ -12,7 +22,7 @@ const EXERCISE_IMAGE_MAPPING = {
     "Barbell": "Barbell_Bench_Press_-_Medium_Grip",
     "Dumbbell": "Dumbbell_Bench_Press",
     "Smith Machine": "Smith_Machine_Bench_Press",
-    "Machine": "Leverage_Chest_Press"
+    "Machine": "LOCAL:benchpressmachine"
   },
 
   "Incline Bench Press": {
@@ -35,9 +45,9 @@ const EXERCISE_IMAGE_MAPPING = {
   },
 
   "Cable Crossover": {
-    "High to Low": "Cable_Crossover",
+    "High to Low": "LOCAL:cable_crossover_high_to_low",
     "Low to High": "Low_Cable_Crossover",
-    "Middle": "Cable_Crossover"
+    "Middle": "LOCAL:cable_crossover_middle"
   },
 
   "Push-ups": {
@@ -48,14 +58,13 @@ const EXERCISE_IMAGE_MAPPING = {
   },
 
   "Chest Dips": {
-    "Bodyweight": "Dips_-_Chest_Version",
-    "Weighted (Dip Belt)": "Dips_-_Chest_Version",
+    "Bodyweight": "LOCAL:chest_dip",
+    "Weighted (Dip Belt)": "LOCAL:weighted_chest_dip",
     "Assisted Machine": "Dip_Machine"
   },
 
   "Machine Chest Press": {
-    "Machine Seated": "Leverage_Chest_Press",
-    "Machine Plate Loaded": "Leverage_Chest_Press"
+    "Machine Seated": "LOCAL:machine_chest_press"
   },
 
   // ============ BACK (14 exercises) ============
@@ -186,7 +195,7 @@ const EXERCISE_IMAGE_MAPPING = {
     "Cable Cross": "Cable_Rear_Delt_Fly"
   },
 
-  // ============ BICEPS (11 exercises) ============
+  // ============ BICEPS (9 exercises) ============
   "Bicep Curl": {
     "Incline Dumbbell": "Alternate_Incline_Dumbbell_Curl",
     "Barbell": "Barbell_Curl",
@@ -257,7 +266,7 @@ const EXERCISE_IMAGE_MAPPING = {
     "Cable EZ Bar": "Close-Grip_EZ_Bar_Curl"
   },
 
-  // ============ TRICEPS (10 exercises) ============
+  // ============ TRICEPS (8 exercises) ============
   "Tricep Pushdown": {
     "Cable Rope": "Triceps_Pushdown_-_Rope_Attachment",
     "Straight Bar": "Triceps_Pushdown",
@@ -310,12 +319,12 @@ const EXERCISE_IMAGE_MAPPING = {
   },
 
   "Weighted Dips": {
-    "Dip Belt": "Parallel_Bar_Dip",
+    "Dip Belt": "LOCAL:weighted_chest_dip",
     "Dumbbell Between Legs": "Ring_Dips",
     "Weight Vest": "Weighted_Bench_Dip"
   },
 
-  // ============ ABS (10 exercises) ============
+  // ============ ABS (9 exercises) ============
   "Crunches": {
     "Bodyweight Floor": "Crunches",
     "Cable Kneeling": "Cable_Crunch",
@@ -368,7 +377,7 @@ const EXERCISE_IMAGE_MAPPING = {
     "Weighted Plate": "Weighted_Sit-Ups_-_With_Bands"
   },
 
-  // ============ LEGS (19 exercises) ============
+  // ============ LEGS (18 exercises) ============
   "Leg Extension": {
     "Machine": "Leg_Extensions",
     "Cable": "One-Legged_Cable_Kickback"
@@ -422,7 +431,9 @@ const EXERCISE_IMAGE_MAPPING = {
   "Lunges": {
     "Dumbbell Walking": "Dumbbell_Lunges",
     "Barbell Walking": "Barbell_Walking_Lunge",
-    "Dumbbell Stationary": "Dumbbell_Lunges"
+    "Dumbbell Stationary": "Dumbbell_Lunges",
+    "Bodyweight": "Bodyweight_Walking_Lunge",
+    "Reverse Lunge": "Dumbbell_Rear_Lunge"
   },
 
   "Seated Calf Raise": {
@@ -472,13 +483,7 @@ const EXERCISE_IMAGE_MAPPING = {
     "Bodyweight": "Butt_Lift_Bridge"
   },
 
-  "Romanian Deadlift": {
-    "Barbell": "Romanian_Deadlift",
-    "Dumbbell": "Stiff-Legged_Dumbbell_Deadlift",
-    "Single Leg Dumbbell": "Stiff-Legged_Dumbbell_Deadlift"
-  },
-
-  // ============ FOREARMS (5 exercises) ============
+  // ============ FOREARMS (6 exercises) ============
   "Wrist Curl": {
     "Barbell": "Palms-Up_Barbell_Wrist_Curl_Over_A_Bench",
     "Dumbbell": "Palms-Up_Dumbbell_Wrist_Curl_Over_A_Bench",
@@ -506,6 +511,12 @@ const EXERCISE_IMAGE_MAPPING = {
   "Wrist Roller": {
     "Standing": "Wrist_Roller",
     "Seated": "Wrist_Roller"
+  },
+
+  "Reverse Curl": {
+    "Barbell": "Reverse_Barbell_Curl",
+    "EZ Bar": "Reverse_Cable_Curl",
+    "Dumbbell": "Standing_Dumbbell_Reverse_Curl"
   },
 
   // ============ CARDIO (7 exercises) - NO IMAGES IN FREE DB ============
@@ -557,6 +568,8 @@ const EXERCISE_IMAGE_MAPPING = {
 
 /**
  * Get image URL for an exercise variant
+ * Supports both remote (Free Exercise DB) and local images
+ * Local images use "LOCAL:imagename" format in mapping
  */
 export function getVariantImage(exerciseName, equipment, imageIndex = 0) {
   if (!EXERCISE_IMAGE_MAPPING[exerciseName]) {
@@ -570,14 +583,34 @@ export function getVariantImage(exerciseName, equipment, imageIndex = 0) {
     return null;
   }
 
+  // Check if this is a local image
+  if (exerciseId.startsWith('LOCAL:')) {
+    const localKey = exerciseId.replace('LOCAL:', '');
+    if (LOCAL_IMAGES[localKey]) {
+      return LOCAL_IMAGES[localKey]; // Returns require() result for React Native
+    }
+    console.warn(`Local image not found: ${localKey}`);
+    return null;
+  }
+
   const imageUrl = `${BASE_URL}${exerciseId}/${imageIndex}.jpg`;
   return imageUrl;
 }
 
 /**
  * Get both images for an exercise variant
+ * For local images, returns the same image twice (local images are single)
  */
 export function getVariantImages(exerciseName, equipment) {
+  const exerciseId = EXERCISE_IMAGE_MAPPING[exerciseName]?.[equipment];
+
+  // Local images only have one image
+  if (exerciseId && exerciseId.startsWith('LOCAL:')) {
+    const image = getVariantImage(exerciseName, equipment, 0);
+    if (!image) return null;
+    return [image, image]; // Return same image for both positions
+  }
+
   const image0 = getVariantImage(exerciseName, equipment, 0);
   const image1 = getVariantImage(exerciseName, equipment, 1);
 
@@ -598,6 +631,15 @@ export function hasImageMapping(exerciseName, equipment = null) {
   }
 
   return true;
+}
+
+/**
+ * Check if an exercise variant uses a local image
+ * Useful for components that need to handle local vs remote images differently
+ */
+export function isLocalImage(exerciseName, equipment) {
+  const exerciseId = EXERCISE_IMAGE_MAPPING[exerciseName]?.[equipment];
+  return exerciseId && exerciseId.startsWith('LOCAL:');
 }
 
 /**
@@ -622,6 +664,7 @@ export default {
   getVariantImage,
   getVariantImages,
   hasImageMapping,
+  isLocalImage,
   getPlaceholderImage,
   getAvailableEquipmentWithImages
 };

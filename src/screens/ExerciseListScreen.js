@@ -755,7 +755,7 @@ export default function ExerciseListScreen({ navigation, route }) {
                         activeOpacity={0.8}
                       >
                         <Image
-                          source={{ uri: item.image }}
+                          source={typeof item.image === 'string' ? { uri: item.image } : item.image}
                           style={styles.exerciseImage}
                           resizeMode="cover"
                         />
@@ -867,7 +867,7 @@ export default function ExerciseListScreen({ navigation, route }) {
                     activeOpacity={0.8}
                   >
                     <Image
-                      source={{ uri: item.image }}
+                      source={typeof item.image === 'string' ? { uri: item.image } : item.image}
                       style={styles.compactExerciseImage}
                       resizeMode="cover"
                     />
@@ -1007,7 +1007,7 @@ export default function ExerciseListScreen({ navigation, route }) {
             <Text style={fullScreenImageStyles.closeButtonText}>✕</Text>
           </TouchableOpacity>
           <Image
-            source={{ uri: selectedImageUri }}
+            source={typeof selectedImageUri === 'string' ? { uri: selectedImageUri } : selectedImageUri}
             style={fullScreenImageStyles.fullScreenImage}
             resizeMode="contain"
           />

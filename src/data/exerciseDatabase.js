@@ -657,7 +657,7 @@ export const exerciseDatabase = {
       "muscleGroup": "Chest",
       "primaryMuscles": ["Chest", "Front Deltoids"],
       "secondaryMuscles": ["Triceps"],
-      "equipment": "Machine Seated, Machine Plate Loaded",
+      "equipment": "Machine Seated",
       "difficulty": "Beginner",
       "instructions": "A machine-based pressing movement that safely targets the chest muscles. The fixed movement path makes it excellent for beginners and for training to failure without a spotter. Great for isolating the chest when fatigued.",
       "variants": [
@@ -683,30 +683,6 @@ export const exerciseDatabase = {
             "Grip handles with full hand, wrists straight",
             "Press forward until arms nearly locked",
             "Lower with control, feel chest stretch"
-          ]
-        },
-        {
-          "equipment": "Machine Plate Loaded",
-          "difficulty": "Beginner",
-          "pros": [
-            "More natural feel than selectorized machines",
-            "Often allows independent arm movement",
-            "Can load heavy for strength training",
-            "Feels closer to free weight pressing",
-            "Good middle ground between free weights and machines"
-          ],
-          "cons": [
-            "Still a fixed path limiting natural movement",
-            "Requires loading/unloading plates",
-            "Machine not available in all gyms",
-            "Each arm may work independently (can be pro or con)"
-          ],
-          "setupTips": [
-            "Load plates evenly on both sides",
-            "Adjust seat height for proper chest alignment",
-            "Grip handles firmly, elbows slightly below shoulders",
-            "Press smoothly, avoid locking out aggressively",
-            "Control the negative portion for more tension"
           ]
         }
       ]
@@ -2486,7 +2462,7 @@ export const exerciseDatabase = {
       "muscleGroup": "Biceps",
       "primaryMuscles": ["Biceps Long Head", "Biceps Short Head"],
       "secondaryMuscles": ["Forearms"],
-      "equipment": "Dumbbell, Cable Low, Cable Mid, Cable Front, Cable Back",
+      "equipment": "Dumbbell, Cable",
       "difficulty": "Beginner",
       "instructions": "A unilateral biceps curl allowing you to focus on each arm independently. Curl one arm at a time while keeping your elbow stationary. This variation helps correct strength imbalances and allows for greater mind-muscle connection with each bicep.",
       "variants": [
@@ -2513,13 +2489,13 @@ export const exerciseDatabase = {
           ]
         },
         {
-          "equipment": "Cable Low",
+          "equipment": "Cable",
           "difficulty": "Beginner",
           "pros": [
             "Constant tension throughout entire range of motion",
             "Smooth resistance curve prevents momentum",
             "Can easily adjust weight between sets",
-            "Reduced stress on joints compared to free weights"
+            "Adjust cable height for different biceps emphasis"
           ],
           "cons": [
             "Requires cable machine access",
@@ -2527,77 +2503,11 @@ export const exerciseDatabase = {
             "May feel less natural than free weight variations"
           ],
           "setupTips": [
-            "Set cable pulley to lowest position with D-handle attached",
-            "Stand facing machine, grasp handle with one hand",
-            "Step back slightly to create starting tension",
-            "Curl handle up while keeping elbow stationary at side",
-            "Control descent to maintain constant muscle tension"
-          ]
-        },
-        {
-          "equipment": "Cable Mid",
-          "difficulty": "Intermediate",
-          "pros": [
-            "Unique angle provides different biceps stimulation",
-            "Constant cable tension prevents cheating",
-            "Targets biceps from mid-height angle",
-            "Easy to perform drop sets"
-          ],
-          "cons": [
-            "Less common setup may require experimentation",
-            "Requires cable machine with adjustable height",
-            "May feel awkward initially"
-          ],
-          "setupTips": [
-            "Set cable pulley to mid-chest height",
-            "Stand perpendicular or at slight angle to machine",
-            "Grasp handle with arm extended toward pulley",
-            "Curl across body or straight up maintaining elbow position",
-            "Focus on peak contraction at top of curl"
-          ]
-        },
-        {
-          "equipment": "Cable Front",
-          "difficulty": "Beginner",
-          "pros": [
-            "Resistance increases throughout curl (hardest at top)",
-            "Excellent for peak contraction training",
-            "Natural cable path matches curl movement",
-            "Great for building biceps peak"
-          ],
-          "cons": [
-            "Less tension at bottom of movement",
-            "May need to lean slightly forward",
-            "Cable can interfere with movement if too close"
-          ],
-          "setupTips": [
-            "Set cable pulley to low position with D-handle",
-            "Stand facing the cable machine",
-            "Grasp handle with working arm, palm facing up",
+            "Set cable to low position with D-handle attached",
+            "Stand facing or perpendicular to machine for different angles",
             "Keep elbow pinned at side throughout movement",
-            "Curl handle toward shoulder, squeezing hard at top"
-          ]
-        },
-        {
-          "equipment": "Cable Back",
-          "difficulty": "Intermediate",
-          "pros": [
-            "Resistance highest at stretched position (bottom)",
-            "Emphasizes biceps long head and stretch",
-            "Great for muscle building through loaded stretch",
-            "Unique resistance curve compared to other variations"
-          ],
-          "cons": [
-            "Requires good shoulder mobility",
-            "Less tension at contracted (top) position",
-            "Positioning takes practice"
-          ],
-          "setupTips": [
-            "Set cable pulley to low position with D-handle",
-            "Stand with back to the cable machine",
-            "Reach behind to grasp handle, arm extended back",
-            "Step forward to create tension in stretched position",
-            "Curl handle forward and up while keeping upper arm steady"
+            "Curl handle up squeezing biceps at top",
+            "Control descent to maintain constant muscle tension"
           ]
         }
       ]
@@ -3016,84 +2926,6 @@ export const exerciseDatabase = {
     },
     {
       "id": "biceps-8",
-      "name": "Reverse Curl",
-      "muscleGroup": "Biceps",
-      "primaryMuscles": ["Forearms"],
-      "secondaryMuscles": ["Biceps Long Head", "Biceps Short Head"],
-      "equipment": "Barbell, EZ Bar, Dumbbell",
-      "difficulty": "Intermediate",
-      "instructions": "A curl variation using an overhand (pronated) grip that primarily targets the forearm extensors and brachioradialis. The overhand grip shifts emphasis away from the biceps to the forearms. This exercise is excellent for building forearm strength and grip.",
-      "variants": [
-        {
-          "equipment": "Barbell",
-          "difficulty": "Intermediate",
-          "pros": [
-            "Targets brachioradialis and forearm extensors effectively",
-            "Builds grip strength and forearm size",
-            "Both arms work together for stability",
-            "Good for balanced forearm development"
-          ],
-          "cons": [
-            "Pronated grip can be uncomfortable for wrists",
-            "Significantly less weight than supinated curls",
-            "May cause forearm fatigue quickly"
-          ],
-          "setupTips": [
-            "Grip barbell with overhand grip, hands shoulder-width",
-            "Stand with feet shoulder-width, arms hanging",
-            "Keep elbows pinned to sides throughout movement",
-            "Curl bar up while maintaining pronated grip",
-            "Lower with control, don't let wrists extend excessively"
-          ]
-        },
-        {
-          "equipment": "EZ Bar",
-          "difficulty": "Intermediate",
-          "pros": [
-            "Angled grip more comfortable than straight bar",
-            "Reduces wrist strain while still targeting forearms",
-            "Allows slightly heavier weight than straight bar",
-            "Good compromise between comfort and effectiveness"
-          ],
-          "cons": [
-            "Requires EZ bar access",
-            "Slightly less forearm activation than straight bar",
-            "Still requires lighter weight than standard curls"
-          ],
-          "setupTips": [
-            "Grip EZ bar at angles with overhand grip",
-            "Stand with arms extended, bar at thigh level",
-            "Pin elbows to sides, keep shoulders stable",
-            "Curl bar up focusing on forearm and brachioradialis work",
-            "Lower slowly maintaining wrist position"
-          ]
-        },
-        {
-          "equipment": "Dumbbell",
-          "difficulty": "Intermediate",
-          "pros": [
-            "Each arm works independently",
-            "Can identify forearm strength imbalances",
-            "Natural wrist positioning available",
-            "Accessible equipment"
-          ],
-          "cons": [
-            "More challenging to stabilize than barbell",
-            "Takes longer to complete both arms",
-            "May encourage poor form on weaker side"
-          ],
-          "setupTips": [
-            "Hold dumbbells with overhand grip at sides",
-            "Stand with feet shoulder-width for stability",
-            "Curl dumbbells up maintaining pronated grip",
-            "Focus on squeezing forearms at top",
-            "Lower with control, don't swing weights"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "biceps-9",
       "name": "Spider Curl",
       "muscleGroup": "Biceps",
       "primaryMuscles": ["Biceps Long Head", "Biceps Short Head"],
@@ -3171,7 +3003,7 @@ export const exerciseDatabase = {
       ]
     },
     {
-      "id": "biceps-10",
+      "id": "biceps-9",
       "name": "Zottman Curl",
       "muscleGroup": "Biceps",
       "primaryMuscles": ["Biceps Long Head", "Biceps Short Head"],
@@ -3222,84 +3054,6 @@ export const exerciseDatabase = {
             "Curl cable up while maintaining supinated grip",
             "Rotate to pronated grip at top of movement",
             "Lower with overhand grip maintaining cable tension"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "biceps-11",
-      "name": "Cable Bicep Curl",
-      "muscleGroup": "Biceps",
-      "primaryMuscles": ["Biceps Long Head", "Biceps Short Head"],
-      "secondaryMuscles": ["Forearms", "Brachialis"],
-      "equipment": "Cable Bar, Cable Rope, Cable EZ Bar",
-      "difficulty": "Beginner",
-      "instructions": "A classic biceps curl performed using a cable machine. The cable provides constant tension throughout the entire range of motion, unlike free weights where tension varies. Stand facing the low pulley and curl the attachment up while keeping your elbows stationary at your sides.",
-      "variants": [
-        {
-          "equipment": "Cable Bar",
-          "difficulty": "Beginner",
-          "pros": [
-            "Constant tension throughout entire range of motion",
-            "No momentum possible - pure biceps isolation",
-            "Easy to adjust weight for drop sets",
-            "Smooth resistance curve prevents joint stress"
-          ],
-          "cons": [
-            "Requires cable machine access",
-            "Fixed bar path may not suit all body types",
-            "Less stabilizer muscle activation than free weights"
-          ],
-          "setupTips": [
-            "Attach straight bar to low cable pulley",
-            "Stand facing machine with feet shoulder-width apart",
-            "Grasp bar with underhand grip, arms extended",
-            "Keep elbows pinned to sides throughout movement",
-            "Curl bar up to shoulder level, squeeze biceps at top"
-          ]
-        },
-        {
-          "equipment": "Cable Rope",
-          "difficulty": "Beginner",
-          "pros": [
-            "Neutral grip is easier on wrists",
-            "Can rotate wrists during curl for supination",
-            "Constant cable tension isolates biceps",
-            "Rope allows natural arm path"
-          ],
-          "cons": [
-            "Grip may fatigue before biceps",
-            "Requires proper rope technique",
-            "Less total weight than bar variations"
-          ],
-          "setupTips": [
-            "Attach rope to low cable pulley",
-            "Hold rope ends with thumbs up (neutral grip)",
-            "Curl up while keeping elbows at sides",
-            "Can rotate thumbs outward at top for extra contraction",
-            "Lower with control maintaining tension"
-          ]
-        },
-        {
-          "equipment": "Cable EZ Bar",
-          "difficulty": "Beginner",
-          "pros": [
-            "Angled grip reduces wrist strain",
-            "Constant tension throughout movement",
-            "Comfortable grip angle for heavy sets",
-            "Combines EZ bar ergonomics with cable benefits"
-          ],
-          "cons": [
-            "EZ bar attachment not always available",
-            "Fixed grip positions may not suit everyone",
-            "Less wrist rotation possible"
-          ],
-          "setupTips": [
-            "Attach EZ bar to low cable pulley",
-            "Grip on angled portions for wrist comfort",
-            "Stand with feet shoulder-width, slight lean back",
-            "Curl bar keeping elbows stationary at sides",
-            "Full extension at bottom, full contraction at top"
           ]
         }
       ]
@@ -3658,9 +3412,9 @@ export const exerciseDatabase = {
       "muscleGroup": "Triceps",
       "primaryMuscles": ["Triceps Lateral Head", "Triceps Medial Head", "Triceps Long Head"],
       "secondaryMuscles": ["Chest", "Front Deltoids"],
-      "equipment": "Parallel Bars, Assisted Machine, Bench Dips",
+      "equipment": "Parallel Bars, Assisted Machine, Bench Dips, Weighted (Dip Belt)",
       "difficulty": "Intermediate",
-      "instructions": "A compound bodyweight exercise excellent for building triceps mass and strength. Lower your body by bending elbows, then push back up. Keep torso upright to emphasize triceps. Parallel bars is the standard, assisted machine helps beginners, and bench dips are an accessible variation.",
+      "instructions": "A compound bodyweight exercise excellent for building triceps mass and strength. Lower your body by bending elbows, then push back up. Keep torso upright to emphasize triceps. Parallel bars is the standard, assisted machine helps beginners, bench dips are accessible, and weighted dips with a dip belt allow progressive overload.",
       "variants": [
         {
           "equipment": "Parallel Bars",
@@ -3726,6 +3480,28 @@ export const exerciseDatabase = {
             "Lower body by bending elbows until 90 degrees",
             "Keep elbows pointing back, not flaring out",
             "Press back up to starting position"
+          ]
+        },
+        {
+          "equipment": "Weighted (Dip Belt)",
+          "difficulty": "Advanced",
+          "pros": [
+            "Allows heaviest loading for progressive overload",
+            "Weight hangs below body maintaining natural movement",
+            "Easy to adjust weight with plate changes",
+            "Professional standard for building serious triceps mass"
+          ],
+          "cons": [
+            "Requires dip belt equipment",
+            "Can be uncomfortable with heavy weight",
+            "Need strong base of bodyweight dip strength first"
+          ],
+          "setupTips": [
+            "Secure dip belt around waist with weight attached",
+            "Mount parallel bars with weight hanging below",
+            "Keep torso upright, weight shouldn't swing",
+            "Lower to 90-degree elbow bend with control",
+            "Push back up focusing on triceps contraction"
           ]
         }
       ]
@@ -3810,62 +3586,6 @@ export const exerciseDatabase = {
     },
     {
       "id": "triceps-8",
-      "name": "Cable Incline Tricep Extension",
-      "muscleGroup": "Triceps",
-      "primaryMuscles": ["Triceps Long Head", "Triceps Lateral Head", "Triceps Medial Head"],
-      "secondaryMuscles": ["Core"],
-      "equipment": "Overhead Rope, Incline Bar",
-      "difficulty": "Intermediate",
-      "instructions": "Position yourself at an incline angle away from a low pulley. With arms extended overhead, extend at the elbows while keeping upper arms stationary. This angle provides constant tension throughout the movement and emphasizes the long head of the triceps.",
-      "variants": [
-        {
-          "equipment": "Overhead Rope",
-          "difficulty": "Intermediate",
-          "pros": [
-            "Constant cable tension throughout range",
-            "Natural neutral grip comfortable on joints",
-            "Emphasizes long head with overhead position",
-            "Can adjust angle for varied stimulus"
-          ],
-          "cons": [
-            "Requires cable machine and rope attachment",
-            "Positioning and setup take practice",
-            "May be awkward initially"
-          ],
-          "setupTips": [
-            "Attach rope to low cable pulley",
-            "Face away from machine, grasp rope overhead",
-            "Step forward into lunge or split stance for stability",
-            "Keep upper arms stationary and pointing forward",
-            "Extend elbows fully, squeezing triceps at top"
-          ]
-        },
-        {
-          "equipment": "Incline Bar",
-          "difficulty": "Intermediate",
-          "pros": [
-            "Straight bar allows heavier loading",
-            "Constant tension from cable",
-            "Both arms work together for stability",
-            "Good for strength building"
-          ],
-          "cons": [
-            "Bar grip may be less comfortable than rope",
-            "Requires cable machine with bar attachment",
-            "Fixed grip width"
-          ],
-          "setupTips": [
-            "Attach straight or EZ bar to low cable",
-            "Face away from machine, hold bar overhead",
-            "Adopt stable stance leaning away from machine",
-            "Keep upper arms stationary and vertical",
-            "Extend elbows pushing bar forward and up"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "triceps-9",
       "name": "Diamond Push-ups",
       "muscleGroup": "Triceps",
       "primaryMuscles": ["Triceps Lateral Head", "Triceps Medial Head", "Triceps Long Head"],
@@ -3938,85 +3658,6 @@ export const exerciseDatabase = {
             "Keep body straight from elevated feet to hands",
             "Lower chest toward diamond hand position",
             "Push back up maintaining tight core"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "triceps-10",
-      "name": "Weighted Dips",
-      "muscleGroup": "Triceps",
-      "primaryMuscles": ["Triceps Lateral Head", "Triceps Medial Head", "Triceps Long Head"],
-      "secondaryMuscles": ["Chest", "Front Deltoids", "Core"],
-      "equipment": "Dip Belt, Dumbbell Between Legs, Weight Vest",
-      "difficulty": "Advanced",
-      "instructions": "The progression from bodyweight dips for advanced lifters. Add external weight using a dip belt with plates, holding a dumbbell between your legs, or wearing a weight vest. Keep torso upright to emphasize triceps. This exercise builds serious triceps mass and strength.",
-      "variants": [
-        {
-          "equipment": "Dip Belt",
-          "difficulty": "Advanced",
-          "pros": [
-            "Allows heaviest loading for progressive overload",
-            "Weight hangs below body maintaining natural movement",
-            "Easy to adjust weight with plate changes",
-            "Professional standard for weighted dips"
-          ],
-          "cons": [
-            "Requires dip belt equipment",
-            "Can be uncomfortable with heavy weight",
-            "Need strong base of bodyweight dip strength first"
-          ],
-          "setupTips": [
-            "Secure dip belt around waist with weight attached",
-            "Mount parallel bars with weight hanging below",
-            "Keep torso upright, weight shouldn't swing",
-            "Lower to 90-degree elbow bend with control",
-            "Push back up focusing on triceps contraction"
-          ]
-        },
-        {
-          "equipment": "Dumbbell Between Legs",
-          "difficulty": "Advanced",
-          "pros": [
-            "Accessible method without specialized belt",
-            "Weight stays close to center of gravity",
-            "Can start with lighter dumbbells",
-            "Engages legs to grip dumbbell"
-          ],
-          "cons": [
-            "Awkward and uncomfortable holding dumbbell",
-            "Limited weight progression",
-            "Risk of dropping dumbbell",
-            "Difficult to maintain leg grip throughout set"
-          ],
-          "setupTips": [
-            "Hold dumbbell between feet or ankles while on bars",
-            "Squeeze legs together to secure dumbbell",
-            "Keep torso upright and core tight",
-            "Perform dips while maintaining dumbbell grip",
-            "Have spotter ready in case dumbbell slips"
-          ]
-        },
-        {
-          "equipment": "Weight Vest",
-          "difficulty": "Advanced",
-          "pros": [
-            "Weight distributed evenly across upper body",
-            "Comfortable and secure",
-            "Easy to put on and remove between sets",
-            "Good intermediate progression"
-          ],
-          "cons": [
-            "Limited maximum weight compared to dip belt",
-            "Requires weight vest equipment",
-            "May shift body weight distribution"
-          ],
-          "setupTips": [
-            "Put on weight vest and secure all straps",
-            "Mount parallel bars ensuring vest is centered",
-            "Maintain upright torso position",
-            "Lower body to 90-degree elbow bend",
-            "Drive back up with triceps, keeping elbows close"
           ]
         }
       ]
@@ -4358,7 +3999,7 @@ export const exerciseDatabase = {
       ]
     },
     {
-      "id": "abs-6",
+      "id": "abs-5",
       "name": "Ab Wheel Rollout",
       "muscleGroup": "Abs",
       "primaryMuscles": ["Abdominals", "Core"],
@@ -4436,7 +4077,7 @@ export const exerciseDatabase = {
       ]
     },
     {
-      "id": "abs-7",
+      "id": "abs-6",
       "name": "Bicycle Crunches",
       "muscleGroup": "Abs",
       "primaryMuscles": ["Obliques", "Abdominals"],
@@ -4492,7 +4133,7 @@ export const exerciseDatabase = {
       ]
     },
     {
-      "id": "abs-8",
+      "id": "abs-7",
       "name": "Mountain Climbers",
       "muscleGroup": "Abs",
       "primaryMuscles": ["Core", "Abdominals"],
@@ -4548,7 +4189,7 @@ export const exerciseDatabase = {
       ]
     },
     {
-      "id": "abs-9",
+      "id": "abs-8",
       "name": "Dead Bug",
       "muscleGroup": "Abs",
       "primaryMuscles": ["Core", "Abdominals"],
@@ -4604,7 +4245,7 @@ export const exerciseDatabase = {
       ]
     },
     {
-      "id": "abs-10",
+      "id": "abs-9",
       "name": "Sit-Ups",
       "muscleGroup": "Abs",
       "primaryMuscles": ["Abdominals", "Hip Flexors"],
@@ -5303,7 +4944,7 @@ export const exerciseDatabase = {
       "muscleGroup": "Legs",
       "primaryMuscles": ["Quadriceps", "Glutes"],
       "secondaryMuscles": ["Hamstrings", "Core"],
-      "equipment": "Dumbbell Walking, Barbell Walking, Dumbbell Stationary",
+      "equipment": "Dumbbell Walking, Barbell Walking, Dumbbell Stationary, Bodyweight, Reverse Lunge",
       "difficulty": "Intermediate",
       "instructions": "A unilateral leg exercise that builds strength and balance. Step forward or stay in place and lower your body until both knees are bent at 90 degrees. Walking lunges cover distance and increase coordination demand, stationary allows focus on each leg. Builds functional leg strength and corrects imbalances.",
       "variants": [
@@ -5371,6 +5012,50 @@ export const exerciseDatabase = {
             "Keep front knee over ankle",
             "Push through front heel to stand",
             "Complete reps then switch legs"
+          ]
+        },
+        {
+          "equipment": "Bodyweight",
+          "difficulty": "Beginner",
+          "pros": [
+            "No equipment needed",
+            "Can do anywhere",
+            "Perfect for learning proper form",
+            "Great for warm-ups and high rep work"
+          ],
+          "cons": [
+            "Limited resistance for strength building",
+            "May become too easy quickly",
+            "Less effective for muscle growth"
+          ],
+          "setupTips": [
+            "Stand with feet hip-width apart",
+            "Step forward into lunge position",
+            "Lower back knee toward ground",
+            "Keep torso upright throughout",
+            "Push through front heel to return"
+          ]
+        },
+        {
+          "equipment": "Reverse Lunge",
+          "difficulty": "Beginner",
+          "pros": [
+            "Easier to balance than forward lunges",
+            "Less stress on knees",
+            "Great for beginners learning lunge pattern",
+            "Can be done with or without weight"
+          ],
+          "cons": [
+            "Slightly less quad activation than forward",
+            "May feel awkward initially",
+            "Limited progression without adding weight"
+          ],
+          "setupTips": [
+            "Stand with feet together",
+            "Step backward into lunge position",
+            "Lower back knee toward ground",
+            "Keep front knee over ankle, not past toes",
+            "Push through front heel to return to standing"
           ]
         }
       ]
@@ -5976,87 +5661,6 @@ export const exerciseDatabase = {
           ]
         }
       ]
-    },
-    {
-      "id": "legs-19",
-      "name": "Romanian Deadlift",
-      "muscleGroup": "Legs",
-      "primaryMuscles": ["Hamstrings", "Glutes"],
-      "secondaryMuscles": ["Lower Back", "Core", "Forearms"],
-      "equipment": "Barbell, Dumbbell, Single Leg Dumbbell",
-      "difficulty": "Intermediate",
-      "instructions": "A hip-hinge movement that emphasizes the hamstrings and glutes through an eccentric stretch. Unlike conventional deadlifts, the weight doesn't touch the ground between reps, maintaining constant tension. Keep a slight knee bend and push hips back while lowering the weight along your legs.",
-      "variants": [
-        {
-          "equipment": "Barbell",
-          "difficulty": "Intermediate",
-          "pros": [
-            "Allows heavy loading for strength and hypertrophy",
-            "Excellent for hamstring development",
-            "Builds posterior chain strength",
-            "Teaches proper hip hinge mechanics",
-            "Great carryover to conventional deadlift"
-          ],
-          "cons": [
-            "Requires good hip mobility",
-            "Can strain lower back with improper form",
-            "Challenging to maintain proper spine position"
-          ],
-          "setupTips": [
-            "Start standing with barbell at hips",
-            "Slight bend in knees, keep this fixed",
-            "Push hips back, slide bar down thighs",
-            "Lower until strong hamstring stretch felt",
-            "Drive hips forward to return, squeeze glutes at top"
-          ]
-        },
-        {
-          "equipment": "Dumbbell",
-          "difficulty": "Intermediate",
-          "pros": [
-            "More accessible than barbell version",
-            "Natural hand position at sides",
-            "Each arm can work independently",
-            "Good for home gyms with limited equipment"
-          ],
-          "cons": [
-            "Limited by grip strength on heavier weights",
-            "Dumbbells may swing if not controlled",
-            "Cannot load as heavy as barbell"
-          ],
-          "setupTips": [
-            "Hold dumbbells at sides or in front of thighs",
-            "Maintain slight knee bend throughout",
-            "Hinge at hips pushing them backward",
-            "Keep dumbbells close to legs during descent",
-            "Stop when hamstrings are fully stretched"
-          ]
-        },
-        {
-          "equipment": "Single Leg Dumbbell",
-          "difficulty": "Advanced",
-          "pros": [
-            "Addresses left-right imbalances",
-            "Excellent for balance and stability",
-            "Intense hamstring stretch on working leg",
-            "Great for athletic performance",
-            "Core engagement for stabilization"
-          ],
-          "cons": [
-            "Challenging balance component",
-            "Cannot load as heavy as bilateral version",
-            "Requires significant hamstring flexibility",
-            "Takes longer to complete both sides"
-          ],
-          "setupTips": [
-            "Hold dumbbell in opposite hand to working leg",
-            "Stand on one leg with slight knee bend",
-            "Hinge forward while raising non-working leg behind",
-            "Keep hips square, don't rotate",
-            "Drive through heel to return to standing"
-          ]
-        }
-      ]
     }
   ],
   "forearms": [
@@ -6431,6 +6035,84 @@ export const exerciseDatabase = {
             "Roll weight up using wrist rotation",
             "Control descent slowly for eccentric work",
             "Complete both roll up and roll down for full set"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "forearms-6",
+      "name": "Reverse Curl",
+      "muscleGroup": "Forearms",
+      "primaryMuscles": ["Forearms", "Brachioradialis"],
+      "secondaryMuscles": ["Biceps Long Head", "Biceps Short Head"],
+      "equipment": "Barbell, EZ Bar, Dumbbell",
+      "difficulty": "Intermediate",
+      "instructions": "A curl variation using an overhand (pronated) grip that primarily targets the forearm extensors and brachioradialis. The overhand grip shifts emphasis away from the biceps to the forearms. This exercise is excellent for building forearm strength and grip.",
+      "variants": [
+        {
+          "equipment": "Barbell",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Targets brachioradialis and forearm extensors effectively",
+            "Builds grip strength and forearm size",
+            "Both arms work together for stability",
+            "Good for balanced forearm development"
+          ],
+          "cons": [
+            "Pronated grip can be uncomfortable for wrists",
+            "Significantly less weight than supinated curls",
+            "May cause forearm fatigue quickly"
+          ],
+          "setupTips": [
+            "Grip barbell with overhand grip, hands shoulder-width",
+            "Stand with feet shoulder-width, arms hanging",
+            "Keep elbows pinned to sides throughout movement",
+            "Curl bar up while maintaining pronated grip",
+            "Lower with control, don't let wrists extend excessively"
+          ]
+        },
+        {
+          "equipment": "EZ Bar",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Angled grip more comfortable than straight bar",
+            "Reduces wrist strain while still targeting forearms",
+            "Allows slightly heavier weight than straight bar",
+            "Good compromise between comfort and effectiveness"
+          ],
+          "cons": [
+            "Requires EZ bar access",
+            "Slightly less forearm activation than straight bar",
+            "Still requires lighter weight than standard curls"
+          ],
+          "setupTips": [
+            "Grip EZ bar at angles with overhand grip",
+            "Stand with arms extended, bar at thigh level",
+            "Pin elbows to sides, keep shoulders stable",
+            "Curl bar up focusing on forearm and brachioradialis work",
+            "Lower slowly maintaining wrist position"
+          ]
+        },
+        {
+          "equipment": "Dumbbell",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Each arm works independently",
+            "Can identify forearm strength imbalances",
+            "Natural wrist positioning available",
+            "Accessible equipment"
+          ],
+          "cons": [
+            "More challenging to stabilize than barbell",
+            "Takes longer to complete both arms",
+            "May encourage poor form on weaker side"
+          ],
+          "setupTips": [
+            "Hold dumbbells with overhand grip at sides",
+            "Stand with feet shoulder-width for stability",
+            "Curl dumbbells up maintaining pronated grip",
+            "Focus on squeezing forearms at top",
+            "Lower with control, don't swing weights"
           ]
         }
       ]

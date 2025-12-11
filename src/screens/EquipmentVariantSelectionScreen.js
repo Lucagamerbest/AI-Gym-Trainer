@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import ScreenLayout from '../components/ScreenLayout';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
-import { getVariantImage } from '../utils/exerciseImages';
+import { getVariantImage, isLocalImage } from '../utils/exerciseImages';
 import { PinnedExerciseStorage } from '../services/pinnedExerciseStorage';
 
 /**
@@ -200,7 +200,7 @@ export default function EquipmentVariantSelectionScreen({ navigation, route }) {
                   {imageUrl && !hasImageError ? (
                     <>
                       <Image
-                        source={{ uri: imageUrl }}
+                        source={isLocalImage(exercise.name, variant.equipment) ? imageUrl : { uri: imageUrl }}
                         style={styles.imageThumbnail}
                         resizeMode="cover"
                         onLoadStart={() => {

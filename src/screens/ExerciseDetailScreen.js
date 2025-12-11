@@ -652,7 +652,7 @@ export default function ExerciseDetailScreen({ navigation, route }) {
             <Text style={fullScreenModalStyles.closeButtonText}>✕</Text>
           </TouchableOpacity>
           <Image
-            source={{ uri: exercise?.image }}
+            source={typeof exercise?.image === 'string' ? { uri: exercise?.image } : exercise?.image}
             style={fullScreenModalStyles.fullScreenImage}
             resizeMode="contain"
           />
