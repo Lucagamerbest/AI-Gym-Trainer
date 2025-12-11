@@ -8,6 +8,7 @@ import { CustomExerciseStorage } from '../services/customExerciseStorage';
 import { useAuth } from '../context/AuthContext';
 import AIHeaderButton from '../components/AIHeaderButton';
 import ScreenLayout from '../components/ScreenLayout';
+import ExerciseVideoPlayer from '../components/ExerciseVideoPlayer';
 
 // Get screen dimensions for responsive design
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -181,36 +182,37 @@ export default function ExerciseDetailScreen({ navigation, route }) {
             </View>
           )}
 
-          {/* Exercise Image - Show if available */}
+          {/* Exercise Video Player - Swipeable image/video carousel */}
+          <View style={{
+            marginBottom: getResponsiveSpacing(1),
+            borderRadius: BorderRadius.lg,
+            overflow: 'hidden',
+          }}>
+            <ExerciseVideoPlayer
+              exerciseName={exercise?.displayName || exercise?.name}
+              equipment={exercise?.selectedVariant?.equipment || exercise?.equipment?.split(', ')[0]}
+              muscleGroup={exercise?.primaryMuscles?.[0] || exercise?.muscleGroup}
+              fallbackImage={exercise?.image}
+            />
+          </View>
+
+          {/* Static Image - Tap to view full size (if video player shows fallback) */}
           {exercise?.image && (
             <TouchableOpacity
               style={{
                 alignSelf: 'center',
-                marginBottom: getResponsiveSpacing(1),
-                borderRadius: BorderRadius.lg,
-                overflow: 'hidden',
-                width: '100%',
-                alignItems: 'center',
+                marginBottom: getResponsiveSpacing(0.5),
               }}
               onPress={() => setShowFullScreenImage(true)}
               activeOpacity={0.8}
             >
-              <Image
-                source={{ uri: exercise.image }}
-                style={{
-                  width: screenWidth * 0.85,
-                  height: screenWidth * 0.85 * 0.75,
-                  borderRadius: BorderRadius.lg,
-                }}
-                resizeMode="cover"
-              />
               <Text style={{
                 fontSize: getResponsiveFontSize(Typography.fontSize.xs),
-                color: Colors.textMuted,
-                marginTop: getResponsiveSpacing(0.5),
+                color: Colors.primary,
                 fontStyle: 'italic',
+                textDecorationLine: 'underline',
               }}>
-                Tap to view full size
+                View static image full size
               </Text>
             </TouchableOpacity>
           )}

@@ -145,6 +145,21 @@ export default function ExerciseSettingsScreen({ navigation }) {
           </View>
         </View>
       </StyledCard>
+
+      {/* Exercise Videos - Coming Soon */}
+      <StyledCard variant="elevated" style={styles.settingCard}>
+        <Text style={styles.sectionTitle}>Exercise Videos</Text>
+        <Text style={styles.sectionSubtitle}>HD exercise demonstration videos</Text>
+
+        <View style={styles.comingSoonContainer}>
+          <Text style={styles.comingSoonIcon}>🎬</Text>
+          <Text style={styles.comingSoonTitle}>Videos Coming Soon</Text>
+          <Text style={styles.comingSoonText}>
+            Self-filmed exercise demonstration videos are currently in development.
+            Swipe on any exercise image to see the video placeholder.
+          </Text>
+        </View>
+      </StyledCard>
     </ScreenLayout>
   );
 }
@@ -273,5 +288,30 @@ const styles = StyleSheet.create({
   rpeScaleLabel: {
     fontSize: Typography.fontSize.xs,
     color: Colors.textSecondary,
+  },
+  comingSoonContainer: {
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.lg,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: Colors.border,
+    borderStyle: 'dashed',
+  },
+  comingSoonIcon: {
+    fontSize: 48,
+    marginBottom: Spacing.md,
+  },
+  comingSoonTitle: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: 'bold',
+    color: Colors.text,
+    marginBottom: Spacing.sm,
+  },
+  comingSoonText: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });

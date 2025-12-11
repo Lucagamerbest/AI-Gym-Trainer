@@ -24,6 +24,34 @@ import { defineBackgroundTask } from './src/services/GymReminderTask';
 // Define background location task BEFORE any React components render
 defineBackgroundTask();
 
+// Set up notification handler at app level - this ensures notifications
+// show as banners even when app is in foreground (on ANY screen)
+Notifications.setNotificationHandler({
+  handleNotification: async (notification) => {
+    console.log('========================================');
+    console.log('📬 NOTIFICATION HANDLER TRIGGERED');
+    console.log(`📌 Title: ${notification.request.content.title}`);
+    console.log(`📝 Body: ${notification.request.content.body}`);
+    console.log('========================================');
+    return {
+      shouldShowAlert: true,   // iOS: show alert
+      shouldShowBanner: true,  // iOS 15+: show banner
+      shouldPlaySound: true,   // Play notification sound
+      shouldSetBadge: false,   // Don't update app badge
+    };
+  },
+});
+
+// Add listener for when notification is received (debugging)
+Notifications.addNotificationReceivedListener((notification) => {
+  console.log('========================================');
+  console.log('🔔 NOTIFICATION DELIVERED TO DEVICE');
+  console.log(`📌 Title: ${notification.request.content.title}`);
+  console.log(`📝 Body: ${notification.request.content.body}`);
+  console.log(`🆔 ID: ${notification.request.identifier}`);
+  console.log('========================================');
+});
+
 // Import screens
 import SignInScreen from './src/screens/SignInScreen';
 import HomeScreen from './src/screens/HomeScreen';
