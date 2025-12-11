@@ -26,6 +26,8 @@ import QuickSuggestions from './QuickSuggestions';
 import ThinkingAnimation from './ThinkingAnimation';
 import MacroStatsCard from './MacroStatsCard';
 import VoiceInputButton from './VoiceInputButton';
+import ExerciseChip from './ExerciseChip';
+import { parseChatText, SegmentType } from '../utils/chatTextParser';
 
 export default function AIChatModal({ visible, onClose, initialMessage = '', screenName = 'AIScreen' }) {
   const { user } = useAuth(); // Get real user from AuthContext
@@ -405,46 +407,6 @@ export default function AIChatModal({ visible, onClose, initialMessage = '', scr
     await handleSendMessage(userMessage);
   };
 
-  // Parse markdown **bold** syntax
-  const parseMarkdown = (text) => {
-    // Safety check: Ensure text is a string
-    if (typeof text !== 'string') {
-      console.warn('⚠️ parseMarkdown received non-string:', typeof text, text);
-      text = String(text || '');
-    }
-
-    const parts = [];
-    const regex = /\*\*(.+?)\*\*/g;
-    let lastIndex = 0;
-    let match;
-
-    while ((match = regex.exec(text)) !== null) {
-      // Add text before the match
-      if (match.index > lastIndex) {
-        parts.push({
-          text: text.substring(lastIndex, match.index),
-          bold: false,
-        });
-      }
-      // Add the bold text
-      parts.push({
-        text: match[1],
-        bold: true,
-      });
-      lastIndex = regex.lastIndex;
-    }
-
-    // Add remaining text
-    if (lastIndex < text.length) {
-      parts.push({
-        text: text.substring(lastIndex),
-        bold: false,
-      });
-    }
-
-    return parts.length > 0 ? parts : [{ text, bold: false }];
-  };
-
   const handleSaveRecipe = async (recipeCard) => {
     try {
       const fullRecipe = recipeCard.fullRecipe;
@@ -500,7 +462,11 @@ export default function AIChatModal({ visible, onClose, initialMessage = '', scr
 
     // Safety check: Ensure content is a string
     const contentText = typeof item.content === 'string' ? item.content : String(item.content || '');
-    const parsedContent = parseMarkdown(contentText);
+
+    // Use enhanced parser for AI messages (with exercise detection), simple markdown for user messages
+    const parsedContent = isUser
+      ? parseChatText(contentText, { detectExercises: false })
+      : parseChatText(contentText);
 
     // Check if this message has a recipe card
     const toolResult = item.toolResults?.find(tool => tool.result?.recipeCard);
@@ -515,6 +481,44 @@ export default function AIChatModal({ visible, onClose, initialMessage = '', scr
     // Handle both data and status structures
     const macroData = macroToolResult?.result?.data || macroToolResult?.result?.status;
 
+    // Render a segment based on its type
+    const renderSegment = (segment, index) => {
+      switch (segment.type) {
+        case SegmentType.EXERCISE:
+          return (
+            <ExerciseChip
+              key={index}
+              exercise={segment.exercise}
+              displayText={segment.content}
+              inline={true}
+            />
+          );
+        case SegmentType.BOLD_EXERCISE:
+          return (
+            <ExerciseChip
+              key={index}
+              exercise={segment.exercise}
+              displayText={segment.content}
+              inline={true}
+              style={styles.boldExerciseChip}
+            />
+          );
+        case SegmentType.BOLD:
+          return (
+            <Text key={index} style={styles.boldText}>
+              {segment.content}
+            </Text>
+          );
+        case SegmentType.TEXT:
+        default:
+          return (
+            <Text key={index}>
+              {segment.content}
+            </Text>
+          );
+      }
+    };
+
     return (
       <View style={[
         styles.messageBubble,
@@ -524,14 +528,7 @@ export default function AIChatModal({ visible, onClose, initialMessage = '', scr
           styles.messageText,
           isUser ? styles.userText : styles.aiText
         ]}>
-          {parsedContent.map((part, index) => (
-            <Text
-              key={index}
-              style={part.bold ? styles.boldText : null}
-            >
-              {part.text}
-            </Text>
-          ))}
+          {parsedContent.map((segment, index) => renderSegment(segment, index))}
         </Text>
 
         {/* Macro Stats Card - shown when tool returns macro data */}
@@ -904,6 +901,10 @@ const styles = StyleSheet.create({
     fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif-black',
     fontSize: Typography.fontSize.md + 1, // Slightly larger
     color: Colors.primary, // Use primary color for emphasis
+  },
+  boldExerciseChip: {
+    fontWeight: '700',
+    textDecorationLine: 'underline',
   },
   modelText: {
     fontSize: Typography.fontSize.xs,
