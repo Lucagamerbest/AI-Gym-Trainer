@@ -14,6 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { getExercisesByMuscleGroup } from '../data/exerciseDatabase';
 import { useWorkout } from '../context/WorkoutContext';
 import { PinnedExerciseStorage } from '../services/pinnedExerciseStorage';
+import { getVariantImage } from '../utils/exerciseImages';
 
 // Cache for loaded exercises to make subsequent loads instant
 const exerciseCache = new Map();
@@ -174,11 +175,13 @@ export default function ExerciseListScreen({ navigation, route }) {
 
       if (hasFilters) {
         const query = searchQuery.toLowerCase().trim();
+        const searchWords = query ? query.split(/\s+/).filter(word => word.length > 0) : [];
+        let searchResults = [];
 
-        filteredExercises = filteredExercises.filter(exercise => {
+        filteredExercises.forEach(exercise => {
           // Difficulty filter
           if (selectedDifficulty !== 'all' && exercise.difficulty !== selectedDifficulty) {
-            return false;
+            return;
           }
 
           // Equipment filter
@@ -186,30 +189,70 @@ export default function ExerciseListScreen({ navigation, route }) {
             const equipment = exercise.equipment?.toLowerCase() || '';
             if (selectedEquipment === 'bodyweight') {
               if (!(equipment === 'bodyweight' || equipment === 'none' || equipment === '')) {
-                return false;
+                return;
               }
             } else if (selectedEquipment === 'machine') {
               if (equipment !== 'machine') {
-                return false;
+                return;
               }
             } else if (selectedEquipment === 'cable') {
               if (!(equipment === 'cable' || equipment === 'cable machine')) {
-                return false;
+                return;
               }
             }
           }
 
-          // Search query filter
-          if (query) {
-            const nameMatch = exercise.name.toLowerCase().includes(query);
-            const descMatch = exercise.description && exercise.description.toLowerCase().includes(query);
-            if (!nameMatch && !descMatch) {
-              return false;
-            }
-          }
+          // Search query filter - searches name, description, equipment, and variations
+          if (searchWords.length > 0) {
+            const name = exercise.name.toLowerCase();
+            const desc = (exercise.description || '').toLowerCase();
+            const baseText = `${name} ${desc}`;
 
-          return true;
+            // Check if base exercise name matches all words
+            const baseMatches = searchWords.every(word => baseText.includes(word));
+
+            if (baseMatches) {
+              // Base exercise matches - show normally
+              searchResults.push(exercise);
+            } else {
+              // Check each variant for matches
+              const matchingVariants = [];
+              if (exercise.variants) {
+                exercise.variants.forEach(variant => {
+                  const variantEquip = (variant.equipment || '').toLowerCase();
+                  const combinedText = `${name} ${desc} ${variantEquip}`;
+                  if (searchWords.every(word => combinedText.includes(word))) {
+                    matchingVariants.push(variant);
+                  }
+                });
+              }
+
+              // Create entries for each matching variant
+              if (matchingVariants.length > 0) {
+                console.log(`=== Search: Found ${matchingVariants.length} matching variants for "${exercise.name}" ===`);
+                matchingVariants.forEach(variant => {
+                  console.log(`  - Variant: ${variant.equipment}`);
+                  // Get the image for this specific variant
+                  const variantImage = getVariantImage(exercise.name, variant.equipment);
+                  searchResults.push({
+                    ...exercise,
+                    matchedVariant: variant,
+                    displayName: exercise.name,
+                    matchedEquipment: variant.equipment,
+                    image: variantImage,
+                    // Create unique key for this variant result
+                    searchResultKey: `${exercise.id}-${variant.equipment}`,
+                  });
+                });
+              }
+            }
+          } else {
+            // No search query, just add the exercise
+            searchResults.push(exercise);
+          }
         });
+
+        filteredExercises = searchResults;
       }
 
       // Sort with pinned exercises first
@@ -222,6 +265,38 @@ export default function ExerciseListScreen({ navigation, route }) {
 
 
   const startWorkoutWithExercise = (exercise) => {
+    console.log('=== startWorkoutWithExercise ===');
+    console.log('Exercise received:', {
+      id: exercise.id,
+      name: exercise.name,
+      hasMatchedVariant: !!exercise.matchedVariant,
+      matchedEquipment: exercise.matchedEquipment,
+      searchResultKey: exercise.searchResultKey,
+      variantsCount: exercise.variants?.length,
+    });
+
+    // If exercise has a matched variant from search, use it directly
+    if (exercise.matchedVariant) {
+      const variant = exercise.matchedVariant;
+      console.log('Using matched variant:', variant.equipment);
+      const exerciseWithVariant = {
+        ...exercise,
+        displayName: exercise.name,
+        name: `${exercise.name} (${variant.equipment})`,
+        selectedVariant: variant,
+        equipment: variant.equipment,
+        difficulty: variant.difficulty,
+      };
+      console.log('Exercise with variant:', {
+        id: exerciseWithVariant.id,
+        name: exerciseWithVariant.name,
+        displayName: exerciseWithVariant.displayName,
+        equipment: exerciseWithVariant.equipment,
+      });
+      proceedWithExercise(exerciseWithVariant);
+      return;
+    }
+
     // Check if exercise has variants - if so, navigate to equipment selection
     if (exercise.variants && exercise.variants.length > 1) {
       navigation.navigate('EquipmentVariantSelection', {
@@ -261,6 +336,16 @@ export default function ExerciseListScreen({ navigation, route }) {
   };
 
   const proceedWithExercise = (exercise) => {
+    console.log('=== proceedWithExercise ===');
+    console.log('Exercise to add:', {
+      id: exercise.id,
+      name: exercise.name,
+      displayName: exercise.displayName,
+      equipment: exercise.equipment,
+      selectedVariant: exercise.selectedVariant?.equipment,
+      isFromLibrary: !!exercise.id,
+    });
+
     // If we're adding to a program creation or day edit
     if (fromProgramCreation || fromProgramDayEdit) {
       // Navigate to WorkoutDayEdit screen with the exercise and remember muscle groups
@@ -302,6 +387,21 @@ export default function ExerciseListScreen({ navigation, route }) {
 
   // For viewing exercise info - navigate to equipment selection page
   const showInfoForExercise = (exercise) => {
+    // If exercise has a matched variant from search, go directly to that variant's detail
+    if (exercise.matchedVariant) {
+      const variant = exercise.matchedVariant;
+      const exerciseWithVariant = {
+        ...exercise,
+        displayName: exercise.name,
+        name: `${exercise.name} (${variant.equipment})`,
+        selectedVariant: variant,
+        equipment: variant.equipment,
+        difficulty: variant.difficulty,
+      };
+      navigation.navigate('ExerciseDetail', { exercise: exerciseWithVariant, fromWorkout: false });
+      return;
+    }
+
     // If exercise has variants, navigate to full-page equipment selection
     if (exercise.variants && exercise.variants.length > 1) {
       navigation.navigate('EquipmentVariantSelection', {
@@ -772,6 +872,12 @@ export default function ExerciseListScreen({ navigation, route }) {
                   <View style={{ flex: 1 }}>
                     {item.isCustom && <Text style={styles.customBadge}>⭐ CUSTOM</Text>}
                     <Text style={styles.exerciseName} numberOfLines={2} ellipsizeMode="tail">{item.name}</Text>
+                    {/* Show matched variant when searching */}
+                    {item.matchedEquipment && (
+                      <View style={styles.matchedVariantBadge}>
+                        <Text style={styles.matchedVariantText}>{item.matchedEquipment}</Text>
+                      </View>
+                    )}
                   </View>
                 </View>
 
@@ -883,6 +989,12 @@ export default function ExerciseListScreen({ navigation, route }) {
                       {item.isCustom && <Text style={styles.customBadge}>⭐ CUSTOM</Text>}
                       <Text style={[styles.exerciseName, { flex: 1 }]} numberOfLines={2} ellipsizeMode="tail">{item.name}</Text>
                     </View>
+                    {/* Show matched variant when searching */}
+                    {item.matchedEquipment && (
+                      <View style={styles.matchedVariantBadge}>
+                        <Text style={styles.matchedVariantText}>{item.matchedEquipment}</Text>
+                      </View>
+                    )}
                   </View>
 
                   {/* Tag Zone - Fixed height area for badges */}
@@ -1457,6 +1569,19 @@ const styles = StyleSheet.create({
     color: Colors.text,
     lineHeight: 20,
     letterSpacing: -0.3,
+  },
+  matchedVariantBadge: {
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+    alignSelf: 'flex-start',
+    marginTop: 4,
+  },
+  matchedVariantText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
   actionButtons: {
     flexDirection: 'row',
