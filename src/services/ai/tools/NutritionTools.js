@@ -23,25 +23,17 @@ async function generateWithRetry(prompt, options = {}) {
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
-
-      const { GoogleGenerativeAI } = await import('@google/generative-ai');
       const { default: AIService } = await import('../AIService');
 
-      if (!AIService.apiKey) {
-        throw new Error('Gemini API key not configured. Please restart the app.');
+      if (!AIService.isInitialized()) {
+        throw new Error('AI Service not initialized. Please restart the app.');
       }
 
-      const genAI = new GoogleGenerativeAI(AIService.apiKey);
-      const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-
-      const result = await model.generateContent(prompt, {
-        generationConfig: {
-          temperature: options.temperature || 0.7,
-          maxOutputTokens: options.maxOutputTokens || 2000,
-        },
+      // Generate content using OpenAI via AIService
+      const response = await AIService.generateText(prompt, {
+        temperature: options.temperature || 0.7,
+        max_tokens: options.maxOutputTokens || 2000,
       });
-
-      const response = result.response.text();
 
       // Validate response has minimum length
       if (!response || response.trim().length < 50) {

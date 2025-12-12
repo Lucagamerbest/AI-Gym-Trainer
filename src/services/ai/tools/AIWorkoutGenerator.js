@@ -1,5 +1,5 @@
 /**
- * AI-Powered Workout Generator - Uses Gemini AI to THINK and create workouts
+ * AI-Powered Workout Generator - Uses OpenAI to THINK and create workouts
  *
  * This replaces the algorithmic template system with REAL AI thinking that:
  * - Respects user preferences (disliked exercises, equipment, injuries)
@@ -7,7 +7,6 @@
  * - Creates proper workout structure (compound first, isolation after)
  */
 
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getAllExercises } from '../../../data/exerciseDatabase';
 import AIService from '../AIService';
 
@@ -21,12 +20,10 @@ export async function generateWorkoutWithAI({
 }) {
 
   try {
-    // Initialize Gemini AI
-    if (!AIService.apiKey) {
-      throw new Error('Gemini API key not configured. Please restart the app.');
+    // Check AI Service is initialized
+    if (!AIService.isInitialized()) {
+      throw new Error('AI Service not initialized. Please restart the app.');
     }
-    const genAI = new GoogleGenerativeAI(AIService.apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
 
     // Get available exercises from database
     const allExercises = getAllExercises();
@@ -42,10 +39,8 @@ export async function generateWorkoutWithAI({
       exerciseList,
     });
 
-
-    // Call AI
-    const result = await model.generateContent(prompt);
-    const response = result.response.text();
+    // Call OpenAI via AIService
+    const response = await AIService.generateText(prompt);
 
 
     // Parse response
