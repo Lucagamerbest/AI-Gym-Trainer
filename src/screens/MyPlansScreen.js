@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons } from '@expo/vector-icons';
 import ScreenLayout from '../components/ScreenLayout';
 import StyledCard from '../components/StyledCard';
 import StyledButton from '../components/StyledButton';
-import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
-import { LinearGradient } from 'expo-linear-gradient';
+import { ImportButton } from '../components/ContentImportButton';
+import { Colors, Spacing, Typography, BorderRadius, Shadows } from '../constants/theme';
 
 const WORKOUT_PROGRAMS_KEY = '@workout_programs';
 const STANDALONE_WORKOUTS_KEY = '@standalone_workouts';
@@ -101,54 +102,68 @@ export default function MyPlansScreen({ navigation }) {
 
         {/* Create Buttons */}
         <View style={styles.createButtonsContainer}>
-          <TouchableOpacity
-            style={styles.createButton}
+          <StyledButton
+            title="Create Program"
+            icon="add"
+            variant="primary"
+            size="md"
             onPress={() => navigation.navigate('WorkoutProgram')}
-            activeOpacity={0.9}
-          >
-            <LinearGradient
-              colors={[Colors.primary, '#059669']}
-              style={styles.createGradient}
-            >
-              <Text style={styles.createIcon}>+</Text>
-              <Text style={styles.createText}>Create Program</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-
-          <TouchableOpacity
             style={styles.createButton}
+          />
+          <StyledButton
+            title="Create Workout"
+            icon="add"
+            variant="primary"
+            size="md"
             onPress={() => navigation.navigate('WorkoutProgram', { isStandaloneWorkout: true })}
-            activeOpacity={0.9}
-          >
-            <LinearGradient
-              colors={[Colors.primary, '#059669']}
-              style={styles.createGradient}
-            >
-              <Text style={styles.createIcon}>+</Text>
-              <Text style={styles.createText}>Create Workout</Text>
-            </LinearGradient>
-          </TouchableOpacity>
+            style={styles.createButton}
+          />
+        </View>
+
+        {/* Import Section */}
+        <View style={styles.importSection}>
+          <View style={styles.importHeader}>
+            <Ionicons name="scan" size={20} color={Colors.primary} />
+            <Text style={styles.importTitle}>Import from Photo or PDF</Text>
+          </View>
+          <Text style={styles.importDesc}>
+            Have a workout plan saved as a screenshot or PDF? Import it instantly!
+          </Text>
+          <ImportButton
+            label="Import Workout"
+            icon="camera"
+            size="large"
+            variant="primary"
+            fullWidth
+            navigation={navigation}
+            onImportComplete={(data, type) => {
+              loadPrograms();
+              loadStandaloneWorkouts();
+              Alert.alert('Success', 'Workout imported and saved!');
+            }}
+          />
         </View>
 
         {/* Programs Toggle Button */}
         <TouchableOpacity
           style={styles.toggleButton}
           onPress={() => setProgramsExpanded(!programsExpanded)}
-          activeOpacity={0.9}
+          activeOpacity={0.8}
         >
-          <LinearGradient
-            colors={['#374151', '#1F2937']}
-            style={styles.toggleGradient}
-          >
-            <View style={styles.toggleContent}>
-              <Text style={styles.toggleIcon}>📋</Text>
-              <View style={styles.toggleTextContainer}>
-                <Text style={styles.toggleText}>Programs</Text>
-                <Text style={styles.toggleSubtext}>{programs.length} programs</Text>
-              </View>
-              <Text style={styles.toggleArrow}>{programsExpanded ? '▼' : '▶'}</Text>
+          <View style={styles.toggleContent}>
+            <View style={styles.toggleIconContainer}>
+              <Ionicons name="calendar-outline" size={24} color={Colors.primary} />
             </View>
-          </LinearGradient>
+            <View style={styles.toggleTextContainer}>
+              <Text style={styles.toggleText}>Programs</Text>
+              <Text style={styles.toggleSubtext}>{programs.length} programs</Text>
+            </View>
+            <Ionicons
+              name={programsExpanded ? 'chevron-down' : 'chevron-forward'}
+              size={24}
+              color={Colors.primary}
+            />
+          </View>
         </TouchableOpacity>
 
         {/* Programs Section */}
@@ -161,29 +176,21 @@ export default function MyPlansScreen({ navigation }) {
               </StyledCard>
             ) : (
               programs.map((program, index) => (
-                <View key={program.id || index} style={styles.itemCard}>
-                  <TouchableOpacity
-                    onPress={() => navigation.navigate('ProgramDaySelection', { program })}
-                    activeOpacity={0.9}
-                    style={styles.itemTouchable}
-                  >
-                    <LinearGradient
-                      colors={[Colors.primary + '15', Colors.primary + '08']}
-                      style={styles.itemGradient}
-                    >
-                      <View style={styles.itemContent}>
-                        <Text style={styles.itemName}>{program.name || 'Unnamed Program'}</Text>
-                        <Text style={styles.itemMeta}>
-                          {program.days?.length || 0} {program.days?.length === 1 ? 'day' : 'days'}
-                          {program.description && ` • ${program.description}`}
-                        </Text>
-                      </View>
-                      <View style={styles.arrow}>
-                        <Text style={styles.arrowText}>→</Text>
-                      </View>
-                    </LinearGradient>
-                  </TouchableOpacity>
-                </View>
+                <TouchableOpacity
+                  key={`program-${program.id}-${index}`}
+                  style={styles.itemCard}
+                  onPress={() => navigation.navigate('ProgramDaySelection', { program })}
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.itemContent}>
+                    <Text style={styles.itemName}>{program.name || 'Unnamed Program'}</Text>
+                    <Text style={styles.itemMeta}>
+                      {program.days?.length || 0} {program.days?.length === 1 ? 'day' : 'days'}
+                      {program.description && ` • ${program.description}`}
+                    </Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color={Colors.primary} />
+                </TouchableOpacity>
               ))
             )}
           </View>
@@ -193,21 +200,22 @@ export default function MyPlansScreen({ navigation }) {
         <TouchableOpacity
           style={styles.toggleButton}
           onPress={() => setWorkoutsExpanded(!workoutsExpanded)}
-          activeOpacity={0.9}
+          activeOpacity={0.8}
         >
-          <LinearGradient
-            colors={['#374151', '#1F2937']}
-            style={styles.toggleGradient}
-          >
-            <View style={styles.toggleContent}>
-              <Text style={styles.toggleIcon}>🏋️</Text>
-              <View style={styles.toggleTextContainer}>
-                <Text style={styles.toggleText}>Workouts</Text>
-                <Text style={styles.toggleSubtext}>{standaloneWorkouts.length} workouts</Text>
-              </View>
-              <Text style={styles.toggleArrow}>{workoutsExpanded ? '▼' : '▶'}</Text>
+          <View style={styles.toggleContent}>
+            <View style={styles.toggleIconContainer}>
+              <Ionicons name="barbell-outline" size={24} color={Colors.primary} />
             </View>
-          </LinearGradient>
+            <View style={styles.toggleTextContainer}>
+              <Text style={styles.toggleText}>Workouts</Text>
+              <Text style={styles.toggleSubtext}>{standaloneWorkouts.length} workouts</Text>
+            </View>
+            <Ionicons
+              name={workoutsExpanded ? 'chevron-down' : 'chevron-forward'}
+              size={24}
+              color={Colors.primary}
+            />
+          </View>
         </TouchableOpacity>
 
         {/* Standalone Workouts Section */}
@@ -220,31 +228,23 @@ export default function MyPlansScreen({ navigation }) {
               </StyledCard>
             ) : (
               standaloneWorkouts.map((workout, index) => (
-                <View key={workout.id || index} style={styles.itemCard}>
-                  <TouchableOpacity
-                    onPress={() => navigation.navigate('WorkoutDetail', {
-                      workout: workout,
-                    })}
-                    activeOpacity={0.9}
-                    style={styles.itemTouchable}
-                  >
-                    <LinearGradient
-                      colors={[Colors.primary + '15', Colors.primary + '08']}
-                      style={styles.itemGradient}
-                    >
-                      <View style={styles.itemContent}>
-                        <Text style={styles.itemName}>{workout.name || 'Unnamed Workout'}</Text>
-                        <Text style={styles.itemMeta}>
-                          {workout.day?.exercises?.length || 0} exercises
-                          {workout.description && ` • ${workout.description}`}
-                        </Text>
-                      </View>
-                      <View style={styles.arrow}>
-                        <Text style={styles.arrowText}>→</Text>
-                      </View>
-                    </LinearGradient>
-                  </TouchableOpacity>
-                </View>
+                <TouchableOpacity
+                  key={`workout-${workout.id}-${index}`}
+                  style={styles.itemCard}
+                  onPress={() => navigation.navigate('WorkoutDetail', {
+                    workout: workout,
+                  })}
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.itemContent}>
+                    <Text style={styles.itemName}>{workout.name || 'Unnamed Workout'}</Text>
+                    <Text style={styles.itemMeta}>
+                      {workout.day?.exercises?.length || 0} exercises
+                      {workout.description && ` • ${workout.description}`}
+                    </Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color={Colors.primary} />
+                </TouchableOpacity>
               ))
             )}
           </View>
@@ -264,46 +264,56 @@ const styles = StyleSheet.create({
   createButtonsContainer: {
     flexDirection: 'row',
     gap: Spacing.md,
+    marginBottom: Spacing.lg,
+  },
+  importSection: {
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
     marginBottom: Spacing.xl,
+    borderWidth: 1,
+    borderColor: Colors.primary + '30',
+    borderStyle: 'dashed',
+  },
+  importHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    marginBottom: Spacing.xs,
+  },
+  importTitle: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  importDesc: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.md,
   },
   createButton: {
     flex: 1,
-    borderRadius: BorderRadius.lg,
-    overflow: 'hidden',
-  },
-  createGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: Spacing.md,
-  },
-  createIcon: {
-    fontSize: 18,
-    color: Colors.background,
-    marginRight: Spacing.xs,
-  },
-  createText: {
-    fontSize: Typography.fontSize.sm,
-    fontWeight: 'bold',
-    color: Colors.background,
   },
   toggleButton: {
-    borderRadius: BorderRadius.lg,
-    overflow: 'hidden',
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.xl,
     marginBottom: Spacing.md,
-  },
-  toggleGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: Spacing.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    ...Shadows.sm,
   },
   toggleContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
+    padding: Spacing.lg,
   },
-  toggleIcon: {
-    fontSize: 28,
+  toggleIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: BorderRadius.round,
+    backgroundColor: Colors.primary + '20',
+    alignItems: 'center',
+    justifyContent: 'center',
     marginRight: Spacing.md,
   },
   toggleTextContainer: {
@@ -312,19 +322,12 @@ const styles = StyleSheet.create({
   toggleText: {
     fontSize: Typography.fontSize.lg,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: Colors.text,
   },
   toggleSubtext: {
     fontSize: Typography.fontSize.sm,
-    color: Colors.primary,
-    marginTop: 4,
-    fontWeight: '600',
-  },
-  toggleArrow: {
-    fontSize: Typography.fontSize.xl,
-    color: Colors.primary,
-    fontWeight: 'bold',
-    marginLeft: Spacing.md,
+    color: Colors.textSecondary,
+    marginTop: 2,
   },
   section: {
     marginBottom: Spacing.lg,
@@ -344,52 +347,27 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
   },
   itemCard: {
-    marginBottom: Spacing.md,
-    borderRadius: BorderRadius.lg,
-    overflow: 'hidden',
-  },
-  itemTouchable: {
-    width: '100%',
-  },
-  itemGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: Spacing.lg,
-    borderWidth: 1,
-    borderColor: Colors.primary + '30',
+    backgroundColor: Colors.surface,
     borderRadius: BorderRadius.lg,
-  },
-  deleteButton: {
-    padding: Spacing.sm,
-    marginLeft: Spacing.sm,
-  },
-  deleteButtonText: {
-    fontSize: 20,
+    padding: Spacing.lg,
+    marginBottom: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   itemContent: {
     flex: 1,
   },
   itemName: {
     fontSize: Typography.fontSize.md,
-    fontWeight: 'bold',
+    fontWeight: '600',
     color: Colors.text,
     marginBottom: 4,
   },
   itemMeta: {
     fontSize: Typography.fontSize.sm,
     color: Colors.textSecondary,
-  },
-  itemActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  arrow: {
-    marginLeft: Spacing.sm,
-  },
-  arrowText: {
-    fontSize: 24,
-    color: Colors.primary,
-    fontWeight: 'bold',
   },
   bottomSpacer: {
     height: Spacing.xxl,

@@ -32,18 +32,20 @@ class BackgroundTimerService {
    */
   async initializeAudio() {
     try {
-      // Configure audio to stay active in background and duck other audio
-      // ALL options must be set for background audio to work reliably on all devices
+      // Configure audio to stay active in background WITHOUT ducking user's music
+      // iOS: MixWithOthers means our silent audio won't affect music volume at all
+      // Android: DuckOthers is required but the 0.01 volume silent audio minimizes impact
+      // Ducking only really matters when the alert plays at timer completion
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: false,
         staysActiveInBackground: true,        // Keep audio session alive in background
         playsInSilentModeIOS: true,           // Play even when silent switch is on
-        interruptionModeIOS: InterruptionModeIOS.DuckOthers,  // Duck music when alert plays
-        shouldDuckAndroid: true,              // Duck music on Android
-        interruptionModeAndroid: InterruptionModeAndroid.DuckOthers,
-        playThroughEarpieceAndroid: true,     // Required for some Android devices
+        interruptionModeIOS: InterruptionModeIOS.MixWithOthers,  // iOS: Don't duck music during countdown
+        shouldDuckAndroid: false,             // Our audio won't be ducked by others
+        interruptionModeAndroid: InterruptionModeAndroid.DuckOthers, // Android: needed for background
+        playThroughEarpieceAndroid: false,
       });
-      console.log('BackgroundTimerService: Audio mode initialized for background playback');
+      console.log('BackgroundTimerService: Audio mode initialized (music unchanged)');
       return true;
     } catch (error) {
       console.error('BackgroundTimerService: Failed to initialize audio mode:', error);

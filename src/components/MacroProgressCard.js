@@ -17,10 +17,6 @@ export default function MacroProgressCard({ macros, title = "📊 Today's Macros
     return null;
   }
 
-    calories: `${macros.calories.consumed}/${macros.calories.target}`,
-    protein: `${macros.protein.consumed}/${macros.protein.target}`,
-  });
-
   return (
     <View style={styles.card}>
       {/* Header */}

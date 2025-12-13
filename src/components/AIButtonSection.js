@@ -157,7 +157,7 @@ export default function AIButtonSection({
                     loading={loading}
                     size={button.size || 'medium'}
                     disabled={button.disabled || false}
-                    subtitle={button.subtitle}
+                    subtitle={button.subtitle || button.description}
                     fullWidth={button.fullWidth || false}
                   />
                 );

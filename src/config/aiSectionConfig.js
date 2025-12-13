@@ -58,22 +58,57 @@ export function getCurrentMealType() {
 
 export const WorkoutScreenSections = [
   {
-    title: 'Set Recommendations',
-    icon: 'fitness',
+    title: 'Quick Actions',
+    icon: 'flash',
     buttons: [
-      { icon: 'barbell', text: 'Suggest next weight', toolName: 'recommendNextWeight' },
-      { icon: 'timer', text: 'Recommend rest time', toolName: 'recommendRestTime' },
-      { icon: 'help-circle', text: 'Is this set too easy/hard?', toolName: 'analyzeSetDifficulty' },
-      { icon: 'add-circle', text: 'Should I do another set?', toolName: 'recommendAdditionalSet' },
+      {
+        icon: 'trending-up',
+        text: 'Suggest next weight',
+        instantAction: 'SUGGEST_WEIGHT',
+        description: 'Based on history'
+      },
+      {
+        icon: 'timer',
+        text: 'Recommend rest time',
+        instantAction: 'RECOMMEND_REST',
+        description: 'Based on goal'
+      },
+      {
+        icon: 'speedometer',
+        text: 'RPE Calculator',
+        instantAction: 'RPE_CALCULATOR',
+        description: 'Rate your effort'
+      },
+      {
+        icon: 'swap-horizontal',
+        text: 'Find alternative',
+        instantAction: 'FIND_ALTERNATIVE',
+        description: 'Swap exercise'
+      },
     ],
   },
   {
     title: 'Exercise Management',
     icon: 'list',
     buttons: [
-      { icon: 'add', text: 'Add similar exercise', toolName: 'searchExercises', params: { similar: true } },
-      { icon: 'swap-horizontal', text: 'Find exercise alternative', toolName: 'searchExercises', params: { alternative: true } },
-      { icon: 'link', text: 'Add superset exercise', toolName: 'recommendSuperset' },
+      {
+        icon: 'add',
+        text: 'Add similar exercise',
+        instantAction: 'ADD_SIMILAR',
+        description: 'Find variations'
+      },
+      {
+        icon: 'link',
+        text: 'Add superset exercise',
+        instantAction: 'ADD_SUPERSET',
+        description: 'Pair with current'
+      },
+      {
+        icon: 'add-circle',
+        text: 'Should I do another set?',
+        instantAction: 'RECOMMEND_EXTRA_SET',
+        description: 'Based on volume'
+      },
     ],
   },
   {
@@ -126,78 +161,167 @@ export const WorkoutAssistantSections = [
 
 export const StartWorkoutScreenSections = [
   {
+    title: 'Quick Start',
+    icon: 'flash',
+    buttons: [
+      {
+        icon: 'calendar',
+        text: 'What to train today?',
+        instantAction: 'RECOMMEND_TODAY',
+        description: 'Based on history'
+      },
+      {
+        icon: 'time',
+        text: 'Last workout info',
+        instantAction: 'LAST_WORKOUT',
+        description: 'What you did'
+      },
+      {
+        icon: 'body',
+        text: 'Muscles to prioritize',
+        instantAction: 'MUSCLE_PRIORITY',
+        description: 'Recovery status'
+      },
+    ],
+  },
+  {
     title: 'Create Workout',
     icon: 'add-circle',
     buttons: [
-      { icon: 'chatbubble-ellipses', text: 'Create custom workout', toolName: 'customWorkoutInput', isCustomInput: true },
       { icon: 'barbell', text: 'Push workout', toolName: 'generateWorkoutPlan', params: { type: 'push' } },
       { icon: 'return-down-back', text: 'Pull workout', toolName: 'generateWorkoutPlan', params: { type: 'pull' } },
       { icon: 'walk', text: 'Leg workout', toolName: 'generateWorkoutPlan', params: { type: 'legs' } },
       { icon: 'fitness', text: 'Full body workout', toolName: 'generateWorkoutPlan', params: { type: 'full_body' } },
-      { icon: 'body', text: 'Upper body', toolName: 'generateWorkoutPlan', params: { type: 'upper' } },
     ],
   },
   {
-    title: 'Workout Recommendations',
-    icon: 'bulb',
-    buttons: [
-      { icon: 'calendar', text: 'What to train today?', toolName: 'recommendWorkout' },
-      { icon: 'ribbon', text: 'What did I train last?', toolName: 'getLastWorkout' },
-      { icon: 'body', text: 'Which muscles to prioritize?', toolName: 'analyzeMuscleBalance' },
-    ],
-  },
-  {
-    title: 'Exercise Search',
+    title: 'Browse Exercises',
     icon: 'search',
     buttons: [
-      { icon: 'barbell', text: 'Chest exercises', toolName: 'searchExercises', params: { muscle: 'chest' } },
-      { icon: 'return-down-back', text: 'Back exercises', toolName: 'searchExercises', params: { muscle: 'back' } },
-      { icon: 'walk', text: 'Leg exercises', toolName: 'searchExercises', params: { muscle: 'legs' } },
-      { icon: 'barbell', text: 'Shoulder exercises', toolName: 'searchExercises', params: { muscle: 'shoulders' } },
-      { icon: 'barbell', text: 'Arm exercises', toolName: 'searchExercises', params: { muscle: 'arms' } },
-      { icon: 'fitness', text: 'Core exercises', toolName: 'searchExercises', params: { muscle: 'core' } },
+      {
+        icon: 'barbell',
+        text: 'Chest exercises',
+        instantAction: 'BROWSE_EXERCISES',
+        params: { muscle: 'chest' },
+        description: 'Pecs & front delts'
+      },
+      {
+        icon: 'return-down-back',
+        text: 'Back exercises',
+        instantAction: 'BROWSE_EXERCISES',
+        params: { muscle: 'back' },
+        description: 'Lats, traps, rhomboids'
+      },
+      {
+        icon: 'walk',
+        text: 'Leg exercises',
+        instantAction: 'BROWSE_EXERCISES',
+        params: { muscle: 'legs' },
+        description: 'Quads, hams, glutes'
+      },
+      {
+        icon: 'fitness',
+        text: 'Arms & Shoulders',
+        instantAction: 'BROWSE_EXERCISES',
+        params: { muscle: 'arms' },
+        description: 'Biceps, triceps, delts'
+      },
     ],
   },
 ];
 
 export const WorkoutHistoryScreenSections = [
   {
-    title: 'Workout Analysis',
-    icon: 'stats-chart',
+    title: 'Quick Stats',
+    icon: 'flash',
     buttons: [
-      { icon: 'calendar', text: 'Analyze this week', toolName: 'analyzeWeeklyWorkouts' },
-      { icon: 'trending-up', text: 'Volume progression', toolName: 'analyzeVolumeProgression' },
-      { icon: 'body', text: 'Muscle balance', toolName: 'analyzeMuscleBalance' },
-      { icon: 'calendar', text: 'Workout frequency', toolName: 'analyzeWorkoutFrequency' },
+      {
+        icon: 'calendar',
+        text: 'This week summary',
+        instantAction: 'WEEK_SUMMARY',
+        description: 'Workouts & volume'
+      },
+      {
+        icon: 'trophy',
+        text: 'Recent PRs',
+        instantAction: 'RECENT_PRS',
+        description: 'Personal records'
+      },
+      {
+        icon: 'body',
+        text: 'Muscle balance',
+        instantAction: 'MUSCLE_BALANCE',
+        description: 'What needs work'
+      },
+      {
+        icon: 'flame',
+        text: 'Streak status',
+        instantAction: 'STREAK_STATUS',
+        description: 'Consistency check'
+      },
     ],
   },
   {
-    title: 'Workout Planning',
-    icon: 'calendar',
+    title: 'Analysis',
+    icon: 'stats-chart',
     buttons: [
-      { icon: 'barbell', text: 'Plan tomorrow\'s workout', toolName: 'recommendWorkout' },
-      { icon: 'calendar', text: 'Create weekly split', toolName: 'createWeeklySplit' },
+      {
+        icon: 'trending-up',
+        text: 'Volume trend',
+        instantAction: 'VOLUME_TREND',
+        description: 'Weekly comparison'
+      },
+      {
+        icon: 'fitness',
+        text: 'Workout frequency',
+        instantAction: 'WORKOUT_FREQUENCY',
+        description: 'Days per week'
+      },
     ],
   },
 ];
 
 export const ExerciseDetailScreenSections = [
   {
-    title: 'Exercise Progress',
-    icon: 'trending-up',
+    title: 'Quick Stats',
+    icon: 'flash',
     buttons: [
-      { icon: 'trophy', text: 'What\'s my PR?', toolName: 'getExercisePR' },
-      { icon: 'stats-chart', text: 'Show progression', toolName: 'getExerciseProgression' },
-      { icon: 'calendar', text: 'Last 5 sessions', toolName: 'getExerciseHistory' },
+      {
+        icon: 'trophy',
+        text: 'My PR',
+        instantAction: 'EXERCISE_PR',
+        description: 'Personal record'
+      },
+      {
+        icon: 'trending-up',
+        text: 'Progression',
+        instantAction: 'EXERCISE_PROGRESSION',
+        description: 'Weight over time'
+      },
+      {
+        icon: 'calendar',
+        text: 'Recent history',
+        instantAction: 'EXERCISE_HISTORY',
+        description: 'Last 5 sessions'
+      },
     ],
   },
   {
-    title: 'Exercise Guidance',
-    icon: 'information-circle',
+    title: 'Guidance',
+    icon: 'bulb',
     buttons: [
-      { icon: 'barbell', text: 'Recommend next weight', toolName: 'recommendNextWeight' },
-      { icon: 'list', text: 'How to perform', toolName: 'getExerciseForm' },
-      { icon: 'swap-horizontal', text: 'Find alternatives', toolName: 'searchExercises', params: { alternative: true } },
+      {
+        icon: 'barbell',
+        text: 'Next weight suggestion',
+        instantAction: 'SUGGEST_WEIGHT',
+        description: 'Progressive overload'
+      },
+      {
+        icon: 'swap-horizontal',
+        text: 'Find alternatives',
+        instantAction: 'FIND_ALTERNATIVE',
+        description: 'Similar exercises'
+      },
     ],
   },
 ];
@@ -341,61 +465,107 @@ export const HomeScreenSections = [
 
 export const ExerciseListScreenSections = [
   {
-    title: 'Exercise Search & Discovery',
-    icon: 'search',
+    title: 'Quick Filters',
+    icon: 'flash',
     buttons: [
-      { icon: 'barbell', text: 'Suggest exercises for me', toolName: 'searchExercises' },
-      { icon: 'body', text: 'Target weak muscles', toolName: 'analyzeMuscleBalance' },
-      { icon: 'trending-up', text: 'Best exercises for gains', toolName: 'recommendExercises' },
-      { icon: 'home', text: 'Home workout alternatives', toolName: 'searchExercises', params: { equipment: 'bodyweight' } },
+      {
+        icon: 'barbell',
+        text: 'By muscle group',
+        instantAction: 'FILTER_BY_MUSCLE',
+        description: 'Chest, back, legs...'
+      },
+      {
+        icon: 'cube',
+        text: 'By equipment',
+        instantAction: 'FILTER_BY_EQUIPMENT',
+        description: 'Dumbbells, cables...'
+      },
+      {
+        icon: 'home',
+        text: 'Bodyweight only',
+        instantAction: 'BROWSE_EXERCISES',
+        params: { equipment: 'bodyweight' },
+        description: 'No equipment needed'
+      },
     ],
   },
   {
-    title: 'Exercise Information',
-    icon: 'information-circle',
+    title: 'Exercise Help',
+    icon: 'bulb',
     buttons: [
-      { icon: 'help-circle', text: 'How to do this exercise?', toolName: 'getExerciseForm' },
-      { icon: 'swap-horizontal', text: 'Find alternatives', toolName: 'searchExercises', params: { alternative: true } },
-      { icon: 'body', text: 'Which muscles does it work?', toolName: 'getExerciseMuscles' },
-    ],
-  },
-  {
-    title: 'Workout Integration',
-    icon: 'add-circle',
-    buttons: [
-      { icon: 'barbell', text: 'Create workout from these', toolName: 'generateWorkoutPlan' },
-      { icon: 'link', text: 'Suggest supersets', toolName: 'recommendSuperset' },
+      {
+        icon: 'swap-horizontal',
+        text: 'Find alternatives',
+        instantAction: 'FIND_ALTERNATIVE',
+        description: 'Similar exercises'
+      },
+      {
+        icon: 'link',
+        text: 'Superset pairings',
+        instantAction: 'ADD_SUPERSET',
+        description: 'Pair exercises'
+      },
     ],
   },
 ];
 
 export const MyPlansScreenSections = [
   {
-    title: 'Program Planning',
-    icon: 'calendar',
+    title: 'Quick Info',
+    icon: 'flash',
     buttons: [
-      { icon: 'add-circle', text: 'Create new program', toolName: 'createProgram' },
-      { icon: 'trending-up', text: 'Suggest workout split', toolName: 'createWeeklySplit' },
-      { icon: 'calendar', text: '6-day PPL program', toolName: 'createProgram', params: { type: 'ppl' } },
-      { icon: 'barbell', text: '4-day Upper/Lower', toolName: 'createProgram', params: { type: 'upper_lower' } },
+      {
+        icon: 'stats-chart',
+        text: 'Program overview',
+        instantAction: 'PROGRAM_OVERVIEW',
+        description: 'Days, splits, goals'
+      },
+      {
+        icon: 'body',
+        text: 'Muscle coverage',
+        instantAction: 'MUSCLE_BALANCE',
+        description: 'Check balance'
+      },
+      {
+        icon: 'calendar',
+        text: 'Weekly schedule',
+        instantAction: 'WEEKLY_SCHEDULE',
+        description: 'Your training days'
+      },
     ],
   },
   {
-    title: 'Program Optimization',
-    icon: 'analytics',
-    buttons: [
-      { icon: 'stats-chart', text: 'Analyze my program', toolName: 'analyzeProgram' },
-      { icon: 'body', text: 'Check muscle balance', toolName: 'analyzeMuscleBalance' },
-      { icon: 'bulb', text: 'Improve my split', toolName: 'optimizeProgram' },
-    ],
-  },
-  {
-    title: 'Workout Templates',
+    title: 'Popular Splits',
     icon: 'copy',
     buttons: [
-      { icon: 'barbell', text: 'Push workout template', toolName: 'generateWorkoutPlan', params: { type: 'push' } },
-      { icon: 'return-down-back', text: 'Pull workout template', toolName: 'generateWorkoutPlan', params: { type: 'pull' } },
-      { icon: 'walk', text: 'Leg workout template', toolName: 'generateWorkoutPlan', params: { type: 'legs' } },
+      {
+        icon: 'calendar',
+        text: 'PPL (6 days)',
+        instantAction: 'SHOW_SPLIT_INFO',
+        params: { type: 'ppl' },
+        description: 'Push/Pull/Legs'
+      },
+      {
+        icon: 'barbell',
+        text: 'Upper/Lower (4 days)',
+        instantAction: 'SHOW_SPLIT_INFO',
+        params: { type: 'upper_lower' },
+        description: 'Classic split'
+      },
+      {
+        icon: 'fitness',
+        text: 'Full Body (3 days)',
+        instantAction: 'SHOW_SPLIT_INFO',
+        params: { type: 'full_body' },
+        description: 'Hit all muscles'
+      },
+      {
+        icon: 'body',
+        text: 'Bro Split (5 days)',
+        instantAction: 'SHOW_SPLIT_INFO',
+        params: { type: 'bro_split' },
+        description: 'One muscle/day'
+      },
     ],
   },
 ];
@@ -459,60 +629,141 @@ export const MealsHistoryScreenSections = [
 
 export const WorkoutSummaryScreenSections = [
   {
-    title: 'Workout Analysis',
-    icon: 'stats-chart',
+    title: 'Workout Stats',
+    icon: 'flash',
     buttons: [
-      { icon: 'trophy', text: 'Did I hit any PRs?', toolName: 'detectPRs' },
-      { icon: 'trending-up', text: 'Compare to last time', toolName: 'compareWorkouts' },
-      { icon: 'bar-chart', text: 'Analyze volume', toolName: 'analyzeWorkoutVolume' },
+      {
+        icon: 'trophy',
+        text: 'Did I hit any PRs?',
+        instantAction: 'CHECK_WORKOUT_PRS',
+        description: 'Personal records'
+      },
+      {
+        icon: 'trending-up',
+        text: 'Compare to last time',
+        instantAction: 'COMPARE_WORKOUT',
+        description: 'Volume & intensity'
+      },
+      {
+        icon: 'bar-chart',
+        text: 'Volume breakdown',
+        instantAction: 'VOLUME_BREAKDOWN',
+        description: 'Sets per muscle'
+      },
+      {
+        icon: 'body',
+        text: 'Muscles worked',
+        instantAction: 'MUSCLES_WORKED',
+        description: 'Coverage check'
+      },
     ],
   },
   {
     title: 'Next Steps',
     icon: 'arrow-forward',
     buttons: [
-      { icon: 'bulb', text: 'What to train next?', toolName: 'recommendWorkout' },
-      { icon: 'barbell', text: 'Progression advice', toolName: 'getProgressionAdvice' },
+      {
+        icon: 'calendar',
+        text: 'What to train next?',
+        instantAction: 'RECOMMEND_NEXT',
+        description: 'Based on recovery'
+      },
+      {
+        icon: 'time',
+        text: 'Recovery time',
+        instantAction: 'RECOVERY_TIME',
+        description: 'When to train again'
+      },
     ],
   },
 ];
 
 export const WorkoutDetailScreenSections = [
   {
-    title: 'Workout Analysis',
-    icon: 'analytics',
+    title: 'Workout Stats',
+    icon: 'flash',
     buttons: [
-      { icon: 'stats-chart', text: 'Analyze this workout', toolName: 'analyzeWorkout' },
-      { icon: 'body', text: 'Muscles worked', toolName: 'analyzeMusclesWorked' },
-      { icon: 'trophy', text: 'PRs from this workout', toolName: 'detectPRs' },
+      {
+        icon: 'stats-chart',
+        text: 'Workout summary',
+        instantAction: 'WORKOUT_SUMMARY',
+        description: 'Volume & exercises'
+      },
+      {
+        icon: 'body',
+        text: 'Muscles worked',
+        instantAction: 'MUSCLES_WORKED',
+        description: 'Coverage check'
+      },
+      {
+        icon: 'trophy',
+        text: 'PRs from this workout',
+        instantAction: 'CHECK_WORKOUT_PRS',
+        description: 'Personal records'
+      },
     ],
   },
   {
     title: 'Workout Actions',
-    icon: 'flash',
+    icon: 'settings',
     buttons: [
-      { icon: 'copy', text: 'Repeat this workout', toolName: 'repeatWorkout' },
-      { icon: 'bulb', text: 'Improve this workout', toolName: 'improveWorkout' },
+      {
+        icon: 'copy',
+        text: 'Repeat this workout',
+        instantAction: 'REPEAT_WORKOUT',
+        description: 'Do it again'
+      },
+      {
+        icon: 'trending-up',
+        text: 'Compare performance',
+        instantAction: 'COMPARE_WORKOUT',
+        description: 'vs last time'
+      },
     ],
   },
 ];
 
 export const WorkoutProgramScreenSections = [
   {
-    title: 'Program Analysis',
-    icon: 'analytics',
+    title: 'Program Info',
+    icon: 'flash',
     buttons: [
-      { icon: 'stats-chart', text: 'Analyze this program', toolName: 'analyzeProgram' },
-      { icon: 'body', text: 'Check muscle balance', toolName: 'analyzeMuscleBalance' },
-      { icon: 'bulb', text: 'Optimize this program', toolName: 'optimizeProgram' },
+      {
+        icon: 'stats-chart',
+        text: 'Program overview',
+        instantAction: 'PROGRAM_OVERVIEW',
+        description: 'Days & exercises'
+      },
+      {
+        icon: 'body',
+        text: 'Muscle coverage',
+        instantAction: 'MUSCLE_BALANCE',
+        description: 'Check balance'
+      },
+      {
+        icon: 'calendar',
+        text: 'Weekly volume',
+        instantAction: 'WEEKLY_VOLUME',
+        description: 'Sets per muscle'
+      },
     ],
   },
   {
-    title: 'Program Modifications',
+    title: 'Modify Program',
     icon: 'create',
     buttons: [
-      { icon: 'add', text: 'Add exercises', toolName: 'suggestExercises' },
-      { icon: 'swap-horizontal', text: 'Swap exercises', toolName: 'searchExercises', params: { alternative: true } },
+      {
+        icon: 'swap-horizontal',
+        text: 'Swap exercises',
+        instantAction: 'FIND_ALTERNATIVE',
+        description: 'Find alternatives'
+      },
+      {
+        icon: 'add',
+        text: 'Add exercises',
+        instantAction: 'ADD_SIMILAR',
+        description: 'More exercises'
+      },
     ],
   },
 ];

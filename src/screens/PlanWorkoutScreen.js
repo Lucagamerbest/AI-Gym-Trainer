@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Modal } fr
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ScreenLayout from '../components/ScreenLayout';
 import StyledButton from '../components/StyledButton';
+import { ImportButton } from '../components/ContentImportButton';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { LinearGradient } from 'expo-linear-gradient';
 import { WorkoutStorageService } from '../services/workoutStorage';
@@ -276,6 +277,29 @@ export default function PlanWorkoutScreen({ navigation, route }) {
           </TouchableOpacity>
         </View>
 
+        {/* Import Workout */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>📸 Import Workout</Text>
+          <View style={styles.importContainer}>
+            <Text style={styles.importDesc}>
+              Have a workout plan saved as a screenshot or PDF? Import it!
+            </Text>
+            <ImportButton
+              label="Import Workout"
+              icon="scan"
+              size="medium"
+              variant="secondary"
+              fullWidth
+              navigation={navigation}
+              onImportComplete={(data, type) => {
+                // Refresh programs list after import
+                loadUserPrograms();
+                Alert.alert('Success', 'Workout imported successfully!');
+              }}
+            />
+          </View>
+        </View>
+
         <StyledButton
           title="Cancel"
           onPress={() => navigation.goBack()}
@@ -484,6 +508,19 @@ const styles = StyleSheet.create({
   customDesc: {
     fontSize: Typography.fontSize.sm,
     color: Colors.textSecondary,
+  },
+  importContainer: {
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  importDesc: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.md,
+    textAlign: 'center',
   },
   cancelButton: {
     marginTop: Spacing.lg,

@@ -389,14 +389,9 @@ export default function ProgramDaySelectionScreen({ navigation, route }) {
             onPress={handleScheduleClick}
             activeOpacity={0.7}
           >
-            <LinearGradient
-              colors={['#10B981', '#059669']}
-              style={styles.circularButton}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            >
+            <View style={[styles.circularButton, styles.scheduleButton]}>
               <Text style={styles.buttonIcon}>📅</Text>
-            </LinearGradient>
+            </View>
             <Text style={styles.buttonLabel}>Schedule</Text>
           </TouchableOpacity>
 
@@ -405,14 +400,9 @@ export default function ProgramDaySelectionScreen({ navigation, route }) {
             onPress={handleEditProgram}
             activeOpacity={0.7}
           >
-            <LinearGradient
-              colors={[Colors.primary, '#059669']}
-              style={styles.circularButton}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            >
+            <View style={[styles.circularButton, styles.editButton]}>
               <Text style={styles.buttonIcon}>✏️</Text>
-            </LinearGradient>
+            </View>
             <Text style={styles.buttonLabel}>Edit</Text>
           </TouchableOpacity>
 
@@ -421,14 +411,9 @@ export default function ProgramDaySelectionScreen({ navigation, route }) {
             onPress={handleDeleteProgram}
             activeOpacity={0.7}
           >
-            <LinearGradient
-              colors={['#DC2626', '#B91C1C']}
-              style={styles.circularButton}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            >
+            <View style={[styles.circularButton, styles.deleteActionButton]}>
               <Text style={styles.buttonIcon}>🗑️</Text>
-            </LinearGradient>
+            </View>
             <Text style={styles.buttonLabel}>Delete</Text>
           </TouchableOpacity>
         </View>
@@ -1104,14 +1089,22 @@ const styles = StyleSheet.create({
     borderRadius: 32,
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
+    borderWidth: 1,
+  },
+  scheduleButton: {
+    backgroundColor: Colors.primary + '15',
+    borderColor: Colors.primary + '40',
+  },
+  editButton: {
+    backgroundColor: Colors.surface,
+    borderColor: Colors.border,
+  },
+  deleteActionButton: {
+    backgroundColor: Colors.error + '15',
+    borderColor: Colors.error + '40',
   },
   buttonIcon: {
-    fontSize: 28,
+    fontSize: 24,
   },
   buttonLabel: {
     fontSize: Typography.fontSize.sm,

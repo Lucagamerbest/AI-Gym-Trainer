@@ -69,6 +69,7 @@ export default {
       "assets/**/*"
     ],
     plugins: [
+      "expo-video",
       "expo-av",
       "expo-web-browser",
       "expo-sqlite",

@@ -14,6 +14,7 @@ export default function AIHeaderButton({ screenName, screenParams, onAIClose }) 
   const [modalVisible, setModalVisible] = useState(false);
 
   const handlePress = () => {
+    console.log('🤖 AIHeaderButton pressed for screen:', screenName);
     // Set current screen context before opening modal
     if (screenName) {
       ContextManager.setScreen(screenName);

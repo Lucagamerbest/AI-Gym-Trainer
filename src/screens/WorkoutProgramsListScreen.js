@@ -129,9 +129,9 @@ export default function WorkoutProgramsListScreen({ navigation }) {
             </Text>
           </View>
         ) : (
-          programs.map((program) => (
+          programs.map((program, index) => (
             <TouchableOpacity
-              key={program.id}
+              key={`program-${program.id}-${index}`}
               style={styles.programCard}
               onPress={() => handleStartProgram(program)}
               activeOpacity={0.9}

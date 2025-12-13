@@ -601,20 +601,24 @@ export default function RecipesScreen({ navigation, route }) {
       {/* Show content based on active tab */}
       {activeTab === 'my-recipes' ? (
         <>
-          <TouchableOpacity
-            style={styles.createButton}
-            onPress={() => {
-              // Reset state before opening
-              setNewRecipe({ name: '', ingredients: [] });
-              setModalView('recipe');
-              setSearchText('');
-              setSearchResults([]);
-              setShowCreateModal(true);
-            }}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.createButtonText}>➕ Create New Recipe</Text>
-          </TouchableOpacity>
+          {/* Action button */}
+          <View style={styles.actionButtonsRow}>
+            <TouchableOpacity
+              style={styles.createButton}
+              onPress={() => {
+                // Reset state before opening
+                setNewRecipe({ name: '', ingredients: [] });
+                setModalView('recipe');
+                setSearchText('');
+                setSearchResults([]);
+                setShowCreateModal(true);
+              }}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="add-circle" size={18} color={Colors.text} />
+              <Text style={styles.createButtonText}>Create Recipe</Text>
+            </TouchableOpacity>
+          </View>
 
           {recipes.length === 0 ? (
         <View style={styles.emptyState}>
@@ -626,8 +630,8 @@ export default function RecipesScreen({ navigation, route }) {
         </View>
       ) : (
         <View style={styles.recipesContainer}>
-          {sortedRecipes.map((item) => (
-            <View key={item.id}>
+          {sortedRecipes.map((item, index) => (
+            <View key={`recipe-${item.id}-${index}`}>
               {renderRecipe({ item })}
             </View>
           ))}
@@ -1013,6 +1017,12 @@ const styles = StyleSheet.create({
     color: '#fff',
     letterSpacing: 0.5,
   },
+  actionButtonsRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    paddingHorizontal: Spacing.lg,
+    marginBottom: Spacing.lg,
+  },
   createButton: {
     backgroundColor: Colors.primary,
     flexDirection: 'row',
@@ -1024,11 +1034,12 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
     borderRadius: BorderRadius.lg,
     minHeight: 52,
+    gap: Spacing.sm,
   },
   createButtonText: {
     fontSize: Typography.fontSize.md,
     fontWeight: '700',
-    color: Colors.background,
+    color: Colors.text,
     letterSpacing: 0.5,
   },
   recipesContainer: {

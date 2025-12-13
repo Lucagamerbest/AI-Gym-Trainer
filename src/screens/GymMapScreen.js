@@ -163,6 +163,10 @@ export default function GymMapScreen({ navigation, route }) {
       if (result.success) {
         setSavedGyms((prev) => [...prev, result.gym]);
         setSelectedLocation(null);
+
+        // Update geofence regions (will check if reminders are enabled internally)
+        await LocationService.updateGeofenceRegions(userId);
+
         Alert.alert('Success', `${result.gym.name} has been saved!`, [
           { text: 'OK', onPress: () => navigation.goBack() },
         ]);

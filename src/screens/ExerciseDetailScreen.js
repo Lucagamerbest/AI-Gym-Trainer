@@ -9,6 +9,7 @@ import { useAuth } from '../context/AuthContext';
 import AIHeaderButton from '../components/AIHeaderButton';
 import ScreenLayout from '../components/ScreenLayout';
 import ExerciseVideoPlayer from '../components/ExerciseVideoPlayer';
+import { getVariantImage } from '../utils/exerciseImages';
 
 // Get screen dimensions for responsive design
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -23,6 +24,99 @@ export default function ExerciseDetailScreen({ navigation, route }) {
   const [loading, setLoading] = useState(true);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [showFullScreenImage, setShowFullScreenImage] = useState(false);
+
+  // Get display name - use variant-specific name if available
+  const getDisplayName = () => {
+    if (exercise?.selectedVariant?.equipment && exercise?.name) {
+      // Create variant-specific name like "Barbell Back Squat"
+      return `${exercise.selectedVariant.equipment} ${exercise.name}`;
+    }
+    if (exercise?.selectedEquipment && exercise?.name) {
+      return `${exercise.selectedEquipment} ${exercise.name}`;
+    }
+    return exercise?.displayName || exercise?.name || 'Exercise';
+  };
+
+  // Get equipment to display - prefer selected variant
+  const getDisplayEquipment = () => {
+    if (exercise?.selectedVariant?.equipment) {
+      return exercise.selectedVariant.equipment;
+    }
+    if (exercise?.selectedEquipment) {
+      return exercise.selectedEquipment;
+    }
+    // Fallback to first equipment if multiple
+    const equipment = exercise?.equipment;
+    if (equipment && equipment.includes(',')) {
+      return equipment.split(',')[0].trim();
+    }
+    return equipment || 'Unknown';
+  };
+
+  // Get difficulty - prefer variant-specific difficulty
+  const getDisplayDifficulty = () => {
+    if (exercise?.selectedVariant?.difficulty) {
+      return exercise.selectedVariant.difficulty;
+    }
+    return exercise?.difficulty || 'Intermediate';
+  };
+
+  // Get combined instructions - base + variant-specific adjustments
+  const getDisplayInstructions = () => {
+    let instructions = exercise?.instructions || '';
+
+    // If we have variant-specific instruction adjustments, add them
+    const variantInstructions = exercise?.selectedVariant?.instructions;
+    if (variantInstructions) {
+      const adjustments = [];
+
+      if (variantInstructions.setupAdjustments?.length) {
+        adjustments.push('Setup: ' + variantInstructions.setupAdjustments.join('. '));
+      }
+      if (variantInstructions.executionAdjustments?.length) {
+        adjustments.push('Execution: ' + variantInstructions.executionAdjustments.join('. '));
+      }
+
+      if (adjustments.length > 0) {
+        instructions = instructions + '\n\n' + getDisplayEquipment() + ' Tips:\n' + adjustments.join('\n');
+      }
+    }
+
+    return instructions || 'No instructions available';
+  };
+
+  // Get exercise image - use getVariantImage to find correct image
+  const getExerciseImage = () => {
+    const exerciseName = exercise?.name;
+    const equipment = getDisplayEquipment();
+
+    console.log('\n🖼️ [ExerciseDetail] Image Lookup:');
+    console.log(`   Exercise Name: "${exerciseName}"`);
+    console.log(`   Display Name: "${getDisplayName()}"`);
+    console.log(`   Equipment: "${equipment}"`);
+    console.log(`   Selected Variant: ${JSON.stringify(exercise?.selectedVariant?.equipment || 'None')}`);
+    console.log(`   Selected Equipment: "${exercise?.selectedEquipment || 'None'}"`);
+    console.log(`   Available Variants: ${JSON.stringify(exercise?.availableVariants || [])}`);
+
+    // Try to get variant-specific image
+    if (exerciseName && equipment) {
+      const variantImage = getVariantImage(exerciseName, equipment);
+      console.log(`   Looking up: getVariantImage("${exerciseName}", "${equipment}")`);
+      console.log(`   Result: ${variantImage ? (typeof variantImage === 'string' ? variantImage : '[Local Image]') : 'null'}`);
+      if (variantImage) {
+        return variantImage;
+      }
+    }
+
+    // Fall back to exercise.image if set
+    if (exercise?.image) {
+      console.log(`   Fallback to exercise.image: ${typeof exercise.image === 'string' ? exercise.image : '[Local Image]'}`);
+      return exercise.image;
+    }
+
+    console.log(`   ❌ No image found`);
+    return null;
+  };
 
   useEffect(() => {
     loadProgressData();
@@ -142,7 +236,7 @@ export default function ExerciseDetailScreen({ navigation, route }) {
   return (
     <ScreenLayout
       title="Exercise Detail"
-      subtitle={exercise?.displayName || exercise?.name || "Exercise Information"}
+      subtitle={getDisplayName()}
       navigation={navigation}
       showBack={true}
       scrollable={true}
@@ -189,15 +283,15 @@ export default function ExerciseDetailScreen({ navigation, route }) {
             overflow: 'hidden',
           }}>
             <ExerciseVideoPlayer
-              exerciseName={exercise?.displayName || exercise?.name}
-              equipment={exercise?.selectedVariant?.equipment || exercise?.equipment?.split(', ')[0]}
+              exerciseName={getDisplayName()}
+              equipment={getDisplayEquipment()}
               muscleGroup={exercise?.primaryMuscles?.[0] || exercise?.muscleGroup}
-              fallbackImage={exercise?.image}
+              fallbackImage={getExerciseImage()}
             />
           </View>
 
           {/* Static Image - Tap to view full size (if video player shows fallback) */}
-          {exercise?.image && (
+          {getExerciseImage() && (
             <TouchableOpacity
               style={{
                 alignSelf: 'center',
@@ -227,7 +321,7 @@ export default function ExerciseDetailScreen({ navigation, route }) {
             paddingHorizontal: getResponsiveSpacing(0.5),
             flexWrap: 'wrap',
           }}>
-            {exercise?.displayName || exercise?.name || 'NO NAME'}
+            {getDisplayName()}
           </Text>
 
         {/* Equipment and Difficulty - Responsive Layout */}
@@ -251,14 +345,14 @@ export default function ExerciseDetailScreen({ navigation, route }) {
               fontSize: getResponsiveSize(16, 18, 20),
               marginRight: getResponsiveSpacing(0.25)
             }}>
-              {getEquipmentIcon(exercise?.equipment)}
+              {getEquipmentIcon(getDisplayEquipment())}
             </Text>
             <Text style={{
               fontSize: getResponsiveFontSize(Typography.fontSize.md),
               color: Colors.primary,
               fontWeight: '600',
             }}>
-              {exercise?.equipment || 'Unknown'}
+              {getDisplayEquipment()}
             </Text>
           </View>
 
@@ -267,31 +361,48 @@ export default function ExerciseDetailScreen({ navigation, route }) {
             alignItems: 'center',
             gap: getResponsiveSpacing(0.5),
           }}>
-            {exercise?.difficulty === 'Beginner' && (
-              <View style={{
-                width: 24,
-                height: 24,
-                backgroundColor: '#4CAF50',
-                borderRadius: 12,
-              }} />
-            )}
-            {exercise?.difficulty === 'Intermediate' && (
-              <View style={{
-                width: 24,
-                height: 24,
-                backgroundColor: '#FF9800',
-                transform: [{ rotate: '45deg' }],
-                borderRadius: 4,
-              }} />
-            )}
-            {exercise?.difficulty === 'Advanced' && (
-              <View style={{
-                width: 24,
-                height: 24,
-                backgroundColor: '#F44336',
-                borderRadius: 0,
-              }} />
-            )}
+            {(() => {
+              const difficulty = getDisplayDifficulty()?.toLowerCase();
+              if (difficulty === 'beginner') {
+                return (
+                  <View style={{
+                    width: 24,
+                    height: 24,
+                    backgroundColor: '#4CAF50',
+                    borderRadius: 12,
+                  }} />
+                );
+              }
+              if (difficulty === 'intermediate') {
+                return (
+                  <View style={{
+                    width: 24,
+                    height: 24,
+                    backgroundColor: '#FF9800',
+                    transform: [{ rotate: '45deg' }],
+                    borderRadius: 4,
+                  }} />
+                );
+              }
+              if (difficulty === 'advanced') {
+                return (
+                  <View style={{
+                    width: 24,
+                    height: 24,
+                    backgroundColor: '#F44336',
+                    borderRadius: 0,
+                  }} />
+                );
+              }
+              return null;
+            })()}
+            <Text style={{
+              fontSize: getResponsiveFontSize(Typography.fontSize.sm),
+              color: Colors.textSecondary,
+              textTransform: 'capitalize',
+            }}>
+              {getDisplayDifficulty()}
+            </Text>
           </View>
         </View>
 
@@ -312,8 +423,53 @@ export default function ExerciseDetailScreen({ navigation, route }) {
           marginBottom: getResponsiveSpacing(1.5),
           paddingHorizontal: getResponsiveSpacing(0.25),
         }}>
-          {exercise?.instructions || 'No instructions available'}
+          {getDisplayInstructions()}
         </Text>
+
+        {/* Variant-specific Pros/Cons if available */}
+        {exercise?.selectedVariant?.pros && exercise?.selectedVariant?.pros.length > 0 && (
+          <View style={{ marginBottom: getResponsiveSpacing(1) }}>
+            <Text style={{
+              fontSize: getResponsiveFontSize(Typography.fontSize.md),
+              fontWeight: 'bold',
+              color: Colors.success,
+              marginBottom: getResponsiveSpacing(0.25),
+            }}>
+              ✓ {getDisplayEquipment()} Advantages:
+            </Text>
+            {exercise.selectedVariant.pros.map((pro, index) => (
+              <Text key={index} style={{
+                fontSize: getResponsiveFontSize(Typography.fontSize.sm),
+                color: Colors.textSecondary,
+                marginLeft: getResponsiveSpacing(0.5),
+              }}>
+                • {pro}
+              </Text>
+            ))}
+          </View>
+        )}
+
+        {exercise?.selectedVariant?.cons && exercise?.selectedVariant?.cons.length > 0 && (
+          <View style={{ marginBottom: getResponsiveSpacing(1) }}>
+            <Text style={{
+              fontSize: getResponsiveFontSize(Typography.fontSize.md),
+              fontWeight: 'bold',
+              color: Colors.warning,
+              marginBottom: getResponsiveSpacing(0.25),
+            }}>
+              ⚠ Considerations:
+            </Text>
+            {exercise.selectedVariant.cons.map((con, index) => (
+              <Text key={index} style={{
+                fontSize: getResponsiveFontSize(Typography.fontSize.sm),
+                color: Colors.textSecondary,
+                marginLeft: getResponsiveSpacing(0.5),
+              }}>
+                • {con}
+              </Text>
+            ))}
+          </View>
+        )}
 
         {/* Muscle Groups - Responsive */}
         {exercise?.primaryMuscles && (
@@ -652,7 +808,7 @@ export default function ExerciseDetailScreen({ navigation, route }) {
             <Text style={fullScreenModalStyles.closeButtonText}>✕</Text>
           </TouchableOpacity>
           <Image
-            source={typeof exercise?.image === 'string' ? { uri: exercise?.image } : exercise?.image}
+            source={typeof getExerciseImage() === 'string' ? { uri: getExerciseImage() } : getExerciseImage()}
             style={fullScreenModalStyles.fullScreenImage}
             resizeMode="contain"
           />

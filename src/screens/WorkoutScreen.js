@@ -15,6 +15,7 @@ import { useAuth } from '../context/AuthContext';
 import { useWorkout } from '../context/WorkoutContext';
 import AIButtonModal from '../components/AIButtonModal';
 import PlatePicker from '../components/PlatePicker';
+import { useAITracking } from '../components/AIScreenTracker';
 import { usesBarbellPlates, getBarType } from '../constants/weightEquipment';
 import BackgroundTimerService from '../services/BackgroundTimerService';
 
@@ -771,6 +772,33 @@ export default function WorkoutScreen({ navigation, route }) {
     };
   }, [isRestTimerRunning, restTimerEndTime]);
 
+  // Listen for AI-triggered rest timer requests
+  useEffect(() => {
+    const checkAITimerRequest = async () => {
+      try {
+        const timerRequest = await AsyncStorage.getItem('@start_rest_timer');
+        if (timerRequest) {
+          const { seconds, timestamp } = JSON.parse(timerRequest);
+          // Only start if request is recent (within last 5 seconds) and timer not already running
+          const isRecent = Date.now() - timestamp < 5000;
+          if (isRecent && !isRestTimerRunning && seconds > 0) {
+            console.log('🤖 AI requested rest timer:', seconds, 'seconds');
+            startRestTimer(seconds);
+          }
+          // Clear the request
+          await AsyncStorage.removeItem('@start_rest_timer');
+        }
+      } catch (error) {
+        console.error('Error checking AI timer request:', error);
+      }
+    };
+
+    // Check immediately and then every second
+    checkAITimerRequest();
+    const interval = setInterval(checkAITimerRequest, 1000);
+    return () => clearInterval(interval);
+  }, [isRestTimerRunning]);
+
   // Initialize workout - handle all scenarios
   useEffect(() => {
     const initializeWorkout = async () => {
@@ -940,6 +968,19 @@ export default function WorkoutScreen({ navigation, route }) {
   // Get workout data from context
   const workoutExercises = activeWorkout?.exercises || [];
   const workoutStartTime = activeWorkout?.startTime ? new Date(activeWorkout.startTime) : new Date();
+
+  // Get current exercise for AI context
+  const currentExercise = workoutExercises[currentExerciseIndex];
+
+  // Track screen context for AI - pass current exercise and workout info
+  useAITracking('WorkoutScreen', {
+    currentWorkout: activeWorkout,
+    currentExercise: currentExercise?.name,
+    currentExerciseIndex,
+    exerciseSets,
+    totalVolume,
+    totalSets,
+  });
 
   // Execute batched exercise moves
   const executePendingMoves = () => {
@@ -1498,9 +1539,6 @@ export default function WorkoutScreen({ navigation, route }) {
       exerciseSets
     });
   };
-
-  // Get current exercise
-  const currentExercise = workoutExercises[currentExerciseIndex];
 
   // Navigate to exercise detail screen
   const showExerciseDetail = (exercise) => {
@@ -2174,7 +2212,10 @@ export default function WorkoutScreen({ navigation, route }) {
             <TouchableOpacity
               style={[styles.actionButton, styles.aiButton]}
               activeOpacity={0.8}
-              onPress={() => setShowAIAssistant(true)}
+              onPress={() => {
+                console.log('🤖 Bottom AI button pressed - opening WorkoutAssistant');
+                setShowAIAssistant(true);
+              }}
             >
               <Ionicons name="sparkles" size={20} color={Colors.background} />
               <Text style={[styles.actionButtonText, styles.aiButtonText]}>Ask AI Assistant</Text>

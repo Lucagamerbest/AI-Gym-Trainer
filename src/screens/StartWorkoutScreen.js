@@ -206,7 +206,7 @@ export default function StartWorkoutScreen({ navigation }) {
               ) : (
                 recentWorkouts.map((item, index) => (
                   <TouchableOpacity
-                    key={item.id || index}
+                    key={`recent-${item.id}-${index}`}
                     style={styles.programCard}
                     onPress={() => handleStartRecentWorkout(item)}
                     activeOpacity={0.9}

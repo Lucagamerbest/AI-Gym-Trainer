@@ -791,14 +791,14 @@ export default function WorkoutHistoryScreen({ navigation }) {
     });
   };
 
-  const renderWorkoutCard = ({ item: workout }) => {
+  const renderWorkoutCard = ({ item: workout, index }) => {
     const stats = calculateWorkoutStats(workout);
     const firstPhoto = workout.photos && workout.photos.length > 0 ? workout.photos[0] : null;
     const workoutTypeIcon = workout.workoutType === 'program' ? '📋' : workout.workoutType === 'standalone' ? '💪' : '⚡';
 
     return (
       <TouchableOpacity
-        key={workout.id}
+        key={`workout-${workout.id}-${index}`}
         style={styles.workoutCard}
         onPress={() => {
           setSelectedWorkout(workout);
@@ -1065,7 +1065,7 @@ export default function WorkoutHistoryScreen({ navigation }) {
               </View>
             ) : (
               <View style={styles.workoutList}>
-                {getFilteredWorkouts().map((workout) => renderWorkoutCard({ item: workout }))}
+                {getFilteredWorkouts().map((workout, index) => renderWorkoutCard({ item: workout, index }))}
               </View>
             )}
           </View>

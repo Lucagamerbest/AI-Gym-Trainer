@@ -21,6 +21,144 @@ import MacroStatsCard from './MacroStatsCard';
 import FreeRecipeService from '../services/FreeRecipeService';
 import { getRecipePreferences } from '../services/recipePreferencesService';
 import AIChatModal from './AIChatModal';
+import ProgressiveOverloadService from '../services/ai/ProgressiveOverloadService';
+import { REP_RANGES } from '../services/ai/FitnessKnowledge';
+import BackendService from '../services/backend/BackendService';
+
+/**
+ * Exercise alternatives database for instant lookups
+ */
+/**
+ * Exercise alternatives database - array ordered from most specific to least specific
+ */
+const EXERCISE_ALTERNATIVES = [
+  // Leg exercises (most specific first)
+  { key: 'leg extension', name: 'Leg Extension', alternatives: [
+    { name: 'Sissy Squat', reason: 'Bodyweight quad isolation' },
+    { name: 'Front Squat', reason: 'Compound quad focus' },
+    { name: 'Leg Press (feet low)', reason: 'Machine alternative' },
+  ]},
+  { key: 'leg curl', name: 'Leg Curl', alternatives: [
+    { name: 'Romanian Deadlift', reason: 'Hip hinge movement' },
+    { name: 'Nordic Curl', reason: 'Bodyweight option' },
+    { name: 'Glute Ham Raise', reason: 'Full posterior chain' },
+  ]},
+  { key: 'leg press', name: 'Leg Press', alternatives: [
+    { name: 'Hack Squat', reason: 'More quad focus' },
+    { name: 'Belt Squat', reason: 'No spinal load' },
+    { name: 'Smith Machine Squat', reason: 'Guided movement' },
+  ]},
+  { key: 'calf raise', name: 'Calf Raise', alternatives: [
+    { name: 'Seated Calf Raise', reason: 'Soleus focus' },
+    { name: 'Donkey Calf Raise', reason: 'Better stretch' },
+    { name: 'Single Leg Calf Raise', reason: 'Unilateral' },
+  ]},
+  { key: 'hip thrust', name: 'Hip Thrust', alternatives: [
+    { name: 'Glute Bridge', reason: 'No setup needed' },
+    { name: 'Cable Pull Through', reason: 'Constant tension' },
+    { name: 'Reverse Hyper', reason: 'Decompresses spine' },
+  ]},
+  { key: 'lunge', name: 'Lunge', alternatives: [
+    { name: 'Bulgarian Split Squat', reason: 'More stability' },
+    { name: 'Step Up', reason: 'Unilateral strength' },
+    { name: 'Walking Lunge', reason: 'More dynamic' },
+  ]},
+  // Chest
+  { key: 'bench press', name: 'Bench Press', alternatives: [
+    { name: 'Dumbbell Bench Press', reason: 'Better ROM' },
+    { name: 'Incline Bench Press', reason: 'Upper chest' },
+    { name: 'Machine Chest Press', reason: 'Safer solo' },
+  ]},
+  { key: 'incline', name: 'Incline Press', alternatives: [
+    { name: 'Incline Dumbbell Press', reason: 'Better ROM' },
+    { name: 'Low Incline Bench', reason: 'Less shoulder stress' },
+    { name: 'Landmine Press', reason: 'Shoulder-friendly' },
+  ]},
+  // Back
+  { key: 'lat pulldown', name: 'Lat Pulldown', alternatives: [
+    { name: 'Pull-ups', reason: 'Bodyweight compound' },
+    { name: 'Chin-ups', reason: 'More bicep' },
+    { name: 'Straight Arm Pulldown', reason: 'Lat isolation' },
+  ]},
+  { key: 'pull up', name: 'Pull-up', alternatives: [
+    { name: 'Lat Pulldown', reason: 'Adjustable weight' },
+    { name: 'Assisted Pull-ups', reason: 'Build strength' },
+    { name: 'Inverted Rows', reason: 'Easier progression' },
+  ]},
+  { key: 'row', name: 'Row', alternatives: [
+    { name: 'Dumbbell Row', reason: 'Unilateral' },
+    { name: 'Cable Row', reason: 'Constant tension' },
+    { name: 'T-Bar Row', reason: 'Neutral grip' },
+  ]},
+  { key: 'deadlift', name: 'Deadlift', alternatives: [
+    { name: 'Trap Bar Deadlift', reason: 'Easier form' },
+    { name: 'Romanian Deadlift', reason: 'Hamstring focus' },
+    { name: 'Rack Pulls', reason: 'Reduced ROM' },
+  ]},
+  // Shoulders
+  { key: 'shoulder press', name: 'Shoulder Press', alternatives: [
+    { name: 'Dumbbell Shoulder Press', reason: 'Greater ROM' },
+    { name: 'Arnold Press', reason: 'More rotation' },
+    { name: 'Landmine Press', reason: 'Shoulder-friendly' },
+  ]},
+  { key: 'lateral raise', name: 'Lateral Raise', alternatives: [
+    { name: 'Cable Lateral Raise', reason: 'Constant tension' },
+    { name: 'Machine Lateral Raise', reason: 'Stability' },
+    { name: 'Leaning Lateral Raise', reason: 'Better stretch' },
+  ]},
+  { key: 'face pull', name: 'Face Pull', alternatives: [
+    { name: 'Rear Delt Fly', reason: 'Machine option' },
+    { name: 'Band Pull Apart', reason: 'Anywhere, anytime' },
+    { name: 'Reverse Pec Deck', reason: 'Easy setup' },
+  ]},
+  // Arms
+  { key: 'tricep extension', name: 'Tricep Extension', alternatives: [
+    { name: 'Skull Crushers', reason: 'Long head focus' },
+    { name: 'Cable Pushdown', reason: 'Constant tension' },
+    { name: 'Close Grip Bench', reason: 'Compound movement' },
+  ]},
+  { key: 'tricep pushdown', name: 'Tricep Pushdown', alternatives: [
+    { name: 'Overhead Extension', reason: 'Long head stretch' },
+    { name: 'Skull Crushers', reason: 'Free weight option' },
+    { name: 'Dips', reason: 'Bodyweight compound' },
+  ]},
+  { key: 'bicep curl', name: 'Bicep Curl', alternatives: [
+    { name: 'Hammer Curl', reason: 'Brachialis focus' },
+    { name: 'Preacher Curl', reason: 'Strict form' },
+    { name: 'Incline Curl', reason: 'Long head stretch' },
+  ]},
+  // Generic fallbacks
+  { key: 'squat', name: 'Squat', alternatives: [
+    { name: 'Front Squat', reason: 'More quad focus' },
+    { name: 'Leg Press', reason: 'Easier on back' },
+    { name: 'Goblet Squat', reason: 'Beginner-friendly' },
+  ]},
+  { key: 'bench', name: 'Bench Press', alternatives: [
+    { name: 'Dumbbell Press', reason: 'Better ROM' },
+    { name: 'Push-ups', reason: 'Bodyweight option' },
+    { name: 'Machine Press', reason: 'Safer solo' },
+  ]},
+  { key: 'press', name: 'Press', alternatives: [
+    { name: 'Dumbbell Press', reason: 'Greater ROM' },
+    { name: 'Machine Press', reason: 'Guided movement' },
+    { name: 'Push-up', reason: 'Bodyweight option' },
+  ]},
+  { key: 'curl', name: 'Curl', alternatives: [
+    { name: 'Hammer Curl', reason: 'Brachialis focus' },
+    { name: 'Preacher Curl', reason: 'Strict form' },
+    { name: 'Cable Curl', reason: 'Constant tension' },
+  ]},
+  { key: 'fly', name: 'Fly', alternatives: [
+    { name: 'Cable Crossover', reason: 'Constant tension' },
+    { name: 'Pec Deck', reason: 'Machine stability' },
+    { name: 'Dumbbell Fly', reason: 'Greater stretch' },
+  ]},
+  { key: 'raise', name: 'Raise', alternatives: [
+    { name: 'Cable Raise', reason: 'Constant tension' },
+    { name: 'Machine Raise', reason: 'Stability' },
+    { name: 'Dumbbell Raise', reason: 'Free weight' },
+  ]},
+];
 
 /**
  * AIButtonModal
@@ -106,6 +244,9 @@ export default function AIButtonModal({
   const [showReorderUI, setShowReorderUI] = useState(false); // Show manual reorder interface
   const [exerciseColors, setExerciseColors] = useState({}); // Map exercise name to color
 
+  // Instant action result state (for interactive modals)
+  const [instantActionResult, setInstantActionResult] = useState(null); // { title, content, actions }
+
   // Color palette for exercises
   const exercisePalette = [
     '#FF6B6B', // Red
@@ -122,6 +263,46 @@ export default function AIButtonModal({
 
   // Get sections for this screen
   const sections = getAISectionsForScreen(screenName);
+
+  // DEBUG: Log everything about the AI modal
+  useEffect(() => {
+    if (visible) {
+      console.log('═══════════════════════════════════════════════════════');
+      console.log('🤖 AI BUTTON MODAL DEBUG');
+      console.log('═══════════════════════════════════════════════════════');
+      console.log('📱 Screen Name:', screenName);
+      console.log('📊 Total Sections:', sections.length);
+      console.log('');
+
+      // Log each section with full details
+      sections.forEach((section, i) => {
+        console.log(`┌─── Section ${i}: "${section.title}" ───`);
+        console.log(`│ Icon: ${section.icon}`);
+        console.log(`│ Buttons: ${section.buttons?.length || 0}`);
+
+        section.buttons?.forEach((btn, j) => {
+          console.log(`│`);
+          console.log(`│ [${j}] ${btn.text}`);
+          console.log(`│     instantAction: ${btn.instantAction || 'none'}`);
+          console.log(`│     toolName: ${btn.toolName || 'none'}`);
+          console.log(`│     description: ${btn.description || 'none'}`);
+          if (btn.params) console.log(`│     params:`, btn.params);
+        });
+        console.log(`└────────────────────────────────────`);
+        console.log('');
+      });
+
+      // Log context data
+      const screenData = ContextManager.screenData || {};
+      console.log('📋 CONTEXT DATA:');
+      console.log('   currentExercise:', screenData.currentExercise || 'none');
+      console.log('   currentExerciseIndex:', screenData.currentExerciseIndex);
+      console.log('   exerciseSets:', screenData.exerciseSets ? Object.keys(screenData.exerciseSets).length + ' exercises' : 'none');
+      console.log('   currentWorkout:', screenData.currentWorkout ? 'exists' : 'none');
+      console.log('   userGoal:', screenData.currentWorkout?.goal || 'not set');
+      console.log('═══════════════════════════════════════════════════════');
+    }
+  }, [visible, screenName]);
 
   // Initialize first section as expanded
   useEffect(() => {
@@ -843,6 +1024,1740 @@ export default function AIButtonModal({
   };
 
   /**
+   * Handle instant actions (no AI needed) - Shows interactive modal like WorkoutQuickActions
+   */
+  const handleInstantAction = async (action, button = null) => {
+    console.log('🚀 Handling instant action:', action, 'with params:', button?.params);
+    setExpandedSections({});
+
+    // Try to get context from ContextManager first
+    let screenData = ContextManager.screenData || {};
+    let currentExercise = screenData.currentExercise;
+    let exerciseSets = screenData.exerciseSets || {};
+    let currentWorkout = screenData.currentWorkout || {};
+    let userGoal = currentWorkout.goal || 'hypertrophy';
+    let workoutExercises = [];
+
+    // If no context, load directly from AsyncStorage
+    if (!currentExercise && !currentWorkout?.exercises) {
+      try {
+        const activeWorkoutStr = await AsyncStorage.getItem('@active_workout');
+        if (activeWorkoutStr) {
+          const activeWorkout = JSON.parse(activeWorkoutStr);
+          currentWorkout = activeWorkout;
+          workoutExercises = activeWorkout.exercises || [];
+          exerciseSets = activeWorkout.exerciseSets || {};
+          userGoal = activeWorkout.goal || 'hypertrophy';
+          console.log('📦 Loaded active workout from AsyncStorage:', workoutExercises.length, 'exercises');
+        }
+      } catch (error) {
+        console.error('Failed to load active workout:', error);
+      }
+    } else {
+      workoutExercises = currentWorkout?.exercises || [];
+    }
+
+    // Get current weight from the first exercise with sets if no specific one
+    let currentWeight = 0;
+    const currentExerciseIndex = screenData.currentExerciseIndex;
+    if (currentExerciseIndex !== undefined && exerciseSets[currentExerciseIndex]) {
+      const currentSets = exerciseSets[currentExerciseIndex] || [];
+      const lastSet = currentSets[currentSets.length - 1];
+      currentWeight = lastSet?.weight || 0;
+    }
+
+    switch (action) {
+      case 'SUGGEST_WEIGHT':
+        await handleSuggestWeight(currentExercise, currentWeight, workoutExercises);
+        break;
+      case 'RECOMMEND_REST':
+        handleRecommendRest(userGoal);
+        break;
+      case 'SET_FEEDBACK':
+        handleSetFeedback(currentWeight, workoutExercises, exerciseSets);
+        break;
+      case 'FIND_ALTERNATIVE':
+        handleFindAlternative(currentExercise, workoutExercises);
+        break;
+      case 'ADD_SIMILAR':
+        handleAddSimilar(currentExercise, workoutExercises);
+        break;
+      case 'ADD_SUPERSET':
+        handleAddSuperset(currentExercise, workoutExercises);
+        break;
+      case 'RECOMMEND_EXTRA_SET':
+        handleRecommendExtraSet(currentExercise, workoutExercises, exerciseSets);
+        break;
+      case 'RPE_CALCULATOR':
+        handleRPECalculator(currentWeight);
+        break;
+      // StartWorkoutScreen actions
+      case 'RECOMMEND_TODAY':
+        handleRecommendToday();
+        break;
+      case 'LAST_WORKOUT':
+        handleLastWorkout();
+        break;
+      case 'MUSCLE_PRIORITY':
+        handleMusclePriority();
+        break;
+      case 'BROWSE_EXERCISES':
+        handleBrowseExercises(button?.params?.muscle);
+        break;
+      // WorkoutHistoryScreen actions
+      case 'WEEK_SUMMARY':
+        handleWeekSummary();
+        break;
+      case 'RECENT_PRS':
+        handleRecentPRs();
+        break;
+      case 'MUSCLE_BALANCE':
+        handleMuscleBalance();
+        break;
+      case 'STREAK_STATUS':
+        handleStreakStatus();
+        break;
+      case 'VOLUME_TREND':
+        handleVolumeTrend();
+        break;
+      case 'WORKOUT_FREQUENCY':
+        handleWorkoutFrequency();
+        break;
+      // ExerciseDetailScreen actions
+      case 'EXERCISE_PR':
+        handleExercisePR(currentExercise);
+        break;
+      case 'EXERCISE_PROGRESSION':
+        handleExerciseProgression(currentExercise);
+        break;
+      case 'EXERCISE_HISTORY':
+        handleExerciseHistory(currentExercise);
+        break;
+      // WorkoutSummaryScreen actions
+      case 'CHECK_WORKOUT_PRS':
+        handleCheckWorkoutPRs(exerciseSets);
+        break;
+      case 'COMPARE_WORKOUT':
+        handleCompareWorkout();
+        break;
+      case 'VOLUME_BREAKDOWN':
+        handleVolumeBreakdown(workoutExercises, exerciseSets);
+        break;
+      case 'MUSCLES_WORKED':
+        handleMusclesWorked(workoutExercises);
+        break;
+      case 'RECOMMEND_NEXT':
+        handleRecommendNext(workoutExercises);
+        break;
+      case 'RECOVERY_TIME':
+        handleRecoveryTime(workoutExercises);
+        break;
+      // WorkoutDetailScreen actions
+      case 'WORKOUT_SUMMARY':
+        handleWorkoutSummary(workoutExercises, exerciseSets);
+        break;
+      case 'REPEAT_WORKOUT':
+        handleRepeatWorkout();
+        break;
+      // MyPlansScreen actions
+      case 'PROGRAM_OVERVIEW':
+        handleProgramOverview();
+        break;
+      case 'WEEKLY_SCHEDULE':
+        handleWeeklySchedule();
+        break;
+      case 'SHOW_SPLIT_INFO':
+        handleShowSplitInfo(button?.params?.type);
+        break;
+      case 'WEEKLY_VOLUME':
+        handleWeeklyVolume();
+        break;
+      // Filter actions
+      case 'FILTER_BY_MUSCLE':
+        handleFilterByMuscle();
+        break;
+      case 'FILTER_BY_EQUIPMENT':
+        handleFilterByEquipment();
+        break;
+      default:
+        setLastResponse('Unknown action');
+    }
+  };
+
+  /**
+   * Instant Action: Suggest next weight based on progressive overload
+   */
+  const handleSuggestWeight = async (exerciseName, currentWeight, workoutExercises = []) => {
+    // If no exercise selected, show exercise picker
+    if (!exerciseName) {
+      if (workoutExercises.length === 0) {
+        setInstantActionResult({
+          title: '💡 No Active Workout',
+          content: (
+            <View>
+              <Text style={instantStyles.resultText}>
+                Start a workout first to get weight recommendations.
+              </Text>
+            </View>
+          ),
+          actions: []
+        });
+        return;
+      }
+
+      // Show exercise selection
+      setInstantActionResult({
+        title: '💪 Select Exercise',
+        content: (
+          <View>
+            <Text style={instantStyles.resultSubtext}>Choose an exercise to get weight suggestion:</Text>
+          </View>
+        ),
+        actions: workoutExercises.slice(0, 4).map(ex => ({
+          label: ex.name,
+          onPress: async () => {
+            setInstantActionResult(null);
+            await handleSuggestWeight(ex.name, 0, workoutExercises);
+          }
+        }))
+      });
+      return;
+    }
+
+    setLoadingButton('Suggest next weight');
+    try {
+      const userId = user?.uid || BackendService.getCurrentUserId() || 'guest';
+      const recommendation = await ProgressiveOverloadService.analyzeExerciseProgression(userId, exerciseName);
+
+      if (recommendation && recommendation.suggestedWeight) {
+        setInstantActionResult({
+          title: '💪 Weight Suggestion',
+          content: (
+            <View>
+              <Text style={instantStyles.resultHighlight}>{recommendation.suggestedWeight} lbs</Text>
+              <Text style={instantStyles.resultSubtext}>
+                Current: {recommendation.currentWeight || currentWeight} lbs
+              </Text>
+              <Text style={instantStyles.resultReason}>{recommendation.reason}</Text>
+              {recommendation.type === 'ADD_VOLUME' && (
+                <Text style={instantStyles.resultTip}>💡 {recommendation.suggestion}</Text>
+              )}
+            </View>
+          ),
+          actions: [
+            {
+              label: `Use ${recommendation.suggestedWeight} lbs`,
+              primary: true,
+              onPress: () => {
+                setInstantActionResult(null);
+                setLastResponse(`✅ Got it! Use **${recommendation.suggestedWeight} lbs** for your next set of ${exerciseName}.`);
+              }
+            }
+          ]
+        });
+      } else if (currentWeight > 0) {
+        setInstantActionResult({
+          title: '💪 Weight Suggestion',
+          content: (
+            <View>
+              <Text style={instantStyles.resultHighlight}>{currentWeight} lbs</Text>
+              <Text style={instantStyles.resultSubtext}>Current weight</Text>
+              <Text style={instantStyles.resultTip}>
+                Complete 2-3 more workouts to get personalized progression advice!
+              </Text>
+            </View>
+          ),
+          actions: [
+            {
+              label: 'Add 5 lbs',
+              primary: true,
+              onPress: () => {
+                setInstantActionResult(null);
+                setLastResponse(`✅ Try **${currentWeight + 5} lbs** if last set felt easy!`);
+              }
+            },
+            {
+              label: 'Keep weight',
+              onPress: () => {
+                setInstantActionResult(null);
+                setLastResponse(`✅ Stay at **${currentWeight} lbs** and focus on form.`);
+              }
+            }
+          ]
+        });
+      } else {
+        setInstantActionResult({
+          title: '💪 Weight Suggestion',
+          content: (
+            <View>
+              <Text style={instantStyles.resultText}>
+                Start with a weight you can do 8-12 reps with good form.
+              </Text>
+              <Text style={instantStyles.resultTip}>
+                Log a few sessions to get personalized suggestions!
+              </Text>
+            </View>
+          ),
+          actions: []
+        });
+      }
+    } catch (error) {
+      console.error('Error getting weight suggestion:', error);
+      setInstantActionResult({
+        title: '💪 Weight Suggestion',
+        content: (
+          <View>
+            <Text style={instantStyles.resultText}>
+              Unable to analyze history yet.
+            </Text>
+            <Text style={instantStyles.resultTip}>
+              💡 General tip: If last set felt easy, add 5 lbs. If hard, stay at current weight.
+            </Text>
+          </View>
+        ),
+        actions: []
+      });
+    }
+    setLoadingButton(null);
+  };
+
+  /**
+   * Instant Action: Recommend rest time based on training goal
+   */
+  const handleRecommendRest = (userGoal) => {
+    const goal = (userGoal || 'hypertrophy').toUpperCase();
+
+    const restTimes = {
+      STRENGTH: { time: '3-5 min', seconds: 180, description: 'Full recovery for max strength' },
+      HYPERTROPHY: { time: '60-90 sec', seconds: 90, description: 'Optimal for muscle growth' },
+      ENDURANCE: { time: '30-45 sec', seconds: 45, description: 'Keep heart rate elevated' },
+      POWER: { time: '3-5 min', seconds: 180, description: 'Full CNS recovery' },
+    };
+
+    const restInfo = restTimes[goal] || restTimes.HYPERTROPHY;
+    const goalDisplay = goal.charAt(0) + goal.slice(1).toLowerCase();
+
+    setInstantActionResult({
+      title: '⏱️ Rest Time',
+      content: (
+        <View>
+          <Text style={instantStyles.resultHighlight}>{restInfo.time}</Text>
+          <Text style={instantStyles.resultSubtext}>Goal: {goalDisplay}</Text>
+          <Text style={instantStyles.resultReason}>{restInfo.description}</Text>
+        </View>
+      ),
+      actions: [
+        {
+          label: `Start ${restInfo.seconds}s Timer`,
+          primary: true,
+          onPress: async () => {
+            setInstantActionResult(null);
+            // Start the rest timer via AsyncStorage event (WorkoutScreen listens for this)
+            try {
+              await AsyncStorage.setItem('@start_rest_timer', JSON.stringify({
+                seconds: restInfo.seconds,
+                timestamp: Date.now()
+              }));
+              // Close modal so user can see the timer
+              onClose();
+            } catch (e) {
+              setLastResponse(`⏱️ Rest **${restInfo.time}** before your next set.`);
+            }
+          }
+        },
+        {
+          label: '2 min',
+          onPress: async () => {
+            setInstantActionResult(null);
+            try {
+              await AsyncStorage.setItem('@start_rest_timer', JSON.stringify({
+                seconds: 120,
+                timestamp: Date.now()
+              }));
+              onClose();
+            } catch (e) {
+              setLastResponse(`⏱️ Rest **2 minutes** before your next set.`);
+            }
+          }
+        },
+        {
+          label: '3 min',
+          onPress: async () => {
+            setInstantActionResult(null);
+            try {
+              await AsyncStorage.setItem('@start_rest_timer', JSON.stringify({
+                seconds: 180,
+                timestamp: Date.now()
+              }));
+              onClose();
+            } catch (e) {
+              setLastResponse(`⏱️ Rest **3 minutes** before your next set.`);
+            }
+          }
+        }
+      ]
+    });
+  };
+
+  /**
+   * Instant Action: RPE Calculator
+   * Shows RPE scale and helps users understand/calculate RPE
+   */
+  const handleRPECalculator = (currentWeight) => {
+    // RPE scale with descriptions
+    const rpeScale = [
+      { rpe: 10, rir: 0, label: 'Max Effort', desc: 'Could not do another rep', color: '#FF4444' },
+      { rpe: 9.5, rir: 0.5, label: 'Near Max', desc: 'Maybe 1 more with bad form', color: '#FF6644' },
+      { rpe: 9, rir: 1, label: 'Very Hard', desc: '1 rep left in tank', color: '#FF8844' },
+      { rpe: 8.5, rir: 1.5, label: 'Hard', desc: '1-2 reps left', color: '#FFAA44' },
+      { rpe: 8, rir: 2, label: 'Challenging', desc: '2 reps left in tank', color: '#FFCC44' },
+      { rpe: 7.5, rir: 2.5, label: 'Moderate+', desc: '2-3 reps left', color: '#DDDD44' },
+      { rpe: 7, rir: 3, label: 'Moderate', desc: '3 reps left in tank', color: '#AADD44' },
+      { rpe: 6, rir: 4, label: 'Light', desc: '4+ reps left - warm up', color: '#88CC44' },
+    ];
+
+    setInstantActionResult({
+      title: '📊 RPE Calculator',
+      content: (
+        <View>
+          <Text style={instantStyles.resultSubtext}>Tap your effort level:</Text>
+          <Text style={[instantStyles.resultTip, { marginBottom: 8 }]}>
+            RIR = Reps In Reserve
+          </Text>
+        </View>
+      ),
+      actions: [
+        {
+          label: 'RPE 10 (0 RIR) - Max',
+          onPress: () => showRPEResult(10, 0, currentWeight),
+        },
+        {
+          label: 'RPE 9 (1 RIR) - Very Hard',
+          onPress: () => showRPEResult(9, 1, currentWeight),
+        },
+        {
+          label: 'RPE 8 (2 RIR) - Hard',
+          primary: true,
+          onPress: () => showRPEResult(8, 2, currentWeight),
+        },
+        {
+          label: 'RPE 7 (3 RIR) - Moderate',
+          onPress: () => showRPEResult(7, 3, currentWeight),
+        },
+      ]
+    });
+  };
+
+  /**
+   * Show RPE result with weight recommendations
+   */
+  const showRPEResult = (rpe, rir, currentWeight) => {
+    // Calculate weight adjustments based on RPE
+    // General rule: ~2.5% per RPE point for trained lifters
+    const weightAdjustmentPerRPE = 0.025;
+
+    let recommendation = '';
+    let emoji = '';
+    let nextSetAdvice = '';
+
+    if (rpe >= 9.5) {
+      emoji = '🔥';
+      recommendation = 'That was a max effort set!';
+      nextSetAdvice = currentWeight > 0
+        ? `Consider dropping to ${Math.round(currentWeight * 0.9 / 5) * 5} lbs for your next set, or take a longer rest.`
+        : 'Take a longer rest (3-5 min) or reduce weight for next set.';
+    } else if (rpe >= 8.5) {
+      emoji = '💪';
+      recommendation = 'Great intensity! This is ideal for strength gains.';
+      nextSetAdvice = currentWeight > 0
+        ? `Keep at ${currentWeight} lbs or drop 5 lbs if fatigued.`
+        : 'Maintain this weight or slight reduction if fatigued.';
+    } else if (rpe >= 7.5) {
+      emoji = '✅';
+      recommendation = 'Perfect for hypertrophy! Good muscle stimulus with manageable fatigue.';
+      nextSetAdvice = currentWeight > 0
+        ? `Stay at ${currentWeight} lbs. You could add 5 lbs next workout.`
+        : 'This is a sustainable intensity. Consider adding weight next session.';
+    } else if (rpe >= 6.5) {
+      emoji = '👍';
+      recommendation = 'Moderate effort. Good for volume accumulation.';
+      nextSetAdvice = currentWeight > 0
+        ? `You could add ${Math.round(currentWeight * 0.05 / 5) * 5 || 5} lbs for more challenge.`
+        : 'Add some weight to increase stimulus.';
+    } else {
+      emoji = '⬆️';
+      recommendation = 'Light effort. This is warm-up territory.';
+      nextSetAdvice = currentWeight > 0
+        ? `Increase to ${Math.round(currentWeight * 1.1 / 5) * 5} lbs for working sets.`
+        : 'Increase the weight significantly for your working sets.';
+    }
+
+    setInstantActionResult({
+      title: `${emoji} RPE ${rpe}`,
+      content: (
+        <View>
+          <Text style={instantStyles.resultHighlight}>{rir} reps in reserve</Text>
+          <Text style={instantStyles.resultReason}>{recommendation}</Text>
+          <Text style={[instantStyles.resultTip, { marginTop: 12 }]}>
+            {nextSetAdvice}
+          </Text>
+        </View>
+      ),
+      actions: [
+        {
+          label: 'Got it!',
+          primary: true,
+          onPress: () => {
+            setInstantActionResult(null);
+            setLastResponse(`📊 **RPE ${rpe}** logged (${rir} RIR)\n\n${recommendation}`);
+          }
+        },
+        {
+          label: 'Pick different RPE',
+          onPress: () => handleRPECalculator(currentWeight),
+        }
+      ]
+    });
+  };
+
+  /**
+   * Instant Action: Set feedback (too hard/easy)
+   */
+  const handleSetFeedback = (currentWeight, workoutExercises = [], exerciseSets = {}) => {
+    // If no weight, show exercise picker to select one with logged sets
+    if (!currentWeight || currentWeight === 0) {
+      // Find exercises with logged sets
+      const exercisesWithSets = workoutExercises.filter((ex, index) => {
+        const sets = exerciseSets[index] || [];
+        return sets.some(s => s.weight && s.completed);
+      });
+
+      if (exercisesWithSets.length === 0) {
+        setInstantActionResult({
+          title: '📊 Set Feedback',
+          content: (
+            <View>
+              <Text style={instantStyles.resultText}>
+                Log a set first to get weight adjustment suggestions!
+              </Text>
+            </View>
+          ),
+          actions: []
+        });
+        return;
+      }
+
+      // Show exercise selection with their last weight
+      setInstantActionResult({
+        title: '📊 Select Exercise',
+        content: (
+          <View>
+            <Text style={instantStyles.resultSubtext}>Choose exercise to give feedback:</Text>
+          </View>
+        ),
+        actions: exercisesWithSets.slice(0, 4).map((ex, i) => {
+          const exIndex = workoutExercises.indexOf(ex);
+          const sets = exerciseSets[exIndex] || [];
+          const lastSet = sets.filter(s => s.completed).pop();
+          const weight = lastSet?.weight || 0;
+          return {
+            label: `${ex.name} (${weight} lbs)`,
+            onPress: () => {
+              setInstantActionResult(null);
+              handleSetFeedback(weight, workoutExercises, exerciseSets);
+            }
+          };
+        })
+      });
+      return;
+    }
+
+    const lighterWeight = Math.round(currentWeight * 0.9 / 5) * 5;
+    const heavierWeight = Math.round(currentWeight * 1.1 / 5) * 5;
+
+    setInstantActionResult({
+      title: '📊 How Was Your Set?',
+      content: (
+        <View>
+          <Text style={instantStyles.resultSubtext}>At {currentWeight} lbs</Text>
+        </View>
+      ),
+      actions: [
+        {
+          label: `😓 Too Hard → ${lighterWeight} lbs`,
+          onPress: () => {
+            setInstantActionResult(null);
+            setLastResponse(`✅ Drop to **${lighterWeight} lbs** (-10%)\n\nFocus on form and controlled reps!`);
+          }
+        },
+        {
+          label: '✅ Just Right',
+          primary: true,
+          onPress: () => {
+            setInstantActionResult(null);
+            setLastResponse(`✅ Perfect! Stay at **${currentWeight} lbs**\n\nYou're in the sweet spot for progress!`);
+          }
+        },
+        {
+          label: `💪 Too Easy → ${heavierWeight} lbs`,
+          onPress: () => {
+            setInstantActionResult(null);
+            setLastResponse(`🔥 Go up to **${heavierWeight} lbs** (+10%)\n\nYou're ready for more weight!`);
+          }
+        }
+      ]
+    });
+  };
+
+  /**
+   * Instant Action: Find exercise alternative
+   */
+  const handleFindAlternative = (exerciseName, workoutExercises = []) => {
+    // If no exercise selected, show exercise picker
+    if (!exerciseName) {
+      if (workoutExercises.length === 0) {
+        setInstantActionResult({
+          title: '🔄 No Active Workout',
+          content: (
+            <View>
+              <Text style={instantStyles.resultText}>
+                Start a workout first to find exercise alternatives.
+              </Text>
+            </View>
+          ),
+          actions: []
+        });
+        return;
+      }
+
+      // Show exercise selection
+      setInstantActionResult({
+        title: '🔄 Select Exercise',
+        content: (
+          <View>
+            <Text style={instantStyles.resultSubtext}>Choose exercise to find alternatives:</Text>
+          </View>
+        ),
+        actions: workoutExercises.slice(0, 4).map(ex => ({
+          label: ex.name,
+          onPress: () => {
+            setInstantActionResult(null);
+            handleFindAlternative(ex.name, workoutExercises);
+          }
+        }))
+      });
+      return;
+    }
+
+    const nameLower = exerciseName.toLowerCase();
+    let alternativeSet = null;
+
+    // Find first matching entry (most specific matches first due to array order)
+    const match = EXERCISE_ALTERNATIVES.find(entry => nameLower.includes(entry.key));
+    if (match) {
+      alternativeSet = match;
+    }
+
+    if (alternativeSet) {
+      setInstantActionResult({
+        title: '🔄 Alternatives',
+        content: (
+          <View>
+            <Text style={instantStyles.resultSubtext}>Instead of {exerciseName}:</Text>
+            {alternativeSet.alternatives.map((alt, index) => (
+              <TouchableOpacity
+                key={index}
+                style={instantStyles.alternativeItem}
+                onPress={() => {
+                  setInstantActionResult(null);
+                  setLastResponse(`✅ **${alt.name}**\n\n${alt.reason}\n\nSwap this into your workout!`);
+                }}
+              >
+                <Text style={instantStyles.alternativeName}>{alt.name}</Text>
+                <Text style={instantStyles.alternativeReason}>{alt.reason}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        ),
+        actions: []
+      });
+    } else {
+      setInstantActionResult({
+        title: '🔄 Alternatives',
+        content: (
+          <View>
+            <Text style={instantStyles.resultSubtext}>For {exerciseName}, try:</Text>
+            <Text style={instantStyles.resultTip}>
+              • Dumbbell variation (more ROM){'\n'}
+              • Cable variation (constant tension){'\n'}
+              • Machine variation (easier form)
+            </Text>
+          </View>
+        ),
+        actions: []
+      });
+    }
+  };
+
+  /**
+   * Similar exercise database for quick lookups
+   * Keys are ordered from most specific to least specific for proper matching
+   */
+  const SIMILAR_EXERCISES = [
+    // Leg exercises (most specific first)
+    { key: 'leg extension', exercises: ['Sissy Squat', 'Leg Press (high foot)', 'Front Squat', 'Hack Squat'] },
+    { key: 'leg curl', exercises: ['Romanian Deadlift', 'Nordic Curl', 'Good Morning', 'Glute Ham Raise'] },
+    { key: 'leg press', exercises: ['Hack Squat', 'Smith Machine Squat', 'Belt Squat', 'Pendulum Squat'] },
+    { key: 'calf raise', exercises: ['Seated Calf Raise', 'Donkey Calf Raise', 'Single Leg Calf Raise', 'Leg Press Calf Raise'] },
+    { key: 'hip thrust', exercises: ['Glute Bridge', 'Cable Pull Through', 'Romanian Deadlift', 'Reverse Hyper'] },
+    { key: 'lunge', exercises: ['Bulgarian Split Squat', 'Step Up', 'Walking Lunge', 'Reverse Lunge'] },
+    // Chest
+    { key: 'bench press', exercises: ['Incline Bench Press', 'Decline Bench Press', 'Dumbbell Bench Press', 'Floor Press'] },
+    { key: 'incline', exercises: ['Incline Dumbbell Press', 'Low Incline Bench', 'Incline Machine Press', 'Landmine Press'] },
+    { key: 'chest fly', exercises: ['Cable Crossover', 'Pec Deck', 'Dumbbell Fly', 'Incline Fly'] },
+    { key: 'push up', exercises: ['Diamond Push-up', 'Decline Push-up', 'Archer Push-up', 'Weighted Push-up'] },
+    // Back
+    { key: 'lat pulldown', exercises: ['Pull-up', 'Chin-up', 'Straight Arm Pulldown', 'Cable Row'] },
+    { key: 'pull up', exercises: ['Chin-up', 'Lat Pulldown', 'Neutral Grip Pull-up', 'Assisted Pull-up'] },
+    { key: 'row', exercises: ['Dumbbell Row', 'Cable Row', 'T-Bar Row', 'Meadows Row'] },
+    { key: 'deadlift', exercises: ['Romanian Deadlift', 'Sumo Deadlift', 'Trap Bar Deadlift', 'Deficit Deadlift'] },
+    // Shoulders
+    { key: 'shoulder press', exercises: ['Dumbbell Shoulder Press', 'Arnold Press', 'Push Press', 'Landmine Press'] },
+    { key: 'lateral raise', exercises: ['Cable Lateral Raise', 'Machine Lateral Raise', 'Leaning Lateral Raise', 'Lu Raise'] },
+    { key: 'face pull', exercises: ['Rear Delt Fly', 'Band Pull Apart', 'Reverse Pec Deck', 'High Row'] },
+    { key: 'rear delt', exercises: ['Face Pull', 'Reverse Fly', 'Band Pull Apart', 'Rear Delt Row'] },
+    // Arms
+    { key: 'tricep extension', exercises: ['Skull Crusher', 'Cable Pushdown', 'Overhead Extension', 'Dip'] },
+    { key: 'tricep pushdown', exercises: ['Overhead Extension', 'Skull Crusher', 'Close Grip Bench', 'Dip'] },
+    { key: 'bicep curl', exercises: ['Hammer Curl', 'Preacher Curl', 'Incline Curl', 'Cable Curl'] },
+    { key: 'hammer curl', exercises: ['Bicep Curl', 'Cross Body Curl', 'Rope Curl', 'Reverse Curl'] },
+    // Generic fallbacks (less specific)
+    { key: 'squat', exercises: ['Front Squat', 'Goblet Squat', 'Leg Press', 'Hack Squat'] },
+    { key: 'bench', exercises: ['Incline Bench', 'Dumbbell Press', 'Machine Press', 'Push-up'] },
+    { key: 'press', exercises: ['Dumbbell Press', 'Machine Press', 'Push-up', 'Landmine Press'] },
+    { key: 'curl', exercises: ['Hammer Curl', 'Preacher Curl', 'Cable Curl', 'Incline Curl'] },
+    { key: 'fly', exercises: ['Cable Fly', 'Pec Deck', 'Dumbbell Fly', 'Machine Fly'] },
+    { key: 'raise', exercises: ['Front Raise', 'Lateral Raise', 'Rear Delt Raise', 'Y Raise'] },
+  ];
+
+  /**
+   * Superset pairings database
+   * Keys are ordered from most specific to least specific
+   */
+  const SUPERSET_PAIRINGS = [
+    // Leg exercises
+    { key: 'leg extension', pairs: ['Leg Curl', 'Seated Leg Curl', 'Nordic Curl'], reason: 'Quad/Hamstring balance' },
+    { key: 'leg curl', pairs: ['Leg Extension', 'Sissy Squat', 'Front Squat'], reason: 'Hamstring/Quad balance' },
+    { key: 'leg press', pairs: ['Leg Curl', 'Romanian Deadlift', 'Calf Raise'], reason: 'Quad/Posterior chain' },
+    { key: 'squat', pairs: ['Leg Curl', 'Romanian Deadlift', 'Nordic Curl'], reason: 'Quad/Hamstring balance' },
+    { key: 'lunge', pairs: ['Leg Curl', 'Calf Raise', 'Hip Thrust'], reason: 'Lower body circuit' },
+    { key: 'calf', pairs: ['Tibialis Raise', 'Leg Extension', 'Leg Curl'], reason: 'Lower leg balance' },
+    // Upper body push/pull
+    { key: 'bench', pairs: ['Dumbbell Row', 'Face Pull', 'Rear Delt Fly'], reason: 'Push/Pull balance' },
+    { key: 'incline', pairs: ['Seated Row', 'Face Pull', 'Reverse Fly'], reason: 'Push/Pull balance' },
+    { key: 'shoulder press', pairs: ['Pull-up', 'Lat Pulldown', 'Face Pull'], reason: 'Vertical push/pull' },
+    { key: 'lat pulldown', pairs: ['Shoulder Press', 'Incline Press', 'Lateral Raise'], reason: 'Pull/Push balance' },
+    { key: 'row', pairs: ['Bench Press', 'Push-up', 'Dip'], reason: 'Pull/Push balance' },
+    { key: 'pull up', pairs: ['Dip', 'Push-up', 'Overhead Press'], reason: 'Vertical pull/push' },
+    // Arms
+    { key: 'bicep', pairs: ['Tricep Extension', 'Tricep Pushdown', 'Skull Crusher'], reason: 'Bicep/Tricep superset' },
+    { key: 'tricep', pairs: ['Bicep Curl', 'Hammer Curl', 'Preacher Curl'], reason: 'Tricep/Bicep superset' },
+    { key: 'curl', pairs: ['Tricep Extension', 'Tricep Pushdown', 'Dip'], reason: 'Bicep/Tricep superset' },
+    // Chest/Back
+    { key: 'fly', pairs: ['Reverse Fly', 'Face Pull', 'Rear Delt Row'], reason: 'Chest/Back balance' },
+    { key: 'lateral raise', pairs: ['Face Pull', 'Rear Delt Fly', 'Band Pull Apart'], reason: 'Delt balance' },
+    { key: 'face pull', pairs: ['Lateral Raise', 'Front Raise', 'Shoulder Press'], reason: 'Shoulder balance' },
+    // Generic
+    { key: 'press', pairs: ['Row', 'Pull-up', 'Face Pull'], reason: 'Push/Pull balance' },
+  ];
+
+  /**
+   * Instant Action: Add similar exercise
+   */
+  const handleAddSimilar = (exerciseName, workoutExercises = []) => {
+    // If no exercise selected, show exercise picker
+    if (!exerciseName) {
+      if (workoutExercises.length === 0) {
+        setInstantActionResult({
+          title: '➕ No Active Workout',
+          content: (
+            <View>
+              <Text style={instantStyles.resultText}>
+                Start a workout first to add similar exercises.
+              </Text>
+            </View>
+          ),
+          actions: []
+        });
+        return;
+      }
+
+      // Show exercise selection
+      setInstantActionResult({
+        title: '➕ Select Exercise',
+        content: (
+          <View>
+            <Text style={instantStyles.resultSubtext}>Find similar exercises for:</Text>
+          </View>
+        ),
+        actions: workoutExercises.slice(0, 4).map(ex => ({
+          label: ex.name,
+          onPress: () => {
+            setInstantActionResult(null);
+            handleAddSimilar(ex.name, workoutExercises);
+          }
+        }))
+      });
+      return;
+    }
+
+    // Find similar exercises (array is ordered from most specific to least)
+    const nameLower = exerciseName.toLowerCase();
+    let similarList = null;
+
+    // Find first matching entry (most specific matches first due to array order)
+    const match = SIMILAR_EXERCISES.find(entry => nameLower.includes(entry.key));
+    if (match) {
+      similarList = match.exercises;
+    }
+
+    if (similarList) {
+      setInstantActionResult({
+        title: '➕ Similar Exercises',
+        content: (
+          <View>
+            <Text style={instantStyles.resultSubtext}>Similar to {exerciseName}:</Text>
+          </View>
+        ),
+        actions: similarList.slice(0, 4).map(ex => ({
+          label: ex,
+          onPress: () => {
+            setInstantActionResult(null);
+            setLastResponse(`✅ **${ex}** would be a great addition!\n\nAdd it to your workout to target similar muscles with a different stimulus.`);
+          }
+        }))
+      });
+    } else {
+      // Generic suggestions
+      setInstantActionResult({
+        title: '➕ Similar Exercises',
+        content: (
+          <View>
+            <Text style={instantStyles.resultSubtext}>For {exerciseName}, try:</Text>
+            <Text style={instantStyles.resultTip}>
+              • Same movement with different equipment{'\n'}
+              • Unilateral version (single arm/leg){'\n'}
+              • Tempo or pause variation{'\n'}
+              • Different grip or stance
+            </Text>
+          </View>
+        ),
+        actions: []
+      });
+    }
+  };
+
+  /**
+   * Instant Action: Add superset exercise
+   */
+  const handleAddSuperset = (exerciseName, workoutExercises = []) => {
+    // If no exercise selected, show exercise picker
+    if (!exerciseName) {
+      if (workoutExercises.length === 0) {
+        setInstantActionResult({
+          title: '🔗 No Active Workout',
+          content: (
+            <View>
+              <Text style={instantStyles.resultText}>
+                Start a workout first to add superset exercises.
+              </Text>
+            </View>
+          ),
+          actions: []
+        });
+        return;
+      }
+
+      // Show exercise selection
+      setInstantActionResult({
+        title: '🔗 Select Exercise',
+        content: (
+          <View>
+            <Text style={instantStyles.resultSubtext}>Pair a superset with:</Text>
+          </View>
+        ),
+        actions: workoutExercises.slice(0, 4).map(ex => ({
+          label: ex.name,
+          onPress: () => {
+            setInstantActionResult(null);
+            handleAddSuperset(ex.name, workoutExercises);
+          }
+        }))
+      });
+      return;
+    }
+
+    // Find superset pairings (array is ordered from most specific to least)
+    const nameLower = exerciseName.toLowerCase();
+    let pairing = null;
+
+    // Find first matching entry (most specific matches first due to array order)
+    const match = SUPERSET_PAIRINGS.find(entry => nameLower.includes(entry.key));
+    if (match) {
+      pairing = match;
+    }
+
+    if (pairing) {
+      setInstantActionResult({
+        title: '🔗 Superset Options',
+        content: (
+          <View>
+            <Text style={instantStyles.resultSubtext}>Pair with {exerciseName}:</Text>
+            <Text style={instantStyles.resultReason}>{pairing.reason}</Text>
+          </View>
+        ),
+        actions: pairing.pairs.slice(0, 3).map(ex => ({
+          label: ex,
+          onPress: () => {
+            setInstantActionResult(null);
+            setLastResponse(`🔗 **${ex}** pairs great with ${exerciseName}!\n\n${pairing.reason} - no rest between exercises for maximum efficiency.`);
+          }
+        }))
+      });
+    } else {
+      // Generic superset suggestions
+      setInstantActionResult({
+        title: '🔗 Superset Ideas',
+        content: (
+          <View>
+            <Text style={instantStyles.resultSubtext}>For {exerciseName}, pair with:</Text>
+            <Text style={instantStyles.resultTip}>
+              • Opposing muscle group (push/pull){'\n'}
+              • Core exercise (planks, ab wheel){'\n'}
+              • Mobility work (stretches){'\n'}
+              • Same muscle, different angle
+            </Text>
+          </View>
+        ),
+        actions: []
+      });
+    }
+  };
+
+  /**
+   * Instant Action: Recommend extra set
+   */
+  const handleRecommendExtraSet = (exerciseName, workoutExercises = [], exerciseSets = {}) => {
+    // If no exercise selected, show exercise picker with set counts
+    if (!exerciseName) {
+      if (workoutExercises.length === 0) {
+        setInstantActionResult({
+          title: '➕ No Active Workout',
+          content: (
+            <View>
+              <Text style={instantStyles.resultText}>
+                Start a workout first to get set recommendations.
+              </Text>
+            </View>
+          ),
+          actions: []
+        });
+        return;
+      }
+
+      // Show exercise selection with set counts
+      setInstantActionResult({
+        title: '➕ Select Exercise',
+        content: (
+          <View>
+            <Text style={instantStyles.resultSubtext}>Check if you need more sets for:</Text>
+          </View>
+        ),
+        actions: workoutExercises.slice(0, 4).map((ex, index) => {
+          const sets = exerciseSets[index] || [];
+          const completedSets = sets.filter(s => s.completed).length;
+          return {
+            label: `${ex.name} (${completedSets} sets)`,
+            onPress: () => {
+              setInstantActionResult(null);
+              handleRecommendExtraSet(ex.name, workoutExercises, exerciseSets, index);
+            }
+          };
+        })
+      });
+      return;
+    }
+
+    // Find exercise index to get set data
+    const exIndex = workoutExercises.findIndex(ex => ex.name === exerciseName);
+    const sets = exerciseSets[exIndex] || [];
+    const completedSets = sets.filter(s => s.completed).length;
+    const targetSets = 3; // Standard recommendation
+
+    // Calculate volume
+    const totalVolume = sets
+      .filter(s => s.completed && s.weight && s.reps)
+      .reduce((sum, s) => sum + (parseFloat(s.weight) * parseInt(s.reps)), 0);
+
+    if (completedSets < targetSets) {
+      setInstantActionResult({
+        title: '💪 Do Another Set!',
+        content: (
+          <View>
+            <Text style={instantStyles.resultHighlight}>Yes!</Text>
+            <Text style={instantStyles.resultSubtext}>
+              {exerciseName}: {completedSets}/{targetSets} sets done
+            </Text>
+            <Text style={instantStyles.resultReason}>
+              You haven't hit your target volume yet. One more set will maximize gains!
+            </Text>
+          </View>
+        ),
+        actions: [
+          {
+            label: 'Got it!',
+            primary: true,
+            onPress: () => {
+              setInstantActionResult(null);
+              setLastResponse(`💪 Go for set ${completedSets + 1}!\n\nYou're ${targetSets - completedSets} set(s) away from your target.`);
+            }
+          }
+        ]
+      });
+    } else if (completedSets === targetSets) {
+      setInstantActionResult({
+        title: '✅ Target Reached',
+        content: (
+          <View>
+            <Text style={instantStyles.resultHighlight}>Optional</Text>
+            <Text style={instantStyles.resultSubtext}>
+              {exerciseName}: {completedSets} sets ({Math.round(totalVolume)} lbs volume)
+            </Text>
+            <Text style={instantStyles.resultReason}>
+              You've hit your target! Add a set if you're feeling strong, or move on.
+            </Text>
+          </View>
+        ),
+        actions: [
+          {
+            label: 'Add one more',
+            onPress: () => {
+              setInstantActionResult(null);
+              setLastResponse(`🔥 Go for a bonus set! You're crushing it.`);
+            }
+          },
+          {
+            label: 'Move on',
+            primary: true,
+            onPress: () => {
+              setInstantActionResult(null);
+              setLastResponse(`✅ Great work on ${exerciseName}! Time for the next exercise.`);
+            }
+          }
+        ]
+      });
+    } else {
+      setInstantActionResult({
+        title: '🏆 Exceeded Target',
+        content: (
+          <View>
+            <Text style={instantStyles.resultHighlight}>You're done!</Text>
+            <Text style={instantStyles.resultSubtext}>
+              {exerciseName}: {completedSets} sets ({Math.round(totalVolume)} lbs volume)
+            </Text>
+            <Text style={instantStyles.resultReason}>
+              Excellent volume! Move on to avoid overtraining this muscle group.
+            </Text>
+          </View>
+        ),
+        actions: [
+          {
+            label: 'Next exercise',
+            primary: true,
+            onPress: () => {
+              setInstantActionResult(null);
+              setLastResponse(`🏆 Excellent work! ${completedSets} sets is great volume. Time to move on!`);
+            }
+          }
+        ]
+      });
+    }
+  };
+
+  // ============================================================
+  // StartWorkoutScreen Handlers
+  // ============================================================
+
+  const handleRecommendToday = async () => {
+    try {
+      const historyStr = await AsyncStorage.getItem('@workout_history');
+      const history = historyStr ? JSON.parse(historyStr) : [];
+      const lastWorkout = history[0];
+
+      // Simple rotation logic
+      const muscleGroups = ['Push', 'Pull', 'Legs', 'Upper', 'Lower', 'Full Body'];
+      const lastType = lastWorkout?.type || 'rest';
+
+      let recommendation = 'Push';
+      if (lastType.toLowerCase().includes('push')) recommendation = 'Pull';
+      else if (lastType.toLowerCase().includes('pull')) recommendation = 'Legs';
+      else if (lastType.toLowerCase().includes('leg')) recommendation = 'Push';
+      else if (lastType.toLowerCase().includes('upper')) recommendation = 'Lower';
+      else if (lastType.toLowerCase().includes('lower')) recommendation = 'Upper';
+
+      const daysSinceLast = lastWorkout
+        ? Math.floor((Date.now() - new Date(lastWorkout.date).getTime()) / (1000 * 60 * 60 * 24))
+        : 0;
+
+      setInstantActionResult({
+        title: '📅 Today\'s Recommendation',
+        content: (
+          <View>
+            <Text style={instantStyles.resultHighlight}>{recommendation} Day</Text>
+            <Text style={instantStyles.resultSubtext}>
+              {lastWorkout
+                ? `Last: ${lastWorkout.type || 'Workout'} (${daysSinceLast}d ago)`
+                : 'No recent workouts'}
+            </Text>
+            <Text style={instantStyles.resultReason}>
+              Based on your training history and recovery needs.
+            </Text>
+          </View>
+        ),
+        actions: [
+          { label: `Start ${recommendation}`, primary: true, onPress: () => { setInstantActionResult(null); onClose(); } },
+          { label: 'Pick different', onPress: () => { setInstantActionResult(null); } }
+        ]
+      });
+    } catch (e) {
+      setLastResponse('📅 Try a **Push** or **Full Body** workout to get started!');
+    }
+  };
+
+  const handleLastWorkout = async () => {
+    try {
+      const historyStr = await AsyncStorage.getItem('@workout_history');
+      const history = historyStr ? JSON.parse(historyStr) : [];
+      const lastWorkout = history[0];
+
+      if (!lastWorkout) {
+        setInstantActionResult({
+          title: '📊 Last Workout',
+          content: (<View><Text style={instantStyles.resultText}>No workout history yet. Start your first workout!</Text></View>),
+          actions: []
+        });
+        return;
+      }
+
+      const date = new Date(lastWorkout.date).toLocaleDateString();
+      const exercises = lastWorkout.exercises?.length || 0;
+      const volume = lastWorkout.totalVolume || 0;
+
+      setInstantActionResult({
+        title: '📊 Last Workout',
+        content: (
+          <View>
+            <Text style={instantStyles.resultHighlight}>{lastWorkout.type || 'Workout'}</Text>
+            <Text style={instantStyles.resultSubtext}>{date}</Text>
+            <Text style={instantStyles.resultReason}>
+              {exercises} exercises • {Math.round(volume).toLocaleString()} lbs volume
+            </Text>
+          </View>
+        ),
+        actions: [
+          { label: 'Repeat this workout', primary: true, onPress: () => { setInstantActionResult(null); setLastResponse('🔄 Starting same workout...'); } }
+        ]
+      });
+    } catch (e) {
+      setLastResponse('No workout history found.');
+    }
+  };
+
+  const handleMusclePriority = async () => {
+    try {
+      const historyStr = await AsyncStorage.getItem('@workout_history');
+      const history = historyStr ? JSON.parse(historyStr) : [];
+
+      // Count muscle groups trained in last 7 days
+      const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      const recentWorkouts = history.filter(w => new Date(w.date).getTime() > weekAgo);
+
+      const muscleCount = { chest: 0, back: 0, legs: 0, shoulders: 0, arms: 0 };
+      recentWorkouts.forEach(w => {
+        const type = (w.type || '').toLowerCase();
+        if (type.includes('push') || type.includes('chest')) muscleCount.chest++;
+        if (type.includes('pull') || type.includes('back')) muscleCount.back++;
+        if (type.includes('leg') || type.includes('lower')) muscleCount.legs++;
+        if (type.includes('shoulder') || type.includes('push')) muscleCount.shoulders++;
+        if (type.includes('arm') || type.includes('upper')) muscleCount.arms++;
+      });
+
+      // Find least trained
+      const sorted = Object.entries(muscleCount).sort((a, b) => a[1] - b[1]);
+      const priority = sorted[0][0];
+      const priorityName = priority.charAt(0).toUpperCase() + priority.slice(1);
+
+      setInstantActionResult({
+        title: '💪 Muscle Priority',
+        content: (
+          <View>
+            <Text style={instantStyles.resultHighlight}>Train {priorityName}</Text>
+            <Text style={instantStyles.resultSubtext}>Least trained this week</Text>
+            <Text style={instantStyles.resultReason}>
+              Weekly sessions: Chest {muscleCount.chest} • Back {muscleCount.back} • Legs {muscleCount.legs}
+            </Text>
+          </View>
+        ),
+        actions: [
+          { label: `${priorityName} workout`, primary: true, onPress: () => { setInstantActionResult(null); } }
+        ]
+      });
+    } catch (e) {
+      setLastResponse('Train **Legs** - most commonly skipped! 🦵');
+    }
+  };
+
+  const handleBrowseExercises = (muscle) => {
+    const muscleExercises = {
+      chest: ['Bench Press', 'Incline Press', 'Dumbbell Fly', 'Cable Crossover', 'Push-up'],
+      back: ['Lat Pulldown', 'Barbell Row', 'Pull-up', 'Cable Row', 'Face Pull'],
+      legs: ['Squat', 'Leg Press', 'Romanian Deadlift', 'Leg Extension', 'Leg Curl'],
+      arms: ['Bicep Curl', 'Tricep Extension', 'Hammer Curl', 'Skull Crusher', 'Lateral Raise'],
+    };
+
+    const exercises = muscleExercises[muscle] || muscleExercises.chest;
+    const muscleName = muscle ? muscle.charAt(0).toUpperCase() + muscle.slice(1) : 'Chest';
+
+    setInstantActionResult({
+      title: `🎯 ${muscleName} Exercises`,
+      content: (<View><Text style={instantStyles.resultSubtext}>Popular exercises:</Text></View>),
+      actions: exercises.slice(0, 4).map(ex => ({
+        label: ex,
+        onPress: () => { setInstantActionResult(null); setLastResponse(`✅ **${ex}** - Great choice for ${muscleName.toLowerCase()}!`); }
+      }))
+    });
+  };
+
+  // ============================================================
+  // WorkoutHistoryScreen Handlers
+  // ============================================================
+
+  const handleWeekSummary = async () => {
+    try {
+      const historyStr = await AsyncStorage.getItem('@workout_history');
+      const history = historyStr ? JSON.parse(historyStr) : [];
+
+      const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      const weekWorkouts = history.filter(w => new Date(w.date).getTime() > weekAgo);
+      const totalVolume = weekWorkouts.reduce((sum, w) => sum + (w.totalVolume || 0), 0);
+
+      setInstantActionResult({
+        title: '📊 This Week',
+        content: (
+          <View>
+            <Text style={instantStyles.resultHighlight}>{weekWorkouts.length} workouts</Text>
+            <Text style={instantStyles.resultSubtext}>{Math.round(totalVolume).toLocaleString()} lbs total volume</Text>
+            <Text style={instantStyles.resultReason}>
+              {weekWorkouts.length >= 4 ? '🔥 Great consistency!' : weekWorkouts.length >= 2 ? '👍 Good progress!' : '💪 Keep pushing!'}
+            </Text>
+          </View>
+        ),
+        actions: []
+      });
+    } catch (e) {
+      setLastResponse('No workout data this week.');
+    }
+  };
+
+  const handleRecentPRs = async () => {
+    try {
+      const prsStr = await AsyncStorage.getItem('@personal_records');
+      const prs = prsStr ? JSON.parse(prsStr) : {};
+
+      const prList = Object.entries(prs).slice(0, 4);
+
+      if (prList.length === 0) {
+        setInstantActionResult({
+          title: '🏆 Personal Records',
+          content: (<View><Text style={instantStyles.resultText}>No PRs recorded yet. Keep training!</Text></View>),
+          actions: []
+        });
+        return;
+      }
+
+      setInstantActionResult({
+        title: '🏆 Personal Records',
+        content: (
+          <View>
+            {prList.map(([exercise, pr], i) => (
+              <Text key={i} style={instantStyles.resultSubtext}>
+                {exercise}: {pr.weight} lbs × {pr.reps}
+              </Text>
+            ))}
+          </View>
+        ),
+        actions: []
+      });
+    } catch (e) {
+      setLastResponse('No PRs recorded yet.');
+    }
+  };
+
+  const handleMuscleBalance = async () => {
+    try {
+      const historyStr = await AsyncStorage.getItem('@workout_history');
+      const history = historyStr ? JSON.parse(historyStr) : [];
+
+      const monthAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+      const monthWorkouts = history.filter(w => new Date(w.date).getTime() > monthAgo);
+
+      const muscleCount = { Push: 0, Pull: 0, Legs: 0 };
+      monthWorkouts.forEach(w => {
+        const type = (w.type || '').toLowerCase();
+        if (type.includes('push') || type.includes('chest') || type.includes('upper')) muscleCount.Push++;
+        if (type.includes('pull') || type.includes('back')) muscleCount.Pull++;
+        if (type.includes('leg') || type.includes('lower')) muscleCount.Legs++;
+      });
+
+      const total = muscleCount.Push + muscleCount.Pull + muscleCount.Legs || 1;
+
+      setInstantActionResult({
+        title: '⚖️ Muscle Balance',
+        content: (
+          <View>
+            <Text style={instantStyles.resultSubtext}>Push: {muscleCount.Push} ({Math.round(muscleCount.Push/total*100)}%)</Text>
+            <Text style={instantStyles.resultSubtext}>Pull: {muscleCount.Pull} ({Math.round(muscleCount.Pull/total*100)}%)</Text>
+            <Text style={instantStyles.resultSubtext}>Legs: {muscleCount.Legs} ({Math.round(muscleCount.Legs/total*100)}%)</Text>
+            <Text style={instantStyles.resultReason}>
+              {muscleCount.Legs < muscleCount.Push ? '⚠️ Train more legs!' : '✅ Good balance!'}
+            </Text>
+          </View>
+        ),
+        actions: []
+      });
+    } catch (e) {
+      setLastResponse('No workout history for balance check.');
+    }
+  };
+
+  const handleStreakStatus = async () => {
+    try {
+      const historyStr = await AsyncStorage.getItem('@workout_history');
+      const history = historyStr ? JSON.parse(historyStr) : [];
+
+      let streak = 0;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      for (let i = 0; i < 30; i++) {
+        const checkDate = new Date(today);
+        checkDate.setDate(checkDate.getDate() - i);
+        const dateStr = checkDate.toISOString().split('T')[0];
+
+        const hasWorkout = history.some(w => w.date?.startsWith(dateStr));
+        if (hasWorkout || i === 0) {
+          if (hasWorkout) streak++;
+        } else {
+          break;
+        }
+      }
+
+      setInstantActionResult({
+        title: '🔥 Streak Status',
+        content: (
+          <View>
+            <Text style={instantStyles.resultHighlight}>{streak} day streak</Text>
+            <Text style={instantStyles.resultReason}>
+              {streak >= 7 ? '🏆 Amazing consistency!' : streak >= 3 ? '💪 Keep it up!' : '🚀 Build your streak!'}
+            </Text>
+          </View>
+        ),
+        actions: []
+      });
+    } catch (e) {
+      setLastResponse('Start your streak today! 🔥');
+    }
+  };
+
+  const handleVolumeTrend = async () => {
+    try {
+      const historyStr = await AsyncStorage.getItem('@workout_history');
+      const history = historyStr ? JSON.parse(historyStr) : [];
+
+      const thisWeek = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      const lastWeek = Date.now() - 14 * 24 * 60 * 60 * 1000;
+
+      const thisWeekVol = history.filter(w => new Date(w.date).getTime() > thisWeek)
+        .reduce((sum, w) => sum + (w.totalVolume || 0), 0);
+      const lastWeekVol = history.filter(w => new Date(w.date).getTime() > lastWeek && new Date(w.date).getTime() <= thisWeek)
+        .reduce((sum, w) => sum + (w.totalVolume || 0), 0);
+
+      const change = lastWeekVol > 0 ? ((thisWeekVol - lastWeekVol) / lastWeekVol * 100) : 0;
+
+      setInstantActionResult({
+        title: '📈 Volume Trend',
+        content: (
+          <View>
+            <Text style={instantStyles.resultHighlight}>
+              {change >= 0 ? '+' : ''}{Math.round(change)}%
+            </Text>
+            <Text style={instantStyles.resultSubtext}>
+              This week: {Math.round(thisWeekVol).toLocaleString()} lbs
+            </Text>
+            <Text style={instantStyles.resultSubtext}>
+              Last week: {Math.round(lastWeekVol).toLocaleString()} lbs
+            </Text>
+          </View>
+        ),
+        actions: []
+      });
+    } catch (e) {
+      setLastResponse('Not enough data for volume trend.');
+    }
+  };
+
+  const handleWorkoutFrequency = async () => {
+    try {
+      const historyStr = await AsyncStorage.getItem('@workout_history');
+      const history = historyStr ? JSON.parse(historyStr) : [];
+
+      const monthAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+      const monthWorkouts = history.filter(w => new Date(w.date).getTime() > monthAgo);
+      const avgPerWeek = (monthWorkouts.length / 4).toFixed(1);
+
+      setInstantActionResult({
+        title: '📅 Workout Frequency',
+        content: (
+          <View>
+            <Text style={instantStyles.resultHighlight}>{avgPerWeek}×/week</Text>
+            <Text style={instantStyles.resultSubtext}>{monthWorkouts.length} workouts in last 30 days</Text>
+            <Text style={instantStyles.resultReason}>
+              {parseFloat(avgPerWeek) >= 4 ? '🔥 Great frequency!' : parseFloat(avgPerWeek) >= 2 ? '👍 Solid consistency' : '💪 Try to hit 3-4×/week'}
+            </Text>
+          </View>
+        ),
+        actions: []
+      });
+    } catch (e) {
+      setLastResponse('No workout frequency data.');
+    }
+  };
+
+  // ============================================================
+  // ExerciseDetailScreen Handlers
+  // ============================================================
+
+  const handleExercisePR = async (exerciseName) => {
+    if (!exerciseName) {
+      setLastResponse('Select an exercise to view PR.');
+      return;
+    }
+
+    try {
+      const prsStr = await AsyncStorage.getItem('@personal_records');
+      const prs = prsStr ? JSON.parse(prsStr) : {};
+      const pr = prs[exerciseName];
+
+      if (!pr) {
+        setInstantActionResult({
+          title: `🏆 ${exerciseName} PR`,
+          content: (<View><Text style={instantStyles.resultText}>No PR recorded. Keep training!</Text></View>),
+          actions: []
+        });
+        return;
+      }
+
+      setInstantActionResult({
+        title: `🏆 ${exerciseName}`,
+        content: (
+          <View>
+            <Text style={instantStyles.resultHighlight}>{pr.weight} lbs × {pr.reps}</Text>
+            <Text style={instantStyles.resultSubtext}>Set on {new Date(pr.date).toLocaleDateString()}</Text>
+          </View>
+        ),
+        actions: []
+      });
+    } catch (e) {
+      setLastResponse('Could not load PR data.');
+    }
+  };
+
+  const handleExerciseProgression = (exerciseName) => {
+    if (!exerciseName) {
+      setLastResponse('Select an exercise to view progression.');
+      return;
+    }
+    setLastResponse(`📈 **${exerciseName}** progression: Check the charts in Progress screen for detailed graphs.`);
+  };
+
+  const handleExerciseHistory = (exerciseName) => {
+    if (!exerciseName) {
+      setLastResponse('Select an exercise to view history.');
+      return;
+    }
+    setLastResponse(`📊 **${exerciseName}** history: View detailed session history in Progress screen.`);
+  };
+
+  // ============================================================
+  // WorkoutSummaryScreen Handlers
+  // ============================================================
+
+  const handleCheckWorkoutPRs = (exerciseSets) => {
+    // Simple check based on current workout data
+    setInstantActionResult({
+      title: '🏆 PR Check',
+      content: (
+        <View>
+          <Text style={instantStyles.resultText}>
+            PRs are automatically detected when you log sets heavier than your previous best!
+          </Text>
+          <Text style={instantStyles.resultReason}>
+            Check the workout summary for any new records.
+          </Text>
+        </View>
+      ),
+      actions: []
+    });
+  };
+
+  const handleCompareWorkout = () => {
+    setInstantActionResult({
+      title: '📊 Workout Comparison',
+      content: (
+        <View>
+          <Text style={instantStyles.resultText}>
+            Compare your performance in the workout history section.
+          </Text>
+        </View>
+      ),
+      actions: []
+    });
+  };
+
+  const handleVolumeBreakdown = (workoutExercises = [], exerciseSets = {}) => {
+    const totalSets = Object.values(exerciseSets).flat().filter(s => s.completed).length;
+    const totalVolume = Object.values(exerciseSets).flat()
+      .filter(s => s.completed && s.weight && s.reps)
+      .reduce((sum, s) => sum + (parseFloat(s.weight) * parseInt(s.reps)), 0);
+
+    setInstantActionResult({
+      title: '📊 Volume Breakdown',
+      content: (
+        <View>
+          <Text style={instantStyles.resultHighlight}>{Math.round(totalVolume).toLocaleString()} lbs</Text>
+          <Text style={instantStyles.resultSubtext}>{totalSets} sets completed</Text>
+          <Text style={instantStyles.resultSubtext}>{workoutExercises.length} exercises</Text>
+        </View>
+      ),
+      actions: []
+    });
+  };
+
+  const handleMusclesWorked = (workoutExercises = []) => {
+    const muscles = new Set();
+    workoutExercises.forEach(ex => {
+      const name = (ex.name || '').toLowerCase();
+      if (name.includes('bench') || name.includes('chest') || name.includes('fly') || name.includes('push')) muscles.add('Chest');
+      if (name.includes('row') || name.includes('pull') || name.includes('lat') || name.includes('back')) muscles.add('Back');
+      if (name.includes('squat') || name.includes('leg') || name.includes('lunge')) muscles.add('Legs');
+      if (name.includes('shoulder') || name.includes('press') || name.includes('raise')) muscles.add('Shoulders');
+      if (name.includes('curl') || name.includes('bicep')) muscles.add('Biceps');
+      if (name.includes('tricep') || name.includes('extension') || name.includes('dip')) muscles.add('Triceps');
+    });
+
+    setInstantActionResult({
+      title: '💪 Muscles Worked',
+      content: (
+        <View>
+          <Text style={instantStyles.resultHighlight}>{muscles.size} muscle groups</Text>
+          <Text style={instantStyles.resultSubtext}>{Array.from(muscles).join(', ') || 'Various muscles'}</Text>
+        </View>
+      ),
+      actions: []
+    });
+  };
+
+  const handleRecommendNext = (workoutExercises = []) => {
+    // Simple logic based on what was just trained
+    const trained = workoutExercises.map(e => (e.name || '').toLowerCase()).join(' ');
+    let next = 'Rest day';
+
+    if (trained.includes('chest') || trained.includes('push')) next = 'Pull (Back & Biceps)';
+    else if (trained.includes('back') || trained.includes('pull')) next = 'Legs';
+    else if (trained.includes('leg')) next = 'Push (Chest & Triceps)';
+    else next = 'Upper Body or Full Body';
+
+    setInstantActionResult({
+      title: '📅 What\'s Next',
+      content: (
+        <View>
+          <Text style={instantStyles.resultHighlight}>{next}</Text>
+          <Text style={instantStyles.resultReason}>Based on today's workout</Text>
+        </View>
+      ),
+      actions: []
+    });
+  };
+
+  const handleRecoveryTime = (workoutExercises = []) => {
+    setInstantActionResult({
+      title: '⏰ Recovery Time',
+      content: (
+        <View>
+          <Text style={instantStyles.resultHighlight}>48-72 hours</Text>
+          <Text style={instantStyles.resultSubtext}>For the muscles worked today</Text>
+          <Text style={instantStyles.resultReason}>You can train other muscle groups tomorrow!</Text>
+        </View>
+      ),
+      actions: []
+    });
+  };
+
+  const handleWorkoutSummary = (workoutExercises = [], exerciseSets = {}) => {
+    const totalSets = Object.values(exerciseSets).flat().filter(s => s.completed).length;
+    const totalVolume = Object.values(exerciseSets).flat()
+      .filter(s => s.completed && s.weight && s.reps)
+      .reduce((sum, s) => sum + (parseFloat(s.weight) * parseInt(s.reps)), 0);
+
+    setInstantActionResult({
+      title: '📊 Workout Summary',
+      content: (
+        <View>
+          <Text style={instantStyles.resultHighlight}>{workoutExercises.length} exercises</Text>
+          <Text style={instantStyles.resultSubtext}>{totalSets} sets • {Math.round(totalVolume).toLocaleString()} lbs</Text>
+        </View>
+      ),
+      actions: []
+    });
+  };
+
+  const handleRepeatWorkout = () => {
+    setLastResponse('🔄 To repeat this workout, go to Workout History and tap "Repeat".');
+  };
+
+  // ============================================================
+  // MyPlansScreen Handlers
+  // ============================================================
+
+  const handleProgramOverview = async () => {
+    try {
+      const programsStr = await AsyncStorage.getItem('@workout_programs');
+      const programs = programsStr ? JSON.parse(programsStr) : [];
+
+      if (programs.length === 0) {
+        setInstantActionResult({
+          title: '📋 Programs',
+          content: (<View><Text style={instantStyles.resultText}>No programs created yet. Create one to get started!</Text></View>),
+          actions: []
+        });
+        return;
+      }
+
+      setInstantActionResult({
+        title: '📋 Your Programs',
+        content: (
+          <View>
+            <Text style={instantStyles.resultHighlight}>{programs.length} program(s)</Text>
+            {programs.slice(0, 3).map((p, i) => (
+              <Text key={i} style={instantStyles.resultSubtext}>{p.name || 'Unnamed Program'}</Text>
+            ))}
+          </View>
+        ),
+        actions: []
+      });
+    } catch (e) {
+      setLastResponse('Could not load programs.');
+    }
+  };
+
+  const handleWeeklySchedule = () => {
+    setInstantActionResult({
+      title: '📅 Weekly Schedule',
+      content: (
+        <View>
+          <Text style={instantStyles.resultSubtext}>Mon: Push</Text>
+          <Text style={instantStyles.resultSubtext}>Tue: Pull</Text>
+          <Text style={instantStyles.resultSubtext}>Wed: Legs</Text>
+          <Text style={instantStyles.resultSubtext}>Thu: Rest</Text>
+          <Text style={instantStyles.resultSubtext}>Fri: Upper</Text>
+          <Text style={instantStyles.resultSubtext}>Sat: Lower</Text>
+          <Text style={instantStyles.resultSubtext}>Sun: Rest</Text>
+        </View>
+      ),
+      actions: []
+    });
+  };
+
+  const handleShowSplitInfo = (type) => {
+    const splits = {
+      ppl: { name: 'Push/Pull/Legs', days: 6, desc: 'Train each muscle 2×/week. Push (chest, shoulders, triceps), Pull (back, biceps), Legs (quads, hams, glutes).' },
+      upper_lower: { name: 'Upper/Lower', days: 4, desc: 'Alternate upper and lower body. Great for strength and recovery balance.' },
+      full_body: { name: 'Full Body', days: 3, desc: 'Hit all muscles each session. Perfect for beginners or busy schedules.' },
+      bro_split: { name: 'Bro Split', days: 5, desc: 'One muscle group per day. High volume per muscle, long recovery between sessions.' },
+    };
+
+    const split = splits[type] || splits.ppl;
+
+    setInstantActionResult({
+      title: `📋 ${split.name}`,
+      content: (
+        <View>
+          <Text style={instantStyles.resultHighlight}>{split.days} days/week</Text>
+          <Text style={instantStyles.resultReason}>{split.desc}</Text>
+        </View>
+      ),
+      actions: [
+        { label: 'Use this split', primary: true, onPress: () => { setInstantActionResult(null); setLastResponse(`✅ Great choice! Start with ${split.name}.`); } }
+      ]
+    });
+  };
+
+  const handleWeeklyVolume = () => {
+    setInstantActionResult({
+      title: '📊 Weekly Volume Guide',
+      content: (
+        <View>
+          <Text style={instantStyles.resultSubtext}>Chest: 10-20 sets/week</Text>
+          <Text style={instantStyles.resultSubtext}>Back: 10-20 sets/week</Text>
+          <Text style={instantStyles.resultSubtext}>Legs: 10-20 sets/week</Text>
+          <Text style={instantStyles.resultSubtext}>Shoulders: 6-12 sets/week</Text>
+          <Text style={instantStyles.resultSubtext}>Arms: 6-12 sets/week</Text>
+          <Text style={instantStyles.resultReason}>Adjust based on recovery and goals.</Text>
+        </View>
+      ),
+      actions: []
+    });
+  };
+
+  // ============================================================
+  // Filter Handlers
+  // ============================================================
+
+  const handleFilterByMuscle = () => {
+    const muscles = ['Chest', 'Back', 'Legs', 'Shoulders'];
+    setInstantActionResult({
+      title: '💪 Select Muscle',
+      content: (<View><Text style={instantStyles.resultSubtext}>Filter exercises by:</Text></View>),
+      actions: muscles.map(m => ({
+        label: m,
+        onPress: () => handleBrowseExercises(m.toLowerCase())
+      }))
+    });
+  };
+
+  const handleFilterByEquipment = () => {
+    const equipment = ['Barbell', 'Dumbbell', 'Cable', 'Machine'];
+    setInstantActionResult({
+      title: '🏋️ Select Equipment',
+      content: (<View><Text style={instantStyles.resultSubtext}>Filter exercises by:</Text></View>),
+      actions: equipment.map(e => ({
+        label: e,
+        onPress: () => { setInstantActionResult(null); setLastResponse(`Showing ${e} exercises...`); }
+      }))
+    });
+  };
+
+  /**
    * Handle button press
    * Sends the button action to AI with context
    */
@@ -851,6 +2766,12 @@ export default function AIButtonModal({
     const buttonText = button.isDynamic && typeof button.text === 'function'
       ? button.text()
       : button.text;
+
+    // Check if this is an instant action (no AI needed)
+    if (button.instantAction) {
+      await handleInstantAction(button.instantAction, button);
+      return;
+    }
 
     // Check if this is a recipe button - show source modal first
     const isRecipeButton = button.toolName && (
@@ -1280,7 +3201,7 @@ export default function AIButtonModal({
   };
 
   /**
-   * Process buttons to add disabled state and subtitle for RPE buttons
+   * Process buttons to add disabled state, subtitle, and instant action indicators
    */
   const processButtons = (buttons) => {
     return buttons.map(button => {
@@ -1291,6 +3212,13 @@ export default function AIButtonModal({
           requiresRPE: true,
           disabled: !rpeEnabled,
           subtitle: !rpeEnabled ? 'Disabled in settings' : undefined,
+        };
+      }
+      // Add description as subtitle for instant actions
+      if (button.instantAction && button.description) {
+        return {
+          ...button,
+          subtitle: button.description,
         };
       }
       return button;
@@ -2443,9 +4371,162 @@ export default function AIButtonModal({
         onClose={() => setShowChatModal(false)}
         screenName={screenName}
       />
+
+      {/* Instant Action Result Modal */}
+      <Modal visible={!!instantActionResult} transparent animationType="fade">
+        <View style={instantStyles.modalOverlay}>
+          <View style={instantStyles.resultModal}>
+            <Text style={instantStyles.resultTitle}>{instantActionResult?.title}</Text>
+            <View style={instantStyles.resultContent}>
+              {instantActionResult?.content}
+            </View>
+            {instantActionResult?.actions && instantActionResult.actions.length > 0 && (
+              <View style={instantStyles.resultActions}>
+                {instantActionResult.actions.map((action, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={[
+                      instantStyles.resultActionButton,
+                      action.primary && instantStyles.resultActionButtonPrimary
+                    ]}
+                    onPress={action.onPress}
+                  >
+                    <Text style={[
+                      instantStyles.resultActionText,
+                      action.primary && instantStyles.resultActionTextPrimary
+                    ]}>
+                      {action.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+            <TouchableOpacity
+              style={instantStyles.closeButton}
+              onPress={() => setInstantActionResult(null)}
+            >
+              <Text style={instantStyles.closeButtonText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </Modal>
   );
 }
+
+// Styles for instant action modals
+const instantStyles = StyleSheet.create({
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: Spacing.lg,
+  },
+  resultModal: {
+    backgroundColor: Colors.cardBackground || Colors.surface,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+    width: '100%',
+    maxWidth: 340,
+  },
+  resultTitle: {
+    fontSize: Typography.fontSize.xl || 20,
+    fontWeight: 'bold',
+    color: Colors.text,
+    textAlign: 'center',
+    marginBottom: Spacing.md,
+  },
+  resultContent: {
+    marginBottom: Spacing.md,
+  },
+  resultText: {
+    fontSize: Typography.fontSize.md || 16,
+    color: Colors.text,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  resultHighlight: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: Colors.primary,
+    textAlign: 'center',
+    marginBottom: Spacing.xs,
+  },
+  resultSubtext: {
+    fontSize: Typography.fontSize.sm || 14,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: Spacing.sm,
+  },
+  resultReason: {
+    fontSize: Typography.fontSize.sm || 14,
+    color: Colors.text,
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
+  resultTip: {
+    fontSize: Typography.fontSize.sm || 14,
+    color: Colors.textSecondary,
+    marginTop: Spacing.sm,
+    lineHeight: 20,
+  },
+  resultActions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
+    justifyContent: 'center',
+  },
+  resultActionButton: {
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.background,
+    minWidth: 80,
+  },
+  resultActionButtonPrimary: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  resultActionText: {
+    fontSize: Typography.fontSize.sm || 14,
+    color: Colors.text,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  resultActionTextPrimary: {
+    color: Colors.background || '#FFFFFF',
+  },
+  closeButton: {
+    paddingVertical: Spacing.sm,
+    alignItems: 'center',
+  },
+  closeButtonText: {
+    color: Colors.textSecondary,
+    fontSize: Typography.fontSize.md || 16,
+  },
+  alternativeItem: {
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    marginTop: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  alternativeName: {
+    fontSize: Typography.fontSize.md || 16,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 4,
+  },
+  alternativeReason: {
+    fontSize: Typography.fontSize.sm || 14,
+    color: Colors.textSecondary,
+  },
+});
 
 const styles = StyleSheet.create({
   container: {

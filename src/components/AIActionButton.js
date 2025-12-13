@@ -129,7 +129,7 @@ export default function AIActionButton({
                     styles.text,
                     { color: disabled ? Colors.textMuted : textColor, fontSize: currentSize.fontSize },
                   ]}
-                  numberOfLines={3}
+                  numberOfLines={2}
                 >
                   {text}
                 </Text>
@@ -139,7 +139,7 @@ export default function AIActionButton({
                       styles.subtitle,
                       { fontSize: currentSize.fontSize - 2 },
                     ]}
-                    numberOfLines={1}
+                    numberOfLines={2}
                   >
                     {subtitle}
                   </Text>
@@ -185,10 +185,11 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
   },
   textContainer: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: Spacing.xs,
+    width: '100%',
+    paddingHorizontal: Spacing.xs,
   },
   text: {
     fontWeight: '600',
@@ -197,11 +198,11 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   subtitle: {
-    fontWeight: '500',
+    fontWeight: '400',
     textAlign: 'center',
-    color: Colors.textMuted,
-    marginTop: 2,
-    fontStyle: 'italic',
+    color: Colors.textSecondary,
+    marginTop: Spacing.xs,
+    lineHeight: 14,
   },
   backButtonChip: {
     borderColor: Colors.border,

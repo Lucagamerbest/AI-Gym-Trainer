@@ -94,6 +94,12 @@ import {
   progressToolSchemas,
 } from './ProgressTools';
 
+import {
+  parseContentFromImage,
+  parseContentFromText,
+  contentParserToolSchemas,
+} from './ContentParserTools';
+
 /**
  * Initialize and register all tools
  */
@@ -169,6 +175,10 @@ export function initializeTools() {
   ToolRegistry.registerTool('predictGoalCompletionDate', progressToolSchemas[0], predictGoalCompletionDate);
   ToolRegistry.registerTool('detectProgressPlateau', progressToolSchemas[1], detectProgressPlateau);
   ToolRegistry.registerTool('estimateBodyFatPercentage', progressToolSchemas[2], estimateBodyFatPercentage);
+
+  // Content Parser Tools (Import feature)
+  ToolRegistry.registerTool('parseContentFromImage', contentParserToolSchemas[0], parseContentFromImage);
+  ToolRegistry.registerTool('parseContentFromText', contentParserToolSchemas[1], parseContentFromText);
 
 }
 

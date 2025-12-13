@@ -57,6 +57,11 @@ export const parseChatText = (text, options = {}) => {
   // Step 2: Find all exercise matches
   const exerciseMatches = detectExercises ? findExercisesInText(text) : [];
 
+  // Debug logging
+  if (exerciseMatches.length > 0) {
+    console.log('🏋️ Found exercises in text:', exerciseMatches.map(m => m.name));
+  }
+
   // Step 3: Create a list of all markers (bold starts/ends and exercise matches)
   const markers = [];
 
