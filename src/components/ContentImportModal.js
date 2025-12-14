@@ -12,7 +12,7 @@
  * in the nutrition section.
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -26,11 +26,16 @@ import {
   Animated,
   KeyboardAvoidingView,
   Platform,
+  StatusBar,
+  PanResponder,
+  Dimensions,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import ContentImportService from '../services/ai/ContentImportService';
 import ImportPreviewCard from './ImportPreviewCard';
+import VoiceInputButton from './VoiceInputButton';
 import { getVariantImage } from '../utils/exerciseImages';
 
 // Import steps
@@ -52,6 +57,7 @@ export default function ContentImportModal({
   userId,
   navigation, // For navigating to exercise detail
 }) {
+  const insets = useSafeAreaInsets();
   const [currentStep, setCurrentStep] = useState(STEPS.SOURCE);
   // Always workout mode - recipe import is in nutrition section
   const contentHint = 'workout';
@@ -65,6 +71,95 @@ export default function ContentImportModal({
   const [variantSelections, setVariantSelections] = useState({}); // { exerciseId: 'Barbell' | 'Dumbbell' | etc }
   const [currentVariantIndex, setCurrentVariantIndex] = useState(0); // Track which exercise we're selecting variant for
   const [exerciseDetailModal, setExerciseDetailModal] = useState(null); // { exercise, equipment } for inline detail view
+  const [isVoiceActive, setIsVoiceActive] = useState(false); // Voice input active state
+
+  // Swipe to close functionality
+  const translateY = useRef(new Animated.Value(0)).current;
+  const screenHeight = Dimensions.get('window').height;
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        // Respond to any downward movement
+        return gestureState.dy > 5;
+      },
+      onPanResponderGrant: () => {
+        // Reset the animated value when starting a new gesture
+        translateY.setOffset(0);
+      },
+      onPanResponderMove: (_, gestureState) => {
+        // Only allow downward movement
+        if (gestureState.dy > 0) {
+          translateY.setValue(gestureState.dy);
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        translateY.flattenOffset();
+        // If swiped down more than 80px or with velocity, close the modal
+        if (gestureState.dy > 80 || (gestureState.dy > 20 && gestureState.vy > 0.3)) {
+          Animated.timing(translateY, {
+            toValue: screenHeight,
+            duration: 250,
+            useNativeDriver: true,
+          }).start(() => {
+            handleClose();
+            translateY.setValue(0);
+          });
+        } else {
+          // Snap back to original position
+          Animated.spring(translateY, {
+            toValue: 0,
+            useNativeDriver: true,
+            bounciness: 8,
+          }).start();
+        }
+      },
+    })
+  ).current;
+
+  // Smooth progress animation
+  const animatedProgress = useRef(new Animated.Value(0)).current;
+  const [displayedPercent, setDisplayedPercent] = useState(0);
+
+  useEffect(() => {
+    // Animate to the new progress value
+    const targetPercent = progress.percent;
+    const startPercent = displayedPercent;
+    const diff = targetPercent - startPercent;
+
+    if (diff > 0) {
+      // Duration proportional to the jump - 50ms per percentage point
+      // So 20% jump = 1000ms, 5% jump = 250ms
+      const duration = diff * 50;
+
+      // Animate the progress bar width
+      Animated.timing(animatedProgress, {
+        toValue: targetPercent,
+        duration: duration,
+        useNativeDriver: false,
+      }).start();
+
+      // Count up 1% at a time with consistent timing
+      const intervalTime = duration / diff; // Time per 1% increment
+      let currentPercent = startPercent;
+
+      const interval = setInterval(() => {
+        currentPercent++;
+        if (currentPercent >= targetPercent) {
+          setDisplayedPercent(targetPercent);
+          clearInterval(interval);
+        } else {
+          setDisplayedPercent(currentPercent);
+        }
+      }, intervalTime);
+
+      return () => clearInterval(interval);
+    } else if (targetPercent === 0) {
+      setDisplayedPercent(0);
+      animatedProgress.setValue(0);
+    }
+  }, [progress.percent]);
 
   // Reset state when modal opens/closes
   const resetState = useCallback(() => {
@@ -72,6 +167,8 @@ export default function ContentImportModal({
     setTextInput('');
     setPreviewImage(null);
     setProgress({ step: '', message: '', percent: 0 });
+    setDisplayedPercent(0);
+    animatedProgress.setValue(0);
     setResult(null);
     setError(null);
     setExerciseMatchInfo(null);
@@ -79,7 +176,8 @@ export default function ContentImportModal({
     setVariantSelections({});
     setCurrentVariantIndex(0);
     setExerciseDetailModal(null);
-  }, []);
+    setIsVoiceActive(false);
+  }, [animatedProgress]);
 
   // Handle close
   const handleClose = () => {
@@ -427,16 +525,15 @@ export default function ContentImportModal({
           <Text style={styles.sourceHint}>1 or more images</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.sourceButton}
-          onPress={() => handleSourceSelect('document')}
-        >
-          <View style={[styles.sourceIcon, { backgroundColor: Colors.info + '20' }]}>
-            <Ionicons name="document" size={28} color={Colors.info} />
+        <View style={[styles.sourceButton, styles.sourceButtonDisabled]}>
+          <View style={[styles.sourceIcon, { backgroundColor: Colors.textMuted + '20' }]}>
+            <Ionicons name="document" size={28} color={Colors.textMuted} />
           </View>
-          <Text style={styles.sourceLabel}>Files</Text>
-          <Text style={styles.sourceHint}>PDF or image</Text>
-        </TouchableOpacity>
+          <Text style={[styles.sourceLabel, { color: Colors.textMuted }]}>Files</Text>
+          <View style={styles.comingSoonBadge}>
+            <Text style={styles.comingSoonText}>Coming Soon</Text>
+          </View>
+        </View>
 
         <TouchableOpacity
           style={styles.sourceButton}
@@ -453,6 +550,25 @@ export default function ContentImportModal({
     </ScrollView>
   );
 
+  // Handle voice transcript - real-time updates while speaking
+  const handleVoiceTranscript = (transcript) => {
+    setIsVoiceActive(true);
+  };
+
+  // Handle final voice transcript - append to text input when done speaking
+  const handleVoiceFinalTranscript = (transcript) => {
+    if (transcript.trim()) {
+      setTextInput(prev => {
+        // Add a newline if there's existing text, otherwise just set the transcript
+        if (prev.trim()) {
+          return prev + '\n' + transcript;
+        }
+        return transcript;
+      });
+    }
+    setIsVoiceActive(false);
+  };
+
   // Render text input step
   const renderTextInputStep = () => (
     <KeyboardAvoidingView
@@ -461,8 +577,20 @@ export default function ContentImportModal({
     >
       <Text style={styles.stepTitle}>Paste Workout</Text>
       <Text style={styles.stepSubtitle}>
-        Paste the workout text you want to import
+        Paste the workout text or use voice input
       </Text>
+
+      {/* Voice input section */}
+      <View style={styles.voiceInputSection}>
+        <VoiceInputButton
+          onTranscript={handleVoiceTranscript}
+          onFinalTranscript={handleVoiceFinalTranscript}
+          style={styles.voiceInputButton}
+        />
+        <Text style={styles.voiceInputLabel}>
+          {isVoiceActive ? 'Listening...' : 'Tap to speak'}
+        </Text>
+      </View>
 
       <TextInput
         style={styles.textInput}
@@ -479,7 +607,7 @@ Push Day
         multiline
         value={textInput}
         onChangeText={setTextInput}
-        autoFocus
+        autoFocus={!isVoiceActive}
       />
 
       <View style={styles.buttonRow}>
@@ -513,14 +641,19 @@ Push Day
 
       {/* Progress bar */}
       <View style={styles.progressBarContainer}>
-        <View
+        <Animated.View
           style={[
             styles.progressBar,
-            { width: `${progress.percent}%` },
+            {
+              width: animatedProgress.interpolate({
+                inputRange: [0, 100],
+                outputRange: ['0%', '100%'],
+              }),
+            },
           ]}
         />
       </View>
-      <Text style={styles.progressPercent}>{progress.percent}%</Text>
+      <Text style={styles.progressPercent}>{displayedPercent}%</Text>
     </View>
   );
 
@@ -1000,14 +1133,28 @@ Push Day
   return (
     <Modal
       visible={visible}
-      transparent
       animationType="slide"
       onRequestClose={handleClose}
+      statusBarTranslucent
+      transparent
+      onShow={() => translateY.setValue(0)}
     >
-      <View style={styles.overlay}>
+      <Animated.View
+        style={[
+          styles.fullScreenOverlay,
+          { transform: [{ translateY }] }
+        ]}
+      >
         <View style={styles.container}>
-          {/* Header */}
-          <View style={styles.header}>
+          {/* Safe area spacer */}
+          <View style={{ height: insets.top, backgroundColor: Colors.background }} />
+
+          {/* Swipeable header area - entire top section is swipeable */}
+          <View
+            {...panResponder.panHandlers}
+            style={styles.swipeableHeader}
+          >
+            <View style={styles.dragHandle} />
             <TouchableOpacity
               onPress={handleClose}
               style={styles.closeButton}
@@ -1020,14 +1167,14 @@ Push Day
           {/* Content */}
           {renderCurrentStep()}
         </View>
-      </View>
+      </Animated.View>
 
       {/* Exercise Detail Inline Modal */}
       {exerciseDetailModal && (
         <View style={styles.exerciseDetailOverlay}>
           <View style={styles.exerciseDetailContainer}>
-            {/* Header */}
-            <View style={styles.exerciseDetailHeader}>
+            {/* Header with safe area */}
+            <View style={[styles.exerciseDetailHeader, { paddingTop: insets.top + Spacing.sm }]}>
               <TouchableOpacity
                 onPress={() => setExerciseDetailModal(null)}
                 style={styles.exerciseDetailBackButton}
@@ -1140,27 +1287,33 @@ Push Day
 }
 
 const styles = StyleSheet.create({
-  overlay: {
+  fullScreenOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.85)',
-    justifyContent: 'flex-end',
+    backgroundColor: Colors.background,
   },
   container: {
-    backgroundColor: Colors.surface,
-    borderTopLeftRadius: BorderRadius.xl,
-    borderTopRightRadius: BorderRadius.xl,
-    maxHeight: '90%',
-    minHeight: 500,
-    height: '85%',
+    flex: 1,
+    backgroundColor: Colors.background,
   },
-  header: {
+  swipeableHeader: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
-    padding: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.md,
+    minHeight: 60,
+  },
+  dragHandle: {
+    position: 'absolute',
+    top: Spacing.sm,
+    width: 40,
+    height: 5,
+    backgroundColor: Colors.textMuted,
+    borderRadius: 3,
   },
   closeButton: {
+    position: 'absolute',
+    right: Spacing.md,
     padding: Spacing.xs,
   },
   stepContainer: {
@@ -1213,6 +1366,23 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.xs,
     color: Colors.textMuted,
   },
+  sourceButtonDisabled: {
+    opacity: 0.6,
+    borderStyle: 'dashed',
+  },
+  comingSoonBadge: {
+    backgroundColor: Colors.warning + '25',
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.sm,
+    marginTop: Spacing.xs,
+  },
+  comingSoonText: {
+    fontSize: Typography.fontSize.xxs,
+    fontWeight: Typography.weights.semibold,
+    color: Colors.warning,
+    textTransform: 'uppercase',
+  },
 
   // Text input
   textInput: {
@@ -1226,6 +1396,26 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     textAlignVertical: 'top',
     minHeight: 200,
+  },
+
+  // Voice input section
+  voiceInputSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.sm,
+    marginBottom: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  voiceInputButton: {
+    marginLeft: 0,
+    marginRight: Spacing.sm,
+  },
+  voiceInputLabel: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
   },
 
   // Buttons
@@ -1644,15 +1834,11 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.9)',
-    justifyContent: 'flex-end',
+    backgroundColor: Colors.background,
   },
   exerciseDetailContainer: {
-    backgroundColor: Colors.surface,
-    borderTopLeftRadius: BorderRadius.xl,
-    borderTopRightRadius: BorderRadius.xl,
-    maxHeight: '90%',
-    height: '85%',
+    flex: 1,
+    backgroundColor: Colors.background,
   },
   exerciseDetailHeader: {
     flexDirection: 'row',

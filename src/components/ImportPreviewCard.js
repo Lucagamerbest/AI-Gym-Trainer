@@ -23,6 +23,7 @@ export default function ImportPreviewCard({
   editable = false,
 }) {
   const [editMode, setEditMode] = useState(false);
+  const [editingTitle, setEditingTitle] = useState(false);
   const [editedData, setEditedData] = useState(data);
 
   if (!data) return null;
@@ -54,22 +55,42 @@ export default function ImportPreviewCard({
   // Render recipe preview
   const renderRecipePreview = () => (
     <View style={styles.card}>
-      {/* Title */}
+      {/* Title - Tap to edit */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Ionicons name="restaurant" size={18} color={Colors.primary} />
           <Text style={styles.sectionTitle}>Recipe Name</Text>
+          {editable && !editingTitle && (
+            <Ionicons name="pencil" size={14} color={Colors.textMuted} style={{ marginLeft: 'auto' }} />
+          )}
         </View>
-        {editMode ? (
-          <TextInput
-            style={styles.editInput}
-            value={editedData.name || editedData.title || ''}
-            onChangeText={(text) => handleFieldUpdate('name', text)}
-            placeholder="Recipe name"
-            placeholderTextColor={Colors.textMuted}
-          />
+        {editingTitle || editMode ? (
+          <View style={styles.inlineEditContainer}>
+            <TextInput
+              style={styles.inlineEditInput}
+              value={editedData.name || editedData.title || ''}
+              onChangeText={(text) => handleFieldUpdate('name', text)}
+              placeholder="Recipe name"
+              placeholderTextColor={Colors.textMuted}
+              autoFocus={editingTitle}
+              onBlur={() => setEditingTitle(false)}
+              onSubmitEditing={() => setEditingTitle(false)}
+            />
+            <TouchableOpacity
+              style={styles.inlineEditDone}
+              onPress={() => setEditingTitle(false)}
+            >
+              <Ionicons name="checkmark" size={20} color={Colors.primary} />
+            </TouchableOpacity>
+          </View>
         ) : (
-          <Text style={styles.titleText}>{data.name || data.title}</Text>
+          <TouchableOpacity
+            onPress={() => editable && setEditingTitle(true)}
+            style={styles.titleTouchable}
+            activeOpacity={editable ? 0.7 : 1}
+          >
+            <Text style={styles.titleText}>{editedData.name || editedData.title || data.name || data.title}</Text>
+          </TouchableOpacity>
         )}
       </View>
 
@@ -185,22 +206,42 @@ export default function ImportPreviewCard({
   // Render workout preview
   const renderWorkoutPreview = () => (
     <View style={styles.card}>
-      {/* Title */}
+      {/* Title - Tap to edit */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Ionicons name="barbell" size={18} color={Colors.primary} />
           <Text style={styles.sectionTitle}>Workout Name</Text>
+          {editable && !editingTitle && (
+            <Ionicons name="pencil" size={14} color={Colors.textMuted} style={{ marginLeft: 'auto' }} />
+          )}
         </View>
-        {editMode ? (
-          <TextInput
-            style={styles.editInput}
-            value={editedData.name || editedData.title || ''}
-            onChangeText={(text) => handleFieldUpdate('name', text)}
-            placeholder="Workout name"
-            placeholderTextColor={Colors.textMuted}
-          />
+        {editingTitle || editMode ? (
+          <View style={styles.inlineEditContainer}>
+            <TextInput
+              style={styles.inlineEditInput}
+              value={editedData.name || editedData.title || ''}
+              onChangeText={(text) => handleFieldUpdate('name', text)}
+              placeholder="Workout name"
+              placeholderTextColor={Colors.textMuted}
+              autoFocus={editingTitle}
+              onBlur={() => setEditingTitle(false)}
+              onSubmitEditing={() => setEditingTitle(false)}
+            />
+            <TouchableOpacity
+              style={styles.inlineEditDone}
+              onPress={() => setEditingTitle(false)}
+            >
+              <Ionicons name="checkmark" size={20} color={Colors.primary} />
+            </TouchableOpacity>
+          </View>
         ) : (
-          <Text style={styles.titleText}>{data.name || data.title}</Text>
+          <TouchableOpacity
+            onPress={() => editable && setEditingTitle(true)}
+            style={styles.titleTouchable}
+            activeOpacity={editable ? 0.7 : 1}
+          >
+            <Text style={styles.titleText}>{editedData.name || editedData.title || data.name || data.title}</Text>
+          </TouchableOpacity>
         )}
       </View>
 
@@ -330,6 +371,30 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.lg,
     fontWeight: Typography.weights.bold,
     color: Colors.text,
+  },
+  titleTouchable: {
+    paddingVertical: Spacing.xs,
+  },
+  inlineEditContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  inlineEditInput: {
+    flex: 1,
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.sm,
+    padding: Spacing.sm,
+    color: Colors.text,
+    fontSize: Typography.fontSize.lg,
+    fontWeight: Typography.weights.bold,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+  },
+  inlineEditDone: {
+    backgroundColor: Colors.primary + '20',
+    padding: Spacing.sm,
+    borderRadius: BorderRadius.sm,
   },
   editInput: {
     backgroundColor: Colors.surface,

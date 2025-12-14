@@ -142,7 +142,7 @@ DAY ORDERING:
 
 Return ONLY valid JSON in this exact format (no other text):
 {
-  "name": "Workout Name",
+  "name": "Creative Program Name",
   "description": "Brief description of the workout",
   "type": "push",
   "isStandalone": true,
@@ -170,6 +170,12 @@ Return ONLY valid JSON in this exact format (no other text):
   "source": "imported from image",
   "confidence": 0.9
 }
+
+PROGRAM NAMING:
+- Generate a creative, descriptive name based on the workout content
+- Examples: "Ultimate Push Day", "Full Body Strength Builder", "5-Day Hypertrophy Split", "Chest & Triceps Blast"
+- The name should reflect the muscle groups, workout style, or goal
+- DO NOT use generic names like "Imported Workout" or "Workout Program"
 
 RULES:
 1. DO NOT INVENT OR MAKE UP exercises - only extract what is VISIBLE in the image
@@ -217,7 +223,7 @@ DAY ORDERING:
 
 Return ONLY valid JSON in this exact format (no other text):
 {
-  "name": "Workout Name",
+  "name": "Creative Program Name",
   "description": "Brief description of the workout",
   "type": "push",
   "isStandalone": true,
@@ -245,6 +251,12 @@ Return ONLY valid JSON in this exact format (no other text):
   "source": "imported from text",
   "confidence": 0.9
 }
+
+PROGRAM NAMING:
+- Generate a creative, descriptive name based on the workout content
+- Examples: "Ultimate Push Day", "Full Body Strength Builder", "5-Day Hypertrophy Split", "Chest & Triceps Blast"
+- The name should reflect the muscle groups, workout style, or goal
+- DO NOT use generic names like "Imported Workout" or "Workout Program"
 
 RULES:
 1. DO NOT INVENT OR MAKE UP exercises - only extract what is in the text

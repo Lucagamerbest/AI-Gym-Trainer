@@ -119,26 +119,17 @@ async function imageToBase64(uri) {
 }
 
 /**
- * Extract text from PDF (basic text-based PDFs only)
- * For image-based PDFs, we'll convert pages to images
+ * PDF handling - Currently not supported by Vision API
+ * OpenAI Vision only accepts: png, jpeg, gif, webp
  */
 async function extractTextFromPDF(uri) {
-  try {
-    // Read PDF as base64
-    const base64 = await FileSystem.readAsStringAsync(uri, {
-      encoding: 'base64',
-    });
-
-    // For now, we'll pass the PDF as an image to Vision API
-    // In future, could use a PDF parsing library for text-based PDFs
-    return {
-      type: 'image',
-      base64: base64,
-    };
-  } catch (error) {
-    console.error('PDF processing failed:', error);
-    throw new Error('Failed to process PDF');
-  }
+  // OpenAI Vision API doesn't support PDF format directly
+  // User should take screenshots of the PDF pages instead
+  throw new Error(
+    'PDF files are not supported yet.\n\n' +
+    'Please take screenshots of your workout pages and import them as images instead.\n\n' +
+    'Tip: For multi-page workouts, select multiple screenshots at once!'
+  );
 }
 
 class ContentImportService {
@@ -298,20 +289,42 @@ class ContentImportService {
       const totalImages = assets.length;
       const days = [];
 
+      // Each image gets an equal portion of the 10-90% range
+      const progressPerImage = 80 / totalImages;
+
       for (let i = 0; i < totalImages; i++) {
         const asset = assets[i];
+        const baseProgress = 10 + (i * progressPerImage);
 
+        // Step 1: Starting this image (0% of this image's portion)
         this.reportProgress(
           'process',
           `Processing image ${i + 1} of ${totalImages}...`,
-          Math.round((i / totalImages) * 70) + 10
+          Math.round(baseProgress)
         );
 
-        // Compress image
+        // Step 2: Compressing (20% of this image's portion)
+        this.reportProgress(
+          'compress',
+          `Optimizing image ${i + 1}...`,
+          Math.round(baseProgress + progressPerImage * 0.2)
+        );
         const compressedUri = await compressImage(asset.uri);
 
-        // Convert to base64
+        // Step 3: Converting (40% of this image's portion)
+        this.reportProgress(
+          'convert',
+          `Converting image ${i + 1}...`,
+          Math.round(baseProgress + progressPerImage * 0.4)
+        );
         const base64 = await imageToBase64(compressedUri);
+
+        // Step 4: Analyzing with AI (60% of this image's portion)
+        this.reportProgress(
+          'parse',
+          `Analyzing image ${i + 1} with AI...`,
+          Math.round(baseProgress + progressPerImage * 0.6)
+        );
 
         // Parse this day's workout
         const { parseContentFromImage } = await import('./tools/ContentParserTools');
@@ -320,6 +333,13 @@ class ContentImportService {
           contentHint: 'workout', // Force workout for multi-image
           userId,
         });
+
+        // Step 5: Done with this image (100% of this image's portion)
+        this.reportProgress(
+          'process',
+          `Completed image ${i + 1} of ${totalImages}`,
+          Math.round(baseProgress + progressPerImage)
+        );
 
         if (dayResult.success && dayResult.data) {
           // Extract the day data
@@ -389,10 +409,13 @@ class ContentImportService {
 
       this.reportProgress('complete', 'All days processed!', 100);
 
+      // Generate a creative program name based on the workout content
+      const programName = this.generateProgramName(days);
+
       // Combine all days into a program
       const program = {
         id: `import_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        name: `Imported ${days.length}-Day Program`,
+        name: programName,
         description: `Program imported from ${totalImages} images${skippedCount > 0 ? ` (${skippedCount} skipped - no workout content)` : ''}`,
         type: 'custom',
         difficulty: 'intermediate',
@@ -437,16 +460,16 @@ class ContentImportService {
     try {
       this.reportProgress('select', 'Opening file picker...', 10);
 
-      // Launch document picker
+      // Launch document picker - images only (PDF not supported by Vision API)
       const result = await DocumentPicker.getDocumentAsync({
-        type: ['application/pdf', 'image/*'],
+        type: ['image/*'],
         copyToCacheDirectory: true,
       });
 
       if (result.canceled) {
         return {
           success: false,
-          message: 'Document selection cancelled.',
+          message: 'File selection cancelled.',
           cancelled: true,
         };
       }
@@ -459,11 +482,15 @@ class ContentImportService {
       if (mimeType && mimeType.startsWith('image/')) {
         return await this.processImage(fileUri, contentHint, userId);
       } else if (mimeType === 'application/pdf') {
-        return await this.processPDF(fileUri, contentHint, userId);
+        // PDF not supported - show helpful message
+        return {
+          success: false,
+          message: 'PDF files are not supported yet.\n\nPlease take screenshots of your workout pages and import them as images instead.',
+        };
       } else {
         return {
           success: false,
-          message: 'Unsupported file type. Please select a PDF or image file.',
+          message: 'Unsupported file type. Please select an image file (PNG, JPG, etc.)',
         };
       }
 
@@ -494,7 +521,9 @@ class ContentImportService {
         };
       }
 
-      this.reportProgress('parse', 'Analyzing text content...', 30);
+      this.reportProgress('start', 'Starting...', 10);
+      this.reportProgress('parse', 'Preparing text...', 25);
+      this.reportProgress('parse', 'Analyzing text content...', 40);
 
       // Parse the text
       const result = await parseContentFromText({
@@ -503,6 +532,7 @@ class ContentImportService {
         userId,
       });
 
+      this.reportProgress('parse', 'AI analysis complete', 85);
       this.reportProgress('complete', 'Parsing complete!', 100);
 
       return result;
@@ -523,17 +553,21 @@ class ContentImportService {
    */
   async processImage(uri, contentHint, userId) {
     try {
-      this.reportProgress('compress', 'Optimizing image...', 30);
+      this.reportProgress('start', 'Starting...', 5);
+
+      this.reportProgress('compress', 'Optimizing image...', 15);
 
       // Compress image
       const compressedUri = await compressImage(uri);
 
-      this.reportProgress('convert', 'Processing image...', 50);
+      this.reportProgress('compress', 'Image optimized', 30);
+      this.reportProgress('convert', 'Processing image...', 40);
 
       // Convert to base64
       const base64 = await imageToBase64(compressedUri);
 
-      this.reportProgress('parse', 'Analyzing content with AI...', 70);
+      this.reportProgress('convert', 'Image processed', 50);
+      this.reportProgress('parse', 'Analyzing content with AI...', 60);
 
       // Parse with Vision API
       const result = await parseContentFromImage({
@@ -542,6 +576,7 @@ class ContentImportService {
         userId,
       });
 
+      this.reportProgress('parse', 'AI analysis complete', 90);
       this.reportProgress('complete', 'Analysis complete!', 100);
 
       return result;
@@ -557,13 +592,16 @@ class ContentImportService {
    */
   async processPDF(uri, contentHint, userId) {
     try {
+      this.reportProgress('start', 'Starting...', 5);
+      this.reportProgress('extract', 'Loading PDF...', 15);
       this.reportProgress('extract', 'Processing PDF...', 30);
 
       // For now, treat PDF as image (Vision API can handle it)
       // In future, could extract text from text-based PDFs first
       const pdfData = await extractTextFromPDF(uri);
 
-      this.reportProgress('parse', 'Analyzing content with AI...', 70);
+      this.reportProgress('extract', 'PDF processed', 45);
+      this.reportProgress('parse', 'Analyzing content with AI...', 55);
 
       // Parse based on extracted content type
       if (pdfData.type === 'image') {
@@ -572,6 +610,7 @@ class ContentImportService {
           contentHint,
           userId,
         });
+        this.reportProgress('parse', 'AI analysis complete', 90);
         this.reportProgress('complete', 'Analysis complete!', 100);
         return result;
       } else {
@@ -581,6 +620,7 @@ class ContentImportService {
           contentHint,
           userId,
         });
+        this.reportProgress('parse', 'AI analysis complete', 90);
         this.reportProgress('complete', 'Analysis complete!', 100);
         return result;
       }
@@ -589,6 +629,65 @@ class ContentImportService {
       console.error('PDF processing error:', error);
       throw error;
     }
+  }
+
+  /**
+   * Generate a creative program name based on the workout days
+   */
+  generateProgramName(days) {
+    if (!days || days.length === 0) {
+      return 'Custom Workout Program';
+    }
+
+    // Collect all muscle groups and day names
+    const allMuscleGroups = new Set();
+    const dayNames = [];
+
+    days.forEach(day => {
+      if (day.muscleGroups) {
+        day.muscleGroups.forEach(mg => allMuscleGroups.add(mg.toLowerCase()));
+      }
+      if (day.name) {
+        dayNames.push(day.name.toLowerCase());
+      }
+    });
+
+    // Detect common split types
+    const muscles = Array.from(allMuscleGroups);
+    const hasPush = muscles.some(m => ['chest', 'shoulders', 'triceps'].includes(m)) || dayNames.some(n => n.includes('push'));
+    const hasPull = muscles.some(m => ['back', 'biceps', 'lats'].includes(m)) || dayNames.some(n => n.includes('pull'));
+    const hasLegs = muscles.some(m => ['legs', 'quads', 'hamstrings', 'glutes', 'calves'].includes(m)) || dayNames.some(n => n.includes('leg'));
+    const hasUpper = dayNames.some(n => n.includes('upper'));
+    const hasLower = dayNames.some(n => n.includes('lower'));
+    const hasFullBody = dayNames.some(n => n.includes('full body') || n.includes('fullbody'));
+
+    // Generate name based on detected patterns
+    if (hasPush && hasPull && hasLegs && days.length >= 3) {
+      return `${days.length}-Day Push/Pull/Legs Split`;
+    } else if (hasUpper && hasLower) {
+      return `${days.length}-Day Upper/Lower Split`;
+    } else if (hasFullBody) {
+      return `${days.length}-Day Full Body Program`;
+    } else if (hasPush && hasPull) {
+      return `${days.length}-Day Push/Pull Program`;
+    } else if (days.length === 1) {
+      // Single day - use the day name or muscle groups
+      const day = days[0];
+      if (day.name && !day.name.toLowerCase().includes('day 1')) {
+        return day.name;
+      } else if (muscles.length > 0) {
+        const muscleStr = muscles.slice(0, 2).map(m => m.charAt(0).toUpperCase() + m.slice(1)).join(' & ');
+        return `${muscleStr} Workout`;
+      }
+    }
+
+    // Default: list primary muscle groups
+    if (muscles.length > 0) {
+      const primaryMuscles = muscles.slice(0, 3).map(m => m.charAt(0).toUpperCase() + m.slice(1));
+      return `${days.length}-Day ${primaryMuscles.join('/')} Program`;
+    }
+
+    return `${days.length}-Day Training Program`;
   }
 
   /**
