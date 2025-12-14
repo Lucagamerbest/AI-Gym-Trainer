@@ -22,6 +22,8 @@ import StyledButton from '../components/StyledButton';
 import FoodCard from '../components/FoodCard';
 import FoodDetailsView from '../components/FoodDetailsView';
 import RecipeBrowser from '../components/RecipeBrowser';
+import RecipeImportModal from '../components/RecipeImportModal';
+import RecipeCookModeModal from '../components/RecipeCookModeModal';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { unifiedFoodSearch } from '../services/unifiedFoodSearch';
 // Import restaurant data with fallback
@@ -106,6 +108,7 @@ export default function RecipesScreen({ navigation, route }) {
 
   const [recipes, setRecipes] = useState(mockRecipes);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
   const [modalView, setModalView] = useState('recipe'); // 'recipe' or 'ingredient'
   const [activeTab, setActiveTab] = useState('my-recipes'); // 'my-recipes', 'browse', or 'fast-food'
   const [searchText, setSearchText] = useState('');
@@ -114,6 +117,7 @@ export default function RecipesScreen({ navigation, route }) {
   const [selectedFood, setSelectedFood] = useState(null);
   const [showInstructionsModal, setShowInstructionsModal] = useState(false);
   const [selectedRecipeForInstructions, setSelectedRecipeForInstructions] = useState(null);
+  const [showCookMode, setShowCookMode] = useState(false);
   const [logoErrors, setLogoErrors] = useState({});
   const [restaurantSearchText, setRestaurantSearchText] = useState('');
 
@@ -441,7 +445,8 @@ export default function RecipesScreen({ navigation, route }) {
           <Text style={styles.newRecipeBadgeText}>✨ Just Created</Text>
         </View>
       )}
-      <View style={styles.recipeHeader}>
+      {/* Title row - full width */}
+      <View style={styles.recipeTitleRow}>
         <TouchableOpacity
           style={styles.favoriteButton}
           onPress={() => toggleFavorite(item.id)}
@@ -449,31 +454,38 @@ export default function RecipesScreen({ navigation, route }) {
         >
           <Ionicons
             name={item.isFavorite ? 'star' : 'star-outline'}
-            size={24}
-            color={item.isFavorite ? '#FFD700' : '#FFFFFF'}
+            size={22}
+            color={item.isFavorite ? '#FFD700' : Colors.textMuted}
           />
         </TouchableOpacity>
-        <View style={styles.recipeInfo}>
-          <Text style={styles.recipeName}>{item.name}</Text>
-          <Text style={styles.ingredientCount}>
-            {item.ingredients.length} ingredients
-          </Text>
+        <Text style={styles.recipeName}>{item.name}</Text>
+      </View>
+
+      {/* Macros row */}
+      <View style={styles.recipeMacrosRow}>
+        <View style={[styles.recipeMacroBadge, styles.calBadge]}>
+          <Text style={styles.recipeMacroBadgeText}>{item.nutrition.calories}</Text>
+          <Text style={styles.recipeMacroBadgeLabel}>cal</Text>
         </View>
-        <View style={styles.nutritionSummary}>
-          <Text style={styles.caloriesText}>
-            {item.nutrition.calories} cal
-          </Text>
-          <Text style={styles.macroText}>
-            P: {item.nutrition.protein}g
-          </Text>
-          <Text style={styles.macroText}>
-            C: {item.nutrition.carbs}g
-          </Text>
-          <Text style={styles.macroText}>
-            F: {item.nutrition.fat}g
-          </Text>
+        <View style={[styles.recipeMacroBadge, styles.proteinBadge]}>
+          <Text style={styles.recipeMacroBadgeText}>{item.nutrition.protein}g</Text>
+          <Text style={styles.recipeMacroBadgeLabel}>P</Text>
+        </View>
+        <View style={[styles.recipeMacroBadge, styles.carbsBadge]}>
+          <Text style={styles.recipeMacroBadgeText}>{item.nutrition.carbs}g</Text>
+          <Text style={styles.recipeMacroBadgeLabel}>C</Text>
+        </View>
+        <View style={[styles.recipeMacroBadge, styles.fatBadge]}>
+          <Text style={styles.recipeMacroBadgeText}>{item.nutrition.fat}g</Text>
+          <Text style={styles.recipeMacroBadgeLabel}>F</Text>
         </View>
       </View>
+
+      {/* Ingredient count on its own line */}
+      <Text style={styles.ingredientCount}>
+        {item.ingredients.length} ingredients
+      </Text>
+
       <View style={styles.recipeActions}>
         {/* Main action button - full width */}
         <TouchableOpacity
@@ -601,7 +613,7 @@ export default function RecipesScreen({ navigation, route }) {
       {/* Show content based on active tab */}
       {activeTab === 'my-recipes' ? (
         <>
-          {/* Action button */}
+          {/* Action buttons */}
           <View style={styles.actionButtonsRow}>
             <TouchableOpacity
               style={styles.createButton}
@@ -617,6 +629,14 @@ export default function RecipesScreen({ navigation, route }) {
             >
               <Ionicons name="add-circle" size={18} color={Colors.text} />
               <Text style={styles.createButtonText}>Create Recipe</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.importButton}
+              onPress={() => setShowImportModal(true)}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="camera" size={18} color={Colors.primary} />
+              <Text style={styles.importButtonText}>Import</Text>
             </TouchableOpacity>
           </View>
 
@@ -927,18 +947,40 @@ export default function RecipesScreen({ navigation, route }) {
                 {/* Ingredients */}
                 <View style={styles.instructionsSection}>
                   <Text style={styles.instructionsSectionTitle}>📝 Ingredients</Text>
-                  {selectedRecipeForInstructions.ingredients?.map((ing, index) => (
-                    <View key={index} style={styles.ingredientItem}>
-                      <Text style={styles.ingredientBullet}>•</Text>
-                      <Text style={styles.ingredientText}>
-                        {ing.original?.amount || `${ing.quantity}g`} {ing.original?.item || ing.food?.name}
-                      </Text>
-                    </View>
-                  ))}
+                  {selectedRecipeForInstructions.ingredients?.map((ing, index) => {
+                    // Handle ing.original being either a string or an object
+                    let displayText = '';
+                    if (typeof ing.original === 'string') {
+                      displayText = ing.original;
+                    } else if (ing.original && typeof ing.original === 'object') {
+                      displayText = `${ing.original.amount || ''} ${ing.original.item || ing.food?.name || ing.name || ''}`.trim();
+                    } else {
+                      displayText = `${ing.quantity || ''}${ing.unit || 'g'} ${ing.food?.name || ing.name || ''}`.trim();
+                    }
+                    return (
+                      <View key={index} style={styles.ingredientItem}>
+                        <Text style={styles.ingredientBullet}>•</Text>
+                        <Text style={styles.ingredientText}>{displayText}</Text>
+                      </View>
+                    );
+                  })}
                 </View>
 
                 {/* Instructions */}
                 <View style={styles.instructionsSection}>
+                  {/* Start Cooking Button - prominent at top */}
+                  {selectedRecipeForInstructions.instructions?.length > 0 && (
+                    <TouchableOpacity
+                      style={styles.startCookingButtonTop}
+                      onPress={() => {
+                        setShowCookMode(true);
+                      }}
+                      activeOpacity={0.8}
+                    >
+                      <Ionicons name="play-circle" size={28} color={Colors.text} />
+                      <Text style={styles.startCookingButtonTextTop}>Start Cooking</Text>
+                    </TouchableOpacity>
+                  )}
                   <Text style={styles.instructionsSectionTitle}>👨‍🍳 Instructions</Text>
                   {selectedRecipeForInstructions.instructions?.map((instruction, index) => (
                     <View key={index} style={styles.instructionStep}>
@@ -967,6 +1009,25 @@ export default function RecipesScreen({ navigation, route }) {
           </ScrollView>
         </SafeAreaView>
       </Modal>
+
+      {/* Recipe Import Modal */}
+      <RecipeImportModal
+        visible={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        onImportComplete={(recipe) => {
+          // Reload recipes to show the newly imported one
+          loadRecipes();
+          // Highlight the new recipe
+          setHighlightedRecipeId(recipe.id);
+        }}
+      />
+
+      {/* Recipe Cook Mode Modal */}
+      <RecipeCookModeModal
+        visible={showCookMode}
+        onClose={() => setShowCookMode(false)}
+        recipe={selectedRecipeForInstructions}
+      />
 
     </ScreenLayout>
   );
@@ -1024,14 +1085,13 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
   },
   createButton: {
+    flex: 1,
     backgroundColor: Colors.primary,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: Spacing.md + 2,
-    paddingHorizontal: Spacing.lg,
-    marginHorizontal: Spacing.lg,
-    marginBottom: Spacing.lg,
+    paddingHorizontal: Spacing.md,
     borderRadius: BorderRadius.lg,
     minHeight: 52,
     gap: Spacing.sm,
@@ -1040,6 +1100,25 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.md,
     fontWeight: '700',
     color: Colors.text,
+    letterSpacing: 0.5,
+  },
+  importButton: {
+    backgroundColor: Colors.card,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.md + 2,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: BorderRadius.lg,
+    minHeight: 52,
+    gap: Spacing.sm,
+    borderWidth: 2,
+    borderColor: Colors.primary,
+  },
+  importButtonText: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '700',
+    color: Colors.primary,
     letterSpacing: 0.5,
   },
   recipesContainer: {
@@ -1074,6 +1153,46 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
     borderWidth: 1,
     borderColor: Colors.border,
+  },
+  recipeTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: Spacing.md,
+  },
+  recipeMacrosRow: {
+    flexDirection: 'row',
+    gap: 6,
+    marginBottom: Spacing.sm,
+  },
+  recipeMacroBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 4,
+    paddingHorizontal: 7,
+    borderRadius: BorderRadius.sm,
+    gap: 2,
+  },
+  recipeMacroBadgeText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: Colors.text,
+  },
+  recipeMacroBadgeLabel: {
+    fontSize: 10,
+    fontWeight: '500',
+    color: Colors.textMuted,
+  },
+  calBadge: {
+    backgroundColor: Colors.primary + '30',
+  },
+  proteinBadge: {
+    backgroundColor: '#FF6B6B30',
+  },
+  carbsBadge: {
+    backgroundColor: '#4ECDC430',
+  },
+  fatBadge: {
+    backgroundColor: '#FFD93D30',
   },
   highlightedRecipeCard: {
     borderColor: Colors.primary,
@@ -1125,10 +1244,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   recipeName: {
+    flex: 1,
     fontSize: Typography.fontSize.lg,
     fontWeight: '700',
     color: Colors.text,
-    marginBottom: Spacing.xs,
     lineHeight: 24,
   },
   recipeServings: {
@@ -1137,8 +1256,8 @@ const styles = StyleSheet.create({
   },
   ingredientCount: {
     fontSize: Typography.fontSize.sm,
-    color: Colors.textMuted,
-    marginTop: Spacing.xs,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.md,
   },
   nutritionSummary: {
     alignItems: 'flex-end',
@@ -1856,5 +1975,40 @@ const styles = StyleSheet.create({
   menuItemCount: {
     fontSize: Typography.fontSize.xs,
     color: Colors.textMuted,
+  },
+
+  // Start Cooking button
+  startCookingButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+    backgroundColor: Colors.primary,
+    paddingVertical: Spacing.md + 4,
+    paddingHorizontal: Spacing.xl,
+    borderRadius: BorderRadius.lg,
+    marginTop: Spacing.xl,
+    marginBottom: Spacing.lg,
+  },
+  startCookingButtonText: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: Typography.weights.bold,
+    color: Colors.text,
+  },
+  startCookingButtonTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+    backgroundColor: Colors.primary,
+    paddingVertical: Spacing.md + 4,
+    paddingHorizontal: Spacing.xl,
+    borderRadius: BorderRadius.lg,
+    marginBottom: Spacing.lg,
+  },
+  startCookingButtonTextTop: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: '700',
+    color: Colors.text,
   },
 });

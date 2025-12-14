@@ -69,6 +69,62 @@ RULES:
 7. If any field is unclear, make your best estimate and lower confidence`;
 
 /**
+ * Prompt for parsing recipe content from MULTIPLE images
+ * Used when user provides several screenshots of the same recipe
+ */
+export const RECIPE_MULTI_IMAGE_PARSE_PROMPT = `You are analyzing MULTIPLE IMAGES that together show ONE COMPLETE RECIPE.
+
+IMPORTANT: These images are different parts/screenshots of the SAME recipe. Combine all information from ALL images into a single unified recipe.
+
+Tasks:
+1. Extract the recipe name (should appear in one of the images)
+2. Combine ALL ingredients from ALL images into one complete list
+3. Combine ALL instructions from ALL images in the correct order
+4. Extract nutrition information if visible in any image
+5. Extract prep time, cook time, and servings if visible
+
+Return ONLY valid JSON in this exact format (no other text):
+{
+  "name": "Recipe Name",
+  "description": "Brief description of the dish",
+  "servings": 4,
+  "prepTime": "15 minutes",
+  "cookTime": "20 minutes",
+  "difficulty": "easy",
+  "ingredients": [
+    {
+      "name": "ingredient name",
+      "quantity": 200,
+      "unit": "g",
+      "original": "200g chicken breast"
+    }
+  ],
+  "instructions": [
+    "Step 1: First instruction",
+    "Step 2: Second instruction"
+  ],
+  "nutrition": {
+    "calories": 450,
+    "protein": 35,
+    "carbs": 40,
+    "fat": 15
+  },
+  "tags": ["high-protein", "quick", "healthy"],
+  "source": "imported from images",
+  "confidence": 0.95
+}
+
+RULES:
+1. COMBINE ingredients from all images - don't duplicate if the same ingredient appears in multiple images
+2. ORDER instructions correctly - look for step numbers or logical flow
+3. If nutrition info is not visible, estimate based on ingredients
+4. Convert all measurements to metric (grams/ml) when possible
+5. If servings not specified, assume 1 serving
+6. Set confidence between 0-1 based on image clarity and completeness
+7. Include ALL visible ingredients from ALL images
+8. If any field is unclear, make your best estimate and lower confidence`;
+
+/**
  * Prompt for parsing recipe content from text
  */
 export const RECIPE_TEXT_PARSE_PROMPT = `Parse this text and extract recipe information.
@@ -312,6 +368,7 @@ export function formatTextPrompt(prompt, text) {
 export default {
   CONTENT_TYPE_DETECTION_PROMPT,
   RECIPE_PARSE_PROMPT,
+  RECIPE_MULTI_IMAGE_PARSE_PROMPT,
   RECIPE_TEXT_PARSE_PROMPT,
   WORKOUT_PARSE_PROMPT,
   WORKOUT_TEXT_PARSE_PROMPT,

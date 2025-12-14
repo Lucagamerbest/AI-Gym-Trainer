@@ -549,6 +549,83 @@ class ContentImportService {
   }
 
   /**
+   * Process multiple images for a SINGLE RECIPE
+   * All images are combined into one recipe (unlike workouts where each image = one day)
+   */
+  async processMultipleImagesForRecipe(assets, userId) {
+    try {
+      const totalImages = assets.length;
+      const imagesBase64 = [];
+
+      // Each image gets an equal portion of the 10-80% range for processing
+      const progressPerImage = 70 / totalImages;
+
+      for (let i = 0; i < totalImages; i++) {
+        const asset = assets[i];
+        const baseProgress = 10 + (i * progressPerImage);
+
+        // Step 1: Processing this image
+        this.reportProgress(
+          'process',
+          `Processing image ${i + 1} of ${totalImages}...`,
+          Math.round(baseProgress)
+        );
+
+        // Step 2: Compressing
+        this.reportProgress(
+          'compress',
+          `Optimizing image ${i + 1}...`,
+          Math.round(baseProgress + progressPerImage * 0.3)
+        );
+        const compressedUri = await compressImage(asset.uri);
+
+        // Step 3: Converting to base64
+        this.reportProgress(
+          'convert',
+          `Converting image ${i + 1}...`,
+          Math.round(baseProgress + progressPerImage * 0.6)
+        );
+        const base64 = await imageToBase64(compressedUri);
+        imagesBase64.push(base64);
+
+        // Step 4: Done with this image
+        this.reportProgress(
+          'process',
+          `Prepared image ${i + 1} of ${totalImages}`,
+          Math.round(baseProgress + progressPerImage)
+        );
+      }
+
+      // Step 5: AI Analysis (all images at once)
+      this.reportProgress(
+        'parse',
+        `Analyzing ${totalImages} images with AI...`,
+        85
+      );
+
+      // Parse all images together into one recipe
+      const { parseRecipeFromMultipleImages } = await import('./tools/ContentParserTools');
+      const result = await parseRecipeFromMultipleImages({
+        imagesBase64,
+        userId,
+      });
+
+      this.reportProgress('complete', 'Analysis complete!', 100);
+
+      return result;
+
+    } catch (error) {
+      console.error('Multi-image recipe processing error:', error);
+      this.reportError(error.message);
+      return {
+        success: false,
+        message: 'Failed to process images. Please try again.',
+        error: error.message,
+      };
+    }
+  }
+
+  /**
    * Process image - Compress, convert to base64, and parse
    */
   async processImage(uri, contentHint, userId) {

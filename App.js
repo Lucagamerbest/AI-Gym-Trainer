@@ -276,7 +276,6 @@ function AppNavigator() {
   useEffect(() => {
     const subscription = AppState.addEventListener('change', async (nextAppState) => {
       if (nextAppState === 'active') {
-        console.log('App came to foreground, syncing...');
         // Sync when app comes to foreground
         if (user?.uid) {
           try {

@@ -110,6 +110,79 @@ class AIService {
     return completion.choices[0].message.content;
   }
 
+  /**
+   * Analyze multiple images at once using GPT-4o Vision API
+   * Useful for recipes/content that spans multiple screenshots
+   *
+   * @param {string[]} imagesBase64 - Array of base64 encoded images
+   * @param {string} prompt - Instructions for what to extract from the images
+   * @param {Object} options - Optional configuration
+   * @returns {string} - AI response with extracted content
+   */
+  async analyzeMultipleImages(imagesBase64, prompt, options = {}) {
+    const { max_tokens = 4096, temperature = 0.3, json_mode = false } = options;
+
+    if (!this.isInitialized()) {
+      throw new Error('AI Service not initialized. Call initialize() first.');
+    }
+
+    if (!imagesBase64 || imagesBase64.length === 0) {
+      throw new Error('No images provided');
+    }
+
+    // Build content array with text prompt first, then all images
+    const content = [
+      {
+        type: 'text',
+        text: prompt,
+      },
+      ...imagesBase64.map((base64, index) => ({
+        type: 'image_url',
+        image_url: {
+          url: `data:image/jpeg;base64,${base64}`,
+          detail: 'high',
+        },
+      })),
+    ];
+
+    const messages = [
+      {
+        role: 'user',
+        content,
+      },
+    ];
+
+    // Build request body
+    const requestBody = {
+      model: 'gpt-4o',
+      messages,
+      max_tokens,
+      temperature,
+    };
+
+    if (json_mode) {
+      requestBody.response_format = { type: 'json_object' };
+    }
+
+    const response = await fetch(OPENAI_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${this.apiKey}`,
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      const errorMessage = errorData.error?.message || `HTTP ${response.status}`;
+      throw new Error(`OpenAI Vision API error: ${errorMessage}`);
+    }
+
+    const completion = await response.json();
+    return completion.choices[0].message.content;
+  }
+
   // Make API request to OpenAI
   async makeOpenAIRequest(messages, options = {}) {
     const { tools, tool_choice, max_tokens = 4096, temperature = 0.7, json_mode = false } = options;

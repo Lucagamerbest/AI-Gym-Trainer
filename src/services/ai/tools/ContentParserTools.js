@@ -8,6 +8,7 @@
 import {
   CONTENT_TYPE_DETECTION_PROMPT,
   RECIPE_PARSE_PROMPT,
+  RECIPE_MULTI_IMAGE_PARSE_PROMPT,
   RECIPE_TEXT_PARSE_PROMPT,
   WORKOUT_PARSE_PROMPT,
   WORKOUT_TEXT_PARSE_PROMPT,
@@ -633,6 +634,116 @@ export async function parseContentFromImage({
 }
 
 /**
+ * PARSE RECIPE FROM MULTIPLE IMAGES
+ * Combines multiple screenshots into a single unified recipe
+ * Used when a recipe spans multiple pages/screenshots
+ */
+export async function parseRecipeFromMultipleImages({
+  imagesBase64,
+  userId,
+}) {
+  try {
+    if (!imagesBase64 || imagesBase64.length === 0) {
+      return {
+        success: false,
+        message: 'No images provided. Please select at least one image.',
+      };
+    }
+
+    // Dynamically import AIService
+    const { default: AIService } = await import('../AIService');
+
+    if (!AIService.isInitialized()) {
+      return {
+        success: false,
+        message: 'AI Service not initialized. Please restart the app.',
+      };
+    }
+
+    // For single image, use regular parsing
+    if (imagesBase64.length === 1) {
+      return await parseContentFromImage({
+        imageBase64: imagesBase64[0],
+        contentHint: 'recipe',
+        userId,
+      });
+    }
+
+    // Parse multiple images at once
+    let response;
+    try {
+      response = await AIService.analyzeMultipleImages(
+        imagesBase64,
+        RECIPE_MULTI_IMAGE_PARSE_PROMPT,
+        { max_tokens: 4096, temperature: 0.3, json_mode: true }
+      );
+    } catch (error) {
+      console.error('Multi-image parsing failed:', error);
+      return {
+        success: false,
+        message: 'Failed to analyze the images. Please try again with clearer images.',
+        error: error.message,
+      };
+    }
+
+    // Extract and parse JSON
+    let parsed;
+    try {
+      parsed = extractAndParseJSON(response);
+    } catch (error) {
+      console.error('JSON extraction failed:', error);
+      return {
+        success: false,
+        message: 'Could not extract recipe data from the images. The images may be unclear or not contain valid recipe content.',
+        error: error.message,
+      };
+    }
+
+    // Check if AI indicated it couldn't parse the content
+    if (parsed.error || parsed.message?.toLowerCase().includes('cannot')) {
+      return {
+        success: false,
+        message: parsed.message || 'These images don\'t appear to contain a recipe. Please try with images showing ingredients and instructions.',
+      };
+    }
+
+    // Validate parsed data
+    const validation = validateRecipeData(parsed);
+
+    if (!validation.valid) {
+      return {
+        success: false,
+        message: `Parsed content has issues: ${validation.errors.join(', ')}. Please try with clearer images.`,
+        partialData: parsed,
+        errors: validation.errors,
+      };
+    }
+
+    // Normalize to app format
+    const normalized = normalizeRecipe(parsed);
+
+    return {
+      success: true,
+      message: `Successfully parsed recipe from ${imagesBase64.length} images! Review the details and save when ready.`,
+      contentType: 'recipe',
+      data: normalized,
+      action: 'recipe_imported',
+      confidence: parsed.confidence || 0.85,
+      needsReview: true,
+      isMultiImage: true,
+    };
+
+  } catch (error) {
+    console.error('parseRecipeFromMultipleImages error:', error);
+    return {
+      success: false,
+      message: 'An error occurred while parsing the images. Please try again.',
+      error: error.message,
+    };
+  }
+}
+
+/**
  * PARSE CONTENT FROM TEXT
  * Parses pasted text or extracted PDF content to extract recipe or workout data
  */
@@ -822,6 +933,7 @@ export const contentParserToolSchemas = [
 
 export default {
   parseContentFromImage,
+  parseRecipeFromMultipleImages,
   parseContentFromText,
   contentParserToolSchemas,
 };
