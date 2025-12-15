@@ -45,7 +45,8 @@ export default function Model3DWebViewScreen({ navigation, route }) {
   const { fromWorkout, currentWorkoutExercises, workoutStartTime, existingExerciseSets, fromLibrary, fromProgramCreation, fromProgramDayEdit, programDayIndex } = route.params || {};
 
   // All muscle groups available in the 3D model
-  const allMuscleGroups = ['chest', 'abs', 'shoulders', 'back', 'biceps', 'triceps', 'forearms', 'legs'];
+  // Legs split into: glutes, quads, hamstrings, calves
+  const allMuscleGroups = ['chest', 'abs', 'shoulders', 'back', 'biceps', 'triceps', 'forearms', 'glutes', 'quads', 'hamstrings', 'calves', 'cardio'];
 
   // Handle messages from WebView
   const handleMessage = (event) => {
@@ -271,9 +272,25 @@ export default function Model3DWebViewScreen({ navigation, route }) {
                 return 'forearms';
             }
 
-            // LEGS: Entire legs - keep original good detection
-            if (y >= -2.7 && y < -1.0 && Math.abs(x) < 0.52) {
-                return 'legs';
+            // LEG SUB-REGIONS (split into 4 parts)
+            // GLUTES - Butt area (back, upper leg region)
+            if (y >= -1.35 && y < -1.0 && z < -0.05 && Math.abs(x) < 0.52) {
+                return 'glutes';
+            }
+
+            // QUADS - Front of thighs (starts below hip, includes inner thighs)
+            if (y >= -1.85 && y < -1.2 && z >= -0.05 && Math.abs(x) < 0.52) {
+                return 'quads';
+            }
+
+            // HAMSTRINGS - Back of thighs (below glutes)
+            if (y >= -1.85 && y < -1.35 && z < -0.05 && Math.abs(x) < 0.52) {
+                return 'hamstrings';
+            }
+
+            // CALVES - Lower leg click detection (clickable from front or back, but highlights only on back)
+            if (y >= -2.3 && y < -1.85 && Math.abs(x) < 0.52) {
+                return 'calves';
             }
 
             return null;
@@ -302,7 +319,7 @@ export default function Model3DWebViewScreen({ navigation, route }) {
             const fragmentShader = \`
                 uniform vec3 baseColor;
                 uniform vec3 selectedColor;
-                uniform float selectedMuscles[8]; // 8 muscle groups
+                uniform float selectedMuscles[11]; // 11 muscle groups (legs split into 4)
                 uniform vec3 ambientLightColor;
                 uniform vec3 directionalLightColor;
                 uniform vec3 directionalLightDirection;
@@ -368,8 +385,23 @@ export default function Model3DWebViewScreen({ navigation, route }) {
                         isSelected = true;
                     }
 
-                    // LEGS (7) - Entire legs
-                    if (selectedMuscles[7] > 0.5 && y >= -2.7 && y < -1.0 && abs(x) < 0.52) {
+                    // GLUTES (7) - Butt area (back, upper leg region)
+                    if (selectedMuscles[7] > 0.5 && y >= -1.35 && y < -1.0 && z < -0.05 && abs(x) < 0.52) {
+                        isSelected = true;
+                    }
+
+                    // QUADS (8) - Front of thighs (starts below hip, includes inner thighs)
+                    if (selectedMuscles[8] > 0.5 && y >= -1.85 && y < -1.2 && z >= -0.05 && abs(x) < 0.52) {
+                        isSelected = true;
+                    }
+
+                    // HAMSTRINGS (9) - Back of thighs (below glutes)
+                    if (selectedMuscles[9] > 0.5 && y >= -1.85 && y < -1.35 && z < -0.05 && abs(x) < 0.52) {
+                        isSelected = true;
+                    }
+
+                    // CALVES (10) - Back of lower leg, upper portion only (actual calf muscle, not ankle)
+                    if (selectedMuscles[10] > 0.5 && y >= -2.3 && y < -1.85 && z < 0.0 && abs(x) < 0.52) {
                         isSelected = true;
                     }
 
@@ -405,7 +437,7 @@ export default function Model3DWebViewScreen({ navigation, route }) {
                 uniforms: {
                     baseColor: { value: GRAY_COLOR },
                     selectedColor: { value: SELECTED_COLOR },
-                    selectedMuscles: { value: [0, 0, 0, 0, 0, 0, 0, 0] },
+                    selectedMuscles: { value: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
                     ambientLightColor: { value: new THREE.Color(0xffffff).multiplyScalar(0.6) },
                     directionalLightColor: { value: new THREE.Color(0xffffff).multiplyScalar(0.8) },
                     directionalLightDirection: { value: new THREE.Vector3(5, 5, 5).normalize() }
@@ -427,10 +459,13 @@ export default function Model3DWebViewScreen({ navigation, route }) {
                 'biceps': 4,
                 'triceps': 5,
                 'forearms': 6,
-                'legs': 7
+                'glutes': 7,
+                'quads': 8,
+                'hamstrings': 9,
+                'calves': 10
             };
 
-            const selectedArray = [0, 0, 0, 0, 0, 0, 0, 0];
+            const selectedArray = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
             selectedMuscleGroups.forEach(group => {
                 const index = muscleIndexMap[group];
@@ -687,7 +722,7 @@ export default function Model3DWebViewScreen({ navigation, route }) {
                     selectedMuscleGroups.clear();
                     updateMuscleHighlights();
                 } else if (data.command === 'selectAll') {
-                    const allGroups = ['chest', 'abs', 'shoulders', 'back', 'biceps', 'triceps', 'forearms', 'legs'];
+                    const allGroups = ['chest', 'abs', 'shoulders', 'back', 'biceps', 'triceps', 'forearms', 'glutes', 'quads', 'hamstrings', 'calves', 'cardio'];
 
                     if (data.selected) {
                         // Select all muscles
@@ -830,22 +865,34 @@ export default function Model3DWebViewScreen({ navigation, route }) {
 
           {/* Selected Muscles Overlay - Shows all selected muscles */}
           <View style={styles.muscleOverlay}>
-            {selectedMuscleGroups.length > 0 ? (
-              <View style={styles.muscleChipsContainer}>
-                {selectedMuscleGroups.map((muscle) => (
-                  <TouchableOpacity
-                    key={muscle}
-                    style={styles.muscleChip}
-                    onPress={() => handleDeselectMuscle(muscle)}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={styles.muscleChipText}>{muscle.toUpperCase()}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            ) : (
-              <Text style={styles.hintText}>Tap muscles to select</Text>
-            )}
+            <View style={styles.overlayContent}>
+              {selectedMuscleGroups.length > 0 ? (
+                <View style={styles.muscleChipsContainer}>
+                  {selectedMuscleGroups.map((muscle) => (
+                    <TouchableOpacity
+                      key={muscle}
+                      style={styles.muscleChip}
+                      onPress={() => handleDeselectMuscle(muscle)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.muscleChipText}>{muscle.toUpperCase()}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              ) : (
+                <Text style={styles.hintText}>Tap muscles to select</Text>
+              )}
+              {/* Small Cardio Button */}
+              {!selectedMuscleGroups.includes('cardio') && (
+                <TouchableOpacity
+                  style={styles.cardioMiniButton}
+                  onPress={() => setSelectedMuscleGroups(prev => [...prev, 'cardio'])}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.cardioMiniText}>+ Cardio</Text>
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
         </View>
 
@@ -973,6 +1020,21 @@ const styles = StyleSheet.create({
     color: Colors.text,
     fontSize: Typography.fontSize.sm,
     fontWeight: '600',
+  },
+  overlayContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  cardioMiniButton: {
+    backgroundColor: 'transparent',
+    paddingVertical: 4,
+    paddingHorizontal: 6,
+    marginLeft: 8,
+  },
+  cardioMiniText: {
+    fontSize: 11,
+    color: Colors.textMuted,
   },
   webviewWrapper: {
     position: 'relative',

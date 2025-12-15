@@ -18,6 +18,7 @@ import PlatePicker from '../components/PlatePicker';
 import { useAITracking } from '../components/AIScreenTracker';
 import { usesBarbellPlates, getBarType } from '../constants/weightEquipment';
 import BackgroundTimerService from '../services/BackgroundTimerService';
+import MiniMuscleTracker from '../components/MiniMuscleTracker';
 
 // Configure notification handler - always show notifications
 Notifications.setNotificationHandler({
@@ -2164,6 +2165,12 @@ export default function WorkoutScreen({ navigation, route }) {
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* Mini Muscle Tracker - Shows muscles worked */}
+      <MiniMuscleTracker
+        exercises={workoutExercises}
+        exerciseSets={exerciseSets}
+      />
 
       {/* All Workout Exercises */}
       <View style={styles.section}>

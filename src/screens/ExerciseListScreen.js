@@ -51,7 +51,7 @@ export default function ExerciseListScreen({ navigation, route }) {
   const [activeMuscleFilters, setActiveMuscleFilters] = useState(
     selectedMuscleGroups && selectedMuscleGroups.length > 0
       ? selectedMuscleGroups
-      : ['chest', 'back', 'legs', 'biceps', 'triceps', 'shoulders', 'abs', 'forearms', 'cardio']
+      : ['chest', 'back', 'glutes', 'quads', 'hamstrings', 'calves', 'biceps', 'triceps', 'shoulders', 'abs', 'forearms', 'cardio']
   );
 
 
@@ -472,6 +472,10 @@ export default function ExerciseListScreen({ navigation, route }) {
       case 'chest': return 'rgba(239, 68, 68, 0.2)';
       case 'back': return 'rgba(59, 130, 246, 0.2)';
       case 'legs': return 'rgba(34, 197, 94, 0.2)';
+      case 'glutes': return 'rgba(236, 72, 153, 0.2)';
+      case 'quads': return 'rgba(34, 197, 94, 0.2)';
+      case 'hamstrings': return 'rgba(16, 185, 129, 0.2)';
+      case 'calves': return 'rgba(6, 182, 212, 0.2)';
       case 'shoulders': return 'rgba(251, 146, 60, 0.2)';
       case 'biceps': return 'rgba(168, 85, 247, 0.2)';
       case 'triceps': return 'rgba(236, 72, 153, 0.2)';
@@ -489,6 +493,10 @@ export default function ExerciseListScreen({ navigation, route }) {
       case 'chest': return '#ef4444';
       case 'back': return '#3b82f6';
       case 'legs': return '#22c55e';
+      case 'glutes': return '#ec4899';
+      case 'quads': return '#22c55e';
+      case 'hamstrings': return '#10b981';
+      case 'calves': return '#06b6d4';
       case 'shoulders': return '#fb923c';
       case 'biceps': return '#a855f7';
       case 'triceps': return '#ec4899';
@@ -585,7 +593,10 @@ export default function ExerciseListScreen({ navigation, route }) {
   const muscleGroupOptions = [
     { id: 'chest', name: 'Chest', icon: '🎯' },
     { id: 'back', name: 'Back', icon: '🔺' },
-    { id: 'legs', name: 'Legs', icon: '🦵' },
+    { id: 'glutes', name: 'Glutes', icon: '🍑' },
+    { id: 'quads', name: 'Quads', icon: '🦵' },
+    { id: 'hamstrings', name: 'Hamstrings', icon: '🦵' },
+    { id: 'calves', name: 'Calves', icon: '🦶' },
     { id: 'biceps', name: 'Biceps', icon: '💪' },
     { id: 'triceps', name: 'Triceps', icon: '🔥' },
     { id: 'shoulders', name: 'Shoulders', icon: '🤲' },

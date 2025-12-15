@@ -6760,6 +6760,40 @@ export const getExercisesByMuscleGroup = async (muscleGroup) => {
     return [...customBiceps, ...customTriceps, ...result];
   }
 
+  // For leg sub-regions, fetch from 'legs' and filter by primaryMuscles
+  const legSubRegions = {
+    'quads': 'Quadriceps',
+    'glutes': 'Glutes',
+    'hamstrings': 'Hamstrings',
+    'calves': 'Calves'
+  };
+
+  if (legSubRegions[muscleGroup]) {
+    const targetMuscle = legSubRegions[muscleGroup];
+    const allLegExercises = exerciseDatabase.legs || [];
+
+    // Filter exercises where primaryMuscles includes the target muscle
+    const filteredExercises = allLegExercises.filter(exercise => {
+      const primaryMuscles = exercise.primaryMuscles || [];
+      // Check if any primary muscle matches (case-insensitive, partial match for variations like "Glute Medius")
+      return primaryMuscles.some(muscle =>
+        muscle.toLowerCase().includes(targetMuscle.toLowerCase()) ||
+        targetMuscle.toLowerCase().includes(muscle.toLowerCase())
+      );
+    });
+
+    // Get custom exercises for this leg sub-region
+    const customLegExercises = customExercises.filter(ex => {
+      const primaryMuscles = ex.primaryMuscles || [];
+      return primaryMuscles.some(muscle =>
+        muscle.toLowerCase().includes(targetMuscle.toLowerCase()) ||
+        targetMuscle.toLowerCase().includes(muscle.toLowerCase())
+      );
+    });
+
+    return [...customLegExercises, ...filteredExercises];
+  }
+
   const standardExercises = muscleGroupMap[muscleGroup] || [];
 
   // Combine custom exercises at the top, followed by standard exercises

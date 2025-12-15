@@ -18,7 +18,10 @@ export default function MuscleGroupSelectionScreen({ navigation, route }) {
   const muscleGroups = [
     { id: 'chest', name: 'Chest', icon: '🎯', color: '#FF6B6B' },
     { id: 'back', name: 'Back', icon: '🔺', color: '#4ECDC4' },
-    { id: 'legs', name: 'Legs', icon: '🦵', color: '#45B7D1' },
+    { id: 'glutes', name: 'Glutes', icon: '🍑', color: '#EC4899' },
+    { id: 'quads', name: 'Quads', icon: '🦵', color: '#22C55E' },
+    { id: 'hamstrings', name: 'Hamstrings', icon: '🦵', color: '#10B981' },
+    { id: 'calves', name: 'Calves', icon: '🦶', color: '#06B6D4' },
     { id: 'biceps', name: 'Biceps', icon: '💪', color: '#FFEAA7' },
     { id: 'triceps', name: 'Triceps', icon: '🔥', color: '#FF7675' },
     { id: 'shoulders', name: 'Shoulders', icon: '🤲', color: '#96CEB4' },
