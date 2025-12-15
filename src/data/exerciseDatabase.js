@@ -695,100 +695,170 @@ export const exerciseDatabase = {
       "muscleGroup": "Back",
       "primaryMuscles": ["Lats", "Upper Back"],
       "secondaryMuscles": ["Biceps", "Rear Deltoids"],
-      "equipment": "Machine, Cable",
+      "equipment": "Cable",
       "difficulty": "Beginner",
-      "instructions": "A fundamental back exercise that mimics the pull-up motion while allowing controlled resistance. Targets the latissimus dorsi muscles for building back width. Pull the bar down to your upper chest while keeping your torso upright.",
+      "instructions": "A fundamental back exercise that mimics the pull-up motion while allowing controlled resistance. Targets the latissimus dorsi muscles for building back width. Pull the bar down to your upper chest while keeping your torso upright. Different grip positions target different areas of the lats.",
       "variants": [
         {
-          "equipment": "Machine Wide Grip",
+          "equipment": "Wide Grip",
           "difficulty": "Beginner",
           "pros": [
             "Maximum lat width development",
-            "Fixed path ensures proper form for beginners",
-            "Easy to adjust weight between sets",
-            "Safe to train to failure without spotter",
-            "Consistent resistance throughout movement"
+            "Targets outer portion of lats more effectively",
+            "Reduces bicep involvement for better lat isolation",
+            "Standard grip for building a wide back",
+            "Easy to learn proper form"
           ],
           "cons": [
             "May cause shoulder discomfort if grip too wide",
-            "Limited range of motion compared to pull-ups",
-            "Fixed machine path may not suit all body types"
+            "Limited range of motion compared to narrower grips",
+            "Some lifters have reduced strength in this position"
           ],
           "setupTips": [
-            "Adjust knee pad to secure legs without excessive pressure",
             "Grip bar 6-8 inches wider than shoulder width",
+            "Palms facing forward (pronated grip)",
             "Sit with chest up and slight backward lean (10-15 degrees)",
             "Pull bar to upper chest while driving elbows down and back",
             "Control the return, maintaining tension in lats"
           ]
         },
         {
-          "equipment": "Machine Narrow Grip",
+          "equipment": "Close Grip",
           "difficulty": "Beginner",
           "pros": [
             "Greater range of motion than wide grip",
             "Emphasizes lower lat development",
-            "More bicep engagement for additional arm work",
+            "Better lat isolation with proper form",
             "Easier on shoulders for those with mobility issues",
             "Allows heavier loading due to mechanical advantage"
           ],
           "cons": [
             "Less lat width emphasis compared to wide grip",
-            "Can shift focus to biceps if not done properly",
+            "Can become bicep-dominant if form breaks down",
             "May feel cramped at bottom of movement"
           ],
           "setupTips": [
-            "Use shoulder-width or slightly narrower grip",
+            "Use shoulder-width or slightly narrower grip on straight bar",
+            "Palms facing forward (pronated grip)",
             "Keep elbows close to torso throughout movement",
             "Pull bar to upper chest, focusing on lat contraction",
-            "Squeeze shoulder blades together at bottom",
-            "Extend arms fully at top while maintaining lat tension"
+            "Squeeze shoulder blades together at bottom"
           ]
         },
         {
-          "equipment": "Cable Wide Grip",
-          "difficulty": "Intermediate",
+          "equipment": "Reverse Grip (Supinated)",
+          "difficulty": "Beginner",
           "pros": [
-            "Smooth, consistent resistance throughout motion",
-            "Can adjust cable height for angle variation",
-            "Natural feel with free-moving cable",
-            "Good for drop sets and high-rep training",
-            "Allows slight torso movement for increased stretch"
+            "Targets lower lats more effectively",
+            "Significant bicep engagement for arm development",
+            "Allows greater range of motion",
+            "Natural pulling motion similar to chin-ups",
+            "Good for building lower lat thickness"
           ],
           "cons": [
-            "Requires more stabilization than machine version",
-            "Can use momentum if form breaks down",
-            "Cable may feel less stable for beginners"
+            "Higher bicep involvement may limit lat focus",
+            "Can strain wrists if grip is too wide",
+            "Forearms may fatigue before lats"
           ],
           "setupTips": [
-            "Attach wide bar to high pulley",
-            "Sit on bench or kneel with secure base",
-            "Wide grip with palms facing forward",
-            "Pull down to upper chest with controlled motion",
-            "Focus on lat engagement, not arm pulling"
+            "Grip bar with palms facing you (underhand/supinated)",
+            "Use shoulder-width grip or slightly narrower",
+            "Keep elbows pointed forward, not flared out",
+            "Pull bar to upper chest while squeezing lats",
+            "Focus on driving elbows down and back"
           ]
         },
         {
-          "equipment": "Cable Neutral Grip",
+          "equipment": "V-Bar (Neutral Grip)",
           "difficulty": "Beginner",
           "pros": [
             "Most shoulder-friendly grip position",
             "Excellent for those with shoulder issues",
-            "Strong bicep involvement for arm development",
             "Natural hand position reduces wrist strain",
-            "Allows focus on lat contraction"
+            "Good bicep and lat engagement balance",
+            "Allows focus on mind-muscle connection"
           ],
           "cons": [
-            "Requires specific neutral grip attachment",
-            "Less lat width emphasis than pronated grips",
-            "May feel too bicep-dominant if cues are wrong"
+            "Requires V-bar attachment",
+            "Less lat width emphasis than wide pronated grips",
+            "Close hand position limits range of motion"
           ],
           "setupTips": [
-            "Attach V-bar or parallel grip handles to high pulley",
+            "Attach V-bar to high pulley cable",
+            "Palms face each other (neutral grip)",
             "Sit with chest up and core engaged",
-            "Pull handles to upper chest with elbows driving down",
-            "Think 'elbows to hips' not 'hands to chest'",
-            "Squeeze lats hard at bottom position"
+            "Pull handle to upper chest with elbows driving down",
+            "Think 'elbows to hips' for proper lat activation"
+          ]
+        },
+        {
+          "equipment": "Wide Neutral Grip",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Combines width targeting with shoulder-friendly grip",
+            "Excellent lat stretch at top of movement",
+            "Reduces shoulder and wrist strain vs pronated wide",
+            "Good for high-volume training",
+            "Targets both lat width and thickness"
+          ],
+          "cons": [
+            "Requires specific wide neutral grip bar attachment",
+            "Not available in all gyms",
+            "Less common so may require adjustment period"
+          ],
+          "setupTips": [
+            "Use wide neutral-grip bar attachment (parallel handles)",
+            "Grip handles with palms facing each other",
+            "Pull bar to upper chest with elbows wide",
+            "Drive elbows down and back throughout movement",
+            "Maintain upright posture with slight lean"
+          ]
+        },
+        {
+          "equipment": "Single Arm",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Corrects left-right strength imbalances",
+            "Allows greater range of motion",
+            "Intense focus on one lat at a time",
+            "Increased core engagement for stability",
+            "Better mind-muscle connection"
+          ],
+          "cons": [
+            "Takes twice as long as bilateral variations",
+            "Requires practice to avoid torso rotation",
+            "More difficult to load as heavy"
+          ],
+          "setupTips": [
+            "Attach single D-handle to high pulley",
+            "Sit or kneel with working side toward machine",
+            "Pull handle down to shoulder, driving elbow back",
+            "Resist torso rotation, keep core tight",
+            "Full stretch at top, full squeeze at bottom"
+          ]
+        },
+        {
+          "equipment": "Dual Handles",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Independent arm movement for balanced development",
+            "Greater range of motion than fixed bar",
+            "Natural arc path feels comfortable on shoulders",
+            "Can rotate wrists during movement for better contraction",
+            "Identifies and corrects strength imbalances bilaterally"
+          ],
+          "cons": [
+            "Requires more stabilization than bar variations",
+            "Harder to maintain symmetrical movement",
+            "May use less weight than fixed bar",
+            "Requires dual cable setup or two handles"
+          ],
+          "setupTips": [
+            "Attach D-handles to both high pulleys or dual cable station",
+            "Grip handles with palms facing forward or neutral",
+            "Pull handles down in an arc toward outer chest",
+            "Focus on equal effort from both arms",
+            "Squeeze lats at bottom, control the release evenly"
           ]
         }
       ]
@@ -1233,65 +1303,6 @@ export const exerciseDatabase = {
       ]
     },
     {
-      "id": "back-9",
-      "name": "One Arm Lat Pulldown",
-      "muscleGroup": "Back",
-      "primaryMuscles": ["Lats", "Middle Back"],
-      "secondaryMuscles": ["Biceps", "Core", "Obliques"],
-      "equipment": "Cable",
-      "difficulty": "Intermediate",
-      "instructions": "A unilateral variation of the lat pulldown that isolates each side independently. This exercise helps correct imbalances and provides intense lat activation. The single-arm approach also challenges core stability.",
-      "variants": [
-        {
-          "equipment": "Single Handle",
-          "difficulty": "Intermediate",
-          "pros": [
-            "Corrects left-right strength imbalances",
-            "Allows greater range of motion than bilateral",
-            "Intense focus on single lat at a time",
-            "Increased core engagement for stability",
-            "Can adjust body position for different angles"
-          ],
-          "cons": [
-            "Takes twice as long as regular pulldowns",
-            "Requires practice to avoid twisting torso",
-            "More difficult to load as heavy as bilateral",
-            "Can strain lower back if core not engaged"
-          ],
-          "setupTips": [
-            "Attach single handle to high pulley",
-            "Sit or kneel with working side toward machine",
-            "Brace non-working hand on thigh or machine",
-            "Pull handle down to shoulder, driving elbow back",
-            "Resist torso rotation, keep core tight"
-          ]
-        },
-        {
-          "equipment": "Neutral Grip",
-          "difficulty": "Intermediate",
-          "pros": [
-            "Most shoulder-friendly grip option",
-            "Natural hand position reduces joint stress",
-            "Strong bicep involvement for arm work",
-            "Excellent for those with shoulder issues",
-            "Can focus on lat contraction without discomfort"
-          ],
-          "cons": [
-            "Requires D-handle attachment",
-            "May feel more bicep-focused than back",
-            "Less lat width emphasis than pronated grip"
-          ],
-          "setupTips": [
-            "Use D-handle or neutral grip attachment",
-            "Position body so arm can pull in natural path",
-            "Pull handle down thinking 'elbow to hip'",
-            "Squeeze lat at bottom for 1-2 seconds",
-            "Control ascent maintaining constant tension"
-          ]
-        }
-      ]
-    },
-    {
       "id": "back-10",
       "name": "Pull Ups",
       "muscleGroup": "Back",
@@ -1346,65 +1357,6 @@ export const exerciseDatabase = {
             "Pull chest to bar, not just chin over",
             "Keep core tight to prevent swinging",
             "Squeeze lats hard at top of movement"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "back-11",
-      "name": "V Bar Pulldown",
-      "muscleGroup": "Back",
-      "primaryMuscles": ["Lats", "Lower Lats"],
-      "secondaryMuscles": ["Biceps", "Rhomboids"],
-      "equipment": "Cable",
-      "difficulty": "Beginner",
-      "instructions": "A lat pulldown variation using a V-bar attachment with neutral grip. This grip angle targets the lower portion of the lats while being very shoulder-friendly. Pull the bar down to your upper chest while maintaining an upright posture.",
-      "variants": [
-        {
-          "equipment": "Close Grip",
-          "difficulty": "Beginner",
-          "pros": [
-            "Excellent lower lat development",
-            "Very shoulder-friendly neutral grip",
-            "Strong bicep engagement for arm work",
-            "Greater range of motion than wide grip",
-            "Natural hand position reduces strain"
-          ],
-          "cons": [
-            "Less lat width emphasis than wide variations",
-            "Can become too bicep-dominant if form breaks",
-            "May feel cramped at bottom for some people",
-            "Requires specific V-bar attachment"
-          ],
-          "setupTips": [
-            "Attach close-grip V-bar to high pulley",
-            "Sit with chest up and slight backward lean",
-            "Pull bar to upper chest, driving elbows down",
-            "Focus on lat contraction, not just arm pulling",
-            "Squeeze hard at bottom, control the release"
-          ]
-        },
-        {
-          "equipment": "Wide Grip",
-          "difficulty": "Beginner",
-          "pros": [
-            "Targets both lat width and thickness",
-            "Neutral grip is easier on shoulders than pronated",
-            "Good compromise between close and pronated wide grip",
-            "Allows heavy weight with joint-friendly position",
-            "Balanced bicep and lat involvement"
-          ],
-          "cons": [
-            "Not as wide as traditional wide-grip pulldown",
-            "May not fit all machines or cable stations",
-            "Less common attachment in some gyms"
-          ],
-          "setupTips": [
-            "Use wide neutral-grip V-bar attachment",
-            "Set up similar to standard lat pulldown",
-            "Pull bar to upper chest with elbows wide",
-            "Think about driving elbows down and back",
-            "Maintain upright posture throughout movement"
           ]
         }
       ]

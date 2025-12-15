@@ -16,27 +16,32 @@ const muscleNameToModelId = {
   'pectorals': 'chest',
   'pecs': 'chest',
 
-  // Back
+  // Back - sub-muscles tracked separately but display as unified "back"
   'back': 'back',
   'lats': 'back',
   'latissimus dorsi': 'back',
+  'lat': 'back',
   'upper back': 'back',
-  'lower back': 'back',
+  'traps': 'back',
+  'trapezius': 'back',
+  'mid back': 'back',
+  'middle back': 'back',
   'rhomboids': 'back',
-  'traps': 'shoulders',
-  'trapezius': 'shoulders',
+  'lower back': 'back',
   'erector spinae': 'back',
   'spinal erectors': 'back',
+  'erectors': 'back',
+  'rear deltoids': 'back',  // Rear delts trained with back
+  'posterior deltoid': 'back',
+  'rear delts': 'back',
 
-  // Shoulders
+  // Shoulders (front and side only)
   'shoulders': 'shoulders',
   'deltoids': 'shoulders',
   'front deltoids': 'shoulders',
   'side deltoids': 'shoulders',
-  'rear deltoids': 'shoulders',
   'anterior deltoid': 'shoulders',
   'lateral deltoid': 'shoulders',
-  'posterior deltoid': 'shoulders',
   'delts': 'shoulders',
 
   // Arms
@@ -105,10 +110,34 @@ function isSetCompleted(set) {
 const PRIMARY_WEIGHT = 1.0;
 const SECONDARY_WEIGHT = 0.5;
 
+// Sub-muscle to display name mapping (for detailed breakdown)
+const subMuscleDisplayNames = {
+  'lats': 'Lats',
+  'latissimus dorsi': 'Lats',
+  'lat': 'Lats',
+  'upper back': 'Upper Back',
+  'traps': 'Traps',
+  'trapezius': 'Traps',
+  'mid back': 'Mid Back',
+  'middle back': 'Mid Back',
+  'rhomboids': 'Rhomboids',
+  'lower back': 'Lower Back',
+  'erector spinae': 'Lower Back',
+  'spinal erectors': 'Lower Back',
+  'erectors': 'Lower Back',
+  'rear deltoids': 'Rear Delts',
+  'posterior deltoid': 'Rear Delts',
+  'rear delts': 'Rear Delts',
+};
+
+// Which muscles have sub-muscle breakdowns
+const musclesWithSubBreakdown = ['back'];
+
 // Extract unique muscles from exercises and count sets
 // Primary muscles count as 1.0 sets, secondary muscles count as 0.5 sets
 export function extractMusclesFromExercises(exercises, exerciseSets) {
   const muscleData = {};
+  const subMuscleData = {}; // Track sub-muscles separately
 
   exercises.forEach((exercise, index) => {
     const primaryMuscles = exercise.primaryMuscles || [];
@@ -122,23 +151,41 @@ export function extractMusclesFromExercises(exercises, exerciseSets) {
     if (completedSetCount === 0) return;
 
     // Get UNIQUE model IDs for primary muscles (1.0 weight)
+    // Also track sub-muscles for detailed breakdown
     const primaryModelIds = new Set();
+    const primarySubMuscles = []; // Track original muscle names for sub-breakdown
     primaryMuscles.forEach(muscleName => {
       const normalizedName = muscleName.toLowerCase().trim();
       const modelId = muscleNameToModelId[normalizedName];
       if (modelId) {
         primaryModelIds.add(modelId);
+        // Track sub-muscle if this is a sub-muscle of a parent
+        if (subMuscleDisplayNames[normalizedName]) {
+          primarySubMuscles.push({
+            parent: modelId,
+            name: subMuscleDisplayNames[normalizedName],
+            originalName: normalizedName
+          });
+        }
       }
     });
 
     // Get UNIQUE model IDs for secondary muscles (0.5 weight)
     // Exclude any that are already primary (primary takes precedence)
     const secondaryModelIds = new Set();
+    const secondarySubMuscles = [];
     secondaryMuscles.forEach(muscleName => {
       const normalizedName = muscleName.toLowerCase().trim();
       const modelId = muscleNameToModelId[normalizedName];
       if (modelId && !primaryModelIds.has(modelId)) {
         secondaryModelIds.add(modelId);
+        if (subMuscleDisplayNames[normalizedName]) {
+          secondarySubMuscles.push({
+            parent: modelId,
+            name: subMuscleDisplayNames[normalizedName],
+            originalName: normalizedName
+          });
+        }
       }
     });
 
@@ -151,7 +198,8 @@ export function extractMusclesFromExercises(exercises, exerciseSets) {
           id: modelId,
           name: modelId.charAt(0).toUpperCase() + modelId.slice(1),
           sets: 0,
-          exercises: []
+          exercises: [],
+          subMuscles: {} // Track sub-muscle breakdown
         };
       }
       muscleData[modelId].sets += completedSetCount * PRIMARY_WEIGHT;
@@ -169,6 +217,20 @@ export function extractMusclesFromExercises(exercises, exerciseSets) {
       }
     });
 
+    // Track sub-muscles for primary muscles
+    primarySubMuscles.forEach(sub => {
+      if (muscleData[sub.parent]) {
+        if (!muscleData[sub.parent].subMuscles[sub.name]) {
+          muscleData[sub.parent].subMuscles[sub.name] = { sets: 0, exercises: [] };
+        }
+        muscleData[sub.parent].subMuscles[sub.name].sets += completedSetCount * PRIMARY_WEIGHT;
+        const existingEx = muscleData[sub.parent].subMuscles[sub.name].exercises.find(e => e.name === exerciseName);
+        if (!existingEx) {
+          muscleData[sub.parent].subMuscles[sub.name].exercises.push({ name: exerciseName, sets: completedSetCount });
+        }
+      }
+    });
+
     // Add secondary muscle sets (half weight)
     secondaryModelIds.forEach(modelId => {
       if (!muscleData[modelId]) {
@@ -176,7 +238,8 @@ export function extractMusclesFromExercises(exercises, exerciseSets) {
           id: modelId,
           name: modelId.charAt(0).toUpperCase() + modelId.slice(1),
           sets: 0,
-          exercises: []
+          exercises: [],
+          subMuscles: {}
         };
       }
       muscleData[modelId].sets += completedSetCount * SECONDARY_WEIGHT;
@@ -193,6 +256,20 @@ export function extractMusclesFromExercises(exercises, exerciseSets) {
         existingEx.sets = completedSetCount * SECONDARY_WEIGHT;
       }
     });
+
+    // Track sub-muscles for secondary muscles
+    secondarySubMuscles.forEach(sub => {
+      if (muscleData[sub.parent]) {
+        if (!muscleData[sub.parent].subMuscles[sub.name]) {
+          muscleData[sub.parent].subMuscles[sub.name] = { sets: 0, exercises: [] };
+        }
+        muscleData[sub.parent].subMuscles[sub.name].sets += completedSetCount * SECONDARY_WEIGHT;
+        const existingEx = muscleData[sub.parent].subMuscles[sub.name].exercises.find(e => e.name === exerciseName);
+        if (!existingEx) {
+          muscleData[sub.parent].subMuscles[sub.name].exercises.push({ name: exerciseName, sets: completedSetCount * SECONDARY_WEIGHT });
+        }
+      }
+    });
   });
 
   // Determine which muscles are "primary" (targeted by at least one exercise as primary)
@@ -205,6 +282,20 @@ export function extractMusclesFromExercises(exercises, exerciseSets) {
   const totalSets = Object.values(muscleData).reduce((sum, m) => sum + m.sets, 0);
   Object.values(muscleData).forEach(muscle => {
     muscle.percentage = totalSets > 0 ? Math.round((muscle.sets / totalSets) * 100) : 0;
+
+    // Calculate sub-muscle percentages (relative to parent muscle)
+    if (muscle.subMuscles && Object.keys(muscle.subMuscles).length > 0) {
+      const subMuscleTotal = Object.values(muscle.subMuscles).reduce((sum, sm) => sum + sm.sets, 0);
+      muscle.subMuscleBreakdown = Object.entries(muscle.subMuscles).map(([name, data]) => ({
+        name,
+        sets: data.sets,
+        exercises: data.exercises,
+        // Percentage relative to this muscle's total
+        percentage: subMuscleTotal > 0 ? Math.round((data.sets / subMuscleTotal) * 100) : 0,
+        // Percentage relative to overall workout
+        overallPercentage: totalSets > 0 ? Math.round((data.sets / totalSets) * 100) : 0
+      })).sort((a, b) => b.percentage - a.percentage);
+    }
   });
 
   // Separate primary and secondary muscles
@@ -275,11 +366,14 @@ export default function MiniMuscleTracker({ exercises = [], exerciseSets = {} })
         dracoDecoderPath: 'https://www.gstatic.com/draco/versioned/decoders/1.4.1/',
       };
 
-  // Build the selected muscles array for the shader
+  // Build the selected muscles array for the shader (11 regions for 3D model)
+  // Back sub-muscles (lats, upper_back, rhomboids, lower_back) all map to 'back' for 3D display
   const muscleIndexMap = {
     'chest': 0, 'abs': 1, 'shoulders': 2, 'back': 3,
     'biceps': 4, 'triceps': 5, 'forearms': 6,
-    'glutes': 7, 'quads': 8, 'hamstrings': 9, 'calves': 10
+    'glutes': 7, 'quads': 8, 'hamstrings': 9, 'calves': 10,
+    // Back sub-muscles all highlight the same "back" region on 3D model
+    'lats': 3, 'upper_back': 3, 'rhomboids': 3, 'lower_back': 3
   };
 
   const selectedMusclesArray = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
@@ -366,7 +460,7 @@ export default function MiniMuscleTracker({ exercises = [], exerciseSets = {} })
                             isSelected = true;
                         }
                     }
-                    // BACK (3)
+                    // BACK (3) - Unified back region (includes lats, upper back, rhomboids, lower back)
                     if (selectedMuscles[3] > 0.5) {
                         if ((y >= -0.88 && y < -0.5 && z < -0.13 && abs(x) < 0.4) ||
                             (y >= -1.0 && y < -0.5 && z >= -0.05 && z <= 0.08 && abs(x) >= 0.3 && abs(x) < 0.45)) {

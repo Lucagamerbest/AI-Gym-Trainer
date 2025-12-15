@@ -29,7 +29,7 @@
   },
   {
     "name": "Lat Pulldown",
-    "equipment": "Machine, Cable"
+    "equipment": "Cable"
   },
   {
     "name": "Cable Row",
@@ -60,16 +60,8 @@
     "equipment": "Pull-up Bar, Gymnastic Rings"
   },
   {
-    "name": "One Arm Lat Pulldown",
-    "equipment": "Cable"
-  },
-  {
     "name": "Pull Ups",
     "equipment": "Pull-up Bar"
-  },
-  {
-    "name": "V Bar Pulldown",
-    "equipment": "Cable"
   },
   {
     "name": "Weighted Pull Ups",

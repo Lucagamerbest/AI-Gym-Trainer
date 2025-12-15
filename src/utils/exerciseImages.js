@@ -69,10 +69,13 @@ const EXERCISE_IMAGE_MAPPING = {
 
   // ============ BACK (14 exercises) ============
   "Lat Pulldown": {
-    "Machine Wide Grip": "Wide-Grip_Lat_Pulldown",
-    "Machine Narrow Grip": "Close-Grip_Front_Lat_Pulldown",
-    "Cable Wide Grip": "Wide-Grip_Lat_Pulldown",
-    "Cable Neutral Grip": "V-Bar_Pulldown"
+    "Wide Grip": "Wide-Grip_Lat_Pulldown",
+    "Close Grip": "Close-Grip_Front_Lat_Pulldown",
+    "Reverse Grip (Supinated)": "Underhand_Cable_Pulldowns",
+    "V-Bar (Neutral Grip)": "V-Bar_Pulldown",
+    "Wide Neutral Grip": "Wide-Grip_Lat_Pulldown",
+    "Single Arm": "One_Arm_Lat_Pulldown",
+    "Dual Handles": "Full_Range-Of-Motion_Lat_Pulldown"
   },
 
   "Cable Row": {
@@ -111,20 +114,12 @@ const EXERCISE_IMAGE_MAPPING = {
     "Ring": "Muscle_Up"
   },
 
-  "One Arm Lat Pulldown": {
-    "Single Handle": "One_Arm_Lat_Pulldown",
-    "Neutral Grip": "One_Arm_Lat_Pulldown"
-  },
 
   "Pull Ups": {
     "Wide Grip": "Wide-Grip_Rear_Pull-Up",
     "Shoulder Width": "Pullups"
   },
 
-  "V Bar Pulldown": {
-    "Close Grip": "V-Bar_Pulldown",
-    "Wide Grip": "V-Bar_Pulldown"
-  },
 
   "Weighted Pull Ups": {
     "Dip Belt with Plates": "Pullups",

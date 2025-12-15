@@ -27,6 +27,15 @@ export default function MuscleBreakdownModal({
   const [isExpoGo, setIsExpoGo] = useState(true);
   const [modelUri, setModelUri] = useState(null);
   const [showSecondary, setShowSecondary] = useState(false);
+  const [expandedMuscles, setExpandedMuscles] = useState({}); // Track which muscles have expanded sub-breakdown
+
+  // Toggle sub-muscle breakdown visibility
+  const toggleSubMuscle = (muscleId) => {
+    setExpandedMuscles(prev => ({
+      ...prev,
+      [muscleId]: !prev[muscleId]
+    }));
+  };
 
   useEffect(() => {
     import('expo-constants').then((Constants) => {
@@ -64,10 +73,14 @@ export default function MuscleBreakdownModal({
         dracoDecoderPath: 'https://www.gstatic.com/draco/versioned/decoders/1.4.1/',
       };
 
+  // Build the selected muscles array for the shader (11 regions for 3D model)
+  // Back sub-muscles all map to 'back' for 3D display
   const muscleIndexMap = {
     'chest': 0, 'abs': 1, 'shoulders': 2, 'back': 3,
     'biceps': 4, 'triceps': 5, 'forearms': 6,
-    'glutes': 7, 'quads': 8, 'hamstrings': 9, 'calves': 10
+    'glutes': 7, 'quads': 8, 'hamstrings': 9, 'calves': 10,
+    // Back sub-muscles all highlight the same "back" region on 3D model
+    'lats': 3, 'upper_back': 3, 'rhomboids': 3, 'lower_back': 3
   };
 
   const selectedMusclesArray = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
@@ -153,7 +166,7 @@ export default function MuscleBreakdownModal({
                             isSelected = true;
                         }
                     }
-                    // BACK (3)
+                    // BACK (3) - Unified back region
                     if (selectedMuscles[3] > 0.5) {
                         if ((y >= -0.88 && y < -0.5 && z < -0.13 && abs(x) < 0.4) ||
                             (y >= -1.0 && y < -0.5 && z >= -0.05 && z <= 0.08 && abs(x) >= 0.3 && abs(x) < 0.45)) {
@@ -368,9 +381,20 @@ export default function MuscleBreakdownModal({
                 {/* Primary Muscles */}
                 {muscles.map((muscle, index) => (
                   <View key={muscle.id} style={styles.muscleItem}>
-                    {/* Muscle Header */}
-                    <View style={styles.muscleHeader}>
-                      <Text style={styles.muscleName}>{muscle.name.toUpperCase()}</Text>
+                    {/* Muscle Header - Tappable if has sub-muscles */}
+                    <TouchableOpacity
+                      style={styles.muscleHeader}
+                      onPress={() => muscle.subMuscleBreakdown?.length > 0 && toggleSubMuscle(muscle.id)}
+                      activeOpacity={muscle.subMuscleBreakdown?.length > 0 ? 0.7 : 1}
+                    >
+                      <View style={styles.muscleNameRow}>
+                        <Text style={styles.muscleName}>{muscle.name.toUpperCase()}</Text>
+                        {muscle.subMuscleBreakdown?.length > 0 && (
+                          <Text style={styles.expandArrow}>
+                            {expandedMuscles[muscle.id] ? '▲' : '▼'}
+                          </Text>
+                        )}
+                      </View>
                       <View style={styles.percentageContainer}>
                         <Text style={styles.percentageText}>{muscle.percentage}%</Text>
                         <View style={styles.progressBarContainer}>
@@ -385,10 +409,41 @@ export default function MuscleBreakdownModal({
                           />
                         </View>
                       </View>
-                    </View>
+                    </TouchableOpacity>
+
+                    {/* Sub-Muscle Breakdown (if expanded) */}
+                    {expandedMuscles[muscle.id] && muscle.subMuscleBreakdown?.length > 0 && (
+                      <View style={styles.subMuscleContainer}>
+                        <Text style={styles.subMuscleTitle}>Breakdown:</Text>
+                        {muscle.subMuscleBreakdown.map((subMuscle, smIndex) => (
+                          <View key={smIndex} style={styles.subMuscleItem}>
+                            <View style={styles.subMuscleRow}>
+                              <Text style={styles.subMuscleName}>{subMuscle.name}</Text>
+                              <Text style={styles.subMusclePercentage}>
+                                {subMuscle.overallPercentage}% of workout
+                              </Text>
+                            </View>
+                            <View style={styles.subMuscleProgressContainer}>
+                              <View
+                                style={[
+                                  styles.subMuscleProgress,
+                                  { width: `${subMuscle.percentage}%` }
+                                ]}
+                              />
+                            </View>
+                            {/* Exercises for this sub-muscle */}
+                            {subMuscle.exercises.map((ex, exIdx) => (
+                              <Text key={exIdx} style={styles.subMuscleExercise}>
+                                - {ex.name}
+                              </Text>
+                            ))}
+                          </View>
+                        ))}
+                      </View>
+                    )}
 
                     {/* Exercise List */}
-                    {muscle.exercises.map((exercise, exIndex) => (
+                    {!expandedMuscles[muscle.id] && muscle.exercises.map((exercise, exIndex) => (
                       <View key={exIndex} style={styles.exerciseItem}>
                         <Text style={styles.exerciseBullet}>-</Text>
                         <Text style={styles.exerciseName}>
@@ -570,7 +625,6 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.sm,
     fontWeight: '700',
     color: Colors.text,
-    flex: 1,
   },
   percentageContainer: {
     flexDirection: 'row',
@@ -700,5 +754,68 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
     flex: 1,
     fontStyle: 'italic',
+  },
+  // Sub-muscle breakdown styles
+  muscleNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  expandArrow: {
+    fontSize: 10,
+    color: '#4ADE80',
+  },
+  subMuscleContainer: {
+    marginTop: Spacing.sm,
+    paddingTop: Spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  subMuscleTitle: {
+    fontSize: Typography.fontSize.xs,
+    fontWeight: '600',
+    color: '#4ADE80',
+    marginBottom: Spacing.xs,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  subMuscleItem: {
+    marginBottom: Spacing.sm,
+    paddingLeft: Spacing.sm,
+    borderLeftWidth: 2,
+    borderLeftColor: '#4ADE80',
+  },
+  subMuscleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 2,
+  },
+  subMuscleName: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  subMusclePercentage: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textMuted,
+  },
+  subMuscleProgressContainer: {
+    height: 4,
+    backgroundColor: Colors.border,
+    borderRadius: 2,
+    overflow: 'hidden',
+    marginBottom: 4,
+  },
+  subMuscleProgress: {
+    height: '100%',
+    backgroundColor: '#4ADE80',
+    borderRadius: 2,
+  },
+  subMuscleExercise: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textSecondary,
+    paddingLeft: Spacing.xs,
+    marginTop: 2,
   },
 });
