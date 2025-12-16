@@ -913,14 +913,39 @@ export class WorkoutStorageService {
 
         case 'frequency':
           // For weekly workout frequency goals
-          const sevenDaysAgo = new Date();
-          sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-          const weekWorkouts = history.filter(w => new Date(w.date) >= sevenDaysAgo);
+          const today = new Date();
+          const startOfWeek = new Date(today);
+          startOfWeek.setDate(today.getDate() - today.getDay());
+          startOfWeek.setHours(0, 0, 0, 0);
+          const weekWorkouts = history.filter(w => new Date(w.date) >= startOfWeek);
           return weekWorkouts.length;
 
-        case 'streak':
-          // For streak goals
-          return stats.currentStreak || 0;
+        case 'monthly_workouts':
+          // For monthly workout count goals
+          const now = new Date();
+          const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+          const monthWorkouts = history.filter(w => new Date(w.date) >= startOfMonth);
+          return monthWorkouts.length;
+
+        case 'consistency':
+          // For consistency goals (weeks hitting 3+ workouts)
+          let weeksHit = 0;
+          const currentDate = new Date();
+          for (let i = 0; i < 4; i++) {
+            const weekStart = new Date(currentDate);
+            weekStart.setDate(currentDate.getDate() - currentDate.getDay() - (i * 7));
+            weekStart.setHours(0, 0, 0, 0);
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekStart.getDate() + 7);
+            const workoutsInWeek = history.filter(w => {
+              const d = new Date(w.date);
+              return d >= weekStart && d < weekEnd;
+            }).length;
+            if (workoutsInWeek >= 3) {
+              weeksHit++;
+            }
+          }
+          return weeksHit;
 
         default:
           return 0;
