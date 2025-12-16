@@ -1,96 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import ScreenLayout from '../components/ScreenLayout';
-import StyledCard from '../components/StyledCard';
 import StyledButton from '../components/StyledButton';
+import { ImportButton } from '../components/ContentImportButton';
 import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { useWorkout } from '../context/WorkoutContext';
-import { WorkoutStorageService } from '../services/workoutStorage';
-import { useAuth } from '../context/AuthContext';
-import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function StartWorkoutScreen({ navigation }) {
-  const { user } = useAuth();
   const { isWorkoutActive, activeWorkout } = useWorkout();
-  const [recentWorkouts, setRecentWorkouts] = useState([]);
-  const [showRecentWorkouts, setShowRecentWorkouts] = useState(true);
-
-  useFocusEffect(
-    React.useCallback(() => {
-      loadRecentWorkouts();
-    }, [])
-  );
-
-  const loadRecentWorkouts = async () => {
-    try {
-      const userId = user?.uid || 'guest';
-
-      // Get workout history (completed workouts)
-      const history = await WorkoutStorageService.getWorkoutHistory(userId);
-
-      // Get user programs
-      const savedPrograms = await AsyncStorage.getItem('@workout_programs');
-      const userPrograms = savedPrograms ? JSON.parse(savedPrograms) : [];
-
-      // Combine and format recent items
-      const recentItems = [];
-
-      // Add recent completed workouts
-      history.slice(0, 3).forEach(workout => {
-        recentItems.push({
-          id: workout.id,
-          type: 'completed',
-          name: `Workout on ${new Date(workout.date).toLocaleDateString()}`,
-          exercises: workout.exercises,
-          date: workout.date,
-          duration: workout.duration,
-        });
-      });
-
-      // Add recent programs (for now, just get the first 3 programs if workout history < 3)
-      if (recentItems.length < 3 && userPrograms.length > 0) {
-        const programsToAdd = userPrograms.slice(0, 3 - recentItems.length);
-        programsToAdd.forEach(program => {
-          if (program.days && program.days.length > 0) {
-            recentItems.push({
-              id: program.id,
-              type: 'program',
-              name: program.name,
-              exercises: program.days[0].exercises || [],
-              dayName: program.days[0].name,
-            });
-          }
-        });
-      }
-
-      setRecentWorkouts(recentItems.slice(0, 3));
-    } catch (error) {
-    }
-  };
-
-  const handleStartRecentWorkout = (item) => {
-    if (item.type === 'completed') {
-      // Start a new workout with the same exercises
-      navigation.navigate('Workout', {
-        exercises: item.exercises,
-        workoutName: 'Repeat Workout',
-      });
-    } else if (item.type === 'program') {
-      // Start workout from program day
-      navigation.navigate('Workout', {
-        exercises: item.exercises,
-        workoutName: item.dayName || item.name,
-      });
-    }
-  };
 
   return (
     <ScreenLayout
       title="Start Workout"
-      subtitle="Choose your workout program"
       navigation={navigation}
       showBack={true}
       screenName="StartWorkoutScreen"
@@ -117,7 +40,6 @@ export default function StartWorkoutScreen({ navigation }) {
 
         {/* Quick Start */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Quick Start</Text>
           <StyledButton
             title={isWorkoutActive() ? "Continue Workout" : "Free Workout"}
             subtitle={isWorkoutActive() ? "Resume your active workout" : "Choose your own muscle groups"}
@@ -161,6 +83,21 @@ export default function StartWorkoutScreen({ navigation }) {
           />
         </View>
 
+        {/* Import Button */}
+        <View style={styles.section}>
+          <ImportButton
+            label="Import Plan from Photo or PDF"
+            icon="scan"
+            size="large"
+            variant="outline"
+            fullWidth
+            navigation={navigation}
+            onImportComplete={(data, type) => {
+              Alert.alert('Success', 'Workout imported and saved to My Plans!');
+            }}
+          />
+        </View>
+
         {/* My Plans - Prominent Button */}
         <View style={styles.section}>
           <TouchableOpacity
@@ -176,77 +113,6 @@ export default function StartWorkoutScreen({ navigation }) {
               </Text>
             </View>
           </TouchableOpacity>
-        </View>
-
-        {/* Recent Workouts */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Recent Workouts</Text>
-            <TouchableOpacity
-              style={styles.toggleButton}
-              onPress={() => setShowRecentWorkouts(!showRecentWorkouts)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.toggleButtonText}>
-                {showRecentWorkouts ? 'Hide ↑' : 'Show ↓'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {showRecentWorkouts && (
-            <>
-              {recentWorkouts.length === 0 ? (
-                <View style={styles.emptyState}>
-                  <Ionicons name="barbell" size={48} color={Colors.textMuted} />
-                  <Text style={styles.emptyStateText}>No recent workouts yet</Text>
-                  <Text style={styles.emptyStateSubtext}>
-                    Start your first workout or create a program!
-                  </Text>
-                </View>
-              ) : (
-                recentWorkouts.map((item, index) => (
-                  <TouchableOpacity
-                    key={`recent-${item.id}-${index}`}
-                    style={styles.programCard}
-                    onPress={() => handleStartRecentWorkout(item)}
-                    activeOpacity={0.9}
-                  >
-                    <LinearGradient
-                      colors={[Colors.primary + '10', Colors.primary + '05']}
-                      style={styles.programGradient}
-                    >
-                      <View style={styles.programHeader}>
-                        <View style={styles.programInfo}>
-                          <Text style={styles.programName}>{item.name}</Text>
-                          {item.type === 'completed' && item.duration && (
-                            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
-                              <Ionicons name="timer" size={14} color={Colors.textSecondary} style={{ marginRight: 4 }} />
-                              <Text style={styles.programDuration}>{item.duration}</Text>
-                            </View>
-                          )}
-                          {item.type === 'program' && item.dayName && (
-                            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
-                              <Ionicons name="clipboard" size={14} color={Colors.textSecondary} style={{ marginRight: 4 }} />
-                              <Text style={styles.programDuration}>{item.dayName}</Text>
-                            </View>
-                          )}
-                          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <Ionicons name="barbell" size={14} color={Colors.primary} style={{ marginRight: 4 }} />
-                            <Text style={styles.programFocus}>
-                              {item.exercises?.length || 0} exercises
-                            </Text>
-                          </View>
-                        </View>
-                        <View style={styles.startButton}>
-                          <Text style={styles.startButtonText}>START</Text>
-                        </View>
-                      </View>
-                    </LinearGradient>
-                  </TouchableOpacity>
-                ))
-              )}
-            </>
-          )}
         </View>
       </ScrollView>
     </ScreenLayout>
@@ -287,76 +153,6 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: Spacing.xxl,
   },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.md,
-  },
-  sectionTitle: {
-    fontSize: Typography.fontSize.lg,
-    fontWeight: 'bold',
-    color: Colors.text,
-  },
-  expandButton: {
-    backgroundColor: Colors.primary + '15',
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs,
-    borderRadius: BorderRadius.sm,
-    borderWidth: 1,
-    borderColor: Colors.primary + '30',
-  },
-  expandButtonText: {
-    fontSize: Typography.fontSize.sm,
-    color: Colors.primary,
-    fontWeight: '600',
-  },
-  programCard: {
-    marginBottom: Spacing.md,
-    borderRadius: BorderRadius.lg,
-    overflow: 'hidden',
-  },
-  programGradient: {
-    padding: Spacing.lg,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: BorderRadius.lg,
-  },
-  programHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  programInfo: {
-    flex: 1,
-  },
-  programName: {
-    fontSize: Typography.fontSize.md,
-    fontWeight: 'bold',
-    color: Colors.text,
-    marginBottom: Spacing.xs,
-  },
-  programDuration: {
-    fontSize: Typography.fontSize.sm,
-    color: Colors.textSecondary,
-    marginBottom: 4,
-  },
-  programFocus: {
-    fontSize: Typography.fontSize.sm,
-    color: Colors.primary,
-    fontWeight: '600',
-  },
-  startButton: {
-    backgroundColor: Colors.primary,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.md,
-  },
-  startButtonText: {
-    color: Colors.background,
-    fontSize: Typography.fontSize.sm,
-    fontWeight: 'bold',
-  },
   quickStartButton: {
     marginBottom: Spacing.md,
   },
@@ -384,38 +180,5 @@ const styles = StyleSheet.create({
   myPlansSubtitle: {
     fontSize: Typography.fontSize.sm,
     color: Colors.textSecondary,
-  },
-  toggleButton: {
-    backgroundColor: Colors.primary + '15',
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs,
-    borderRadius: BorderRadius.sm,
-    borderWidth: 1,
-    borderColor: Colors.primary + '30',
-  },
-  toggleButtonText: {
-    fontSize: Typography.fontSize.sm,
-    color: Colors.primary,
-    fontWeight: '600',
-  },
-  emptyState: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: Spacing.xxl,
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.lg,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  emptyStateText: {
-    fontSize: Typography.fontSize.lg,
-    fontWeight: 'bold',
-    color: Colors.textMuted,
-    marginBottom: Spacing.xs,
-  },
-  emptyStateSubtext: {
-    fontSize: Typography.fontSize.sm,
-    color: Colors.textSecondary,
-    textAlign: 'center',
   },
 });

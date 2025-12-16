@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import ScreenLayout from '../components/ScreenLayout';
 import StyledCard from '../components/StyledCard';
 import StyledButton from '../components/StyledButton';
-import { ImportButton } from '../components/ContentImportButton';
+import WorkoutPlanService from '../services/WorkoutPlanService';
 import { Colors, Spacing, Typography, BorderRadius, Shadows } from '../constants/theme';
 
 const WORKOUT_PROGRAMS_KEY = '@workout_programs';
@@ -17,13 +18,22 @@ export default function MyPlansScreen({ navigation }) {
   const [standaloneWorkouts, setStandaloneWorkouts] = useState([]);
   const [programsExpanded, setProgramsExpanded] = useState(false);
   const [workoutsExpanded, setWorkoutsExpanded] = useState(false);
+  const [planCount, setPlanCount] = useState(0);
 
   useFocusEffect(
     React.useCallback(() => {
       loadPrograms();
       loadStandaloneWorkouts();
+      // Get count of available curated plans
+      const allPlans = WorkoutPlanService.getAllPlans();
+      setPlanCount(allPlans.length);
     }, [])
   );
+
+  const handleDiscoverPlans = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    navigation.navigate('DiscoverPlans');
+  };
 
   const loadPrograms = async () => {
     try {
@@ -92,13 +102,30 @@ export default function MyPlansScreen({ navigation }) {
   return (
     <ScreenLayout
       title="My Plans"
-      subtitle="Programs & Workouts"
       navigation={navigation}
       showBack={true}
       showHome={true}
       screenName="MyPlansScreen"
     >
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+
+        {/* Discover Plans Button */}
+        <TouchableOpacity
+          style={styles.discoverButton}
+          onPress={handleDiscoverPlans}
+          activeOpacity={0.8}
+        >
+          <View style={styles.discoverContent}>
+            <View style={styles.discoverIconContainer}>
+              <Ionicons name="compass" size={28} color="#FFFFFF" />
+            </View>
+            <View style={styles.discoverTextContainer}>
+              <Text style={styles.discoverTitle}>Discover Plans</Text>
+              <Text style={styles.discoverSubtitle}>Browse {planCount} pre-made programs</Text>
+            </View>
+            <Ionicons name="arrow-forward" size={22} color="#FFFFFF" />
+          </View>
+        </TouchableOpacity>
 
         {/* Create Buttons */}
         <View style={styles.createButtonsContainer}>
@@ -117,30 +144,6 @@ export default function MyPlansScreen({ navigation }) {
             size="md"
             onPress={() => navigation.navigate('WorkoutProgram', { isStandaloneWorkout: true })}
             style={styles.createButton}
-          />
-        </View>
-
-        {/* Import Section */}
-        <View style={styles.importSection}>
-          <View style={styles.importHeader}>
-            <Ionicons name="scan" size={20} color={Colors.primary} />
-            <Text style={styles.importTitle}>Import from Photo or PDF</Text>
-          </View>
-          <Text style={styles.importDesc}>
-            Have a workout plan saved as a screenshot or PDF? Import it instantly!
-          </Text>
-          <ImportButton
-            label="Import Workout"
-            icon="camera"
-            size="large"
-            variant="primary"
-            fullWidth
-            navigation={navigation}
-            onImportComplete={(data, type) => {
-              loadPrograms();
-              loadStandaloneWorkouts();
-              Alert.alert('Success', 'Workout imported and saved!');
-            }}
           />
         </View>
 
@@ -260,36 +263,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: Spacing.lg,
+    paddingTop: Spacing.xxl,
   },
   createButtonsContainer: {
     flexDirection: 'row',
     gap: Spacing.md,
     marginBottom: Spacing.lg,
-  },
-  importSection: {
-    backgroundColor: Colors.card,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
-    marginBottom: Spacing.xl,
-    borderWidth: 1,
-    borderColor: Colors.primary + '30',
-    borderStyle: 'dashed',
-  },
-  importHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    marginBottom: Spacing.xs,
-  },
-  importTitle: {
-    fontSize: Typography.fontSize.md,
-    fontWeight: '600',
-    color: Colors.text,
-  },
-  importDesc: {
-    fontSize: Typography.fontSize.sm,
-    color: Colors.textSecondary,
-    marginBottom: Spacing.md,
   },
   createButton: {
     flex: 1,
@@ -371,5 +350,40 @@ const styles = StyleSheet.create({
   },
   bottomSpacer: {
     height: Spacing.xxl,
+  },
+  discoverButton: {
+    borderRadius: BorderRadius.round,
+    overflow: 'hidden',
+    marginBottom: Spacing.lg,
+    backgroundColor: '#1a1a1a',
+    padding: Spacing.lg,
+    borderWidth: 2,
+    borderColor: Colors.primary,
+  },
+  discoverContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  discoverIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: BorderRadius.round,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: Spacing.md,
+  },
+  discoverTextContainer: {
+    flex: 1,
+  },
+  discoverTitle: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  discoverSubtitle: {
+    fontSize: Typography.fontSize.sm,
+    color: 'rgba(255, 255, 255, 0.6)',
+    marginTop: 2,
   },
 });

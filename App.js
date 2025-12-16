@@ -112,6 +112,11 @@ import Model3DWebViewScreen from './src/screens/Model3DWebViewScreen';
 import GymLocationScreen from './src/screens/GymLocationScreen';
 import GymMapScreen from './src/screens/GymMapScreen';
 import RestaurantMenuScreen from './src/screens/RestaurantMenuScreen';
+import DiscoverPlansScreen from './src/screens/DiscoverPlansScreen';
+import PlanDetailScreen from './src/screens/PlanDetailScreen';
+import FindPlanWizardScreen from './src/screens/FindPlanWizardScreen';
+import FindPlanResultsScreen from './src/screens/FindPlanResultsScreen';
+import SplitPlansScreen from './src/screens/SplitPlansScreen';
 
 // Automated Testing (Dev only)
 import AutomatedTestRunner from './src/components/AutomatedTestRunner';
@@ -441,6 +446,11 @@ function AppNavigator() {
             <Stack.Screen name="TodayWorkoutOptions" component={TodayWorkoutOptionsScreen} />
             <Stack.Screen name="PlanWorkout" component={PlanWorkoutScreen} />
             <Stack.Screen name="MyPlans" component={MyPlansScreen} />
+            <Stack.Screen name="DiscoverPlans" component={DiscoverPlansScreen} />
+            <Stack.Screen name="PlanDetail" component={PlanDetailScreen} />
+            <Stack.Screen name="FindPlanWizard" component={FindPlanWizardScreen} />
+            <Stack.Screen name="FindPlanResults" component={FindPlanResultsScreen} />
+            <Stack.Screen name="SplitPlans" component={SplitPlansScreen} />
             <Stack.Screen name="WorkoutDetail" component={WorkoutDetailScreen} />
             <Stack.Screen name="PlannedWorkoutDetail" component={PlannedWorkoutDetailScreen} />
             <Stack.Screen
