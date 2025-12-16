@@ -20,6 +20,10 @@ import { useAITracking } from '../components/AIScreenTracker';
 import { usesBarbellPlates, getBarType } from '../constants/weightEquipment';
 import BackgroundTimerService from '../services/BackgroundTimerService';
 import MiniMuscleTracker from '../components/MiniMuscleTracker';
+import VoiceInputButton from '../components/VoiceInputButton';
+import VoiceWorkoutConfirmModal from '../components/VoiceWorkoutConfirmModal';
+import { parseVoiceWorkout } from '../services/ai/VoiceWorkoutParser';
+import { findBestExerciseMatch } from '../utils/exerciseNameMatcher';
 
 // Configure notification handler - always show notifications
 Notifications.setNotificationHandler({
@@ -160,7 +164,7 @@ const isBodyweightExercise = (exercise) => {
 };
 
 // Exercise Card Component
-const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exerciseSets, onUpdateSet, onAddSet, onDeleteSet, onShowInfo, onSelectSetType, onPairSuperset, supersetPairIndex, fromProgram, rpeEnabled, onStartCardioTimer, onPauseCardioTimer, cardioTimers, onMoveUp, onMoveDown, canMoveUp, canMoveDown, onSetComment, previousSets, exercisePR, onPRPress }) => {
+const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exerciseSets, onUpdateSet, onAddSet, onDeleteSet, onShowInfo, onSelectSetType, onPairSuperset, supersetPairIndex, fromProgram, rpeEnabled, onStartCardioTimer, onPauseCardioTimer, cardioTimers, onMoveUp, onMoveDown, canMoveUp, canMoveDown, onSetComment, previousSets, exercisePR, onPRPress, onVoiceLog }) => {
 
   // Format PR date as YY/MM/DD
   const formatPRDate = (dateString) => {
@@ -281,7 +285,7 @@ const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exercise
                 {exercise.name}
               </Text>
             </View>
-            {/* PR Display - Compact line below name, tappable */}
+            {/* PR Display */}
             {exercisePR && (
               <TouchableOpacity onPress={() => onPRPress && onPRPress(exercise, exercisePR)}>
                 <Text style={styles.prLineText}>
@@ -296,27 +300,39 @@ const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exercise
             )}
           </View>
 
-          <View style={styles.exerciseActions}>
-            <TouchableOpacity
-              style={styles.actionIconButton}
-              onPress={() => onShowInfo(exercise)}
-            >
-              <Ionicons name="information-circle-outline" size={20} color={Colors.primary} />
-            </TouchableOpacity>
+          <View style={styles.exerciseActionsColumn}>
+            <View style={styles.exerciseActions}>
+              <TouchableOpacity
+                style={styles.actionIconButton}
+                onPress={() => onShowInfo(exercise)}
+              >
+                <Ionicons name="information-circle-outline" size={20} color={Colors.primary} />
+              </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[styles.actionIconButton, supersetPairIndex !== null && supersetPairIndex !== undefined && styles.pairButtonActive]}
-              onPress={() => onPairSuperset(index)}
-            >
-              <Ionicons name="link-outline" size={20} color={supersetPairIndex !== null && supersetPairIndex !== undefined ? '#3498DB' : Colors.text} />
-            </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.actionIconButton, supersetPairIndex !== null && supersetPairIndex !== undefined && styles.pairButtonActive]}
+                onPress={() => onPairSuperset(index)}
+              >
+                <Ionicons name="link-outline" size={20} color={supersetPairIndex !== null && supersetPairIndex !== undefined ? '#3498DB' : Colors.text} />
+              </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[styles.actionIconButton, styles.deleteIconButton]}
-              onPress={() => onDelete(index)}
-            >
-              <Ionicons name="close" size={22} color={Colors.error} />
-            </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.actionIconButton, styles.deleteIconButton]}
+                onPress={() => onDelete(index)}
+              >
+                <Ionicons name="close" size={22} color={Colors.error} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Voice Log Button - below action buttons */}
+            {onVoiceLog && (
+              <View style={styles.voiceButtonRow}>
+                <VoiceInputButton
+                  onFinalTranscript={(transcript) => onVoiceLog(transcript, exercise, index)}
+                  style={styles.voiceLogButtonSmall}
+                />
+              </View>
+            )}
           </View>
         </View>
 
@@ -590,6 +606,12 @@ export default function WorkoutScreen({ navigation, route }) {
   const [showPRWorkoutModal, setShowPRWorkoutModal] = useState(false);
   const [prWorkoutData, setPRWorkoutData] = useState(null);
   const [prExerciseName, setPRExerciseName] = useState('');
+
+  // Voice workout logging state
+  const [showVoiceConfirmModal, setShowVoiceConfirmModal] = useState(false);
+  const [voiceWorkoutData, setVoiceWorkoutData] = useState(null);
+  const [voiceTargetExercise, setVoiceTargetExercise] = useState(null); // { exercise, exerciseIndex } for per-exercise mic
+  const [isVoiceListening, setIsVoiceListening] = useState(false);
 
   // PanResponder for PR modal swipe-to-close
   const prModalPanResponder = useRef(
@@ -1786,6 +1808,141 @@ export default function WorkoutScreen({ navigation, route }) {
     }
   };
 
+  // Voice workout handlers
+  const handleFloatingVoiceTranscript = (transcript) => {
+    // Parse with exercise name required (floating button can add any exercise)
+    const parsed = parseVoiceWorkout(transcript, { requireExerciseName: true });
+
+    if (parsed.matchedExercise && parsed.sets.length > 0) {
+      setVoiceTargetExercise(null); // No pre-selected exercise
+      setVoiceWorkoutData(parsed);
+      setShowVoiceConfirmModal(true);
+    } else if (parsed.sets.length > 0 && !parsed.matchedExercise) {
+      // Sets found but no exercise - ask if they want to use current exercise
+      Alert.alert(
+        'Exercise Not Found',
+        `Couldn't identify the exercise. Would you like to add these sets to the current exercise?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Yes',
+            onPress: () => {
+              const currentExercise = workoutExercises[currentExerciseIndex];
+              if (currentExercise) {
+                setVoiceTargetExercise({ exercise: currentExercise, exerciseIndex: currentExerciseIndex });
+                setVoiceWorkoutData({ ...parsed, matchedExercise: currentExercise });
+                setShowVoiceConfirmModal(true);
+              }
+            }
+          }
+        ]
+      );
+    } else {
+      Alert.alert(
+        'Could Not Understand',
+        'Try saying something like: "3 sets of bench press, 135 for 10, 155 for 8, 175 for 6"'
+      );
+    }
+  };
+
+  const handleExerciseVoiceTranscript = (transcript, exercise, exerciseIndex) => {
+    // Parse without requiring exercise name (exercise is already known)
+    const parsed = parseVoiceWorkout(transcript, {
+      requireExerciseName: false,
+      knownExercise: exercise
+    });
+
+    if (parsed.sets.length > 0) {
+      setVoiceTargetExercise({ exercise, exerciseIndex });
+      setVoiceWorkoutData(parsed);
+      setShowVoiceConfirmModal(true);
+    } else {
+      Alert.alert(
+        'Could Not Understand',
+        'Try saying: "215 for 10, 145 for 3, 300 for 5"'
+      );
+    }
+  };
+
+  const handleVoiceConfirm = (confirmedData) => {
+    setShowVoiceConfirmModal(false);
+
+    if (voiceTargetExercise) {
+      // Add sets to existing exercise
+      const { exerciseIndex } = voiceTargetExercise;
+      addSetsToExercise(exerciseIndex, confirmedData.sets);
+    } else if (confirmedData.matchedExercise) {
+      // Find or add exercise, then add sets
+      const exerciseIndex = findOrAddExercise(confirmedData.matchedExercise);
+      if (exerciseIndex !== -1) {
+        addSetsToExercise(exerciseIndex, confirmedData.sets);
+      }
+    }
+
+    // Clear voice state
+    setVoiceWorkoutData(null);
+    setVoiceTargetExercise(null);
+  };
+
+  // Helper: Add multiple sets to an exercise
+  const addSetsToExercise = (exerciseIndex, sets) => {
+    const newExerciseSets = { ...exerciseSets };
+
+    // Initialize if needed
+    if (!newExerciseSets[exerciseIndex]) {
+      newExerciseSets[exerciseIndex] = [];
+    }
+
+    // Add each set
+    sets.forEach(set => {
+      newExerciseSets[exerciseIndex].push({
+        weight: set.weight.toString(),
+        reps: set.reps.toString(),
+        completed: true,
+        rpe: '',
+        comment: ''
+      });
+    });
+
+    setExerciseSets(newExerciseSets);
+    autoSaveExerciseSets(newExerciseSets);
+
+    // Update totals
+    const { volume: newVolume, sets: newTotalSets } = calculateTotals(newExerciseSets);
+    setTotalVolume(newVolume);
+    setTotalSets(newTotalSets);
+
+    // Show feedback
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  };
+
+  // Helper: Find existing exercise or add new one
+  const findOrAddExercise = (exercise) => {
+    // Check if exercise already exists in workout
+    const existingIndex = workoutExercises.findIndex(
+      ex => ex.name.toLowerCase() === exercise.name.toLowerCase()
+    );
+
+    if (existingIndex !== -1) {
+      return existingIndex;
+    }
+
+    // Add new exercise to workout
+    const newExercises = [...workoutExercises, exercise];
+
+    // Update context
+    if (activeWorkout) {
+      updateWorkout({ exercises: newExercises });
+    }
+
+    // Initialize sets for new exercise
+    const newExerciseSets = { ...exerciseSets };
+    newExerciseSets[newExercises.length - 1] = [];
+    setExerciseSets(newExerciseSets);
+
+    return newExercises.length - 1;
+  };
+
   // Calculate total volume and sets count
   const calculateTotals = (sets) => {
     let volume = 0;
@@ -2087,9 +2244,10 @@ export default function WorkoutScreen({ navigation, route }) {
             {
               text: 'End Workout',
               onPress: () => {
-                finishWorkout();
+                discardWorkout();
                 setShowDeleteConfirmation(false);
                 setExerciseToDelete(null);
+                navigation.navigate('Main', { screen: 'Home' });
               },
               style: 'destructive'
             },
@@ -2375,6 +2533,7 @@ export default function WorkoutScreen({ navigation, route }) {
             previousSets={previousExerciseHistory[index]}
             exercisePR={exercisePRs[index]}
             onPRPress={handlePRPress}
+            onVoiceLog={handleExerciseVoiceTranscript}
           />
         ))}
       </View>
@@ -2383,13 +2542,21 @@ export default function WorkoutScreen({ navigation, route }) {
 
           {/* Action Buttons */}
           <View style={styles.buttonSection}>
-            <TouchableOpacity
-              style={[styles.actionButton, styles.addExerciseButton]}
-              activeOpacity={0.8}
-              onPress={addAnotherExercise}
-            >
-              <Text style={[styles.actionButtonText, styles.addExerciseButtonText]}>➕ Add Another Exercise</Text>
-            </TouchableOpacity>
+            <View style={styles.addExerciseRow}>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.addExerciseButton, styles.addExerciseButtonFlex]}
+                activeOpacity={0.8}
+                onPress={addAnotherExercise}
+              >
+                <Text style={[styles.actionButtonText, styles.addExerciseButtonText]}>➕ Add Another Exercise</Text>
+              </TouchableOpacity>
+              <VoiceInputButton
+                onFinalTranscript={handleFloatingVoiceTranscript}
+                style={styles.addExerciseVoiceButton}
+                iconSize={22}
+                iconColor="#fff"
+              />
+            </View>
 
             <TouchableOpacity
               style={[styles.actionButton, styles.aiButton]}
@@ -2898,6 +3065,20 @@ export default function WorkoutScreen({ navigation, route }) {
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
+
+      {/* Voice Workout Confirm Modal */}
+      <VoiceWorkoutConfirmModal
+        visible={showVoiceConfirmModal}
+        onClose={() => {
+          setShowVoiceConfirmModal(false);
+          setVoiceWorkoutData(null);
+          setVoiceTargetExercise(null);
+        }}
+        onConfirm={handleVoiceConfirm}
+        parsedData={voiceWorkoutData}
+        targetExercise={voiceTargetExercise?.exercise}
+      />
+
 
     </>
   );
@@ -3884,6 +4065,22 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
   },
+  addExerciseRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  addExerciseButtonFlex: {
+    flex: 1,
+  },
+  addExerciseVoiceButton: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
   aiButton: {
     backgroundColor: 'rgba(123, 104, 238, 0.9)', // Purple color for AI
     borderWidth: 1,
@@ -4231,5 +4428,53 @@ const styles = StyleSheet.create({
   },
   reorderButtonDisabled: {
     opacity: 0.3,
+  },
+  // Voice FAB Styles
+  voiceFabContainer: {
+    position: 'absolute',
+    bottom: 100,
+    right: Spacing.lg,
+    alignItems: 'center',
+    zIndex: 9999,
+    elevation: 9999,
+  },
+  voiceFab: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Colors.primary,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 10,
+  },
+  voiceListeningBadge: {
+    position: 'absolute',
+    bottom: 64,
+    backgroundColor: Colors.error || '#EF4444',
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.md,
+    zIndex: 10000,
+  },
+  voiceListeningText: {
+    fontSize: Typography.fontSize.xs,
+    color: '#fff',
+    fontWeight: '600',
+  },
+  // Exercise actions column (buttons + voice)
+  exerciseActionsColumn: {
+    alignItems: 'center',
+  },
+  voiceButtonRow: {
+    marginTop: Spacing.xs,
+    alignItems: 'center',
+    marginRight: 5,
+  },
+  voiceLogButtonSmall: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
   },
 });

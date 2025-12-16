@@ -54,6 +54,13 @@ export default function ExerciseListScreen({ navigation, route }) {
       : ['chest', 'back', 'glutes', 'quads', 'hamstrings', 'calves', 'biceps', 'triceps', 'shoulders', 'abs', 'forearms', 'cardio']
   );
 
+  // Sync activeMuscleFilters when selectedMuscleGroups from route params changes
+  // This fixes the race condition where params arrive after initial mount
+  useEffect(() => {
+    if (selectedMuscleGroups && selectedMuscleGroups.length > 0) {
+      setActiveMuscleFilters(selectedMuscleGroups);
+    }
+  }, [selectedMuscleGroups]);
 
   useEffect(() => {
     loadExercises();

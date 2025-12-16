@@ -21,12 +21,16 @@ try {
  * @param {function} onFinalTranscript - Called when speech recognition ends with final text
  * @param {boolean} disabled - Disable the button
  * @param {object} style - Additional styles for the button
+ * @param {number} iconSize - Size of the mic icon (default 22)
+ * @param {string} iconColor - Override icon color (default uses theme colors)
  */
 export default function VoiceInputButton({
   onTranscript,
   onFinalTranscript,
   disabled = false,
-  style
+  style,
+  iconSize = 22,
+  iconColor = null
 }) {
   const [isListening, setIsListening] = useState(false);
   const [isAvailable, setIsAvailable] = useState(!!ExpoSpeechRecognitionModule);
@@ -159,10 +163,8 @@ export default function VoiceInputButton({
     }
   };
 
-  // Don't render the button if voice input is not available
-  if (!isAvailable) {
-    return null;
-  }
+  // Show button even if not available, just disabled with visual indicator
+  const isDisabledOrUnavailable = disabled || !isAvailable;
 
   return (
     <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
@@ -170,17 +172,24 @@ export default function VoiceInputButton({
         style={[
           styles.button,
           isListening && styles.buttonListening,
-          disabled && styles.buttonDisabled,
+          isDisabledOrUnavailable && styles.buttonDisabled,
+          !isAvailable && styles.buttonUnavailable,
           style,
         ]}
-        onPress={handlePress}
+        onPress={isAvailable ? handlePress : () => {
+          Alert.alert(
+            'Voice Input Not Available',
+            'Voice input requires a development build. It is not available in Expo Go.',
+            [{ text: 'OK' }]
+          );
+        }}
         disabled={disabled}
         activeOpacity={0.7}
       >
         <Ionicons
           name={isListening ? 'mic' : 'mic-outline'}
-          size={22}
-          color={isListening ? '#fff' : Colors.primary}
+          size={iconSize}
+          color={isListening ? '#fff' : (iconColor || (isAvailable ? Colors.primary : Colors.textSecondary))}
         />
       </TouchableOpacity>
     </Animated.View>
@@ -202,5 +211,8 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {
     opacity: 0.5,
+  },
+  buttonUnavailable: {
+    backgroundColor: `${Colors.textSecondary}15`,
   },
 });
