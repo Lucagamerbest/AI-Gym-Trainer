@@ -85,13 +85,15 @@ export class WorkoutStorageService {
       // Add new records from all sets with weight and reps data
       const validSets = exerciseData.sets.filter(set => set.weight && set.reps);
 
-      validSets.forEach(set => {
+      validSets.forEach((set, setIndex) => {
         progress[exerciseKey].records.push({
           date: new Date().toISOString(),
           weight: parseFloat(set.weight) || 0,
           reps: parseInt(set.reps) || 0,
           volume: (parseFloat(set.weight) || 0) * (parseInt(set.reps) || 0),
-          workoutId: workoutId // Include workout ID for linking
+          workoutId: workoutId, // Include workout ID for linking
+          setIndex: setIndex, // Track which set number this was
+          comment: set.comment || null // Include any comment on this set
         });
       });
 
@@ -123,6 +125,126 @@ export class WorkoutStorageService {
       return allProgress[exerciseKey] || null;
     } catch (error) {
       return null;
+    }
+  }
+
+  // Get previous comments for a specific exercise (most recent first)
+  static async getExerciseComments(exerciseName, userId = 'guest', limit = 10) {
+    try {
+      const progress = await this.getExerciseProgressByName(exerciseName, userId);
+      if (!progress || !progress.records) return [];
+
+      // Filter records that have comments and sort by date (most recent first)
+      const recordsWithComments = progress.records
+        .filter(record => record.comment && record.comment.trim().length > 0)
+        .sort((a, b) => new Date(b.date) - new Date(a.date))
+        .slice(0, limit)
+        .map(record => ({
+          date: record.date,
+          weight: record.weight,
+          reps: record.reps,
+          setIndex: record.setIndex,
+          comment: record.comment
+        }));
+
+      return recordsWithComments;
+    } catch (error) {
+      return [];
+    }
+  }
+
+  // Get the PR (Personal Record - highest weight) for an exercise
+  static async getExercisePR(exerciseName, userId = 'guest') {
+    try {
+      const progress = await this.getExerciseProgressByName(exerciseName, userId);
+      if (!progress || !progress.records || progress.records.length === 0) return null;
+
+      // Find the record with the highest weight
+      let pr = null;
+      let maxWeight = 0;
+
+      for (const record of progress.records) {
+        const weight = parseFloat(record.weight) || 0;
+        if (weight > maxWeight) {
+          maxWeight = weight;
+          pr = {
+            weight: record.weight,
+            reps: record.reps,
+            date: record.date,
+            volume: record.volume,
+            workoutId: record.workoutId
+          };
+        }
+      }
+
+      return pr;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  // Get a specific workout by ID
+  static async getWorkoutById(workoutId, userId = 'guest') {
+    try {
+      const history = await this.getWorkoutHistory(userId);
+      return history.find(w => w.id === workoutId) || null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  // Get the last workout's sets for an exercise (returns array indexed by set number)
+  static async getLastExerciseSets(exerciseName, userId = 'guest') {
+    try {
+      const progress = await this.getExerciseProgressByName(exerciseName, userId);
+      if (!progress || !progress.records || progress.records.length === 0) return [];
+
+      // Sort records by date (most recent first)
+      const sortedRecords = [...progress.records].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      // Get the most recent workout ID
+      const lastWorkoutId = sortedRecords[0]?.workoutId;
+      if (!lastWorkoutId) {
+        // If no workoutId, fallback to getting the most recent records by date
+        // Group by the same date (within same minute to account for slight time differences)
+        const lastDate = new Date(sortedRecords[0].date);
+        const lastDateRecords = sortedRecords.filter(record => {
+          const recordDate = new Date(record.date);
+          return Math.abs(recordDate - lastDate) < 60000; // Within 1 minute
+        });
+
+        // Create array indexed by set number
+        const lastSets = [];
+        lastDateRecords.forEach(record => {
+          const setIdx = record.setIndex ?? lastSets.length;
+          lastSets[setIdx] = {
+            weight: record.weight,
+            reps: record.reps,
+            comment: record.comment || null,
+            date: record.date
+          };
+        });
+        return lastSets;
+      }
+
+      // Get all records from the last workout
+      const lastWorkoutRecords = sortedRecords.filter(record => record.workoutId === lastWorkoutId);
+
+      // Create array indexed by set number
+      const lastSets = [];
+      lastWorkoutRecords.forEach(record => {
+        const setIdx = record.setIndex ?? lastSets.length;
+        lastSets[setIdx] = {
+          weight: record.weight,
+          reps: record.reps,
+          comment: record.comment || null,
+          date: record.date
+        };
+      });
+
+      return lastSets;
+    } catch (error) {
+      return [];
     }
   }
 

@@ -28,9 +28,10 @@ const formatCardioTime = (seconds) => {
   return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 };
 
-export default function WorkoutHistoryScreen({ navigation }) {
+export default function WorkoutHistoryScreen({ navigation, route }) {
+  const { filterExercise } = route?.params || {};
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState('calendar'); // 'calendar' or 'history'
+  const [activeTab, setActiveTab] = useState(filterExercise ? 'history' : 'calendar'); // 'calendar' or 'history'
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [workoutHistory, setWorkoutHistory] = useState([]);
   const [plannedWorkouts, setPlannedWorkouts] = useState({});
@@ -44,6 +45,7 @@ export default function WorkoutHistoryScreen({ navigation }) {
   const [selectedDatesToDelete, setSelectedDatesToDelete] = useState([]);
   const [filterDateRange, setFilterDateRange] = useState('all'); // 'week', 'month', '3months', 'all'
   const [filterWorkoutType, setFilterWorkoutType] = useState('all'); // 'all', 'program', 'standalone', 'quick'
+  const [exerciseFilter, setExerciseFilter] = useState(filterExercise || null);
 
   // Load workout history on focus
   useFocusEffect(
@@ -701,6 +703,15 @@ export default function WorkoutHistoryScreen({ navigation }) {
     // Sort by date (newest first)
     filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
 
+    // Filter by exercise name (for PR navigation)
+    if (exerciseFilter) {
+      filtered = filtered.filter(w =>
+        w.exercises?.some(ex =>
+          ex.name?.toLowerCase() === exerciseFilter.toLowerCase()
+        )
+      );
+    }
+
     // Filter by date range
     if (filterDateRange !== 'all') {
       const now = new Date();
@@ -1023,6 +1034,20 @@ export default function WorkoutHistoryScreen({ navigation }) {
         {/* History List View */}
         {activeTab === 'history' && (
           <View style={styles.historyContainer}>
+            {/* Exercise Filter Banner */}
+            {exerciseFilter && (
+              <View style={styles.exerciseFilterBanner}>
+                <Text style={styles.exerciseFilterText}>
+                  🏆 Showing workouts with: {exerciseFilter}
+                </Text>
+                <TouchableOpacity
+                  style={styles.clearFilterButton}
+                  onPress={() => setExerciseFilter(null)}
+                >
+                  <Text style={styles.clearFilterText}>✕ Clear</Text>
+                </TouchableOpacity>
+              </View>
+            )}
             {/* Filters */}
             <View style={styles.filtersContainer}>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filtersScroll}>
@@ -1359,6 +1384,30 @@ const styles = StyleSheet.create({
   },
   historyContainer: {
     flex: 1,
+  },
+  exerciseFilterBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#DAA520' + '20',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.sm,
+  },
+  exerciseFilterText: {
+    fontSize: Typography.fontSize.sm,
+    color: '#DAA520',
+    fontWeight: '600',
+    flex: 1,
+  },
+  clearFilterButton: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+  },
+  clearFilterText: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textMuted,
   },
   filtersContainer: {
     marginBottom: Spacing.md,

@@ -14,6 +14,7 @@ import { WorkoutStorageService } from '../services/workoutStorage';
 import { useAuth } from '../context/AuthContext';
 import { useWorkout } from '../context/WorkoutContext';
 import AIButtonModal from '../components/AIButtonModal';
+import SetCommentModal from '../components/SetCommentModal';
 import PlatePicker from '../components/PlatePicker';
 import { useAITracking } from '../components/AIScreenTracker';
 import { usesBarbellPlates, getBarType } from '../constants/weightEquipment';
@@ -159,7 +160,17 @@ const isBodyweightExercise = (exercise) => {
 };
 
 // Exercise Card Component
-const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exerciseSets, onUpdateSet, onAddSet, onDeleteSet, onShowInfo, onSelectSetType, onPairSuperset, supersetPairIndex, fromProgram, rpeEnabled, onStartCardioTimer, onPauseCardioTimer, cardioTimers, onMoveUp, onMoveDown, canMoveUp, canMoveDown }) => {
+const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exerciseSets, onUpdateSet, onAddSet, onDeleteSet, onShowInfo, onSelectSetType, onPairSuperset, supersetPairIndex, fromProgram, rpeEnabled, onStartCardioTimer, onPauseCardioTimer, cardioTimers, onMoveUp, onMoveDown, canMoveUp, canMoveDown, onSetComment, previousSets, exercisePR, onPRPress }) => {
+
+  // Format PR date as YY/MM/DD
+  const formatPRDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const year = date.getFullYear().toString().slice(-2);
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    return `${year}/${month}/${day}`;
+  };
 
   // Check if this exercise uses barbell/plates
   const selectedEquipment = exercise.selectedEquipment || exercise.equipment?.split(', ')[0] || '';
@@ -261,10 +272,7 @@ const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exercise
             </View>
           )}
 
-          <TouchableOpacity
-            style={styles.exerciseMainContent}
-            onPress={() => onPress(index)}
-          >
+          <View style={styles.exerciseMainContent}>
             <View style={styles.exerciseListHeader}>
               <Text style={styles.exerciseListNumber}>
                 {index + 1}
@@ -273,12 +281,20 @@ const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exercise
                 {exercise.name}
               </Text>
             </View>
+            {/* PR Display - Compact line below name, tappable */}
+            {exercisePR && (
+              <TouchableOpacity onPress={() => onPRPress && onPRPress(exercise, exercisePR)}>
+                <Text style={styles.prLineText}>
+                  🏆 {exercisePR.weight}×{exercisePR.reps}
+                </Text>
+              </TouchableOpacity>
+            )}
             {supersetPairIndex !== null && supersetPairIndex !== undefined && (
               <View style={styles.supersetBadgeRow}>
                 <Text style={styles.supersetBadgeText}>Superset with #{supersetPairIndex + 1}</Text>
               </View>
             )}
-          </TouchableOpacity>
+          </View>
 
           <View style={styles.exerciseActions}>
             <TouchableOpacity
@@ -326,8 +342,9 @@ const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exercise
           )}
 
           {exerciseSets && exerciseSets.map((set, setIndex) => (
-            <View key={setIndex} style={styles.setRow}>
-              {isCardio ? (
+            <React.Fragment key={setIndex}>
+              <View style={styles.setRow}>
+                {isCardio ? (
                 // Cardio set row: Set number | Duration display | Timer button
                 <>
                   <View style={styles.setNumberContainer}>
@@ -443,6 +460,18 @@ const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exercise
                     />
                   )}
 
+                  {/* Comment Button */}
+                  <TouchableOpacity
+                    style={styles.commentSetButton}
+                    onPress={() => onSetComment(exercise, index, setIndex, set)}
+                  >
+                    <Ionicons
+                      name={set.comment ? "chatbubble" : "chatbubble-outline"}
+                      size={16}
+                      color={set.comment ? Colors.primary : Colors.textMuted}
+                    />
+                  </TouchableOpacity>
+
                   {exerciseSets.length > 1 && (
                     <TouchableOpacity
                       style={styles.deleteSetButton}
@@ -453,7 +482,19 @@ const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exercise
                   )}
                 </>
               )}
-            </View>
+              </View>
+              {/* Previous Set Data - Only show if previous data exists for this set */}
+              {previousSets && previousSets[setIndex] && (
+                <View style={styles.previousSetInfo}>
+                  <Text style={styles.previousSetText}>
+                    Previous: {previousSets[setIndex].weight} lbs × {previousSets[setIndex].reps}
+                    {previousSets[setIndex].comment && (
+                      <Text style={styles.previousSetComment}> · "{previousSets[setIndex].comment}"</Text>
+                    )}
+                  </Text>
+                </View>
+              )}
+            </React.Fragment>
           ))}
 
           <TouchableOpacity
@@ -509,6 +550,15 @@ export default function WorkoutScreen({ navigation, route }) {
   const [selectedSetForType, setSelectedSetForType] = useState({ exerciseIndex: null, setIndex: null });
   const [rpeEnabled, setRpeEnabled] = useState(false);
 
+  // Set comment modal state
+  const [showCommentModal, setShowCommentModal] = useState(false);
+  const [activeCommentSet, setActiveCommentSet] = useState({
+    exercise: null,
+    exerciseIndex: null,
+    setIndex: null,
+    set: null
+  });
+
   // Exercise reordering state
   const moveTimerRef = useRef(null);
   const pendingMovesRef = useRef({ index: null, direction: null, count: 0 });
@@ -529,6 +579,34 @@ export default function WorkoutScreen({ navigation, route }) {
   // Cardio timer state: { "exerciseIndex-setIndex": { startTime, duration, isRunning } }
   const [cardioTimers, setCardioTimers] = useState({});
   const cardioTimerIntervals = useRef({});
+
+  // Previous exercise history state: { exerciseIndex: [{ weight, reps, comment }, ...] }
+  const [previousExerciseHistory, setPreviousExerciseHistory] = useState({});
+
+  // Exercise PR (Personal Record) state: { exerciseIndex: { weight, reps, date } }
+  const [exercisePRs, setExercisePRs] = useState({});
+
+  // PR Workout Modal state
+  const [showPRWorkoutModal, setShowPRWorkoutModal] = useState(false);
+  const [prWorkoutData, setPRWorkoutData] = useState(null);
+  const [prExerciseName, setPRExerciseName] = useState('');
+
+  // PanResponder for PR modal swipe-to-close
+  const prModalPanResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        // Only respond to vertical swipes
+        return Math.abs(gestureState.dy) > Math.abs(gestureState.dx) && gestureState.dy > 10;
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        // Close if swiped down more than 50px
+        if (gestureState.dy > 50) {
+          setShowPRWorkoutModal(false);
+        }
+      },
+    })
+  ).current;
 
   // Auto-save debounce timer
   const autoSaveTimeoutRef = useRef(null);
@@ -982,6 +1060,39 @@ export default function WorkoutScreen({ navigation, route }) {
     totalVolume,
     totalSets,
   });
+
+  // Load previous exercise history and PRs when exercises change
+  useEffect(() => {
+    const loadPreviousHistoryAndPRs = async () => {
+      if (!workoutExercises || workoutExercises.length === 0) return;
+
+      const userId = user?.uid || 'guest';
+      const history = {};
+      const prs = {};
+
+      for (let i = 0; i < workoutExercises.length; i++) {
+        const exercise = workoutExercises[i];
+        if (exercise?.name) {
+          // Load previous sets
+          const lastSets = await WorkoutStorageService.getLastExerciseSets(exercise.name, userId);
+          if (lastSets && lastSets.length > 0) {
+            history[i] = lastSets;
+          }
+
+          // Load PR
+          const pr = await WorkoutStorageService.getExercisePR(exercise.name, userId);
+          if (pr) {
+            prs[i] = pr;
+          }
+        }
+      }
+
+      setPreviousExerciseHistory(history);
+      setExercisePRs(prs);
+    };
+
+    loadPreviousHistoryAndPRs();
+  }, [workoutExercises.length, user?.uid]);
 
   // Execute batched exercise moves
   const executePendingMoves = () => {
@@ -1861,6 +1972,66 @@ export default function WorkoutScreen({ navigation, route }) {
     setSelectedSetForType({ exerciseIndex: null, setIndex: null });
   };
 
+  // Handle PR press - show modal with the PR workout details
+  const handlePRPress = async (exercise, pr) => {
+    if (!pr) return;
+
+    setPRExerciseName(exercise.name);
+    const userId = user?.uid || 'guest';
+    let workout = null;
+
+    // Try to find by workoutId first
+    if (pr.workoutId) {
+      workout = await WorkoutStorageService.getWorkoutById(pr.workoutId, userId);
+    }
+
+    // Fallback: search workout history for matching exercise, weight, reps on same date
+    if (!workout && pr.date) {
+      const history = await WorkoutStorageService.getWorkoutHistory(userId);
+      const prDate = new Date(pr.date).toDateString();
+
+      workout = history.find(w => {
+        const workoutDate = new Date(w.date).toDateString();
+        if (workoutDate !== prDate) return false;
+
+        // Check if this workout has the exercise with matching weight/reps
+        return w.exercises?.some(ex =>
+          ex.name?.toLowerCase() === exercise.name?.toLowerCase() &&
+          ex.sets?.some(set =>
+            parseFloat(set.weight) === parseFloat(pr.weight) &&
+            parseInt(set.reps) === parseInt(pr.reps)
+          )
+        );
+      });
+    }
+
+    if (workout) {
+      setPRWorkoutData(workout);
+      setShowPRWorkoutModal(true);
+    } else {
+      Alert.alert('PR Info', `Your PR for ${exercise.name} is ${pr?.weight} lbs × ${pr?.reps} reps\n\nWorkout details not available.`);
+    }
+  };
+
+  // Handle opening set comment modal
+  const handleSetComment = (exercise, exerciseIndex, setIndex, set) => {
+    setActiveCommentSet({
+      exercise,
+      exerciseIndex,
+      setIndex,
+      set
+    });
+    setShowCommentModal(true);
+  };
+
+  // Handle saving set comment
+  const handleSaveComment = (comment) => {
+    const { exerciseIndex, setIndex } = activeCommentSet;
+    if (exerciseIndex !== null && setIndex !== null) {
+      updateSet(exerciseIndex, setIndex, 'comment', comment);
+    }
+  };
+
   // Handle superset pairing
   const handlePairSuperset = (exerciseIndex) => {
     setExerciseToPair(exerciseIndex);
@@ -2200,6 +2371,10 @@ export default function WorkoutScreen({ navigation, route }) {
             onMoveDown={moveExerciseDown}
             canMoveUp={index > 0}
             canMoveDown={index < workoutExercises.length - 1}
+            onSetComment={handleSetComment}
+            previousSets={previousExerciseHistory[index]}
+            exercisePR={exercisePRs[index]}
+            onPRPress={handlePRPress}
           />
         ))}
       </View>
@@ -2608,6 +2783,122 @@ export default function WorkoutScreen({ navigation, route }) {
         </View>
       </Modal>
 
+      {/* Set Comment Modal */}
+      <SetCommentModal
+        visible={showCommentModal}
+        onClose={() => setShowCommentModal(false)}
+        onSave={handleSaveComment}
+        exerciseName={activeCommentSet.exercise?.name || ''}
+        setIndex={activeCommentSet.setIndex || 0}
+        currentComment={activeCommentSet.set?.comment || ''}
+        weight={activeCommentSet.set?.weight}
+        reps={activeCommentSet.set?.reps}
+        userId={user?.uid || 'guest'}
+      />
+
+      {/* PR Workout Modal - Shows the full workout where PR was achieved */}
+      <Modal
+        visible={showPRWorkoutModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowPRWorkoutModal(false)}
+      >
+        <TouchableOpacity
+          style={styles.prModalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowPRWorkoutModal(false)}
+        >
+          <TouchableOpacity
+            style={styles.prModalContent}
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
+          >
+            {/* Drag Handle - Swipe down to close */}
+            <View
+              style={styles.prModalDragHandle}
+              {...prModalPanResponder.panHandlers}
+            >
+              <View style={styles.prModalDragBar} />
+            </View>
+            {/* Header */}
+            <View style={styles.prModalHeader}>
+              <Text style={styles.prModalTitle}>🏆 PR Workout</Text>
+              <TouchableOpacity
+                style={styles.prModalCloseButton}
+                onPress={() => setShowPRWorkoutModal(false)}
+              >
+                <Ionicons name="close" size={24} color={Colors.text} />
+              </TouchableOpacity>
+            </View>
+
+            {prWorkoutData && (
+              <ScrollView style={styles.prModalScroll} showsVerticalScrollIndicator={false}>
+                {/* Workout Info */}
+                <View style={styles.prWorkoutInfo}>
+                  <Text style={styles.prWorkoutTitle}>{prWorkoutData.workoutTitle || 'Workout'}</Text>
+                  <Text style={styles.prWorkoutDate}>
+                    {new Date(prWorkoutData.date).toLocaleDateString('en-US', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </Text>
+                  <Text style={styles.prWorkoutDuration}>
+                    Duration: {(prWorkoutData.duration || 0) < 60
+                      ? `${prWorkoutData.duration || 0} sec`
+                      : `${Math.round((prWorkoutData.duration || 0) / 60)} min`}
+                  </Text>
+                </View>
+
+                {/* PR Exercise Highlight */}
+                <View style={styles.prHighlight}>
+                  <Text style={styles.prHighlightLabel}>Your PR on {prExerciseName}:</Text>
+                  <Text style={styles.prHighlightValue}>
+                    {exercisePRs[workoutExercises.findIndex(e => e.name === prExerciseName)]?.weight} lbs × {exercisePRs[workoutExercises.findIndex(e => e.name === prExerciseName)]?.reps} reps
+                  </Text>
+                </View>
+
+                {/* All Exercises from that workout */}
+                <Text style={styles.prSectionTitle}>Full Workout ({prWorkoutData.exercises?.length || 0} exercises)</Text>
+                {prWorkoutData.exercises?.map((exercise, exIndex) => {
+                  const isPRExercise = exercise.name?.toLowerCase() === prExerciseName?.toLowerCase();
+                  return (
+                    <View
+                      key={`pr-ex-${exIndex}`}
+                      style={[styles.prExerciseCard, isPRExercise && styles.prExerciseCardHighlight]}
+                    >
+                      <View style={styles.prExerciseHeader}>
+                        <Text style={styles.prExerciseNumber}>{exIndex + 1}</Text>
+                        <Text style={[styles.prExerciseName, isPRExercise && styles.prExerciseNameHighlight]}>
+                          {exercise.name}
+                          {isPRExercise && ' 🏆'}
+                        </Text>
+                      </View>
+                      {/* Sets */}
+                      {exercise.sets?.map((set, setIndex) => (
+                        <View key={`pr-set-${setIndex}`} style={styles.prSetRow}>
+                          <Text style={styles.prSetNumber}>Set {setIndex + 1}</Text>
+                          <Text style={styles.prSetDetails}>
+                            {set.weight} lbs × {set.reps} reps
+                            {set.type && set.type !== 'normal' && ` (${set.type})`}
+                          </Text>
+                          {set.comment && (
+                            <Text style={styles.prSetComment}>"{set.comment}"</Text>
+                          )}
+                        </View>
+                      ))}
+                    </View>
+                  );
+                })}
+
+                <View style={{ height: 20 }} />
+              </ScrollView>
+            )}
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+
     </>
   );
 }
@@ -3012,6 +3303,160 @@ const styles = StyleSheet.create({
     borderLeftWidth: 4,
     borderLeftColor: '#3498DB',
   },
+  prLineText: {
+    fontSize: Typography.fontSize.xs,
+    color: '#DAA520',
+    fontWeight: '600',
+    marginLeft: 28,
+    marginTop: 2,
+  },
+  // PR Workout Modal Styles
+  prModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'flex-end',
+  },
+  prModalContent: {
+    backgroundColor: Colors.background,
+    borderTopLeftRadius: BorderRadius.xl,
+    borderTopRightRadius: BorderRadius.xl,
+    maxHeight: '85%',
+    paddingBottom: Spacing.lg,
+  },
+  prModalDragHandle: {
+    alignItems: 'center',
+    paddingVertical: Spacing.md,
+    paddingTop: Spacing.lg,
+  },
+  prModalDragBar: {
+    width: 40,
+    height: 4,
+    backgroundColor: Colors.border,
+    borderRadius: 2,
+  },
+  prModalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  prModalTitle: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: 'bold',
+    color: '#DAA520',
+  },
+  prModalCloseButton: {
+    padding: Spacing.xs,
+  },
+  prModalScroll: {
+    paddingHorizontal: Spacing.md,
+  },
+  prWorkoutInfo: {
+    paddingVertical: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    marginBottom: Spacing.md,
+  },
+  prWorkoutTitle: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: 'bold',
+    color: Colors.text,
+  },
+  prWorkoutDate: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+    marginTop: 4,
+  },
+  prWorkoutDuration: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textMuted,
+    marginTop: 2,
+  },
+  prHighlight: {
+    backgroundColor: '#DAA520' + '20',
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.md,
+  },
+  prHighlightLabel: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+  },
+  prHighlightValue: {
+    fontSize: Typography.fontSize.xl,
+    fontWeight: 'bold',
+    color: '#DAA520',
+    marginTop: 4,
+  },
+  prSectionTitle: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: Spacing.sm,
+  },
+  prExerciseCard: {
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.sm,
+    marginBottom: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  prExerciseCardHighlight: {
+    borderColor: '#DAA520',
+    borderWidth: 2,
+    backgroundColor: '#DAA520' + '10',
+  },
+  prExerciseHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.xs,
+  },
+  prExerciseNumber: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: 'bold',
+    color: Colors.primary,
+    marginRight: Spacing.sm,
+    width: 20,
+  },
+  prExerciseName: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+    color: Colors.text,
+    flex: 1,
+  },
+  prExerciseNameHighlight: {
+    color: '#DAA520',
+  },
+  prSetRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 4,
+    paddingLeft: 28,
+    flexWrap: 'wrap',
+  },
+  prSetNumber: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textMuted,
+    width: 45,
+  },
+  prSetDetails: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.text,
+    flex: 1,
+  },
+  prSetComment: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.primary,
+    fontStyle: 'italic',
+    width: '100%',
+    paddingLeft: 45,
+    marginTop: 2,
+  },
   supersetBadgeRow: {
     backgroundColor: '#3498DB' + '10',
     borderRadius: BorderRadius.sm,
@@ -3142,6 +3587,24 @@ const styles = StyleSheet.create({
     color: Colors.background,
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  commentSetButton: {
+    padding: Spacing.xs,
+    marginLeft: Spacing.xs,
+  },
+  previousSetInfo: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 4,
+    marginBottom: 4,
+  },
+  previousSetText: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textMuted,
+    fontStyle: 'italic',
+  },
+  previousSetComment: {
+    color: Colors.primary,
+    fontStyle: 'italic',
   },
   deleteSetButton: {
     padding: Spacing.xs,
