@@ -29,6 +29,8 @@ import {
   StatusBar,
   PanResponder,
   Dimensions,
+  Clipboard,
+  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -206,18 +208,12 @@ export default function ContentImportModal({
 
     try {
       switch (source) {
-        case 'camera':
-          importResult = await ContentImportService.importFromCamera(options);
-          break;
         case 'gallery':
           // Always allow multiple selection - user can pick 1 or many
           importResult = await ContentImportService.importFromGallery({
             ...options,
             allowMultiple: true,
           });
-          break;
-        case 'document':
-          importResult = await ContentImportService.importFromDocument(options);
           break;
         case 'text':
           setCurrentStep(STEPS.TEXT_INPUT);
@@ -291,6 +287,38 @@ export default function ContentImportModal({
       setError(err.message);
       setCurrentStep(STEPS.ERROR);
     }
+  };
+
+  // Handle copy AI prompt to clipboard
+  const handleCopyAIPrompt = () => {
+    const prompt = `Generate a workout program for me in this exact format:
+
+PROGRAM NAME: [Name]
+DAYS PER WEEK: [Number]
+
+DAY 1 - [Day Name/Focus]
+1. [Exercise Name] - [Sets]x[Reps] (Rest: [seconds]s)
+2. [Exercise Name] - [Sets]x[Reps] (Rest: [seconds]s)
+...
+
+DAY 2 - [Day Name/Focus]
+1. [Exercise Name] - [Sets]x[Reps] (Rest: [seconds]s)
+...
+
+Requirements:
+- Include 4-8 exercises per day
+- Specify exact sets and reps (e.g., 4x8-12)
+- Include rest periods in seconds
+- Use common exercise names
+
+My preferences: [ADD YOUR GOALS HERE - e.g., muscle building, 4 days/week, intermediate level, focus on upper body]`;
+
+    Clipboard.setString(prompt);
+    Alert.alert(
+      'Prompt Copied!',
+      'Paste this prompt in any AI assistant, customize your preferences at the bottom, then copy the generated workout and paste it back here.',
+      [{ text: 'Got it' }]
+    );
   };
 
   // Get exercises that need variant selection
@@ -501,51 +529,37 @@ export default function ContentImportModal({
         Choose how you want to import your workout program
       </Text>
 
-      {/* Source buttons */}
-      <View style={styles.sourceGrid}>
-        <TouchableOpacity
-          style={styles.sourceButton}
-          onPress={() => handleSourceSelect('camera')}
-        >
-          <View style={[styles.sourceIcon, { backgroundColor: Colors.primary + '20' }]}>
-            <Ionicons name="camera" size={28} color={Colors.primary} />
-          </View>
-          <Text style={styles.sourceLabel}>Camera</Text>
-          <Text style={styles.sourceHint}>Take a photo</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.sourceButton}
-          onPress={() => handleSourceSelect('gallery')}
-        >
-          <View style={[styles.sourceIcon, { backgroundColor: Colors.success + '20' }]}>
-            <Ionicons name="images" size={28} color={Colors.success} />
-          </View>
-          <Text style={styles.sourceLabel}>Gallery</Text>
-          <Text style={styles.sourceHint}>1 or more images</Text>
-        </TouchableOpacity>
-
-        <View style={[styles.sourceButton, styles.sourceButtonDisabled]}>
-          <View style={[styles.sourceIcon, { backgroundColor: Colors.textMuted + '20' }]}>
-            <Ionicons name="document" size={28} color={Colors.textMuted} />
-          </View>
-          <Text style={[styles.sourceLabel, { color: Colors.textMuted }]}>Files</Text>
-          <View style={styles.comingSoonBadge}>
-            <Text style={styles.comingSoonText}>Coming Soon</Text>
-          </View>
+      {/* Gallery - Primary option */}
+      <TouchableOpacity
+        style={styles.primarySourceButton}
+        onPress={() => handleSourceSelect('gallery')}
+        activeOpacity={0.8}
+      >
+        <View style={[styles.primarySourceIcon, { backgroundColor: Colors.success + '20' }]}>
+          <Ionicons name="images" size={40} color={Colors.success} />
         </View>
+        <View style={styles.primarySourceText}>
+          <Text style={styles.primarySourceLabel}>Import from Gallery</Text>
+          <Text style={styles.primarySourceHint}>Select screenshots of your workout plan</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={24} color={Colors.textMuted} />
+      </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.sourceButton}
-          onPress={() => handleSourceSelect('text')}
-        >
-          <View style={[styles.sourceIcon, { backgroundColor: Colors.warning + '20' }]}>
-            <Ionicons name="clipboard" size={28} color={Colors.warning} />
-          </View>
-          <Text style={styles.sourceLabel}>Paste Text</Text>
-          <Text style={styles.sourceHint}>Copy & paste</Text>
-        </TouchableOpacity>
-      </View>
+      {/* Paste Text */}
+      <TouchableOpacity
+        style={styles.primarySourceButton}
+        onPress={() => handleSourceSelect('text')}
+        activeOpacity={0.8}
+      >
+        <View style={[styles.primarySourceIcon, { backgroundColor: Colors.warning + '20' }]}>
+          <Ionicons name="clipboard" size={40} color={Colors.warning} />
+        </View>
+        <View style={styles.primarySourceText}>
+          <Text style={styles.primarySourceLabel}>Paste Workout Text</Text>
+          <Text style={styles.primarySourceHint}>Paste from AI assistant or website</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={24} color={Colors.textMuted} />
+      </TouchableOpacity>
       <View style={{ height: Spacing.xl }} />
     </ScrollView>
   );
@@ -580,6 +594,22 @@ export default function ContentImportModal({
         Paste the workout text or use voice input
       </Text>
 
+      {/* AI Prompt Generator - Prominent */}
+      <TouchableOpacity
+        style={styles.aiPromptButtonLarge}
+        onPress={handleCopyAIPrompt}
+        activeOpacity={0.8}
+      >
+        <View style={styles.aiPromptIconContainer}>
+          <Ionicons name="sparkles" size={24} color={Colors.primary} />
+        </View>
+        <View style={styles.aiPromptTextContainer}>
+          <Text style={styles.aiPromptTitle}>Generate with AI</Text>
+          <Text style={styles.aiPromptSubtitle}>Copy a prompt to use with any AI assistant</Text>
+        </View>
+        <Ionicons name="copy-outline" size={20} color={Colors.primary} />
+      </TouchableOpacity>
+
       {/* Voice input section */}
       <View style={styles.voiceInputSection}>
         <VoiceInputButton
@@ -607,7 +637,7 @@ Push Day
         multiline
         value={textInput}
         onChangeText={setTextInput}
-        autoFocus={!isVoiceActive}
+        autoFocus={false}
       />
 
       <View style={styles.buttonRow}>
@@ -1333,55 +1363,71 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
   },
 
-  // Source grid
-  sourceGrid: {
+  // Primary source button (Gallery & Paste Text)
+  primarySourceButton: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.md,
-  },
-  sourceButton: {
-    width: '47%',
-    backgroundColor: Colors.card,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
     alignItems: 'center',
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.lg,
+    marginBottom: Spacing.xxl,
     borderWidth: 1,
     borderColor: Colors.border,
   },
-  sourceIcon: {
-    width: 56,
-    height: 56,
+  primarySourceIcon: {
+    width: 72,
+    height: 72,
     borderRadius: BorderRadius.round,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: Spacing.sm,
+    marginRight: Spacing.lg,
   },
-  sourceLabel: {
-    fontSize: Typography.fontSize.md,
-    fontWeight: Typography.weights.semibold,
+  primarySourceText: {
+    flex: 1,
+  },
+  primarySourceLabel: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: Typography.weights.bold,
     color: Colors.text,
     marginBottom: Spacing.xs,
   },
-  sourceHint: {
+  primarySourceHint: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+  },
+
+  // AI Prompt button - Large prominent version
+  aiPromptButtonLarge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.primary + '15',
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
+    borderWidth: 2,
+    borderColor: Colors.primary + '40',
+  },
+  aiPromptIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: BorderRadius.round,
+    backgroundColor: Colors.primary + '20',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: Spacing.md,
+  },
+  aiPromptTextContainer: {
+    flex: 1,
+  },
+  aiPromptTitle: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: Typography.weights.bold,
+    color: Colors.primary,
+    marginBottom: 2,
+  },
+  aiPromptSubtitle: {
     fontSize: Typography.fontSize.xs,
-    color: Colors.textMuted,
-  },
-  sourceButtonDisabled: {
-    opacity: 0.6,
-    borderStyle: 'dashed',
-  },
-  comingSoonBadge: {
-    backgroundColor: Colors.warning + '25',
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 2,
-    borderRadius: BorderRadius.sm,
-    marginTop: Spacing.xs,
-  },
-  comingSoonText: {
-    fontSize: Typography.fontSize.xxs,
-    fontWeight: Typography.weights.semibold,
-    color: Colors.warning,
-    textTransform: 'uppercase',
+    color: Colors.textSecondary,
   },
 
   // Text input

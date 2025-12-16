@@ -118,19 +118,6 @@ async function imageToBase64(uri) {
   }
 }
 
-/**
- * PDF handling - Currently not supported by Vision API
- * OpenAI Vision only accepts: png, jpeg, gif, webp
- */
-async function extractTextFromPDF(uri) {
-  // OpenAI Vision API doesn't support PDF format directly
-  // User should take screenshots of the PDF pages instead
-  throw new Error(
-    'PDF files are not supported yet.\n\n' +
-    'Please take screenshots of your workout pages and import them as images instead.\n\n' +
-    'Tip: For multi-page workouts, select multiple screenshots at once!'
-  );
-}
 
 class ContentImportService {
   constructor() {
@@ -451,7 +438,8 @@ class ContentImportService {
   }
 
   /**
-   * Import from document - Select a PDF
+   * Import from document - Select an image file
+   * Note: PDF import removed - users should take screenshots instead
    * @param {Object} options - Import options
    */
   async importFromDocument(options = {}) {
@@ -460,7 +448,7 @@ class ContentImportService {
     try {
       this.reportProgress('select', 'Opening file picker...', 10);
 
-      // Launch document picker - images only (PDF not supported by Vision API)
+      // Launch document picker - images only
       const result = await DocumentPicker.getDocumentAsync({
         type: ['image/*'],
         copyToCacheDirectory: true,
@@ -481,12 +469,6 @@ class ContentImportService {
       // Handle based on file type
       if (mimeType && mimeType.startsWith('image/')) {
         return await this.processImage(fileUri, contentHint, userId);
-      } else if (mimeType === 'application/pdf') {
-        // PDF not supported - show helpful message
-        return {
-          success: false,
-          message: 'PDF files are not supported yet.\n\nPlease take screenshots of your workout pages and import them as images instead.',
-        };
       } else {
         return {
           success: false,
@@ -660,50 +642,6 @@ class ContentImportService {
 
     } catch (error) {
       console.error('Image processing error:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Process PDF - Extract content and parse
-   */
-  async processPDF(uri, contentHint, userId) {
-    try {
-      this.reportProgress('start', 'Starting...', 5);
-      this.reportProgress('extract', 'Loading PDF...', 15);
-      this.reportProgress('extract', 'Processing PDF...', 30);
-
-      // For now, treat PDF as image (Vision API can handle it)
-      // In future, could extract text from text-based PDFs first
-      const pdfData = await extractTextFromPDF(uri);
-
-      this.reportProgress('extract', 'PDF processed', 45);
-      this.reportProgress('parse', 'Analyzing content with AI...', 55);
-
-      // Parse based on extracted content type
-      if (pdfData.type === 'image') {
-        const result = await parseContentFromImage({
-          imageBase64: pdfData.base64,
-          contentHint,
-          userId,
-        });
-        this.reportProgress('parse', 'AI analysis complete', 90);
-        this.reportProgress('complete', 'Analysis complete!', 100);
-        return result;
-      } else {
-        // Text-based PDF (future enhancement)
-        const result = await parseContentFromText({
-          text: pdfData.text,
-          contentHint,
-          userId,
-        });
-        this.reportProgress('parse', 'AI analysis complete', 90);
-        this.reportProgress('complete', 'Analysis complete!', 100);
-        return result;
-      }
-
-    } catch (error) {
-      console.error('PDF processing error:', error);
       throw error;
     }
   }
