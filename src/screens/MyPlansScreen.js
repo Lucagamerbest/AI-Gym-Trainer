@@ -9,6 +9,8 @@ import StyledCard from '../components/StyledCard';
 import StyledButton from '../components/StyledButton';
 import WorkoutPlanService from '../services/WorkoutPlanService';
 import { Colors, Spacing, Typography, BorderRadius, Shadows } from '../constants/theme';
+import { db, auth } from '../config/firebase';
+import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 
 const WORKOUT_PROGRAMS_KEY = '@workout_programs';
 const STANDALONE_WORKOUTS_KEY = '@standalone_workouts';
@@ -37,21 +39,79 @@ export default function MyPlansScreen({ navigation }) {
 
   const loadPrograms = async () => {
     try {
+      // Load from local storage
       const savedPrograms = await AsyncStorage.getItem(WORKOUT_PROGRAMS_KEY);
-      if (savedPrograms) {
-        setPrograms(JSON.parse(savedPrograms));
+      let localPrograms = savedPrograms ? JSON.parse(savedPrograms) : [];
+
+      // Also fetch from Firebase (imported from web)
+      const userId = auth.currentUser?.uid;
+      if (userId && db) {
+        try {
+          const programsRef = collection(db, 'users', userId, 'workout_programs');
+          const q = query(programsRef, orderBy('createdAt', 'desc'));
+          const querySnapshot = await getDocs(q);
+
+          const firebasePrograms = [];
+          querySnapshot.forEach((doc) => {
+            firebasePrograms.push({ id: doc.id, ...doc.data() });
+          });
+
+          // Merge: add Firebase programs that aren't in local storage
+          const localIds = new Set(localPrograms.map(p => p.id));
+          const newFromFirebase = firebasePrograms.filter(p => !localIds.has(p.id));
+
+          if (newFromFirebase.length > 0) {
+            localPrograms = [...newFromFirebase, ...localPrograms];
+            // Save merged back to local storage
+            await AsyncStorage.setItem(WORKOUT_PROGRAMS_KEY, JSON.stringify(localPrograms));
+          }
+        } catch (firebaseError) {
+          console.log('Could not fetch from Firebase:', firebaseError.message);
+        }
       }
+
+      setPrograms(localPrograms);
     } catch (error) {
+      console.error('Error loading programs:', error);
     }
   };
 
   const loadStandaloneWorkouts = async () => {
     try {
+      // Load from local storage
       const savedWorkouts = await AsyncStorage.getItem(STANDALONE_WORKOUTS_KEY);
-      if (savedWorkouts) {
-        setStandaloneWorkouts(JSON.parse(savedWorkouts));
+      let localWorkouts = savedWorkouts ? JSON.parse(savedWorkouts) : [];
+
+      // Also fetch from Firebase (imported from web)
+      const userId = auth.currentUser?.uid;
+      if (userId && db) {
+        try {
+          const workoutsRef = collection(db, 'users', userId, 'standalone_workouts');
+          const q = query(workoutsRef, orderBy('createdAt', 'desc'));
+          const querySnapshot = await getDocs(q);
+
+          const firebaseWorkouts = [];
+          querySnapshot.forEach((doc) => {
+            firebaseWorkouts.push({ id: doc.id, ...doc.data() });
+          });
+
+          // Merge: add Firebase workouts that aren't in local storage
+          const localIds = new Set(localWorkouts.map(w => w.id));
+          const newFromFirebase = firebaseWorkouts.filter(w => !localIds.has(w.id));
+
+          if (newFromFirebase.length > 0) {
+            localWorkouts = [...newFromFirebase, ...localWorkouts];
+            // Save merged back to local storage
+            await AsyncStorage.setItem(STANDALONE_WORKOUTS_KEY, JSON.stringify(localWorkouts));
+          }
+        } catch (firebaseError) {
+          console.log('Could not fetch from Firebase:', firebaseError.message);
+        }
       }
+
+      setStandaloneWorkouts(localWorkouts);
     } catch (error) {
+      console.error('Error loading workouts:', error);
     }
   };
 

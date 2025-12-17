@@ -16,6 +16,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { CommonActions, useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
+import { db, auth } from '../config/firebase';
+import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import ScreenLayout from '../components/ScreenLayout';
 import StyledCard from '../components/StyledCard';
 import StyledButton from '../components/StyledButton';
@@ -132,23 +134,47 @@ export default function RecipesScreen({ navigation, route }) {
   const loadRecipes = useCallback(async () => {
     try {
       const saved = await AsyncStorage.getItem(RECIPES_KEY);
-      if (saved) {
-        const savedRecipes = JSON.parse(saved);
-        // Merge mock recipes with saved recipes, removing duplicates by ID
-        const allRecipes = [...savedRecipes];
-        mockRecipes.forEach(mockRecipe => {
-          if (!allRecipes.find(r => r.id === mockRecipe.id)) {
-            allRecipes.push(mockRecipe);
+      let savedRecipes = saved ? JSON.parse(saved) : [];
+
+      // Also fetch from Firebase (imported from web)
+      const userId = auth.currentUser?.uid;
+      if (userId && db) {
+        try {
+          const recipesRef = collection(db, 'users', userId, 'saved_recipes');
+          const q = query(recipesRef, orderBy('savedAt', 'desc'));
+          const querySnapshot = await getDocs(q);
+
+          const firebaseRecipes = [];
+          querySnapshot.forEach((doc) => {
+            firebaseRecipes.push({ id: doc.id, ...doc.data() });
+          });
+
+          // Merge: add Firebase recipes that aren't in local storage
+          const localIds = new Set(savedRecipes.map(r => r.id));
+          const newFromFirebase = firebaseRecipes.filter(r => !localIds.has(r.id));
+
+          if (newFromFirebase.length > 0) {
+            savedRecipes = [...newFromFirebase, ...savedRecipes];
+            // Save merged back to local storage
+            await AsyncStorage.setItem(RECIPES_KEY, JSON.stringify(savedRecipes));
           }
-        });
-        setRecipes(allRecipes);
-      } else {
-        // No saved recipes, use mock recipes
-        setRecipes(mockRecipes);
+        } catch (firebaseError) {
+          console.log('Could not fetch recipes from Firebase:', firebaseError.message);
+        }
       }
+
+      // Merge mock recipes with saved recipes, removing duplicates by ID
+      const allRecipes = [...savedRecipes];
+      mockRecipes.forEach(mockRecipe => {
+        if (!allRecipes.find(r => r.id === mockRecipe.id)) {
+          allRecipes.push(mockRecipe);
+        }
+      });
+      setRecipes(allRecipes);
     } catch (error) {
       console.error('Error loading recipes:', error);
-      setRecipes(mockRecipes); // Fallback to mock recipes on error
+      // On error, use mock recipes
+      setRecipes(mockRecipes);
     }
   }, []);
 
