@@ -387,7 +387,7 @@ export default function NutritionScreen({ navigation, route }) {
           if (data.meals && lastResetDate) {
             // Get yesterday's date key
             const yesterdayDate = new Date(lastResetDate);
-            const yesterdayKey = yesterdayDate.toISOString().split('T')[0];
+            const yesterdayKey = getLocalDateString(yesterdayDate);
 
             // Save to calendar history
             const savedPlans = await AsyncStorage.getItem(MEAL_PLANS_KEY);

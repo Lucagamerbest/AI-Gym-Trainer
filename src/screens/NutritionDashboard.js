@@ -32,6 +32,14 @@ import { useAITracking } from '../components/AIScreenTracker';
 
 const MEAL_PLANS_KEY = '@meal_plans';
 
+// Helper function to get local date string in YYYY-MM-DD format (avoids UTC timezone issues)
+const getLocalDateString = (date = new Date()) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 export default function NutritionDashboard({ navigation }) {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'charts', 'goals', 'insights'
@@ -138,7 +146,7 @@ export default function NutritionDashboard({ navigation }) {
 
   const loadDailySummary = async () => {
     try {
-      const dateStr = selectedDate.toISOString().split('T')[0];
+      const dateStr = getLocalDateString(selectedDate);
 
       // Load from meal history
       const savedPlans = await AsyncStorage.getItem(MEAL_PLANS_KEY);
@@ -196,7 +204,7 @@ export default function NutritionDashboard({ navigation }) {
       for (let i = 6; i >= 0; i--) {
         const date = new Date(endDate);
         date.setDate(date.getDate() - i);
-        const dateStr = date.toISOString().split('T')[0];
+        const dateStr = getLocalDateString(date);
 
         const dayData = await getMealHistoryData(dateStr);
         weekly.push({
@@ -331,7 +339,7 @@ export default function NutritionDashboard({ navigation }) {
       for (let i = days - 1; i >= 0; i--) {
         const date = new Date(endDate);
         date.setDate(date.getDate() - i);
-        const dateStr = date.toISOString().split('T')[0];
+        const dateStr = getLocalDateString(date);
 
         // Use meal history data from AsyncStorage instead of foodDatabaseService
         const dayData = await getMealHistoryData(dateStr);
@@ -389,7 +397,7 @@ export default function NutritionDashboard({ navigation }) {
       for (let i = 89; i >= 0; i--) {
         const date = new Date(endDate);
         date.setDate(date.getDate() - i);
-        const dateStr = date.toISOString().split('T')[0];
+        const dateStr = getLocalDateString(date);
 
         // Use meal history data from AsyncStorage
         const dayData = await getMealHistoryData(dateStr);
@@ -532,7 +540,7 @@ export default function NutritionDashboard({ navigation }) {
       for (let i = 89; i >= 0; i--) {
         const date = new Date(endDate);
         date.setDate(date.getDate() - i);
-        const dateStr = date.toISOString().split('T')[0];
+        const dateStr = getLocalDateString(date);
 
         const dayData = await getMealHistoryData(dateStr);
         if (dayData.calories > 0) {
@@ -569,7 +577,7 @@ export default function NutritionDashboard({ navigation }) {
         for (let i = 0; i < 30; i++) {
           const date = new Date(today);
           date.setDate(date.getDate() - i);
-          const dateStr = date.toISOString().split('T')[0];
+          const dateStr = getLocalDateString(date);
           const dayData = await getMealHistoryData(dateStr);
 
           if (dayData.calories > 0) {
@@ -783,7 +791,7 @@ export default function NutritionDashboard({ navigation }) {
       for (let i = 29; i >= 0; i--) {
         const date = new Date(endDate);
         date.setDate(date.getDate() - i);
-        const dateStr = date.toISOString().split('T')[0];
+        const dateStr = getLocalDateString(date);
 
         // Use meal history data from AsyncStorage
         const dayData = await getMealHistoryData(dateStr);
@@ -1138,7 +1146,7 @@ export default function NutritionDashboard({ navigation }) {
 
     if (streakType === 'current') {
       // Find current streak - count backwards from today
-      const todayStr = today.toISOString().split('T')[0];
+      const todayStr = getLocalDateString(today);
       let currentDate = new Date(today);
 
       // Only proceed if today has data
@@ -1148,7 +1156,7 @@ export default function NutritionDashboard({ navigation }) {
         // Count backwards
         for (let i = 1; i < 365; i++) {
           currentDate.setDate(currentDate.getDate() - 1);
-          const dateStr = currentDate.toISOString().split('T')[0];
+          const dateStr = getLocalDateString(currentDate);
 
           if (datesWithData.has(dateStr)) {
             streakDates.add(dateStr);
@@ -1209,7 +1217,7 @@ export default function NutritionDashboard({ navigation }) {
     for (let i = 0; i < 90; i++) {
       const date = new Date(startDate);
       date.setDate(date.getDate() + i);
-      const dateStr = date.toISOString().split('T')[0];
+      const dateStr = getLocalDateString(date);
 
       if (date.getMonth() !== currentMonth || date.getFullYear() !== currentYear) {
         // Push the completed month
@@ -1229,7 +1237,7 @@ export default function NutritionDashboard({ navigation }) {
         dayOfWeek: date.getDay(),
         hasData: datesWithData.has(dateStr),
         isStreak: streakDates.has(dateStr),
-        isToday: dateStr === today.toISOString().split('T')[0],
+        isToday: dateStr === getLocalDateString(today),
       });
     }
 

@@ -1,6 +1,14 @@
 // Web version of foodDatabase - uses AsyncStorage instead of SQLite
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// Helper function to get local date string in YYYY-MM-DD format (avoids UTC timezone issues)
+const getLocalDateString = (date = new Date()) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 const FOODS_KEY = '@foods_db'; // Shared across all users
 const getConsumptionKey = (userId) => `@daily_consumption_${userId}`;
 const getFavoritesKey = (userId) => `@favorites_${userId}`;
@@ -103,7 +111,7 @@ export const addToDaily = async (foodId, quantity, userId, mealType = 'snack') =
       throw new Error('Food not found');
     }
 
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalDateString();
     const multiplier = quantity / 100;
 
     const consumptionEntry = {
@@ -168,13 +176,13 @@ export const getDailySummary = async (userId, date = null) => {
   try {
     if (!userId) {
       return {
-        date: date || new Date().toISOString().split('T')[0],
+        date: date || getLocalDateString(),
         items: [],
         totals: { calories: 0, protein: 0, carbs: 0, fat: 0 }
       };
     }
 
-    const targetDate = date || new Date().toISOString().split('T')[0];
+    const targetDate = date || getLocalDateString();
     const consumptionKey = getConsumptionKey(userId);
     const consumptionData = await AsyncStorage.getItem(consumptionKey);
     const consumption = consumptionData ? JSON.parse(consumptionData) : [];
@@ -205,7 +213,7 @@ export const getDailySummary = async (userId, date = null) => {
     };
   } catch (error) {
     return {
-      date: date || new Date().toISOString().split('T')[0],
+      date: date || getLocalDateString(),
       items: [],
       totals: { calories: 0, protein: 0, carbs: 0, fat: 0 }
     };
@@ -302,7 +310,7 @@ export const getWeeklySummary = async (userId) => {
     const summary = [];
 
     for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-      const dateStr = d.toISOString().split('T')[0];
+      const dateStr = getLocalDateString(d);
       const dayItems = consumption.filter(item => item.date === dateStr);
 
       const dayTotals = dayItems.reduce((acc, item) => ({

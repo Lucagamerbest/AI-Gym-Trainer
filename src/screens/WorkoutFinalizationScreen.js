@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Image, Alert, ActivityIndicator } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system/legacy';
+import { Ionicons } from '@expo/vector-icons';
 import ScreenLayout from '../components/ScreenLayout';
-import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
+import { Spacing, Typography, BorderRadius } from '../constants/theme';
+import { useColors } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import { WorkoutStorageService } from '../services/workoutStorage';
 import { useAuth } from '../context/AuthContext';
@@ -13,6 +15,8 @@ import SyncManager from '../services/backend/SyncManager';
 export default function WorkoutFinalizationScreen({ navigation, route }) {
   const { user } = useAuth();
   const { finishWorkout } = useWorkout();
+  const Colors = useColors();
+  const styles = useMemo(() => createStyles(Colors), [Colors]);
   const { workoutData, exerciseSets } = route.params || {};
 
   // Generate default title based on workout type
@@ -257,14 +261,14 @@ export default function WorkoutFinalizationScreen({ navigation, route }) {
                   style={styles.addPhotoButton}
                   onPress={takePhoto}
                 >
-                  <Text style={styles.addPhotoIcon}>📷</Text>
+                  <Ionicons name="camera-outline" size={32} color={Colors.primary} />
                   <Text style={styles.addPhotoText}>Camera</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.addPhotoButton}
                   onPress={pickImage}
                 >
-                  <Text style={styles.addPhotoIcon}>🖼️</Text>
+                  <Ionicons name="images-outline" size={32} color={Colors.primary} />
                   <Text style={styles.addPhotoText}>Gallery</Text>
                 </TouchableOpacity>
               </View>
@@ -291,25 +295,37 @@ export default function WorkoutFinalizationScreen({ navigation, route }) {
 
         {/* Quick Stats Preview */}
         <View style={styles.statsPreview}>
-          <LinearGradient
-            colors={[Colors.primary + '15', Colors.surface]}
-            style={styles.statsGradient}
-          >
+          <View style={styles.statsCard}>
             <View style={styles.statRow}>
-              <Text style={styles.statLabel}>Duration:</Text>
+              <View style={styles.statIconLabel}>
+                <Ionicons name="time-outline" size={20} color={Colors.primary} />
+                <Text style={styles.statLabel}>Duration</Text>
+              </View>
               <Text style={styles.statValue}>{workoutData.duration}</Text>
             </View>
+            <View style={styles.statDivider} />
             <View style={styles.statRow}>
-              <Text style={styles.statLabel}>Exercises:</Text>
+              <View style={styles.statIconLabel}>
+                <Ionicons name="barbell-outline" size={20} color={Colors.primary} />
+                <Text style={styles.statLabel}>Exercises</Text>
+              </View>
               <Text style={styles.statValue}>{workoutData.exercisesCompleted}</Text>
             </View>
+            <View style={styles.statDivider} />
             <View style={styles.statRow}>
-              <Text style={styles.statLabel}>Type:</Text>
+              <View style={styles.statIconLabel}>
+                <Ionicons
+                  name={getWorkoutType() === 'program' ? 'clipboard-outline' : getWorkoutType() === 'standalone' ? 'fitness-outline' : 'flash-outline'}
+                  size={20}
+                  color={Colors.primary}
+                />
+                <Text style={styles.statLabel}>Type</Text>
+              </View>
               <Text style={styles.statValue}>
-                {getWorkoutType() === 'program' ? '📋 Program' : getWorkoutType() === 'standalone' ? '💪 Standalone' : '⚡ Quick'}
+                {getWorkoutType() === 'program' ? 'Program' : getWorkoutType() === 'standalone' ? 'Standalone' : 'Quick'}
               </Text>
             </View>
-          </LinearGradient>
+          </View>
         </View>
 
         {/* Action Buttons */}
@@ -320,19 +336,14 @@ export default function WorkoutFinalizationScreen({ navigation, route }) {
             disabled={saving}
             activeOpacity={0.8}
           >
-            <LinearGradient
-              colors={[Colors.primary, '#059669']}
-              style={styles.saveGradient}
-            >
-              {saving ? (
-                <ActivityIndicator color="#FFFFFF" />
-              ) : (
-                <>
-                  <Text style={styles.saveIcon}>💾</Text>
-                  <Text style={styles.saveButtonText}>Save Workout</Text>
-                </>
-              )}
-            </LinearGradient>
+            {saving ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <>
+                <Ionicons name="checkmark-circle" size={24} color="#FFFFFF" />
+                <Text style={styles.saveButtonText}>Save Workout</Text>
+              </>
+            )}
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -351,7 +362,7 @@ export default function WorkoutFinalizationScreen({ navigation, route }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Colors) => StyleSheet.create({
   container: {
     flex: 1,
     padding: Spacing.lg,
@@ -366,7 +377,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
   },
   titleInput: {
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.card,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
     borderColor: Colors.border,
@@ -400,7 +411,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -8,
     right: -8,
-    backgroundColor: Colors.error,
+    backgroundColor: '#EF4444',
     borderRadius: 12,
     width: 24,
     height: 24,
@@ -419,17 +430,14 @@ const styles = StyleSheet.create({
   addPhotoButton: {
     width: 100,
     height: 100,
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.card,
     borderRadius: BorderRadius.md,
     borderWidth: 2,
-    borderColor: Colors.border,
+    borderColor: Colors.primary + '40',
     borderStyle: 'dashed',
     alignItems: 'center',
     justifyContent: 'center',
     gap: Spacing.xs,
-  },
-  addPhotoIcon: {
-    fontSize: 32,
   },
   addPhotoText: {
     fontSize: Typography.fontSize.xs,
@@ -437,7 +445,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   notesInput: {
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.card,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
     borderColor: Colors.border,
@@ -454,19 +462,24 @@ const styles = StyleSheet.create({
   },
   statsPreview: {
     marginBottom: Spacing.xl,
+  },
+  statsCard: {
+    backgroundColor: Colors.card,
     borderRadius: BorderRadius.lg,
-    overflow: 'hidden',
+    padding: Spacing.lg,
     borderWidth: 1,
     borderColor: Colors.border,
-  },
-  statsGradient: {
-    padding: Spacing.lg,
   },
   statRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Spacing.sm,
+    paddingVertical: Spacing.sm,
+  },
+  statIconLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
   },
   statLabel: {
     fontSize: Typography.fontSize.md,
@@ -477,22 +490,21 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.text,
   },
+  statDivider: {
+    height: 1,
+    backgroundColor: Colors.border,
+  },
   buttonSection: {
     gap: Spacing.md,
   },
   saveButton: {
+    backgroundColor: Colors.primary,
     borderRadius: BorderRadius.lg,
-    overflow: 'hidden',
-  },
-  saveGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     padding: Spacing.lg,
     gap: Spacing.sm,
-  },
-  saveIcon: {
-    fontSize: 24,
   },
   saveButtonText: {
     color: '#FFFFFF',

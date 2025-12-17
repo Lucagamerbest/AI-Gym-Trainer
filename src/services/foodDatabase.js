@@ -2,6 +2,14 @@
 let SQLite;
 let db;
 
+// Helper function to get local date string in YYYY-MM-DD format (avoids UTC timezone issues)
+const getLocalDateString = (date = new Date()) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 try {
   SQLite = require('expo-sqlite');
   db = SQLite.openDatabase('foodtracker.db');
@@ -231,7 +239,7 @@ export const addToDaily = (foodId, quantity, userId, mealType = 'snack') => {
   if (!userId) return Promise.reject(new Error('User ID is required'));
 
   return new Promise((resolve, reject) => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalDateString();
 
     db.transaction(tx => {
       // Get food details
@@ -294,7 +302,7 @@ const updateFavorites = (tx, foodId, userId) => {
 
 // Get daily consumption summary
 export const getDailySummary = (userId, date = null) => {
-  const targetDate = date || new Date().toISOString().split('T')[0];
+  const targetDate = date || getLocalDateString();
 
   if (!db) return Promise.resolve({ date: targetDate, items: [], totals: { calories: 0, protein: 0, carbs: 0, fat: 0 } });
   if (!userId) return Promise.resolve({ date: targetDate, items: [], totals: { calories: 0, protein: 0, carbs: 0, fat: 0 } });
@@ -433,8 +441,8 @@ export const getWeeklySummary = (userId) => {
          ORDER BY date`,
         [
           userId,
-          startDate.toISOString().split('T')[0],
-          endDate.toISOString().split('T')[0]
+          getLocalDateString(startDate),
+          getLocalDateString(endDate)
         ],
         (_, { rows }) => resolve(rows._array),
         (_, error) => reject(error)

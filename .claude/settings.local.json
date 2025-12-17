@@ -118,7 +118,19 @@
       "WebFetch(domain:www.anthropic.com)",
       "Bash(ls:*)",
       "Bash(git -C \"C:\\Users\\lucar\\AI-Gym-Trainer\" log --oneline -20)",
-      "Bash(npx eslint:*)"
+      "Bash(npx eslint:*)",
+      "Bash(git restore:*)",
+      "Bash(git -C \"C:\\Users\\lucar\\AI-Gym-Trainer\" status)",
+      "Bash(wc:*)",
+      "WebFetch(domain:wenxuanlee.medium.com)",
+      "WebFetch(domain:www.nutrient.io)",
+      "Bash(git -C \"C:\\Users\\lucar\\AI-Gym-Trainer\" log --oneline -5)",
+      "Bash(git -C \"C:\\Users\\lucar\\AI-Gym-Trainer\" add src/screens/ProgressScreen.js src/services/workoutStorage.js)",
+      "Bash(git -C \"C:\\Users\\lucar\\AI-Gym-Trainer\" commit -m \"$(cat <<''EOF''\nfeat: Simplify Goals tab and add achievement/goal notifications\n\n- Simplified Goals UI to auto-suggest PR-based goals from exercise history\n- Added weekly frequency, monthly workouts, and consistency goals\n- Removed complex goal creation modal and templates\n- Removed streak goals (rest days are good!)\n- Added push notifications for achievement unlocks\n- Added push notifications for goal completions\n- Added in-app celebration banner for achievements and goals\n- Fixed achievement badge cards to have equal heights\n- Updated badge styling to use theme color\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git -C \"C:\\Users\\lucar\\AI-Gym-Trainer\" push)",
+      "Bash(git -C \"C:\\Users\\lucar\\AI-Gym-Trainer\" diff --stat)",
+      "Bash(git -C \"C:\\Users\\lucar\\AI-Gym-Trainer\" diff src/screens/HomeScreen.js)",
+      "Bash(git -C \"C:\\Users\\lucar\\AI-Gym-Trainer\" add -A)"
     ],
     "deny": [],
     "ask": []

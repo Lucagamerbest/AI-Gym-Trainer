@@ -1,11 +1,15 @@
 import React from 'react';
-import { View, Text, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, TouchableOpacity, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
+import { Spacing, Typography, BorderRadius } from '../constants/theme';
+import { useColors } from '../context/ThemeContext';
 
 const chartHeight = 300;
 
 export default function SimpleChart({ data, title, chartType = 'volume', debug = false, onPointPress }) {
+  const Colors = useColors();
+  const styles = React.useMemo(() => createStyles(Colors), [Colors]);
+
   // Get actual screen dimensions dynamically
   const { width: screenWidth } = Dimensions.get('window');
 
@@ -363,12 +367,12 @@ export default function SimpleChart({ data, title, chartType = 'volume', debug =
                     zIndex: 10,
                   }}
                   onPress={() => {
-                    if (onPointPress && point.workoutId) {
-                      onPointPress(point.workoutId);
+                    if (onPointPress) {
+                      // Pass both workoutId and date for better matching
+                      onPointPress(point.workoutId, point.date);
                     }
                   }}
-                  activeOpacity={onPointPress ? 0.6 : 1}
-                  disabled={!onPointPress || !point.workoutId}
+                  activeOpacity={0.6}
                 >
                   {/* Glow effect behind dot - smaller to stay inside bounds */}
                   <View
@@ -385,7 +389,7 @@ export default function SimpleChart({ data, title, chartType = 'volume', debug =
                     style={[
                       styles.dataPoint,
                       {
-                        backgroundColor: Colors.surface,
+                        backgroundColor: Colors.card,
                         borderColor: dotColor,
                         borderWidth: 3,
                         shadowColor: dotColor,
@@ -425,9 +429,9 @@ export default function SimpleChart({ data, title, chartType = 'volume', debug =
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Colors) => StyleSheet.create({
   chartContainer: {
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.card,
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
     borderColor: Colors.border,

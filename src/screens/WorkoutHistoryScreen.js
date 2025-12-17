@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, Alert, Image, FlatList } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ScreenLayout from '../components/ScreenLayout';
 import StyledCard from '../components/StyledCard';
 import StyledButton from '../components/StyledButton';
 import CalendarView from '../components/CalendarView';
-import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
+import { Spacing, Typography, BorderRadius } from '../constants/theme';
+import { useColors } from '../context/ThemeContext';
 import { WorkoutStorageService } from '../services/workoutStorage';
 import { useAuth } from '../context/AuthContext';
 
@@ -31,6 +32,8 @@ const formatCardioTime = (seconds) => {
 export default function WorkoutHistoryScreen({ navigation, route }) {
   const { filterExercise } = route?.params || {};
   const { user } = useAuth();
+  const Colors = useColors();
+  const styles = useMemo(() => createStyles(Colors), [Colors]);
   const [activeTab, setActiveTab] = useState(filterExercise ? 'history' : 'calendar'); // 'calendar' or 'history'
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [workoutHistory, setWorkoutHistory] = useState([]);
@@ -1238,31 +1241,21 @@ export default function WorkoutHistoryScreen({ navigation, route }) {
                   {/* Action Buttons */}
                   <View style={styles.modalActions}>
                     <TouchableOpacity
-                      style={styles.modalActionButton}
+                      style={styles.repeatActionButton}
                       activeOpacity={0.8}
                       onPress={() => handleRepeatWorkout(selectedWorkout)}
                     >
-                      <LinearGradient
-                        colors={[Colors.primary, '#059669']}
-                        style={styles.modalActionGradient}
-                      >
-                        <Text style={styles.modalActionIcon}>🔄</Text>
-                        <Text style={styles.modalActionText}>Repeat</Text>
-                      </LinearGradient>
+                      <Ionicons name="repeat" size={20} color="#FFFFFF" />
+                      <Text style={styles.modalActionText}>Repeat</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                      style={styles.modalActionButton}
+                      style={styles.deleteActionButton}
                       activeOpacity={0.8}
                       onPress={() => handleDeleteWorkout(selectedWorkout.id)}
                     >
-                      <LinearGradient
-                        colors={['#DC2626', '#991B1B']}
-                        style={styles.modalActionGradient}
-                      >
-                        <Text style={styles.modalActionIcon}>🗑️</Text>
-                        <Text style={styles.modalActionText}>Delete</Text>
-                      </LinearGradient>
+                      <Ionicons name="trash-outline" size={20} color="#FFFFFF" />
+                      <Text style={styles.modalActionText}>Delete</Text>
                     </TouchableOpacity>
                   </View>
                 </>
@@ -1350,7 +1343,7 @@ export default function WorkoutHistoryScreen({ navigation, route }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Colors) => StyleSheet.create({
   container: {
     flex: 1,
   },
@@ -1359,7 +1352,7 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.card,
     borderRadius: BorderRadius.lg,
     padding: 4,
     marginBottom: Spacing.md,
@@ -1419,7 +1412,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.full,
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.card,
     borderWidth: 1,
     borderColor: Colors.border,
     marginRight: Spacing.sm,
@@ -1440,7 +1433,7 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.xl,
   },
   workoutCard: {
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.card,
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
     borderColor: Colors.border,
@@ -1536,20 +1529,25 @@ const styles = StyleSheet.create({
     marginTop: Spacing.md,
     marginBottom: Spacing.sm,
   },
-  modalActionButton: {
+  repeatActionButton: {
     flex: 1,
-    borderRadius: BorderRadius.lg,
-    overflow: 'hidden',
-  },
-  modalActionGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: Colors.primary,
+    borderRadius: BorderRadius.lg,
     padding: Spacing.md,
     gap: Spacing.xs,
   },
-  modalActionIcon: {
-    fontSize: 20,
+  deleteActionButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#DC2626',
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    gap: Spacing.xs,
   },
   modalActionText: {
     fontSize: Typography.fontSize.md,
@@ -1628,7 +1626,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.card,
     borderTopLeftRadius: BorderRadius.xl,
     borderTopRightRadius: BorderRadius.xl,
     position: 'relative',
@@ -1647,7 +1645,7 @@ const styles = StyleSheet.create({
     paddingRight: 50, // Space for X button
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.card,
   },
   modalHeaderPhoto: {
     width: 50,
@@ -1768,7 +1766,7 @@ const styles = StyleSheet.create({
     color: Colors.text,
   },
   copyModalContent: {
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.card,
     borderTopLeftRadius: BorderRadius.xl,
     borderTopRightRadius: BorderRadius.xl,
     paddingTop: Spacing.xl,
@@ -1859,7 +1857,7 @@ const styles = StyleSheet.create({
   deleteCancelButton: {
     flex: 1,
     padding: Spacing.md,
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.card,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
     borderColor: Colors.border,

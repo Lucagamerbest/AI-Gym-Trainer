@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../context/AuthContext';
 import { Spacing, Typography, BorderRadius } from '../constants/theme';
 import { useColors } from '../context/ThemeContext';
@@ -12,6 +11,14 @@ import ActiveWorkoutIndicator from '../components/ActiveWorkoutIndicator';
 import { getNutritionGoals } from '../services/userProfileService';
 import MealSyncService from '../services/backend/MealSyncService';
 import { WorkoutStorageService } from '../services/workoutStorage';
+
+// Helper function to get local date string in YYYY-MM-DD format (avoids UTC timezone issues)
+const getLocalDateString = (date = new Date()) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 function HomeScreen({ navigation }) {
   const { user } = useAuth();
@@ -22,8 +29,22 @@ function HomeScreen({ navigation }) {
   const [consumedCalories, setConsumedCalories] = useState(0);
   const [expandedWorkout, setExpandedWorkout] = useState(false);
   const [expandedNutrition, setExpandedNutrition] = useState(false);
-  const [currentDay, setCurrentDay] = useState(1);
   const [workoutsThisWeek, setWorkoutsThisWeek] = useState(0);
+
+  // Workout insights state
+  const [workoutInsights, setWorkoutInsights] = useState({
+    currentStreak: 0,
+    lastWorkout: null,
+    totalPRs: 0,
+  });
+
+  // Nutrition insights state
+  const [nutritionInsights, setNutritionInsights] = useState({
+    currentStreak: 0,
+    weeklyAvg: 0,
+    nutritionStreak: 0,
+    calorieGoal: 2000,
+  });
 
   // Disable swipe gesture on home screen to prevent accidental navigation
   useEffect(() => {
@@ -37,6 +58,8 @@ function HomeScreen({ navigation }) {
     React.useCallback(() => {
       loadNutritionData();
       loadWorkoutStats();
+      loadWorkoutInsights();
+      loadNutritionInsights();
     }, [user])
   );
 
@@ -81,14 +104,6 @@ function HomeScreen({ navigation }) {
       // Get all completed workouts
       const allWorkouts = await WorkoutStorageService.getWorkoutHistory(userId);
 
-      // Calculate current day (days since first workout or account creation)
-      if (allWorkouts.length > 0) {
-        const firstWorkoutDate = new Date(allWorkouts[allWorkouts.length - 1].date);
-        const today = new Date();
-        const daysSinceStart = Math.floor((today - firstWorkoutDate) / (1000 * 60 * 60 * 24)) + 1;
-        setCurrentDay(daysSinceStart);
-      }
-
       // Count workouts this week (last 7 days)
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -101,6 +116,130 @@ function HomeScreen({ navigation }) {
       setWorkoutsThisWeek(workoutsThisWeekCount);
     } catch (error) {
       console.error('Error loading workout stats:', error);
+    }
+  };
+
+  const loadWorkoutInsights = async () => {
+    try {
+      const userId = user?.uid || 'guest';
+
+      // Get user stats (includes streak)
+      const stats = await WorkoutStorageService.getUserStats(userId);
+
+      // Get workout history for last workout info
+      const history = await WorkoutStorageService.getWorkoutHistory(userId);
+      const lastWorkout = history.length > 0 ? history[history.length - 1] : null;
+
+      // Count PRs (from exercise progress)
+      const progress = await WorkoutStorageService.getExerciseProgress(userId);
+      let totalPRs = 0;
+      Object.values(progress).forEach(exercise => {
+        if (exercise.records && exercise.records.length > 0) {
+          // Find max weight for this exercise
+          const maxWeight = Math.max(...exercise.records.map(r => r.weight || 0));
+          if (maxWeight > 0) totalPRs++;
+        }
+      });
+
+      setWorkoutInsights({
+        currentStreak: stats?.currentStreak || 0,
+        lastWorkout: lastWorkout ? {
+          title: lastWorkout.workoutTitle || 'Workout',
+          date: lastWorkout.date,
+        } : null,
+        totalPRs,
+      });
+    } catch (error) {
+      console.error('Error loading workout insights:', error);
+    }
+  };
+
+  const loadNutritionInsights = async () => {
+    try {
+      const userId = user?.uid || 'guest';
+
+      // Load calorie goal
+      const goals = await getNutritionGoals(userId);
+      const calorieGoal = goals.calories || 2000;
+
+      // For guest users, show defaults
+      if (!userId || userId === 'guest') {
+        setNutritionInsights({ currentStreak: 0, weeklyAvg: 0, nutritionStreak: 0, calorieGoal });
+        return;
+      }
+
+      const today = new Date();
+      const data = [];
+
+      // Get last 30 days of data from Firebase (same source as calorie tracking)
+      for (let i = 29; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        const dateStr = getLocalDateString(date);
+
+        let dayCalories = 0;
+        try {
+          const firebaseMeals = await MealSyncService.getMealsByDate(userId, dateStr);
+          firebaseMeals.forEach(meal => {
+            dayCalories += meal.calories_consumed || 0;
+          });
+        } catch (error) {
+          // Silently continue if a day fails to load
+        }
+        data.push({ date: dateStr, calories: dayCalories });
+      }
+
+      // Calculate current streak (consecutive days with logged data from today backwards)
+      let currentStreak = 0;
+      for (let i = data.length - 1; i >= 0; i--) {
+        if (data[i].calories > 0) {
+          currentStreak++;
+        } else {
+          break;
+        }
+      }
+
+      // Calculate weekly average (last 7 days with data)
+      const last7Days = data.slice(-7);
+      const daysWithData = last7Days.filter(d => d.calories > 0);
+      const weeklyAvg = daysWithData.length > 0
+        ? Math.round(daysWithData.reduce((sum, d) => sum + d.calories, 0) / daysWithData.length)
+        : 0;
+
+      // Calculate nutrition streak (consecutive days within ±10% of goal)
+      // Success = between 90% and 110% of calorie goal
+      const isSuccessfulDay = (calories) => {
+        const lowerBound = calorieGoal * 0.9;
+        const upperBound = calorieGoal * 1.1;
+        return calories >= lowerBound && calories <= upperBound;
+      };
+
+      // Calculate streak from today backwards (only days with logged data count)
+      let nutritionStreak = 0;
+      for (let i = data.length - 1; i >= 0; i--) {
+        if (data[i].calories > 0) {
+          if (isSuccessfulDay(data[i].calories)) {
+            nutritionStreak++;
+          } else {
+            break; // Streak broken by going over 10%
+          }
+        } else if (i === data.length - 1) {
+          // Today has no data, that's okay - don't break streak yet
+          continue;
+        } else {
+          // Past day with no data breaks the streak
+          break;
+        }
+      }
+
+      setNutritionInsights({
+        currentStreak,
+        weeklyAvg,
+        nutritionStreak,
+        calorieGoal,
+      });
+    } catch (error) {
+      console.error('Error loading nutrition insights:', error);
     }
   };
 
@@ -120,7 +259,7 @@ function HomeScreen({ navigation }) {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header with Logo and Greeting */}
+        {/* Compact Header */}
         <LinearGradient
           colors={[Colors.primary, Colors.primaryDark, Colors.primaryLight]}
           start={{ x: 0, y: 0 }}
@@ -128,57 +267,63 @@ function HomeScreen({ navigation }) {
           style={styles.headerGradient}
         >
           <View style={styles.headerContent}>
-            <Logo size="medium" showText={true} />
-            <Text style={styles.greeting}>{getGreeting}, {firstName}</Text>
-            <View style={styles.headerStats}>
-              <View style={styles.headerStat}>
-                <Ionicons name="flame-outline" size={16} color={Colors.background} />
-                <Text style={styles.headerStatText}>Day {currentDay}</Text>
-              </View>
-              <View style={styles.headerStatDivider} />
-              <View style={styles.headerStat}>
-                <Ionicons name="fitness-outline" size={16} color={Colors.background} />
-                <Text style={styles.headerStatText}>
-                  {workoutsThisWeek} {workoutsThisWeek === 1 ? 'workout' : 'workouts'} this week
-                </Text>
-              </View>
+            <View style={styles.headerRow}>
+              <Logo size="small" showText={false} />
+              <Text style={styles.greeting}>{getGreeting}, {firstName}</Text>
             </View>
           </View>
         </LinearGradient>
 
         <View style={styles.content}>
-          {/* Calorie Stat Card (Non-clickable) */}
-          <View style={styles.calorieCard}>
-            <View style={styles.calorieHeader}>
-              <View style={styles.calorieIconCircle}>
-                <Ionicons name="flame" size={24} color={Colors.primary} />
-              </View>
-              <View style={styles.calorieTextContainer}>
-                <Text style={styles.calorieValue}>
-                  {Math.abs(remainingCalories)} kcal
-                </Text>
-                <Text style={styles.calorieLabel}>
-                  {remainingCalories < 0 ? 'over goal today' : 'remaining today'}
-                </Text>
-              </View>
-            </View>
-            {/* Progress Bar */}
-            <View style={styles.progressBarContainer}>
-              <View style={styles.progressBarBackground}>
-                <LinearGradient
-                  colors={[Colors.primary, Colors.primaryDark]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={[
-                    styles.progressBarFill,
-                    { width: `${Math.min((consumedCalories / (consumedCalories + remainingCalories)) * 100, 100)}%` }
-                  ]}
-                />
-              </View>
-              <Text style={styles.progressText}>
-                {consumedCalories} / {consumedCalories + remainingCalories} kcal
+          {/* Calorie Summary - Compact */}
+          <TouchableOpacity
+            style={styles.calorieSummary}
+            onPress={() => navigation.getParent()?.navigate('NutritionDashboard')}
+            activeOpacity={0.8}
+          >
+            <View style={styles.calorieLeft}>
+              <Text style={styles.calorieNumber}>
+                {remainingCalories < 0 ? '+' : ''}{Math.abs(remainingCalories).toLocaleString()}
               </Text>
+              <Text style={styles.calorieUnit}>kcal {remainingCalories < 0 ? 'over' : 'left'}</Text>
             </View>
+            <View style={styles.calorieRight}>
+              <Text style={styles.calorieDetail}>{consumedCalories.toLocaleString()} eaten</Text>
+              <Text style={styles.calorieGoal}>of {nutritionInsights.calorieGoal.toLocaleString()} goal</Text>
+            </View>
+          </TouchableOpacity>
+
+          {/* Stats Row */}
+          <View style={styles.statsRow}>
+            <TouchableOpacity
+              style={styles.statTile}
+              onPress={() => navigation.getParent()?.navigate('Progress')}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="flame" size={34} color={Colors.warning} />
+              <Text style={styles.statValue}>{workoutInsights.currentStreak}</Text>
+              <Text style={styles.statLabel}>day streak</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.statTile}
+              onPress={() => navigation.getParent()?.navigate('Progress')}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="fitness" size={34} color={Colors.primary} />
+              <Text style={styles.statValue}>{workoutsThisWeek}</Text>
+              <Text style={styles.statLabel}>this week</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.statTile}
+              onPress={() => navigation.getParent()?.navigate('NutritionDashboard')}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="nutrition" size={34} color={nutritionInsights.nutritionStreak > 0 ? Colors.success : Colors.textSecondary} />
+              <Text style={styles.statValue}>{nutritionInsights.nutritionStreak}</Text>
+              <Text style={styles.statLabel}>day streak</Text>
+            </TouchableOpacity>
           </View>
 
           {/* Main Action Buttons */}
@@ -391,6 +536,23 @@ function HomeScreen({ navigation }) {
               )}
             </View>
           </View>
+
+          {/* Track Weight Button */}
+          <TouchableOpacity
+            style={styles.trackWeightButton}
+            onPress={() => navigation.getParent()?.navigate('MaintenanceFinder')}
+            activeOpacity={0.8}
+          >
+            <View style={styles.trackWeightContent}>
+              <Ionicons name="scale-outline" size={22} color={Colors.primary} />
+              <View style={styles.trackWeightText}>
+                <Text style={styles.trackWeightTitle}>Track Your Weight</Text>
+                <Text style={styles.trackWeightSubtitle}>Find your maintenance calories</Text>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={Colors.textSecondary} />
+          </TouchableOpacity>
+
         </View>
       </ScrollView>
 
@@ -413,49 +575,96 @@ const createStyles = (Colors) => StyleSheet.create({
     paddingBottom: 100,
   },
   headerGradient: {
-    paddingTop: 36,
-    paddingBottom: Spacing.sm,
-    paddingHorizontal: Spacing.xl,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
+    paddingTop: 60,
+    paddingBottom: 20,
+    paddingHorizontal: Spacing.lg,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
   },
   headerContent: {
     alignItems: 'center',
     justifyContent: 'center',
   },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
   greeting: {
-    fontSize: Typography.fontSize.lg,
+    fontSize: Typography.fontSize.xl,
     fontWeight: '600',
     color: Colors.background,
-    marginTop: Spacing.xs,
-    marginBottom: Spacing.sm,
   },
-  headerStats: {
+
+  // Calorie Summary
+  calorieSummary: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    justifyContent: 'space-between',
+    backgroundColor: Colors.card,
     borderRadius: BorderRadius.lg,
-    padding: Spacing.sm,
-    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xl,
+    paddingHorizontal: Spacing.xl,
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
-  headerStat: {
+  calorieLeft: {
     flexDirection: 'row',
+    alignItems: 'baseline',
+    marginRight: Spacing.sm,
+  },
+  calorieNumber: {
+    fontSize: 44,
+    fontWeight: 'bold',
+    color: Colors.primary,
+  },
+  calorieUnit: {
+    fontSize: Typography.fontSize.lg,
+    color: Colors.textSecondary,
+    marginLeft: 6,
+  },
+  calorieRight: {
+    alignItems: 'flex-end',
+  },
+  calorieDetail: {
+    fontSize: Typography.fontSize.lg,
+    color: Colors.text,
+    fontWeight: '600',
+  },
+  calorieGoal: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.textSecondary,
+    marginTop: 4,
+  },
+
+  // Stats Row
+  statsRow: {
+    flexDirection: 'row',
+    marginBottom: Spacing.lg,
+  },
+  statTile: {
+    flex: 1,
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.lg,
+    paddingVertical: Spacing.lg,
+    paddingHorizontal: Spacing.sm,
     alignItems: 'center',
-    gap: 6,
+    marginHorizontal: 5,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
-  headerStatIcon: {
-    fontSize: 16,
+  statValue: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    color: Colors.text,
+    marginTop: 6,
   },
-  headerStatText: {
-    fontSize: Typography.fontSize.xs,
-    color: Colors.background,
-    fontWeight: '500',
-  },
-  headerStatDivider: {
-    width: 1,
-    height: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    marginHorizontal: Spacing.md,
+  statLabel: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+    marginTop: 4,
   },
   content: {
     paddingHorizontal: Spacing.lg,
@@ -481,68 +690,7 @@ const createStyles = (Colors) => StyleSheet.create({
     fontWeight: '600',
   },
 
-  // Calorie Card (with progress bar)
-  calorieCard: {
-    marginTop: Spacing.md,
-    marginBottom: Spacing.lg,
-    backgroundColor: Colors.card,
-    borderRadius: BorderRadius.lg,
-    borderWidth: 1,
-    borderColor: `${Colors.primary}30`,
-    padding: Spacing.lg,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 15 },
-    shadowOpacity: 0.07,
-    shadowRadius: 40,
-    elevation: 8,
-  },
-  calorieHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: Spacing.md,
-  },
-  calorieIconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: `${Colors.primary}15`,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  calorieTextContainer: {
-    flex: 1,
-    marginLeft: Spacing.md,
-  },
-  calorieValue: {
-    fontSize: Typography.fontSize.xxxl,
-    fontWeight: 'bold',
-    color: Colors.primary,
-  },
-  calorieLabel: {
-    fontSize: Typography.fontSize.sm,
-    color: Colors.textSecondary,
-    marginTop: 2,
-  },
-  progressBarContainer: {
-    marginTop: Spacing.sm,
-  },
-  progressBarBackground: {
-    height: 6,
-    backgroundColor: `${Colors.primary}15`,
-    borderRadius: 3,
-    overflow: 'hidden',
-  },
-  progressBarFill: {
-    height: '100%',
-    borderRadius: 3,
-  },
-  progressText: {
-    fontSize: Typography.fontSize.xs,
-    color: Colors.textSecondary,
-    marginTop: Spacing.xs,
-    textAlign: 'center',
-  },
-
+  
   // Program Cards (shared style for workout programs and planned meals)
   programCard: {
     flexDirection: 'row',
@@ -731,6 +879,37 @@ const createStyles = (Colors) => StyleSheet.create({
   dropdownSubtitle: {
     fontSize: Typography.fontSize.xs,
     color: Colors.textSecondary,
+  },
+
+  // Track Weight Button
+  trackWeightButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    marginTop: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  trackWeightContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+  },
+  trackWeightText: {
+    flex: 1,
+  },
+  trackWeightTitle: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  trackWeightSubtitle: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textSecondary,
+    marginTop: 2,
   },
 });
 

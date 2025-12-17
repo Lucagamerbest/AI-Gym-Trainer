@@ -117,6 +117,7 @@ import PlanDetailScreen from './src/screens/PlanDetailScreen';
 import FindPlanWizardScreen from './src/screens/FindPlanWizardScreen';
 import FindPlanResultsScreen from './src/screens/FindPlanResultsScreen';
 import SplitPlansScreen from './src/screens/SplitPlansScreen';
+import MaintenanceFinderScreen from './src/screens/MaintenanceFinderScreen';
 
 // Automated Testing (Dev only)
 import AutomatedTestRunner from './src/components/AutomatedTestRunner';
@@ -462,6 +463,7 @@ function AppNavigator() {
               }}
             />
             <Stack.Screen name="Settings" component={SettingsScreen} />
+            <Stack.Screen name="MaintenanceFinder" component={MaintenanceFinderScreen} />
             <Stack.Screen name="ExerciseSettings" component={ExerciseSettingsScreen} />
             <Stack.Screen name="FoodSettings" component={FoodSettingsScreen} />
             <Stack.Screen name="GymLocation" component={GymLocationScreen} />

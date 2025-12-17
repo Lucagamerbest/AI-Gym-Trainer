@@ -14,6 +14,14 @@ import {
 } from 'firebase/firestore';
 import { getDailySummary, addToDaily } from '../foodDatabase.web';
 
+// Helper function to get local date string in YYYY-MM-DD format (avoids UTC timezone issues)
+const getLocalDateString = (date = new Date()) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 class MealSyncService {
   // Note: Access db and auth directly to ensure fresh state
 
@@ -60,7 +68,7 @@ class MealSyncService {
       }
 
       // Ensure date is in YYYY-MM-DD format
-      const dateString = typeof date === 'string' ? date : date.toISOString().split('T')[0];
+      const dateString = typeof date === 'string' ? date : getLocalDateString(date);
 
       const mealsRef = collection(db, 'users', userId, 'meals');
       const q = query(
@@ -381,7 +389,7 @@ class MealSyncService {
 
       const nutritionData = JSON.parse(savedNutrition);
       const mealsObj = nutritionData.meals || {};
-      const today = new Date().toISOString().split('T')[0];
+      const today = getLocalDateString();
 
       // Convert meals object to consumption entries
       const mealTypes = ['breakfast', 'lunch', 'dinner', 'snacks'];
