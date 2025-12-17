@@ -315,7 +315,7 @@ export const exerciseDatabase = {
           "pros": [
             "Deep stretch at bottom position for muscle growth",
             "Natural arc of motion follows muscle fibers",
-            "Can be done flat, incline, or decline",
+            "Can be done flat, incline (30-45°), or decline (15-30°)",
             "Strong mind-muscle connection",
             "Minimal equipment needed"
           ],
@@ -327,7 +327,8 @@ export const exerciseDatabase = {
           ],
           "setupTips": [
             "Start with lighter weight than pressing movements",
-            "Lie back with dumbbells extended above chest",
+            "For incline: set bench to 30-45° to target upper chest",
+            "For decline: set bench to 15-30° to target lower chest",
             "Maintain slight bend in elbows throughout",
             "Lower dumbbells in wide arc until chest stretch felt",
             "Bring dumbbells together above chest, squeeze hard"
@@ -1995,7 +1996,7 @@ export const exerciseDatabase = {
           ],
           "setupTips": [
             "Set pulleys to upper position",
-            "Stand in middle, bend forward at hips",
+            "Stand in middle, bend forward at hips 60-90°",
             "Cross cables and grab opposite handles",
             "Pull handles out to sides with slight elbow bend",
             "Squeeze shoulder blades together at peak"
@@ -2038,7 +2039,7 @@ export const exerciseDatabase = {
             "Hard to maintain proper position when heavy"
           ],
           "setupTips": [
-            "Bend forward at hips until torso near parallel",
+            "Bend forward at hips 60-90° (closer to parallel = more isolation)",
             "Let dumbbells hang with palms facing each other",
             "Raise arms out to sides with slight elbow bend",
             "Lead with elbows, not hands",
@@ -3366,7 +3367,7 @@ export const exerciseDatabase = {
       "secondaryMuscles": ["Chest", "Front Deltoids"],
       "equipment": "Parallel Bars, Assisted Machine, Bench Dips, Weighted (Dip Belt)",
       "difficulty": "Intermediate",
-      "instructions": "A compound bodyweight exercise excellent for building triceps mass and strength. Lower your body by bending elbows, then push back up. Keep torso upright to emphasize triceps. Parallel bars is the standard, assisted machine helps beginners, bench dips are accessible, and weighted dips with a dip belt allow progressive overload.",
+      "instructions": "A compound bodyweight exercise excellent for building triceps mass and strength. Lower your body by bending elbows, then push back up. Keep torso upright (90°) to emphasize triceps, or lean forward 20-30° to target chest more. Parallel bars is the standard, assisted machine helps beginners, bench dips are accessible, and weighted dips with a dip belt allow progressive overload.",
       "variants": [
         {
           "equipment": "Parallel Bars",
@@ -3384,7 +3385,7 @@ export const exerciseDatabase = {
           ],
           "setupTips": [
             "Grip parallel bars and support bodyweight with arms extended",
-            "Keep torso upright and legs straight or crossed",
+            "Torso upright (90°) = triceps focus; lean forward 20-30° = chest focus",
             "Lower body by bending elbows until 90 degrees",
             "Keep elbows close to body for triceps emphasis",
             "Push back up to full arm extension"
