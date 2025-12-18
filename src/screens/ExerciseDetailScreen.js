@@ -137,19 +137,19 @@ export default function ExerciseDetailScreen({ navigation, route }) {
   };
 
   const getPersonalRecords = () => {
-    if (!progressData || !progressData.records.length) return null;
+    if (!progressData || !progressData.records || !progressData.records.length) return null;
 
     const records = progressData.records;
-    const maxWeight = Math.max(...records.map(r => r.weight));
-    const maxVolume = Math.max(...records.map(r => r.volume));
-    const maxReps = Math.max(...records.map(r => r.reps));
+    const maxWeight = Math.max(...records.map(r => r.weight || 0));
+    const maxVolume = Math.max(...records.map(r => r.volume || 0));
+    const maxReps = Math.max(...records.map(r => r.reps || 0));
     const totalSessions = records.length;
 
     return { maxWeight, maxVolume, maxReps, totalSessions };
   };
 
   const getRecentSessions = () => {
-    if (!progressData || !progressData.records.length) return [];
+    if (!progressData || !progressData.records || !progressData.records.length) return [];
     return progressData.records.slice(-3).reverse(); // Last 3 sessions, most recent first
   };
 

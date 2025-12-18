@@ -112,10 +112,16 @@ export default function WorkoutHistoryScreen({ navigation, route }) {
 
     // Convert completed workouts to CalendarView format
     history.forEach(workout => {
-      const dateKey = new Date(workout.date).toISOString().split('T')[0];
-      marked[dateKey] = {
-        logged: { workout: [workout] } // CalendarView expects logged property
-      };
+      // Skip workouts with invalid or missing date
+      if (!workout || !workout.date) return;
+      try {
+        const dateKey = new Date(workout.date).toISOString().split('T')[0];
+        marked[dateKey] = {
+          logged: { workout: [workout] } // CalendarView expects logged property
+        };
+      } catch (e) {
+        // Skip workouts with invalid date format
+      }
     });
 
     // Convert planned workouts to CalendarView format - only if not already completed
@@ -159,9 +165,14 @@ export default function WorkoutHistoryScreen({ navigation, route }) {
     const today = new Date();
     const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
-    const workout = workoutHistory.find(w =>
-      new Date(w.date).toISOString().split('T')[0] === dateKey
-    );
+    const workout = workoutHistory.find(w => {
+      if (!w || !w.date) return false;
+      try {
+        return new Date(w.date).toISOString().split('T')[0] === dateKey;
+      } catch (e) {
+        return false;
+      }
+    });
 
     // Check for planned workout
     const plannedWorkout = plannedWorkouts[dateKey];
@@ -244,7 +255,8 @@ export default function WorkoutHistoryScreen({ navigation, route }) {
     let completedSets = 0;
     let totalVolume = 0;
 
-    workout.exercises.forEach(exercise => {
+    const exercises = workout?.exercises || [];
+    exercises.forEach(exercise => {
       const sets = exercise.sets || [];
       totalSets += sets.length;
 
@@ -701,10 +713,11 @@ export default function WorkoutHistoryScreen({ navigation, route }) {
 
   // Filter workouts based on date range and type
   const getFilteredWorkouts = () => {
-    let filtered = [...workoutHistory];
+    // Filter out invalid workouts first (missing date or exercises)
+    let filtered = workoutHistory.filter(w => w && w.date);
 
     // Sort by date (newest first)
-    filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+    filtered.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
 
     // Filter by exercise name (for PR navigation)
     if (exerciseFilter) {
@@ -732,7 +745,7 @@ export default function WorkoutHistoryScreen({ navigation, route }) {
           break;
       }
 
-      filtered = filtered.filter(w => new Date(w.date) >= cutoffDate);
+      filtered = filtered.filter(w => w.date && new Date(w.date) >= cutoffDate);
     }
 
     // Filter by workout type
@@ -839,11 +852,11 @@ export default function WorkoutHistoryScreen({ navigation, route }) {
             <Text style={styles.workoutCardTitle}>
               {workoutTypeIcon} {workout.workoutTitle || 'Quick Workout'}
             </Text>
-            <Text style={styles.workoutCardDate}>{formatDate(workout.date)}</Text>
+            <Text style={styles.workoutCardDate}>{formatDate(workout.date || new Date().toISOString())}</Text>
             <View style={styles.workoutCardStats}>
-              <Text style={styles.workoutCardStat}>⏱️ {workout.duration}</Text>
-              <Text style={styles.workoutCardStat}>💪 {workout.exercises.length} exercises</Text>
-              <Text style={styles.workoutCardStat}>📊 {Math.round(stats.totalVolume)} lbs</Text>
+              <Text style={styles.workoutCardStat}>⏱️ {workout.duration || '0:00'}</Text>
+              <Text style={styles.workoutCardStat}>💪 {(workout.exercises || []).length} exercises</Text>
+              <Text style={styles.workoutCardStat}>📊 {Math.round(stats.totalVolume || 0)} lbs</Text>
             </View>
           </View>
         </View>
@@ -1176,16 +1189,16 @@ export default function WorkoutHistoryScreen({ navigation, route }) {
                   {/* Workout Stats */}
                   <View style={styles.modalStats}>
                     <View style={styles.modalStatItem}>
-                      <Text style={styles.modalStatValue}>{formatDuration(selectedWorkout.duration)}</Text>
+                      <Text style={styles.modalStatValue}>{formatDuration(selectedWorkout.duration || 0)}</Text>
                       <Text style={styles.modalStatLabel}>Duration</Text>
                     </View>
                     <View style={styles.modalStatItem}>
-                      <Text style={styles.modalStatValue}>{selectedWorkout.exercises.length}</Text>
+                      <Text style={styles.modalStatValue}>{(selectedWorkout.exercises || []).length}</Text>
                       <Text style={styles.modalStatLabel}>Exercises</Text>
                     </View>
                     <View style={styles.modalStatItem}>
                       <Text style={styles.modalStatValue}>
-                        {calculateWorkoutStats(selectedWorkout).completedSets}
+                        {calculateWorkoutStats(selectedWorkout).completedSets || 0}
                       </Text>
                       <Text style={styles.modalStatLabel}>Sets</Text>
                     </View>
@@ -1193,7 +1206,7 @@ export default function WorkoutHistoryScreen({ navigation, route }) {
 
                   {/* Exercises List */}
                   <Text style={styles.exercisesTitle}>Exercises</Text>
-                  {selectedWorkout.exercises.map((exercise, index) => (
+                  {(selectedWorkout.exercises || []).map((exercise, index) => (
                     <View key={index} style={styles.exerciseItem}>
                       <Text style={styles.exerciseName}>{exercise.name}</Text>
                       <Text style={styles.exerciseMeta}>

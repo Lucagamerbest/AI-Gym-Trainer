@@ -170,7 +170,8 @@ export default function ProgressScreen({ navigation }) {
       // Check for orphaned progress records
       const allWorkoutIds = new Set(history.map(w => w.id));
       Object.entries(progress).forEach(([exerciseKey, exercise]) => {
-        const orphanedRecords = exercise.records.filter(r => r.workoutId && !allWorkoutIds.has(r.workoutId));
+        if (!exercise || !exercise.records || !Array.isArray(exercise.records)) return;
+        const orphanedRecords = exercise.records.filter(r => r && r.workoutId && !allWorkoutIds.has(r.workoutId));
       });
 
       // Load goals
@@ -373,11 +374,11 @@ export default function ProgressScreen({ navigation }) {
           total: totalWorkouts,
           requirement: achievement.requirement,
           unlocked: achievement.unlocked,
-          workouts: workoutList.map(w => ({
+          workouts: workoutList.filter(w => w && w.date).map(w => ({
             id: w.id,
             title: w.workoutTitle,
             date: new Date(w.date).toLocaleDateString(),
-            exercises: w.exercises.length,
+            exercises: (w.exercises || []).length,
             duration: w.duration
           }))
         };
@@ -386,7 +387,7 @@ export default function ProgressScreen({ navigation }) {
         // Show exercise breakdown by volume contribution
         const exerciseVolumes = {};
         history.forEach(workout => {
-          workout.exercises.forEach(exercise => {
+          (workout.exercises || []).forEach(exercise => {
             const volume = (exercise.sets || []).reduce((sum, set) => {
               return sum + ((parseFloat(set.weight) || 0) * (parseInt(set.reps) || 0));
             }, 0);
@@ -412,7 +413,7 @@ export default function ProgressScreen({ navigation }) {
 
       case 'streak':
         // Show recent workout dates for streak
-        const last30 = history.slice(-30).reverse();
+        const last30 = history.filter(w => w && w.date).slice(-30).reverse();
         return {
           type: 'streak',
           currentStreak: stats.currentStreak || 0,
@@ -442,7 +443,7 @@ export default function ProgressScreen({ navigation }) {
     const progress = progressData || exerciseProgress;
     const exerciseData = progress[exerciseKey];
 
-    if (exerciseData && exerciseData.records.length > 0) {
+    if (exerciseData && exerciseData.records && exerciseData.records.length > 0) {
       // Filter records by time range
       const filteredRecords = filterRecordsByTimeRange(exerciseData.records, range);
 
@@ -465,23 +466,23 @@ export default function ProgressScreen({ navigation }) {
         switch (type) {
           case 'volume':
             // Sum all set volumes for this workout
-            value = records.reduce((sum, r) => sum + r.volume, 0);
+            value = records.reduce((sum, r) => sum + (r.volume || 0), 0);
             break;
           case 'max':
             // Take the max weight across all sets in this workout
-            value = Math.max(...records.map(r => r.weight));
+            value = Math.max(...records.map(r => r.weight || 0));
             break;
           case '1rm':
             // Calculate 1RM for each set, then take the max
-            const oneRMs = records.map(r => Math.round(r.weight * (36 / (37 - r.reps))));
+            const oneRMs = records.map(r => Math.round((r.weight || 0) * (36 / (37 - (r.reps || 0)))));
             value = Math.max(...oneRMs);
             break;
           case 'reps':
             // Take the max reps across all sets in this workout
-            value = Math.max(...records.map(r => r.reps));
+            value = Math.max(...records.map(r => r.reps || 0));
             break;
           default:
-            value = records.reduce((sum, r) => sum + r.volume, 0);
+            value = records.reduce((sum, r) => sum + (r.volume || 0), 0);
         }
 
         return {
@@ -530,7 +531,7 @@ export default function ProgressScreen({ navigation }) {
         return records;
     }
 
-    return records.filter(r => new Date(r.date) >= cutoffDate);
+    return records.filter(r => r && r.date && new Date(r.date) >= cutoffDate);
   };
 
   const getFilteredExercises = () => {
@@ -585,7 +586,7 @@ export default function ProgressScreen({ navigation }) {
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
     workoutHistory.forEach(workout => {
-      if (new Date(workout.date) >= thirtyDaysAgo) {
+      if (workout.date && new Date(workout.date) >= thirtyDaysAgo) {
         (workout.exercises || []).forEach(exercise => {
           const muscleGroup = exercise.primaryMuscle || exercise.muscleGroup || 'Other';
           const volume = (exercise.sets || []).reduce((total, set) => {
@@ -614,12 +615,12 @@ export default function ProgressScreen({ navigation }) {
 
   const getPersonalRecords = (exerciseKey) => {
     const exercise = exerciseProgress[exerciseKey];
-    if (!exercise || !exercise.records.length) return null;
+    if (!exercise || !exercise.records || !exercise.records.length) return null;
 
     const records = exercise.records;
-    const maxWeight = Math.max(...records.map(r => r.weight));
-    const maxVolume = Math.max(...records.map(r => r.volume));
-    const maxReps = Math.max(...records.map(r => r.reps));
+    const maxWeight = Math.max(...records.map(r => r.weight || 0));
+    const maxVolume = Math.max(...records.map(r => r.volume || 0));
+    const maxReps = Math.max(...records.map(r => r.reps || 0));
 
     return { maxWeight, maxVolume, maxReps };
   };
@@ -631,7 +632,7 @@ export default function ProgressScreen({ navigation }) {
     thirtyDaysAgo.setDate(now.getDate() - 30);
 
     // Total Volume This Month
-    const thisMonthWorkouts = workoutHistory.filter(w => new Date(w.date) >= thirtyDaysAgo);
+    const thisMonthWorkouts = workoutHistory.filter(w => w && w.date && new Date(w.date) >= thirtyDaysAgo);
     const totalVolume = thisMonthWorkouts.reduce((total, workout) => {
       return total + (workout.exercises || []).reduce((workoutTotal, exercise) => {
         return workoutTotal + (exercise.sets || []).reduce((setTotal, set) => {
@@ -668,6 +669,7 @@ export default function ProgressScreen({ navigation }) {
       if (exercise.records && exercise.records.length >= 2) {
         const recentRecords = filterRecordsByTimeRange(exercise.records, '30d');
         const olderRecords = exercise.records.filter(r => {
+          if (!r || !r.date) return false;
           const recordDate = new Date(r.date);
           return recordDate < thirtyDaysAgo;
         });
@@ -705,8 +707,8 @@ export default function ProgressScreen({ navigation }) {
     Object.entries(exerciseProgress).forEach(([key, exercise]) => {
       if (exercise.records && exercise.records.length > 0) {
         const records = exercise.records;
-        const maxWeight = Math.max(...records.map(r => r.weight));
-        const maxWeightRecord = records.find(r => r.weight === maxWeight);
+        const maxWeight = Math.max(...records.map(r => r.weight || 0));
+        const maxWeightRecord = records.find(r => (r.weight || 0) === maxWeight);
 
         if (maxWeightRecord) {
           allPRs.push({
@@ -721,6 +723,7 @@ export default function ProgressScreen({ navigation }) {
 
     // Sort by date (most recent first) and return top 3
     return allPRs
+      .filter(pr => pr && pr.date)
       .sort((a, b) => new Date(b.date) - new Date(a.date))
       .slice(0, 3);
   };
@@ -760,8 +763,13 @@ export default function ProgressScreen({ navigation }) {
 
       // Find workout for this day
       const dayWorkout = workoutHistory.find(w => {
-        const workoutDate = new Date(w.date).toISOString().split('T')[0];
-        return workoutDate === dateKey;
+        if (!w || !w.date) return false;
+        try {
+          const workoutDate = new Date(w.date).toISOString().split('T')[0];
+          return workoutDate === dateKey;
+        } catch (e) {
+          return false;
+        }
       });
 
       // Check if this workout has any PRs
@@ -769,8 +777,13 @@ export default function ProgressScreen({ navigation }) {
       if (dayWorkout) {
         const recentPRs = getRecentPRs();
         hasPR = recentPRs.some(pr => {
-          const prDate = new Date(pr.date).toISOString().split('T')[0];
-          return prDate === dateKey;
+          if (!pr || !pr.date) return false;
+          try {
+            const prDate = new Date(pr.date).toISOString().split('T')[0];
+            return prDate === dateKey;
+          } catch (e) {
+            return false;
+          }
         });
       }
 
@@ -813,8 +826,9 @@ export default function ProgressScreen({ navigation }) {
     const sixtyDaysAgo = new Date(now);
     sixtyDaysAgo.setDate(now.getDate() - 60);
 
-    const last30Days = workoutHistory.filter(w => new Date(w.date) >= thirtyDaysAgo);
+    const last30Days = workoutHistory.filter(w => w && w.date && new Date(w.date) >= thirtyDaysAgo);
     const previous30Days = workoutHistory.filter(w => {
+      if (!w || !w.date) return false;
       const date = new Date(w.date);
       return date >= sixtyDaysAgo && date < thirtyDaysAgo;
     });
@@ -982,21 +996,22 @@ export default function ProgressScreen({ navigation }) {
   const getWeeklyWorkoutCount = () => {
     const weekAgo = new Date();
     weekAgo.setDate(weekAgo.getDate() - 7);
-    return workoutHistory.filter(w => new Date(w.date) >= weekAgo).length;
+    return workoutHistory.filter(w => w && w.date && new Date(w.date) >= weekAgo).length;
   };
 
   const getMonthlyWorkoutCount = () => {
     const monthAgo = new Date();
     monthAgo.setMonth(monthAgo.getMonth() - 1);
-    return workoutHistory.filter(w => new Date(w.date) >= monthAgo).length;
+    return workoutHistory.filter(w => w && w.date && new Date(w.date) >= monthAgo).length;
   };
 
   const getAverageWorkoutsPerWeek = () => {
-    if (workoutHistory.length === 0) return 0;
-    const oldestWorkout = new Date(Math.min(...workoutHistory.map(w => new Date(w.date))));
+    const validWorkouts = workoutHistory.filter(w => w && w.date);
+    if (validWorkouts.length === 0) return 0;
+    const oldestWorkout = new Date(Math.min(...validWorkouts.map(w => new Date(w.date))));
     const now = new Date();
     const weeksPassed = Math.max(1, Math.ceil((now - oldestWorkout) / (7 * 24 * 60 * 60 * 1000)));
-    return (workoutHistory.length / weeksPassed).toFixed(1);
+    return (validWorkouts.length / weeksPassed).toFixed(1);
   };
 
   const getTotalActiveTime = () => {
@@ -1031,8 +1046,13 @@ export default function ProgressScreen({ navigation }) {
       const dateKey = date.toISOString().split('T')[0];
 
       const count = workoutHistory.filter(w => {
-        const workoutDate = new Date(w.date).toISOString().split('T')[0];
-        return workoutDate === dateKey;
+        if (!w || !w.date) return false;
+        try {
+          const workoutDate = new Date(w.date).toISOString().split('T')[0];
+          return workoutDate === dateKey;
+        } catch (e) {
+          return false;
+        }
       }).length;
 
       last7Days.push({
@@ -1046,7 +1066,7 @@ export default function ProgressScreen({ navigation }) {
   };
 
   const getTopVolumeWorkouts = () => {
-    const workoutsWithVolume = workoutHistory.map(workout => {
+    const workoutsWithVolume = workoutHistory.filter(w => w && w.date).map(workout => {
       const totalVolume = (workout.exercises || []).reduce((workoutTotal, exercise) => {
         const exerciseVolume = (exercise.sets || []).reduce((setTotal, set) => {
           if (set.weight && set.reps) {
@@ -1122,6 +1142,7 @@ export default function ProgressScreen({ navigation }) {
       const currentYear = new Date().getFullYear();
 
       workout = workoutHistory.find(w => {
+        if (!w || !w.date) return false;
         const workoutDate = new Date(w.date);
         return workoutDate.getMonth() + 1 === month &&
                workoutDate.getDate() === day &&
@@ -1145,7 +1166,13 @@ export default function ProgressScreen({ navigation }) {
     const calendarData = getMonthlyCalendarData();
     const volumeChange = calculateVolumeChange();
     const lastWorkout = workoutHistory.length > 0
-      ? workoutHistory.sort((a, b) => new Date(b.date) - new Date(a.date))[0]
+      ? [...workoutHistory].filter(w => w && w.date).sort((a, b) => {
+          try {
+            return new Date(b.date) - new Date(a.date);
+          } catch (e) {
+            return 0;
+          }
+        })[0] || null
       : null;
     const weeklyCount = getWeeklyWorkoutCount();
     const monthlyCount = getMonthlyWorkoutCount();
@@ -1669,6 +1696,7 @@ export default function ProgressScreen({ navigation }) {
       weekEnd.setDate(weekStart.getDate() + 7);
 
       const workoutsInWeek = workoutHistory.filter(w => {
+        if (!w || !w.date) return false;
         const d = new Date(w.date);
         return d >= weekStart && d < weekEnd;
       }).length;
@@ -1690,7 +1718,7 @@ export default function ProgressScreen({ navigation }) {
     const startOfWeek = new Date(today);
     startOfWeek.setDate(today.getDate() - today.getDay());
     startOfWeek.setHours(0, 0, 0, 0);
-    const workoutsThisWeek = workoutHistory.filter(w => new Date(w.date) >= startOfWeek).length;
+    const workoutsThisWeek = workoutHistory.filter(w => w && w.date && new Date(w.date) >= startOfWeek).length;
 
     const frequencyTargets = [3, 4, 5, 6];
     const nextFreqTarget = frequencyTargets.find(t => t > workoutsThisWeek);
@@ -1707,7 +1735,7 @@ export default function ProgressScreen({ navigation }) {
 
     // === MONTHLY WORKOUT COUNT GOALS ===
     const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    const workoutsThisMonth = workoutHistory.filter(w => new Date(w.date) >= startOfMonth).length;
+    const workoutsThisMonth = workoutHistory.filter(w => w && w.date && new Date(w.date) >= startOfMonth).length;
 
     const monthlyTargets = [12, 16, 20]; // 3x/week, 4x/week, 5x/week for a month
     const nextMonthlyTarget = monthlyTargets.find(t => t > workoutsThisMonth);
@@ -1742,7 +1770,7 @@ export default function ProgressScreen({ navigation }) {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     const monthlyVolume = workoutHistory
-      .filter(w => new Date(w.date) >= thirtyDaysAgo)
+      .filter(w => w && w.date && new Date(w.date) >= thirtyDaysAgo)
       .reduce((total, workout) => {
         return total + (workout.exercises || []).reduce((exerciseTotal, exercise) => {
           return exerciseTotal + (exercise.sets || []).reduce((setTotal, set) => {
@@ -2265,10 +2293,12 @@ export default function ProgressScreen({ navigation }) {
                 <Text style={styles.workoutSummaryTitle}>{userStats?.totalWorkouts || 0} Total Workouts</Text>
                 <Text style={styles.workoutSummarySubtext}>
                   {workoutHistory.filter(w => {
+                    if (!w || !w.date) return false;
                     const weekAgo = new Date();
                     weekAgo.setDate(weekAgo.getDate() - 7);
                     return new Date(w.date) >= weekAgo;
                   }).length} this week · {workoutHistory.filter(w => {
+                    if (!w || !w.date) return false;
                     const monthAgo = new Date();
                     monthAgo.setMonth(monthAgo.getMonth() - 1);
                     return new Date(w.date) >= monthAgo;
@@ -2283,6 +2313,7 @@ export default function ProgressScreen({ navigation }) {
                 contentContainerStyle={{ paddingBottom: Spacing.xl }}
               >
                 {workoutHistory
+                  .filter(w => w && w.date)
                   .sort((a, b) => new Date(b.date) - new Date(a.date))
                   .map((workout, index) => {
                     const workoutDate = new Date(workout.date);
@@ -2377,8 +2408,13 @@ export default function ProgressScreen({ navigation }) {
                       const dateKey = date.toISOString().split('T')[0];
 
                       const hasWorkout = workoutHistory.some(w => {
-                        const workoutDate = new Date(w.date).toISOString().split('T')[0];
-                        return workoutDate === dateKey;
+                        if (!w || !w.date) return false;
+                        try {
+                          const workoutDate = new Date(w.date).toISOString().split('T')[0];
+                          return workoutDate === dateKey;
+                        } catch (e) {
+                          return false;
+                        }
                       });
 
                       const isToday = date.toDateString() === today.toDateString();
@@ -2458,12 +2494,12 @@ export default function ProgressScreen({ navigation }) {
                       {selectedPR.weight} lbs × {selectedPR.reps} reps
                     </Text>
                     <Text style={styles.prDetailDate}>
-                      {new Date(selectedPR.date).toLocaleDateString('en-US', {
+                      {selectedPR.date ? new Date(selectedPR.date).toLocaleDateString('en-US', {
                         weekday: 'long',
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric'
-                      })}
+                      }) : 'Date unknown'}
                     </Text>
                   </LinearGradient>
 
@@ -2487,10 +2523,15 @@ export default function ProgressScreen({ navigation }) {
                   {/* Find and display the workout this PR came from */}
                   {(() => {
                     const prWorkout = workoutHistory.find(w => {
-                      const workoutDate = new Date(w.date).toISOString().split('T')[0];
-                      const prDate = new Date(selectedPR.date).toISOString().split('T')[0];
-                      return workoutDate === prDate &&
-                        w.exercises?.some(ex => ex.name === selectedPR.exercise);
+                      if (!w || !w.date || !selectedPR?.date) return false;
+                      try {
+                        const workoutDate = new Date(w.date).toISOString().split('T')[0];
+                        const prDate = new Date(selectedPR.date).toISOString().split('T')[0];
+                        return workoutDate === prDate &&
+                          w.exercises?.some(ex => ex.name === selectedPR.exercise);
+                      } catch (e) {
+                        return false;
+                      }
                     });
 
                     if (prWorkout) {
@@ -2642,12 +2683,12 @@ export default function ProgressScreen({ navigation }) {
                       {selectedWorkout.workoutTitle || 'Workout Details'}
                     </Text>
                     <Text style={styles.workoutHistoryHeaderDate}>
-                      {new Date(selectedWorkout.date).toLocaleDateString('en-US', {
+                      {selectedWorkout.date ? new Date(selectedWorkout.date).toLocaleDateString('en-US', {
                         weekday: 'long',
                         month: 'long',
                         day: 'numeric',
                         year: 'numeric'
-                      })}
+                      }) : 'Date unknown'}
                     </Text>
                   </View>
                 </View>

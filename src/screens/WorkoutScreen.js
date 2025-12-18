@@ -2204,6 +2204,7 @@ export default function WorkoutScreen({ navigation, route }) {
       const prDate = new Date(pr.date).toDateString();
 
       workout = history.find(w => {
+        if (!w || !w.date) return false;
         const workoutDate = new Date(w.date).toDateString();
         if (workoutDate !== prDate) return false;
 

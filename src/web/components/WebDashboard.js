@@ -228,43 +228,123 @@ const AchievementBadge = ({ achievement, unlocked }) => (
   </motion.div>
 );
 
-// Simple bar chart component
-const BarChart = ({ data, dataKey, color = '#8B5CF6', height = 150, showLabels = true }) => {
+// Clean bar chart component with goal indicator
+const BarChart = ({ data, dataKey, color = '#8B5CF6', height = 180, showLabels = true, target = null }) => {
   if (!data || data.length === 0) return null;
-  const maxValue = Math.max(...data.map(d => d[dataKey] || 0), 1);
+
+  const dataMax = Math.max(...data.map(d => d[dataKey] || 0), 1);
+  // Scale so the goal is at ~75% height, leaving room for bars that exceed goal
+  const maxValue = target ? Math.max(dataMax, target * 1.33) : dataMax;
+  const barAreaHeight = height - 30; // Space for day labels
+
+  // Get color for bar based on percentage of goal
+  const getBarColor = (value) => {
+    if (!target || value === 0) return color;
+    const percent = (value / target) * 100;
+    if (percent >= 90 && percent <= 110) return '#10B981'; // On target - green
+    if (percent > 110) return '#F59E0B'; // Over - orange
+    if (percent < 50) return '#EF4444'; // Way under - red
+    return '#8B5CF6'; // Under but trying - purple
+  };
 
   return (
-    <div style={{ height, display: 'flex', alignItems: 'flex-end', gap: '6px', paddingTop: '20px' }}>
-      {data.map((item, index) => {
-        const value = item[dataKey] || 0;
-        const heightPercent = (value / maxValue) * 100;
+    <div style={{ height, position: 'relative' }}>
+      {/* Background grid lines */}
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 30 }}>
+        {[0.25, 0.5, 0.75, 1].map((line, i) => (
+          <div
+            key={i}
+            style={{
+              position: 'absolute',
+              left: 0,
+              right: 0,
+              bottom: `${line * 100}%`,
+              height: '1px',
+              background: 'rgba(255,255,255,0.06)',
+            }}
+          />
+        ))}
+      </div>
 
-        return (
-          <div key={index} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            {showLabels && value > 0 && (
-              <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.5)', marginBottom: '4px' }}>
-                {value > 1000 ? `${(value / 1000).toFixed(1)}k` : value}
-              </div>
-            )}
-            <motion.div
-              initial={{ height: 0 }}
-              animate={{ height: `${Math.max(heightPercent, value > 0 ? 5 : 0)}%` }}
-              transition={{ delay: index * 0.03, duration: 0.4 }}
-              style={{
-                width: '100%',
-                maxWidth: '50px',
-                background: `linear-gradient(180deg, ${color} 0%, ${color}66 100%)`,
-                borderRadius: '4px 4px 0 0',
-              }}
-            />
-            {showLabels && (
-              <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', marginTop: '4px', whiteSpace: 'nowrap' }}>
-                {item.label || item.date?.slice(5) || ''}
-              </div>
-            )}
+      {/* Goal indicator line */}
+      {target && (
+        <div
+          style={{
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            bottom: `${30 + (target / maxValue) * barAreaHeight}px`,
+            height: '2px',
+            background: 'linear-gradient(90deg, transparent 0%, #10B981 10%, #10B981 90%, transparent 100%)',
+            zIndex: 5,
+          }}
+        />
+      )}
+
+      {/* Bars */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'flex-end',
+        gap: '12px',
+        height: barAreaHeight,
+        padding: '0 4px',
+      }}>
+        {data.map((item, index) => {
+          const value = item[dataKey] || 0;
+          const barHeight = value > 0 ? Math.max((value / maxValue) * barAreaHeight, 4) : 0;
+          const barColor = getBarColor(value);
+
+          return (
+            <div key={index} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', height: '100%' }}>
+              {/* Value label */}
+              {value > 0 && (
+                <div style={{
+                  fontSize: '12px',
+                  color: barColor,
+                  marginBottom: '6px',
+                  fontWeight: '700',
+                  textShadow: '0 1px 2px rgba(0,0,0,0.5)',
+                }}>
+                  {value > 1000 ? `${(value / 1000).toFixed(1)}k` : value}
+                </div>
+              )}
+              {/* Bar */}
+              <motion.div
+                initial={{ height: 0 }}
+                animate={{ height: barHeight }}
+                transition={{ delay: index * 0.04, duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+                style={{
+                  width: '100%',
+                  maxWidth: '40px',
+                  background: value > 0 ? `linear-gradient(180deg, ${barColor}, ${barColor}66)` : 'rgba(255,255,255,0.05)',
+                  borderRadius: '4px 4px 0 0',
+                  minHeight: value === 0 ? '4px' : undefined,
+                }}
+              />
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Day labels */}
+      <div style={{
+        display: 'flex',
+        gap: '12px',
+        padding: '8px 4px 0',
+        borderTop: '1px solid rgba(255,255,255,0.08)',
+      }}>
+        {data.map((item, index) => (
+          <div key={index} style={{
+            flex: 1,
+            textAlign: 'center',
+            fontSize: '11px',
+            color: (item[dataKey] || 0) > 0 ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.3)',
+            fontWeight: '500',
+          }}>
+            {item.label || ''}
           </div>
-        );
-      })}
+        ))}
+      </div>
     </div>
   );
 };
@@ -888,8 +968,16 @@ const NutritionSection = ({ data, loading }) => {
           padding: '20px',
           marginBottom: '24px',
         }}>
-          <h3 style={{ fontSize: '16px', fontWeight: '600', color: 'rgba(255,255,255,0.8)', marginBottom: '16px' }}>Last 7 Days - Calories</h3>
-          <BarChart data={chartData} dataKey="calories" color="#8B5CF6" height={120} />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: '600', color: 'rgba(255,255,255,0.9)', margin: 0 }}>Last 7 Days</h3>
+            <div style={{
+              fontSize: '13px',
+              color: 'rgba(255,255,255,0.5)',
+            }}>
+              Goal: <span style={{ color: '#10B981', fontWeight: '600' }}>{goals?.targetCalories || 2000}</span> cal/day
+            </div>
+          </div>
+          <BarChart data={chartData} dataKey="calories" color="#8B5CF6" height={160} target={goals?.targetCalories || 2000} />
         </div>
 
         {/* Recent Meals */}
@@ -1167,24 +1255,40 @@ const ImportSection = ({ user, onImportSuccess }) => {
         const rawExercises = data.exercises || (data.days?.[0]?.exercises) || [];
 
         // Format exercises to match app's expected structure
+        // CRITICAL: Preserve libraryId for linking to database exercises with history
         const formatExercises = (exercises) => {
-          return exercises.map(ex => ({
+          return exercises.map((ex, idx) => ({
+            // CRITICAL: Preserve library link for exercise history
+            id: ex.id || `exercise_${Date.now()}_${idx}`,
+            libraryId: ex.libraryId || ex.id || null, // Link to database exercise
             name: ex.name || 'Unknown Exercise',
-            targetMuscle: ex.targetMuscle || ex.muscleGroup || '',
-            equipment: ex.equipment || ex.weight || 'Not specified',
+            displayName: ex.displayName || ex.name || 'Unknown Exercise',
+            targetMuscle: ex.targetMuscle || ex.muscleGroup || (ex.primaryMuscles?.[0]) || '',
+            equipment: ex.equipment || ex.selectedEquipment || ex.weight || 'Not specified',
+            selectedEquipment: ex.selectedEquipment || ex.equipment || null,
             difficulty: ex.difficulty || 'Intermediate',
             notes: ex.notes || '',
+            // Preserve muscle data for display
+            primaryMuscles: ex.primaryMuscles || [],
+            secondaryMuscles: ex.secondaryMuscles || [],
+            muscleGroup: ex.muscleGroup || '',
+            // Preserve variant data
+            variants: ex.variants || [],
+            selectedVariant: ex.selectedVariant || null,
+            // Track if matched from library
+            isMatched: ex.isMatched || !!ex.libraryId,
+            isCustom: ex.isCustom || false,
             // Create sets array - AI usually returns sets as number or array
             sets: Array.isArray(ex.sets)
               ? ex.sets.map(s => ({
                   reps: String(s.reps || s || '10'),
-                  weight: s.weight || '',
+                  weight: s.weight || ex.weight || '',
                   type: 'normal',
                   rest: '90',
                 }))
               : Array.from({ length: ex.sets || 3 }, () => ({
                   reps: String(ex.reps || '10'),
-                  weight: '',
+                  weight: ex.weight || '',
                   type: 'normal',
                   rest: '90',
                 })),

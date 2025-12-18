@@ -109,6 +109,7 @@ function HomeScreen({ navigation }) {
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
       const workoutsThisWeekCount = allWorkouts.filter(workout => {
+        if (!workout || !workout.date) return false;
         const workoutDate = new Date(workout.date);
         return workoutDate >= sevenDaysAgo;
       }).length;

@@ -75,11 +75,49 @@ export class WorkoutStorageService {
   }
 
   // Get workout history for a user
+  // Note: Firebase sync happens via WorkoutSyncService on login, not here
+  // This keeps getWorkoutHistory fast and crash-free
   static async getWorkoutHistory(userId = 'guest') {
     try {
-      const history = await AsyncStorage.getItem(`${STORAGE_KEYS.WORKOUT_HISTORY}_${userId}`);
-      return history ? JSON.parse(history) : [];
+      const localHistory = await AsyncStorage.getItem(`${STORAGE_KEYS.WORKOUT_HISTORY}_${userId}`);
+      let history = localHistory ? JSON.parse(localHistory) : [];
+
+      // CRITICAL: Filter out invalid/corrupted workouts to prevent crashes
+      // Some workouts from Firebase may have missing required fields
+      history = history.filter(workout => {
+        // Must be an object
+        if (!workout || typeof workout !== 'object') return false;
+        // Must have a valid date
+        if (!workout.date) return false;
+        // Ensure exercises is at least an empty array
+        if (!workout.exercises) workout.exercises = [];
+        // Ensure exercises is actually an array
+        if (!Array.isArray(workout.exercises)) workout.exercises = [];
+        // Filter out any null/undefined exercises inside the array
+        workout.exercises = workout.exercises.filter(ex => ex && typeof ex === 'object');
+        // Ensure each exercise has required fields
+        workout.exercises.forEach(ex => {
+          if (!ex.name) ex.name = 'Unknown Exercise';
+          if (!ex.sets) ex.sets = [];
+          if (!Array.isArray(ex.sets)) ex.sets = [];
+          // Filter out invalid sets
+          ex.sets = ex.sets.filter(set => set && typeof set === 'object');
+        });
+        return true;
+      });
+
+      // Sort by date (most recent first)
+      history.sort((a, b) => {
+        try {
+          return new Date(b.date) - new Date(a.date);
+        } catch (e) {
+          return 0;
+        }
+      });
+
+      return history;
     } catch (error) {
+      console.error('Error loading workout history:', error);
       return [];
     }
   }
@@ -194,12 +232,35 @@ export class WorkoutStorageService {
     }
   }
 
-  // Get progress for a specific exercise
+  // Get progress for a specific exercise (with fuzzy matching for variant names)
   static async getExerciseProgressByName(exerciseName, userId = 'guest') {
     try {
       const allProgress = await this.getExerciseProgress(userId);
-      const exerciseKey = exerciseName.toLowerCase().replace(/\s+/g, '_');
-      return allProgress[exerciseKey] || null;
+      const searchKey = exerciseName.toLowerCase().replace(/\s+/g, '_');
+
+      // Try exact match first
+      if (allProgress[searchKey]) {
+        return allProgress[searchKey];
+      }
+
+      // Try fuzzy matching - handles cases like:
+      // - "Leg Extension" matching "machine_leg_extension_(machine)"
+      // - "Machine Leg Extension (Machine)" matching "leg_extension"
+      const allKeys = Object.keys(allProgress);
+      for (const key of allKeys) {
+        // Check if either contains the other
+        if (key.includes(searchKey) || searchKey.includes(key)) {
+          return allProgress[key];
+        }
+        // Also check without parenthetical suffixes and equipment prefixes
+        const cleanKey = key.replace(/\([^)]*\)/g, '').replace(/_+/g, '_').replace(/^(machine|barbell|dumbbell|cable|bodyweight|kettlebell|ez_bar|smith_machine)_/i, '').replace(/_$/, '');
+        const cleanSearch = searchKey.replace(/\([^)]*\)/g, '').replace(/_+/g, '_').replace(/^(machine|barbell|dumbbell|cable|bodyweight|kettlebell|ez_bar|smith_machine)_/i, '').replace(/_$/, '');
+        if (cleanKey === cleanSearch || cleanKey.includes(cleanSearch) || cleanSearch.includes(cleanKey)) {
+          return allProgress[key];
+        }
+      }
+
+      return null;
     } catch (error) {
       return null;
     }
