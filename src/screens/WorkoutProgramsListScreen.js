@@ -13,6 +13,8 @@ import { Colors, Spacing, Typography, BorderRadius } from '../constants/theme';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
+import { db, auth } from '../config/firebase';
+import { doc, deleteDoc, collection, getDocs, query, orderBy } from 'firebase/firestore';
 
 const STORAGE_KEY = '@workout_programs';
 
@@ -23,11 +25,61 @@ export default function WorkoutProgramsListScreen({ navigation }) {
 
   const loadPrograms = async () => {
     try {
+      // Load from local storage
       const storedPrograms = await AsyncStorage.getItem(STORAGE_KEY);
-      if (storedPrograms) {
-        setPrograms(JSON.parse(storedPrograms));
+      let localPrograms = storedPrograms ? JSON.parse(storedPrograms) : [];
+
+      // Also fetch from Firebase if user is logged in
+      const userId = auth.currentUser?.uid;
+      if (userId && db) {
+        try {
+          const programsRef = collection(db, 'users', userId, 'workout_programs');
+          const q = query(programsRef, orderBy('createdAt', 'desc'));
+          const querySnapshot = await getDocs(q);
+
+          const firebasePrograms = [];
+          querySnapshot.forEach((docSnap) => {
+            firebasePrograms.push({
+              id: docSnap.id,
+              ...docSnap.data(),
+              cloudId: docSnap.id, // Track Firebase origin
+              fromFirebase: true
+            });
+          });
+
+          // Create maps for deduplication by ID and name
+          const localById = new Map(localPrograms.map(p => [p.id, p]));
+          const localByName = new Map(localPrograms.map(p => [p.name?.toLowerCase(), p]));
+
+          // Merge: add Firebase programs that aren't in local storage (check both ID and name)
+          const newFromFirebase = firebasePrograms.filter(p => {
+            const existsById = localById.has(p.id);
+            const existsByName = localByName.has(p.name?.toLowerCase());
+            return !existsById && !existsByName;
+          });
+
+          if (newFromFirebase.length > 0) {
+            localPrograms = [...newFromFirebase, ...localPrograms];
+            // Save merged back to local storage
+            await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(localPrograms));
+          }
+        } catch (firebaseError) {
+          console.log('Could not fetch from Firebase:', firebaseError.message);
+        }
       }
+
+      // Remove any duplicates by name (keep first occurrence)
+      const seen = new Set();
+      localPrograms = localPrograms.filter(p => {
+        const key = p.name?.toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+
+      setPrograms(localPrograms);
     } catch (error) {
+      console.error('Error loading programs:', error);
     }
   };
 
@@ -44,9 +96,13 @@ export default function WorkoutProgramsListScreen({ navigation }) {
   };
 
   const handleDeleteProgram = (programId) => {
+    // Find the program to get its cloudId and name
+    const programToDelete = programs.find(p => p.id === programId);
+    const programName = programToDelete?.name || 'this program';
+
     Alert.alert(
       'Delete Program',
-      'Are you sure you want to delete this workout program?',
+      `Are you sure you want to delete "${programName}"?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -54,11 +110,28 @@ export default function WorkoutProgramsListScreen({ navigation }) {
           style: 'destructive',
           onPress: async () => {
             try {
+              // Delete from local storage
               const updatedPrograms = programs.filter(p => p.id !== programId);
               await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedPrograms));
               setPrograms(updatedPrograms);
+
+              // Also delete from Firebase if user is logged in
+              const userId = auth.currentUser?.uid;
+              if (userId && db && programToDelete) {
+                try {
+                  // Use cloudId if available (Firebase-origin programs), otherwise use regular id
+                  const firebaseId = programToDelete.cloudId || programToDelete.id;
+                  const programRef = doc(db, 'users', userId, 'workout_programs', firebaseId);
+                  await deleteDoc(programRef);
+                  console.log('✅ Program deleted from Firebase:', firebaseId);
+                } catch (firebaseError) {
+                  console.warn('⚠️ Firebase delete failed:', firebaseError.message);
+                }
+              }
+
               Alert.alert('Success', 'Program deleted successfully');
             } catch (error) {
+              console.error('Error deleting program:', error);
               Alert.alert('Error', 'Failed to delete program');
             }
           },

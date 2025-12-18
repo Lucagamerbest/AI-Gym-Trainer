@@ -10,7 +10,7 @@ import StyledButton from '../components/StyledButton';
 import WorkoutPlanService from '../services/WorkoutPlanService';
 import { Colors, Spacing, Typography, BorderRadius, Shadows } from '../constants/theme';
 import { db, auth } from '../config/firebase';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, doc, deleteDoc } from 'firebase/firestore';
 
 const WORKOUT_PROGRAMS_KEY = '@workout_programs';
 const STANDALONE_WORKOUTS_KEY = '@standalone_workouts';
@@ -52,13 +52,25 @@ export default function MyPlansScreen({ navigation }) {
           const querySnapshot = await getDocs(q);
 
           const firebasePrograms = [];
-          querySnapshot.forEach((doc) => {
-            firebasePrograms.push({ id: doc.id, ...doc.data() });
+          querySnapshot.forEach((docSnap) => {
+            firebasePrograms.push({
+              id: docSnap.id,
+              ...docSnap.data(),
+              cloudId: docSnap.id, // Track Firebase origin
+              fromFirebase: true
+            });
           });
 
-          // Merge: add Firebase programs that aren't in local storage
-          const localIds = new Set(localPrograms.map(p => p.id));
-          const newFromFirebase = firebasePrograms.filter(p => !localIds.has(p.id));
+          // Create maps for deduplication by ID and name
+          const localById = new Map(localPrograms.map(p => [p.id, p]));
+          const localByName = new Map(localPrograms.map(p => [p.name?.toLowerCase(), p]));
+
+          // Merge: add Firebase programs that aren't in local storage (check both ID and name)
+          const newFromFirebase = firebasePrograms.filter(p => {
+            const existsById = localById.has(p.id);
+            const existsByName = localByName.has(p.name?.toLowerCase());
+            return !existsById && !existsByName;
+          });
 
           if (newFromFirebase.length > 0) {
             localPrograms = [...newFromFirebase, ...localPrograms];
@@ -69,6 +81,15 @@ export default function MyPlansScreen({ navigation }) {
           console.log('Could not fetch from Firebase:', firebaseError.message);
         }
       }
+
+      // Remove any duplicates by name (keep first occurrence)
+      const seen = new Set();
+      localPrograms = localPrograms.filter(p => {
+        const key = p.name?.toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
 
       setPrograms(localPrograms);
     } catch (error) {
@@ -91,13 +112,25 @@ export default function MyPlansScreen({ navigation }) {
           const querySnapshot = await getDocs(q);
 
           const firebaseWorkouts = [];
-          querySnapshot.forEach((doc) => {
-            firebaseWorkouts.push({ id: doc.id, ...doc.data() });
+          querySnapshot.forEach((docSnap) => {
+            firebaseWorkouts.push({
+              id: docSnap.id,
+              ...docSnap.data(),
+              cloudId: docSnap.id, // Track Firebase origin
+              fromFirebase: true
+            });
           });
 
-          // Merge: add Firebase workouts that aren't in local storage
-          const localIds = new Set(localWorkouts.map(w => w.id));
-          const newFromFirebase = firebaseWorkouts.filter(w => !localIds.has(w.id));
+          // Create maps for deduplication by ID and name
+          const localById = new Map(localWorkouts.map(w => [w.id, w]));
+          const localByName = new Map(localWorkouts.map(w => [w.name?.toLowerCase(), w]));
+
+          // Merge: add Firebase workouts that aren't in local storage (check both ID and name)
+          const newFromFirebase = firebaseWorkouts.filter(w => {
+            const existsById = localById.has(w.id);
+            const existsByName = localByName.has(w.name?.toLowerCase());
+            return !existsById && !existsByName;
+          });
 
           if (newFromFirebase.length > 0) {
             localWorkouts = [...newFromFirebase, ...localWorkouts];
@@ -109,6 +142,15 @@ export default function MyPlansScreen({ navigation }) {
         }
       }
 
+      // Remove any duplicates by name (keep first occurrence)
+      const seen = new Set();
+      localWorkouts = localWorkouts.filter(w => {
+        const key = w.name?.toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+
       setStandaloneWorkouts(localWorkouts);
     } catch (error) {
       console.error('Error loading workouts:', error);
@@ -116,9 +158,13 @@ export default function MyPlansScreen({ navigation }) {
   };
 
   const handleDeleteProgram = async (programId) => {
+    // Find the program to get its cloudId and name
+    const programToDelete = programs.find(p => p.id === programId);
+    const programName = programToDelete?.name || 'this program';
+
     Alert.alert(
       'Delete Program',
-      'Are you sure you want to delete this program?',
+      `Are you sure you want to delete "${programName}"?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -126,10 +172,26 @@ export default function MyPlansScreen({ navigation }) {
           style: 'destructive',
           onPress: async () => {
             try {
+              // Delete from local storage
               const updatedPrograms = programs.filter(p => p.id !== programId);
               await AsyncStorage.setItem(WORKOUT_PROGRAMS_KEY, JSON.stringify(updatedPrograms));
               setPrograms(updatedPrograms);
+
+              // Also delete from Firebase if user is logged in
+              const userId = auth.currentUser?.uid;
+              if (userId && db && programToDelete) {
+                try {
+                  // Use cloudId if available (Firebase-origin programs), otherwise use regular id
+                  const firebaseId = programToDelete.cloudId || programToDelete.id;
+                  const programRef = doc(db, 'users', userId, 'workout_programs', firebaseId);
+                  await deleteDoc(programRef);
+                  console.log('✅ Program deleted from Firebase:', firebaseId);
+                } catch (firebaseError) {
+                  console.warn('⚠️ Firebase delete failed:', firebaseError.message);
+                }
+              }
             } catch (error) {
+              console.error('Error deleting program:', error);
             }
           },
         },
@@ -138,9 +200,13 @@ export default function MyPlansScreen({ navigation }) {
   };
 
   const handleDeleteWorkout = async (workoutId) => {
+    // Find the workout to get its cloudId and name
+    const workoutToDelete = standaloneWorkouts.find(w => w.id === workoutId);
+    const workoutName = workoutToDelete?.name || 'this workout';
+
     Alert.alert(
       'Delete Workout',
-      'Are you sure you want to delete this workout?',
+      `Are you sure you want to delete "${workoutName}"?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -148,10 +214,26 @@ export default function MyPlansScreen({ navigation }) {
           style: 'destructive',
           onPress: async () => {
             try {
+              // Delete from local storage
               const updatedWorkouts = standaloneWorkouts.filter(w => w.id !== workoutId);
               await AsyncStorage.setItem(STANDALONE_WORKOUTS_KEY, JSON.stringify(updatedWorkouts));
               setStandaloneWorkouts(updatedWorkouts);
+
+              // Also delete from Firebase if user is logged in
+              const userId = auth.currentUser?.uid;
+              if (userId && db && workoutToDelete) {
+                try {
+                  // Use cloudId if available (Firebase-origin workouts), otherwise use regular id
+                  const firebaseId = workoutToDelete.cloudId || workoutToDelete.id;
+                  const workoutRef = doc(db, 'users', userId, 'standalone_workouts', firebaseId);
+                  await deleteDoc(workoutRef);
+                  console.log('✅ Standalone workout deleted from Firebase:', firebaseId);
+                } catch (firebaseError) {
+                  console.warn('⚠️ Firebase delete failed:', firebaseError.message);
+                }
+              }
             } catch (error) {
+              console.error('Error deleting workout:', error);
             }
           },
         },

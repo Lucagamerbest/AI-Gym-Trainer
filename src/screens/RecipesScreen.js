@@ -17,7 +17,7 @@ import { CommonActions, useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { db, auth } from '../config/firebase';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, doc, deleteDoc } from 'firebase/firestore';
 import ScreenLayout from '../components/ScreenLayout';
 import StyledCard from '../components/StyledCard';
 import StyledButton from '../components/StyledButton';
@@ -422,9 +422,22 @@ export default function RecipesScreen({ navigation, route }) {
         {
           text: 'Delete',
           style: 'destructive',
-          onPress: () => {
+          onPress: async () => {
+            // Delete from local storage
             const updatedRecipes = recipes.filter(r => r.id !== recipeId);
             saveRecipes(updatedRecipes);
+
+            // Also delete from Firebase if user is logged in
+            const userId = auth.currentUser?.uid;
+            if (userId && db) {
+              try {
+                const recipeRef = doc(db, 'users', userId, 'saved_recipes', recipeId);
+                await deleteDoc(recipeRef);
+                console.log('✅ Recipe deleted from Firebase:', recipeId);
+              } catch (firebaseError) {
+                console.warn('⚠️ Firebase delete failed:', firebaseError.message);
+              }
+            }
           }
         }
       ]
