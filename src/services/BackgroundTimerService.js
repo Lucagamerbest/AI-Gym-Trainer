@@ -167,10 +167,10 @@ class BackgroundTimerService {
     // Initialize audio mode
     await this.initializeAudio();
 
-    // Load sounds - silent audio starts playing automatically (shouldPlay: true)
-    // This is critical for iOS background audio to work
+    // Load ONLY silent audio - alert sound will be loaded when timer completes
+    // This prevents the alert sound from triggering audio ducking at start
     await this.loadSilentAudio();
-    await this.loadAlertSound();
+    // NOTE: Don't load alert sound here - it will be loaded in complete()
 
     console.log('BackgroundTimerService: Silent audio keeping app alive in background');
 
@@ -253,10 +253,12 @@ class BackgroundTimerService {
 
   /**
    * Play the alert sound with music ducking
+   * Sound is loaded here (not at timer start) to prevent early ducking
    */
   async playAlertSound() {
     try {
-      // Ensure audio mode is set to duck others for the alert
+      // First, set audio mode to duck others for the alert sound
+      // This is the ONLY time we should duck music - when the timer completes
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: false,
         staysActiveInBackground: true,
@@ -264,20 +266,20 @@ class BackgroundTimerService {
         interruptionModeIOS: InterruptionModeIOS.DuckOthers,
         shouldDuckAndroid: true,
         interruptionModeAndroid: InterruptionModeAndroid.DuckOthers,
-        playThroughEarpieceAndroid: true,
+        playThroughEarpieceAndroid: false,
       });
+
+      // Load alert sound NOW (not at timer start) to prevent early ducking
+      if (!this.alertSound) {
+        console.log('BackgroundTimerService: Loading alert sound for completion');
+        await this.loadAlertSound();
+      }
 
       if (this.alertSound) {
         // Reset to beginning and play
         await this.alertSound.setPositionAsync(0);
         await this.alertSound.playAsync();
-        console.log('BackgroundTimerService: Alert sound playing');
-      } else {
-        // Fallback - load and play
-        await this.loadAlertSound();
-        if (this.alertSound) {
-          await this.alertSound.playAsync();
-        }
+        console.log('BackgroundTimerService: Alert sound playing with music ducking');
       }
     } catch (error) {
       console.error('BackgroundTimerService: Error playing alert sound:', error);

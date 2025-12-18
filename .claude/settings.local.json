@@ -132,7 +132,10 @@
       "Bash(git -C \"C:\\Users\\lucar\\AI-Gym-Trainer\" diff src/screens/HomeScreen.js)",
       "Bash(git -C \"C:\\Users\\lucar\\AI-Gym-Trainer\" add -A)",
       "Bash(git -C \"C:\\Users\\lucar\\AI-Gym-Trainer\" commit -m \"$(cat <<''EOF''\nfeat: Add Maintenance Finder (TDEE calculator) and improved home insights\n\n- Add MaintenanceFinderScreen for finding actual TDEE based on 2 weeks of weight/calorie tracking\n- Add WeightLogModal component for quick daily weight logging\n- Add MaintenanceCalculatorService for TDEE calculations\n- Improve HomeScreen with workout insights (streak, PRs) and nutrition insights\n- Fix timezone issues with date handling using local date strings\n- Update charts and nutrition dashboard improvements\n- Add documentation screenshots\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\")",
-      "Bash(git -C \"C:\\Users\\lucar\\AI-Gym-Trainer\" commit -m \"$(cat <<''EOF''\nfeat: Add recommended incline/decline degrees to exercises\n\n- Chest Fly: Added incline (30-45°) and decline (15-30°) recommendations\n- Dips: Added body angle info - upright (90°) for triceps, lean 20-30° for chest\n- Rear Delt Fly: Added 60-90° hip bend recommendation for bent-over variants\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\")"
+      "Bash(git -C \"C:\\Users\\lucar\\AI-Gym-Trainer\" commit -m \"$(cat <<''EOF''\nfeat: Add recommended incline/decline degrees to exercises\n\n- Chest Fly: Added incline (30-45°) and decline (15-30°) recommendations\n- Dips: Added body angle info - upright (90°) for triceps, lean 20-30° for chest\n- Rear Delt Fly: Added 60-90° hip bend recommendation for bent-over variants\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\")",
+      "WebFetch(domain:landonorris.com)",
+      "Bash(timeout /t 8)",
+      "Bash(if not exist \"C:\\Users\\lucar\\AI-Gym-Trainer\\assets\\screenshots\" mkdir \"C:\\Users\\lucar\\AI-Gym-Trainer\\assets\\screenshots\")"
     ],
     "deny": [],
     "ask": []

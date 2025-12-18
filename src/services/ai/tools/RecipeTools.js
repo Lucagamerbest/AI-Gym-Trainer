@@ -1164,10 +1164,21 @@ Return ONLY valid JSON in this exact format:
 
 IMPORTANT: Return ONLY the JSON object, no other text.`;
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
-
+    // Generate using OpenAI via AIService with retry logic
+    let text;
+    try {
+      text = await generateWithRetry(prompt, {
+        temperature: 0.7,
+        maxOutputTokens: 2500,
+      });
+    } catch (error) {
+      console.error('❌ Meal components generation failed after retries:', error);
+      return {
+        success: false,
+        message: "Couldn't connect to AI service. Please check your internet connection and try again.",
+        error: error.message,
+      };
+    }
 
     // Parse JSON response
     const jsonMatch = text.match(/\{[\s\S]*\}/);

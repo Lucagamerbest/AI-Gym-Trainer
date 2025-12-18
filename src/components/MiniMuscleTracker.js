@@ -19,6 +19,7 @@ const muscleNameToModelId = {
   // Back - sub-muscles tracked separately but display as unified "back"
   'back': 'back',
   'lats': 'back',
+  'lower lats': 'back',
   'latissimus dorsi': 'back',
   'lat': 'back',
   'upper back': 'back',
@@ -43,17 +44,35 @@ const muscleNameToModelId = {
   'anterior deltoid': 'shoulders',
   'lateral deltoid': 'shoulders',
   'delts': 'shoulders',
+  'rotator cuff': 'shoulders',
+  'levator scapulae': 'shoulders',
 
-  // Arms
+  // Biceps - include all head variations
   'biceps': 'biceps',
   'biceps brachii': 'biceps',
+  'biceps long head': 'biceps',
+  'biceps short head': 'biceps',
+  'brachialis': 'biceps',
+  'arms': 'biceps',
+
+  // Triceps - include all head variations
   'triceps': 'triceps',
   'triceps brachii': 'triceps',
+  'triceps long head': 'triceps',
+  'triceps lateral head': 'triceps',
+  'triceps medial head': 'triceps',
+
+  // Forearms
   'forearms': 'forearms',
   'forearm': 'forearms',
   'wrist flexors': 'forearms',
   'wrist extensors': 'forearms',
   'grip': 'forearms',
+  'grip strength': 'forearms',
+  'pinch grip': 'forearms',
+  'brachioradialis': 'forearms',
+  'fingers': 'forearms',
+  'thumb': 'forearms',
 
   // Core / Abs - expanded mappings
   'abs': 'abs',
@@ -65,11 +84,13 @@ const muscleNameToModelId = {
   'lower abs': 'abs',
   'transverse abdominis': 'abs',
   'serratus': 'abs',
+  'serratus anterior': 'abs',
   'hip flexors': 'abs',
 
   // Legs - mapped to sub-regions
   'quadriceps': 'quads',
   'quads': 'quads',
+  'legs': 'quads',
   'glutes': 'glutes',
   'gluteus maximus': 'glutes',
   'gluteus medius': 'glutes',
@@ -81,11 +102,13 @@ const muscleNameToModelId = {
   'soleus': 'calves',
   'adductors': 'quads',
   'hip adductors': 'quads',
+  'inner thighs': 'quads',
 
   // Cardio
   'cardiovascular system': 'cardio',
   'cardio': 'cardio',
   'heart': 'cardio',
+  'full body': 'cardio',
 };
 
 // Helper to check if a set has been completed (has actual logged values)
@@ -112,7 +135,9 @@ const SECONDARY_WEIGHT = 0.5;
 
 // Sub-muscle to display name mapping (for detailed breakdown)
 const subMuscleDisplayNames = {
+  // Back sub-muscles
   'lats': 'Lats',
+  'lower lats': 'Lower Lats',
   'latissimus dorsi': 'Lats',
   'lat': 'Lats',
   'upper back': 'Upper Back',
@@ -128,10 +153,18 @@ const subMuscleDisplayNames = {
   'rear deltoids': 'Rear Delts',
   'posterior deltoid': 'Rear Delts',
   'rear delts': 'Rear Delts',
+  // Biceps sub-muscles
+  'biceps long head': 'Long Head',
+  'biceps short head': 'Short Head',
+  'brachialis': 'Brachialis',
+  // Triceps sub-muscles
+  'triceps long head': 'Long Head',
+  'triceps lateral head': 'Lateral Head',
+  'triceps medial head': 'Medial Head',
 };
 
 // Which muscles have sub-muscle breakdowns
-const musclesWithSubBreakdown = ['back'];
+const musclesWithSubBreakdown = ['back', 'biceps', 'triceps'];
 
 // Extract unique muscles from exercises and count sets
 // Primary muscles count as 1.0 sets, secondary muscles count as 0.5 sets

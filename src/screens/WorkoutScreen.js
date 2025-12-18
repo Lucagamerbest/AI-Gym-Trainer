@@ -1143,8 +1143,18 @@ export default function WorkoutScreen({ navigation, route }) {
     updatedExercises.splice(index, 1);
     updatedExercises.splice(targetIndex, 0, exercise);
 
-    // Update workout with new exercise order
-    updateWorkout({ exercises: updatedExercises });
+    // Reorder exercise sets to move with the exercises
+    const newSets = {};
+    updatedExercises.forEach((ex, newIndex) => {
+      const oldIndex = workoutExercises.indexOf(ex);
+      if (exerciseSets[oldIndex]) {
+        newSets[newIndex] = exerciseSets[oldIndex];
+      }
+    });
+    setExerciseSets(newSets);
+
+    // Update workout with new exercise order and sets
+    updateWorkout({ exercises: updatedExercises, exerciseSets: newSets });
 
     // Reset pending moves
     pendingMovesRef.current = { index: null, direction: null, count: 0 };
@@ -1813,6 +1823,52 @@ export default function WorkoutScreen({ navigation, route }) {
     // Parse with exercise name required (floating button can add any exercise)
     const parsed = parseVoiceWorkout(transcript, { requireExerciseName: true });
 
+    // Handle "add exercise" voice command
+    if (parsed.isAddExerciseCommand && parsed.matchedExercise) {
+      // Add the exercise to the workout
+      Alert.alert(
+        'Add Exercise',
+        `Add "${parsed.matchedExercise.name}" to your workout?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Add',
+            onPress: () => {
+              // Add exercise to workout
+              const newExercises = [...workoutExercises, parsed.matchedExercise];
+              updateWorkout({ exercises: newExercises });
+
+              // Initialize empty sets for the new exercise
+              const newIndex = newExercises.length - 1;
+              const isCardio = isCardioExercise(parsed.matchedExercise);
+              const newSets = {
+                ...exerciseSets,
+                [newIndex]: isCardio
+                  ? [{ duration: 0, completed: false }]
+                  : [{ weight: '', reps: '', completed: false }]
+              };
+              setExerciseSets(newSets);
+
+              // Scroll to the new exercise
+              setCurrentExerciseIndex(newIndex);
+
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            }
+          }
+        ]
+      );
+      return;
+    }
+
+    // Handle "add exercise" command when exercise wasn't found
+    if (parsed.isAddExerciseCommand && !parsed.matchedExercise && parsed.exerciseName) {
+      Alert.alert(
+        'Exercise Not Found',
+        `Couldn't find "${parsed.exerciseName}" in the database. Try saying the full exercise name like "incline dumbbell press" or "barbell squat".`
+      );
+      return;
+    }
+
     if (parsed.matchedExercise && parsed.sets.length > 0) {
       setVoiceTargetExercise(null); // No pre-selected exercise
       setVoiceWorkoutData(parsed);
@@ -1840,7 +1896,7 @@ export default function WorkoutScreen({ navigation, route }) {
     } else {
       Alert.alert(
         'Could Not Understand',
-        'Try saying something like: "3 sets of bench press, 135 for 10, 155 for 8, 175 for 6"'
+        'Try saying:\n• "Add bench press" to add an exercise\n• "Bench press 135 for 10, 155 for 8" to log sets'
       );
     }
   };

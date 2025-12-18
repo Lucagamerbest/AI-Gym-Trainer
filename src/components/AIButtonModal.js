@@ -565,7 +565,7 @@ export default function AIButtonModal({
     if (!response) return false;
 
     // Check if lastToolResults contains clarificationNeeded flag
-    if (lastToolResults?.some(tool => tool.result?.clarificationNeeded)) {
+    if (Array.isArray(lastToolResults) && lastToolResults.some(tool => tool.result?.clarificationNeeded)) {
       return true;
     }
 

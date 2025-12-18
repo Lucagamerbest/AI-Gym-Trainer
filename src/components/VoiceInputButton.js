@@ -127,7 +127,8 @@ export default function VoiceInputButton({
 
       setIsListening(true);
 
-      // Start speech recognition
+      // Start speech recognition with audio session configuration
+      // to prevent interrupting music playback
       await ExpoSpeechRecognitionModule.start({
         lang: 'en-US',
         interimResults: true, // Get results as user speaks
@@ -135,6 +136,16 @@ export default function VoiceInputButton({
         continuous: false, // Stop after user pauses
         requiresOnDeviceRecognition: false, // Use cloud for better accuracy
         addsPunctuation: true, // Auto-add punctuation
+        // iOS: Configure audio session to mix with other audio (music keeps playing)
+        iosCategory: {
+          category: 'playAndRecord',
+          categoryOptions: ['mixWithOthers', 'defaultToSpeaker', 'allowBluetooth'],
+          mode: 'measurement', // measurement mode is less intrusive than voiceChat
+        },
+        // Android: Use voice recognition audio source which is less intrusive
+        androidIntentOptions: {
+          EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS: 1000,
+        },
       });
     } catch (error) {
       console.error('Error starting speech recognition:', error);

@@ -3,7 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'expo-status-bar';
-import { View, Text, ActivityIndicator, StyleSheet, AppState } from 'react-native';
+import { View, Text, ActivityIndicator, StyleSheet, AppState, Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
@@ -20,6 +20,9 @@ import FreeRecipeService from './src/services/FreeRecipeService';
 import * as QuickActions from 'expo-quick-actions';
 import * as Notifications from 'expo-notifications';
 import { defineBackgroundTask } from './src/services/GymReminderTask';
+
+// Web landing page
+import LandingPage from './src/web/LandingPage';
 
 // Define background location task BEFORE any React components render
 defineBackgroundTask();
@@ -110,7 +113,7 @@ import UserProfileScreen from './src/screens/UserProfileScreen';
 import EditProfileSectionScreen from './src/screens/EditProfileSectionScreen';
 import Model3DWebViewScreen from './src/screens/Model3DWebViewScreen';
 import GymLocationScreen from './src/screens/GymLocationScreen';
-import GymMapScreen from './src/screens/GymMapScreen';
+import GymMapScreen from './src/screens/GymMapScreen'; // Has .web.js stub for web platform
 import RestaurantMenuScreen from './src/screens/RestaurantMenuScreen';
 import DiscoverPlansScreen from './src/screens/DiscoverPlansScreen';
 import PlanDetailScreen from './src/screens/PlanDetailScreen';
@@ -500,6 +503,21 @@ function AppNavigator() {
 }
 
 export default function App() {
+  // On web, show landing page first
+  const [showLanding, setShowLanding] = useState(Platform.OS === 'web');
+  const [initialScreen, setInitialScreen] = useState(null);
+
+  // Handle entering the app from landing page
+  const handleEnterApp = (screen = null) => {
+    setInitialScreen(screen);
+    setShowLanding(false);
+  };
+
+  // Show landing page on web
+  if (showLanding && Platform.OS === 'web') {
+    return <LandingPage onEnterApp={handleEnterApp} />;
+  }
+
   return (
     <SafeAreaProvider>
       <ThemeProvider>
@@ -507,7 +525,7 @@ export default function App() {
           <AICoachProvider>
             <WorkoutProvider>
               <StatusBar style="light" />
-              <AppNavigator />
+              <AppNavigator initialScreen={initialScreen} />
             </WorkoutProvider>
           </AICoachProvider>
         </AuthProvider>

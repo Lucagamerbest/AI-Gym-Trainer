@@ -576,7 +576,7 @@ export const exerciseDatabase = {
       "secondaryMuscles": ["Triceps", "Front Deltoids"],
       "equipment": "Bodyweight, Dip Belt, Assisted Machine",
       "difficulty": "Intermediate",
-      "instructions": "A compound bodyweight exercise emphasizing the lower chest. Lean forward during the movement to shift emphasis to chest (upright position targets triceps more). Lower body until slight stretch felt in chest, then press back up. Excellent for building lower chest mass and strength.",
+      "instructions": "A compound bodyweight exercise emphasizing the lower chest. Lean forward 20-30° during the movement to shift emphasis to chest (upright 90° targets triceps more). Lower body until slight stretch felt in chest, then press back up. Excellent for building lower chest mass and strength.",
       "variants": [
         {
           "equipment": "Bodyweight",
@@ -645,7 +645,7 @@ export const exerciseDatabase = {
           "setupTips": [
             "Select assistance weight (higher weight = easier)",
             "Kneel or stand on assistance platform",
-            "Lean forward to emphasize chest over triceps",
+            "Lean forward 20-30° to emphasize chest over triceps",
             "Lower until chest stretch felt, press back up",
             "Gradually reduce assistance as strength improves"
           ]
@@ -1501,7 +1501,7 @@ export const exerciseDatabase = {
           "setupTips": [
             "Secure barbell end in corner or landmine",
             "Straddle barbell with feet shoulder-width",
-            "Hinge at hips, grab bar with V-handle or hands",
+            "Hinge at hips 45-60° (more upright = more traps, more bent = more lats)",
             "Pull bar to chest, driving elbows back",
             "Keep back flat throughout movement"
           ]
@@ -2534,7 +2534,7 @@ export const exerciseDatabase = {
             "Cannot use leg drive for heavier weights"
           ],
           "setupTips": [
-            "Sit on bench with back support, feet flat on floor",
+            "Sit on bench set to 90° with back support, feet flat on floor",
             "Hold dumbbells with neutral grip, arms hanging at sides",
             "Keep torso upright and core engaged",
             "Curl dumbbells simultaneously or alternating",
@@ -2551,7 +2551,7 @@ export const exerciseDatabase = {
       "secondaryMuscles": ["Forearms"],
       "equipment": "Machine, Dumbbell, Cable Single, Cable Rope, EZ Bar",
       "difficulty": "Beginner",
-      "instructions": "An isolation exercise performed on a preacher bench that eliminates momentum and strictly targets the biceps. Position your upper arms on the pad and curl the weight up, focusing on peak contraction. The angled pad position emphasizes the lower portion of the biceps.",
+      "instructions": "An isolation exercise performed on a preacher bench (typically 45° angle) that eliminates momentum and strictly targets the biceps. Position your upper arms on the pad and curl the weight up, focusing on peak contraction. The angled pad position emphasizes the lower portion of the biceps.",
       "variants": [
         {
           "equipment": "Machine",
@@ -2692,7 +2692,7 @@ export const exerciseDatabase = {
           "setupTips": [
             "Sit on bench with legs spread, feet flat on floor",
             "Hold dumbbell in one hand, brace elbow against inner thigh",
-            "Lean forward slightly with free hand on opposite thigh",
+            "Lean forward 15-30° with free hand on opposite thigh",
             "Curl dumbbell up focusing on peak biceps contraction",
             "Lower slowly with full control to starting position"
           ]
@@ -2736,7 +2736,7 @@ export const exerciseDatabase = {
           "setupTips": [
             "Sit on bench positioned in front of low cable",
             "Attach D-handle and grasp with one hand",
-            "Brace elbow against inner thigh, lean forward slightly",
+            "Brace elbow against inner thigh, lean forward 15-30°",
             "Curl handle up focusing on biceps contraction",
             "Maintain constant tension on cable throughout set"
           ]
@@ -3289,7 +3289,7 @@ export const exerciseDatabase = {
       "secondaryMuscles": ["Front Deltoids"],
       "equipment": "EZ Bar, Barbell, Dumbbell",
       "difficulty": "Intermediate",
-      "instructions": "Also known as lying triceps extension. Lie on a bench with weight held above you. Lower the weight toward your forehead by bending elbows while keeping upper arms stationary. The EZ bar reduces wrist strain, barbell allows more weight, and dumbbells permit independent arm movement.",
+      "instructions": "Also known as lying triceps extension. Lie on a flat bench (or slight decline 10-15° for more long head stretch) with weight held above you. Lower the weight toward your forehead by bending elbows while keeping upper arms stationary. The EZ bar reduces wrist strain, barbell allows more weight, and dumbbells permit independent arm movement.",
       "variants": [
         {
           "equipment": "EZ Bar",

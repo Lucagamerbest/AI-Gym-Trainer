@@ -504,10 +504,27 @@ export async function parseContentFromImage({
     // Dynamically import AIService to avoid circular dependency
     const { default: AIService } = await import('../AIService');
 
+    // Try to initialize AI service if not already initialized
+    if (!AIService.isInitialized()) {
+      try {
+        // Try to initialize with API key from environment
+        const { initializeGemini } = await import('../../../config/gemini');
+        initializeGemini();
+        console.log('✅ AI Service initialized on-demand for content parsing');
+      } catch (initError) {
+        console.error('Failed to initialize AI Service:', initError);
+        return {
+          success: false,
+          message: 'AI Service could not be initialized. Please check your API key configuration and restart the app.',
+        };
+      }
+    }
+
+    // Double-check initialization succeeded
     if (!AIService.isInitialized()) {
       return {
         success: false,
-        message: 'AI Service not initialized. Please restart the app.',
+        message: 'AI Service not initialized. Please check your OpenAI API key in settings.',
       };
     }
 
@@ -653,10 +670,25 @@ export async function parseRecipeFromMultipleImages({
     // Dynamically import AIService
     const { default: AIService } = await import('../AIService');
 
+    // Try to initialize AI service if not already initialized
+    if (!AIService.isInitialized()) {
+      try {
+        const { initializeGemini } = await import('../../../config/gemini');
+        initializeGemini();
+        console.log('✅ AI Service initialized on-demand for multi-image parsing');
+      } catch (initError) {
+        console.error('Failed to initialize AI Service:', initError);
+        return {
+          success: false,
+          message: 'AI Service could not be initialized. Please check your API key configuration.',
+        };
+      }
+    }
+
     if (!AIService.isInitialized()) {
       return {
         success: false,
-        message: 'AI Service not initialized. Please restart the app.',
+        message: 'AI Service not initialized. Please check your OpenAI API key in settings.',
       };
     }
 
@@ -763,10 +795,25 @@ export async function parseContentFromText({
     // Dynamically import AIService
     const { default: AIService } = await import('../AIService');
 
+    // Try to initialize AI service if not already initialized
+    if (!AIService.isInitialized()) {
+      try {
+        const { initializeGemini } = await import('../../../config/gemini');
+        initializeGemini();
+        console.log('✅ AI Service initialized on-demand for text parsing');
+      } catch (initError) {
+        console.error('Failed to initialize AI Service:', initError);
+        return {
+          success: false,
+          message: 'AI Service could not be initialized. Please check your API key configuration.',
+        };
+      }
+    }
+
     if (!AIService.isInitialized()) {
       return {
         success: false,
-        message: 'AI Service not initialized. Please restart the app.',
+        message: 'AI Service not initialized. Please check your OpenAI API key in settings.',
       };
     }
 
