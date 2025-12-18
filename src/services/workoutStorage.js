@@ -91,7 +91,34 @@ export class WorkoutStorageService {
     }
 
     try {
-      const history = await this.getWorkoutHistory(userId);
+      // Get workouts from user's storage
+      let history = await this.getWorkoutHistory(userId);
+      console.log(`📊 Found ${history.length} workouts for user ${userId}`);
+
+      // Also check guest storage and migrate those workouts
+      const guestHistory = await this.getWorkoutHistory('guest');
+      if (guestHistory.length > 0) {
+        console.log(`📊 Found ${guestHistory.length} guest workouts to migrate`);
+        history = [...history, ...guestHistory];
+
+        // Move guest workouts to user storage
+        const userHistory = await this.getWorkoutHistory(userId);
+        const mergedHistory = [...userHistory];
+        for (const guestWorkout of guestHistory) {
+          // Check if workout already exists (by id)
+          if (!mergedHistory.find(w => w.id === guestWorkout.id)) {
+            mergedHistory.push({ ...guestWorkout, userId });
+          }
+        }
+        await AsyncStorage.setItem(
+          `${STORAGE_KEYS.WORKOUT_HISTORY}_${userId}`,
+          JSON.stringify(mergedHistory)
+        );
+        // Clear guest storage after migration
+        await AsyncStorage.removeItem(`${STORAGE_KEYS.WORKOUT_HISTORY}_guest`);
+        console.log('✅ Migrated guest workouts to user account');
+      }
+
       let synced = 0;
       let failed = 0;
 
@@ -100,6 +127,7 @@ export class WorkoutStorageService {
           const workoutRef = doc(db, 'users', userId, 'workouts', workout.id);
           await setDoc(workoutRef, {
             ...workout,
+            userId, // Ensure userId is set
             syncedAt: new Date().toISOString(),
           });
           synced++;
