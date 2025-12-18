@@ -54,6 +54,110 @@ const extractLocalDate = (dateValue) => {
   return String(dateValue);
 };
 
+// Fullscreen Image Lightbox Component
+const ImageLightbox = ({ isOpen, imageUrl, onClose }) => {
+  if (!isOpen || !imageUrl) return null;
+
+  const handleDownload = () => {
+    // Create a temporary link to download the image
+    const link = document.createElement('a');
+    link.href = imageUrl;
+    link.download = `workout-photo-${Date.now()}.jpg`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onClose}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(0,0,0,0.95)',
+        backdropFilter: 'blur(10px)',
+        zIndex: 3000,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '20px',
+      }}
+    >
+      {/* Close button */}
+      <motion.button
+        onClick={onClose}
+        whileHover={{ scale: 1.1, background: 'rgba(255,255,255,0.2)' }}
+        style={{
+          position: 'absolute',
+          top: '20px',
+          right: '20px',
+          background: 'rgba(255,255,255,0.1)',
+          border: 'none',
+          borderRadius: '50%',
+          width: '50px',
+          height: '50px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          color: '#FFFFFF',
+          fontSize: '28px',
+          zIndex: 3001,
+        }}
+      >
+        ×
+      </motion.button>
+
+      {/* Image */}
+      <motion.img
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.3 }}
+        src={imageUrl}
+        alt="Workout photo"
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          maxWidth: '90vw',
+          maxHeight: '80vh',
+          objectFit: 'contain',
+          borderRadius: '12px',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+        }}
+      />
+
+      {/* Download button */}
+      <motion.button
+        onClick={(e) => {
+          e.stopPropagation();
+          handleDownload();
+        }}
+        whileHover={{ scale: 1.05, background: 'rgba(139, 92, 246, 0.9)' }}
+        whileTap={{ scale: 0.95 }}
+        style={{
+          marginTop: '24px',
+          background: 'rgba(139, 92, 246, 0.7)',
+          border: 'none',
+          borderRadius: '12px',
+          padding: '14px 32px',
+          cursor: 'pointer',
+          color: '#FFFFFF',
+          fontSize: '16px',
+          fontWeight: '600',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+        }}
+      >
+        <span>⬇️</span> Download Photo
+      </motion.button>
+    </motion.div>
+  );
+};
+
 // Tab navigation items
 const TABS = [
   { id: 'workouts', label: 'Workouts', icon: 'M4 6h16M4 12h16M4 18h16' },
@@ -360,26 +464,36 @@ const formatDateForDisplay = (dateValue) => {
 };
 
 // Workout card component
-const WorkoutCard = ({ workout }) => {
+const WorkoutCard = ({ workout, onClick, onPhotoClick }) => {
   const exerciseCount = workout.exercises?.length || 0;
   const setCount = workout.exercises?.reduce((acc, ex) => acc + (ex.sets?.length || 0), 0) || 0;
   // Get exercise names (limit to first 3 for display)
   const exerciseNames = workout.exercises?.slice(0, 3).map(ex => ex.name).filter(Boolean) || [];
   const moreCount = exerciseCount > 3 ? exerciseCount - 3 : 0;
+  // Get photos (if any)
+  const photos = workout.photos || [];
+  const hasPhotos = photos.length > 0;
+
+  const getImageUrl = (photo) => {
+    return photo.startsWith('data:') ? photo : `data:image/jpeg;base64,${photo}`;
+  };
 
   return (
     <motion.div
-      whileHover={{ scale: 1.01 }}
+      whileHover={{ scale: 1.01, background: 'rgba(255,255,255,0.05)' }}
+      whileTap={{ scale: 0.99 }}
+      onClick={onClick}
       style={{
         background: 'rgba(255,255,255,0.03)',
         border: '1px solid rgba(255,255,255,0.08)',
         borderRadius: '12px',
         padding: '16px',
         marginBottom: '10px',
+        cursor: onClick ? 'pointer' : 'default',
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-        <div>
+        <div style={{ flex: 1 }}>
           <div style={{ fontSize: '15px', fontWeight: '600', color: '#FFFFFF', marginBottom: '2px' }}>
             {workout.workoutTitle || workout.name || workout.workoutType || 'Workout'}
           </div>
@@ -387,19 +501,106 @@ const WorkoutCard = ({ workout }) => {
             {formatDateForDisplay(workout.date)}
           </div>
         </div>
-        {workout.duration && (
-          <div style={{
-            background: 'rgba(139, 92, 246, 0.15)',
-            padding: '4px 10px',
-            borderRadius: '20px',
-            fontSize: '12px',
-            color: '#8B5CF6',
-            fontWeight: '500',
-          }}>
-            {workout.duration} min
-          </div>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {hasPhotos && (
+            <div style={{
+              background: 'rgba(16, 185, 129, 0.15)',
+              padding: '4px 8px',
+              borderRadius: '20px',
+              fontSize: '11px',
+              color: '#10B981',
+              fontWeight: '500',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                <circle cx="12" cy="13" r="4"/>
+              </svg>
+              {photos.length}
+            </div>
+          )}
+          {workout.duration && (
+            <div style={{
+              background: 'rgba(139, 92, 246, 0.15)',
+              padding: '4px 10px',
+              borderRadius: '20px',
+              fontSize: '12px',
+              color: '#8B5CF6',
+              fontWeight: '500',
+            }}>
+              {workout.duration} min
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Workout Photos */}
+      {hasPhotos && (
+        <div style={{
+          display: 'flex',
+          gap: '8px',
+          marginBottom: '12px',
+          overflowX: 'auto',
+          paddingBottom: '4px',
+        }}>
+          {photos.slice(0, 4).map((photo, index) => (
+            <img
+              key={index}
+              src={getImageUrl(photo)}
+              alt={`Workout photo ${index + 1}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onPhotoClick) onPhotoClick(getImageUrl(photo));
+              }}
+              style={{
+                width: '80px',
+                height: '80px',
+                objectFit: 'cover',
+                borderRadius: '8px',
+                border: '1px solid rgba(255,255,255,0.1)',
+                flexShrink: 0,
+                cursor: 'pointer',
+                transition: 'transform 0.2s, border-color 0.2s',
+              }}
+              onMouseOver={(e) => {
+                e.target.style.transform = 'scale(1.05)';
+                e.target.style.borderColor = 'rgba(139, 92, 246, 0.5)';
+              }}
+              onMouseOut={(e) => {
+                e.target.style.transform = 'scale(1)';
+                e.target.style.borderColor = 'rgba(255,255,255,0.1)';
+              }}
+            />
+          ))}
+          {photos.length > 4 && (
+            <div
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onPhotoClick) onPhotoClick(getImageUrl(photos[4]));
+              }}
+              style={{
+                width: '80px',
+                height: '80px',
+                borderRadius: '8px',
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '14px',
+                color: 'rgba(255,255,255,0.6)',
+                fontWeight: '600',
+                flexShrink: 0,
+                cursor: 'pointer',
+              }}>
+              +{photos.length - 4}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Exercise names */}
       {exerciseNames.length > 0 && (
         <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginBottom: '8px' }}>
@@ -497,44 +698,21 @@ const EmptyState = ({ message }) => (
   </div>
 );
 
-// Exercise image mapping (common exercises)
-const getExerciseImage = (exerciseName) => {
-  const name = exerciseName?.toLowerCase() || '';
-
-  // Map common exercises to placeholder images or icons
-  const exerciseIcons = {
-    'bench press': '🏋️',
-    'squat': '🦵',
-    'deadlift': '💪',
-    'overhead press': '🙆',
-    'barbell row': '🚣',
-    'pull up': '🧗',
-    'pullup': '🧗',
-    'chin up': '🧗',
-    'lat pulldown': '⬇️',
-    'bicep curl': '💪',
-    'tricep': '💪',
-    'leg press': '🦵',
-    'lunge': '🚶',
-    'calf raise': '🦶',
-    'shoulder': '🙆',
-    'chest fly': '🦅',
-    'dumbbell': '🏋️',
-    'cable': '🔗',
-    'machine': '⚙️',
-    'plank': '📏',
-    'crunch': '🔄',
-    'sit up': '🔄',
-  };
-
-  for (const [key, icon] of Object.entries(exerciseIcons)) {
-    if (name.includes(key)) return icon;
-  }
-  return '🏋️'; // Default
-};
+// Exercise icon component - returns an SVG icon
+const ExerciseIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6.5 6.5m-3.5 0a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0 -7 0"/>
+    <path d="M2.5 12h5M16.5 12h5"/>
+    <path d="M4 12v-1.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1.5"/>
+    <path d="M20 12v-1.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1.5"/>
+    <path d="M7.5 12h9"/>
+  </svg>
+);
 
 // Workout Detail Modal
 const WorkoutDetailModal = ({ isOpen, onClose, date, workouts }) => {
+  const [lightboxImage, setLightboxImage] = useState(null);
+
   if (!isOpen) return null;
 
   const formatDate = (dateStr) => {
@@ -542,7 +720,21 @@ const WorkoutDetailModal = ({ isOpen, onClose, date, workouts }) => {
     return d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   };
 
+  const getImageUrl = (photo) => {
+    return photo.startsWith('data:') ? photo : `data:image/jpeg;base64,${photo}`;
+  };
+
   return (
+    <>
+    <AnimatePresence>
+      {lightboxImage && (
+        <ImageLightbox
+          isOpen={!!lightboxImage}
+          imageUrl={lightboxImage}
+          onClose={() => setLightboxImage(null)}
+        />
+      )}
+    </AnimatePresence>
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -626,13 +818,107 @@ const WorkoutDetailModal = ({ isOpen, onClose, date, workouts }) => {
                       {workout.workoutTitle || workout.name || workout.workoutType || 'Workout'}
                     </h3>
                     <div style={{ display: 'flex', gap: '16px', fontSize: '13px', color: 'rgba(255,255,255,0.6)' }}>
-                      {workout.duration && <span>⏱️ {workout.duration} min</span>}
-                      <span>💪 {workout.exercises?.length || 0} exercises</span>
-                      <span>📊 {workout.exercises?.reduce((acc, ex) => acc + (ex.sets?.length || 0), 0) || 0} sets</span>
+                      {workout.duration && (
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+                          </svg>
+                          {workout.duration} min
+                        </span>
+                      )}
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M6 4v16M18 4v16M6 12h12M3 8h6M15 8h6M3 16h6M15 16h6"/>
+                        </svg>
+                        {workout.exercises?.length || 0} exercises
+                      </span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M4 19h16M4 15h16M4 11h16M4 7h16"/>
+                        </svg>
+                        {workout.exercises?.reduce((acc, ex) => acc + (ex.sets?.length || 0), 0) || 0} sets
+                      </span>
                     </div>
                   </div>
                 </div>
               </div>
+
+              {/* Workout Notes */}
+              {workout.notes && workout.notes.trim() && (
+                <div style={{
+                  background: 'rgba(255,255,255,0.03)',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  borderRadius: '12px',
+                  padding: '16px',
+                  marginBottom: '16px',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                      <path d="M14 2v6h6"/>
+                      <path d="M16 13H8"/>
+                      <path d="M16 17H8"/>
+                      <path d="M10 9H8"/>
+                    </svg>
+                    <h4 style={{ fontSize: '14px', fontWeight: '600', color: 'rgba(255,255,255,0.7)', margin: 0 }}>
+                      Workout Notes
+                    </h4>
+                  </div>
+                  <p style={{
+                    fontSize: '14px',
+                    color: 'rgba(255,255,255,0.8)',
+                    margin: 0,
+                    lineHeight: '1.5',
+                    whiteSpace: 'pre-wrap',
+                  }}>
+                    {workout.notes}
+                  </p>
+                </div>
+              )}
+
+              {/* Workout Photos */}
+              {workout.photos && workout.photos.length > 0 && (
+                <div style={{
+                  marginBottom: '20px',
+                }}>
+                  <h4 style={{ fontSize: '14px', fontWeight: '600', color: 'rgba(255,255,255,0.7)', margin: 0, marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                      <circle cx="12" cy="13" r="4"/>
+                    </svg>
+                    Workout Photos ({workout.photos.length})
+                  </h4>
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+                    gap: '12px',
+                  }}>
+                    {workout.photos.map((photo, pIndex) => (
+                      <motion.img
+                        key={pIndex}
+                        src={getImageUrl(photo)}
+                        alt={`Workout photo ${pIndex + 1}`}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: pIndex * 0.1 }}
+                        style={{
+                          width: '100%',
+                          aspectRatio: '1',
+                          objectFit: 'cover',
+                          borderRadius: '12px',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          cursor: 'pointer',
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setLightboxImage(getImageUrl(photo));
+                        }}
+                        whileHover={{ scale: 1.05 }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Exercises */}
               {workout.exercises && workout.exercises.map((exercise, eIndex) => (
@@ -672,8 +958,8 @@ const WorkoutDetailModal = ({ isOpen, onClose, date, workouts }) => {
                           onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
                         />
                       ) : null}
-                      <span style={{ display: exercise.imageUrl ? 'none' : 'flex' }}>
-                        {getExerciseImage(exercise.name)}
+                      <span style={{ display: exercise.imageUrl ? 'none' : 'flex', color: 'rgba(255,255,255,0.5)' }}>
+                        <ExerciseIcon />
                       </span>
                     </div>
 
@@ -696,8 +982,14 @@ const WorkoutDetailModal = ({ isOpen, onClose, date, workouts }) => {
                         </span>
                       )}
                       {exercise.notes && (
-                        <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', margin: 0, marginTop: '4px' }}>
-                          📝 {exercise.notes}
+                        <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', margin: 0, marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <path d="M14 2v6h6"/>
+                            <path d="M16 13H8"/>
+                            <path d="M16 17H8"/>
+                          </svg>
+                          {exercise.notes}
                         </p>
                       )}
                     </div>
@@ -733,42 +1025,67 @@ const WorkoutDetailModal = ({ isOpen, onClose, date, workouts }) => {
                         const reps = parseInt(set.reps) || 0;
                         const volume = weight * reps;
                         const isPR = set.isPR || set.isPersonalRecord;
+                        const hasComment = set.comment && set.comment.trim();
 
                         return (
-                          <div
-                            key={sIndex}
-                            style={{
-                              display: 'grid',
-                              gridTemplateColumns: '50px 1fr 1fr 1fr',
-                              padding: '12px 16px',
-                              borderTop: '1px solid rgba(255,255,255,0.05)',
-                              fontSize: '14px',
-                              alignItems: 'center',
-                              background: isPR ? 'rgba(245, 158, 11, 0.1)' : 'transparent',
-                            }}
-                          >
-                            <span style={{ color: 'rgba(255,255,255,0.5)' }}>{sIndex + 1}</span>
-                            <span style={{ color: '#8B5CF6', fontWeight: '600' }}>
-                              {weight > 0 ? `${weight} lbs` : '-'}
-                            </span>
-                            <span style={{ color: '#06B6D4', fontWeight: '600' }}>
-                              {reps > 0 ? reps : '-'}
-                            </span>
-                            <span style={{ color: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              {volume > 0 ? volume.toLocaleString() : '-'}
-                              {isPR && (
-                                <span style={{
-                                  background: 'linear-gradient(135deg, #F59E0B, #EF4444)',
-                                  color: '#FFFFFF',
-                                  fontSize: '9px',
-                                  fontWeight: '700',
-                                  padding: '2px 6px',
-                                  borderRadius: '4px',
+                          <div key={sIndex}>
+                            <div
+                              style={{
+                                display: 'grid',
+                                gridTemplateColumns: '50px 1fr 1fr 1fr',
+                                padding: '12px 16px',
+                                borderTop: '1px solid rgba(255,255,255,0.05)',
+                                fontSize: '14px',
+                                alignItems: 'center',
+                                background: isPR ? 'rgba(245, 158, 11, 0.1)' : 'transparent',
+                              }}
+                            >
+                              <span style={{ color: 'rgba(255,255,255,0.5)' }}>{sIndex + 1}</span>
+                              <span style={{ color: '#8B5CF6', fontWeight: '600' }}>
+                                {weight > 0 ? `${weight} lbs` : '-'}
+                              </span>
+                              <span style={{ color: '#06B6D4', fontWeight: '600' }}>
+                                {reps > 0 ? reps : '-'}
+                              </span>
+                              <span style={{ color: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                {volume > 0 ? volume.toLocaleString() : '-'}
+                                {isPR && (
+                                  <span style={{
+                                    background: 'linear-gradient(135deg, #F59E0B, #EF4444)',
+                                    color: '#FFFFFF',
+                                    fontSize: '9px',
+                                    fontWeight: '700',
+                                    padding: '2px 6px',
+                                    borderRadius: '4px',
+                                  }}>
+                                    PR
+                                  </span>
+                                )}
+                              </span>
+                            </div>
+                            {/* Set comment */}
+                            {hasComment && (
+                              <div style={{
+                                padding: '8px 16px 12px',
+                                paddingLeft: '66px',
+                                background: isPR ? 'rgba(245, 158, 11, 0.05)' : 'rgba(255,255,255,0.02)',
+                                borderTop: 'none',
+                              }}>
+                                <div style={{
+                                  display: 'flex',
+                                  alignItems: 'flex-start',
+                                  gap: '6px',
+                                  fontSize: '12px',
+                                  color: 'rgba(255,255,255,0.6)',
+                                  fontStyle: 'italic',
                                 }}>
-                                  PR
-                                </span>
-                              )}
-                            </span>
+                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                  </svg>
+                                  <span>{set.comment}</span>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         );
                       })}
@@ -802,6 +1119,7 @@ const WorkoutDetailModal = ({ isOpen, onClose, date, workouts }) => {
         )}
       </motion.div>
     </motion.div>
+    </>
   );
 };
 
@@ -810,6 +1128,7 @@ const WorkoutsSection = ({ data, loading }) => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedWorkouts, setSelectedWorkouts] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [lightboxImage, setLightboxImage] = useState(null);
 
   if (loading) return <LoadingSpinner />;
 
@@ -833,6 +1152,13 @@ const WorkoutsSection = ({ data, loading }) => {
     const workoutsForDay = dayWorkouts.length > 0 ? dayWorkouts : workoutsByDate[date] || [];
     setSelectedDate(date);
     setSelectedWorkouts(workoutsForDay);
+    setShowModal(true);
+  };
+
+  const handleWorkoutClick = (workout) => {
+    const date = extractLocalDate(workout.date);
+    setSelectedDate(date);
+    setSelectedWorkouts([workout]);
     setShowModal(true);
   };
 
@@ -877,7 +1203,12 @@ const WorkoutsSection = ({ data, loading }) => {
               <EmptyState message="No workouts recorded yet" />
             ) : (
               workoutList.slice(0, 15).map((workout) => (
-                <WorkoutCard key={workout.id} workout={workout} />
+                <WorkoutCard
+                  key={workout.id}
+                  workout={workout}
+                  onClick={() => handleWorkoutClick(workout)}
+                  onPhotoClick={(imageUrl) => setLightboxImage(imageUrl)}
+                />
               ))
             )}
           </div>
@@ -903,6 +1234,17 @@ const WorkoutsSection = ({ data, loading }) => {
             onClose={() => setShowModal(false)}
             date={selectedDate}
             workouts={selectedWorkouts}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Image Lightbox */}
+      <AnimatePresence>
+        {lightboxImage && (
+          <ImageLightbox
+            isOpen={!!lightboxImage}
+            imageUrl={lightboxImage}
+            onClose={() => setLightboxImage(null)}
           />
         )}
       </AnimatePresence>
