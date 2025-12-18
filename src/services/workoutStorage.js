@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { db } from '../config/firebase';
-import { collection, doc, setDoc } from 'firebase/firestore';
+import { collection, doc, setDoc, deleteDoc } from 'firebase/firestore';
 
 const STORAGE_KEYS = {
   WORKOUT_HISTORY: 'workout_history',
@@ -1377,6 +1377,20 @@ export class WorkoutStorageService {
 
       // Save updated progress
       await AsyncStorage.setItem(`${STORAGE_KEYS.EXERCISE_PROGRESS}_${userId}`, JSON.stringify(progress));
+
+      // Delete from Firebase if user is logged in
+      if (userId && userId !== 'guest' && db && workoutToDelete) {
+        try {
+          // Use cloudId if available, otherwise use the workout id
+          const firebaseDocId = workoutToDelete.cloudId || workoutToDelete.id;
+          const workoutRef = doc(db, 'users', userId, 'workouts', firebaseDocId);
+          await deleteDoc(workoutRef);
+          console.log('✅ Workout deleted from Firebase:', firebaseDocId);
+        } catch (firebaseError) {
+          console.warn('⚠️ Firebase delete failed:', firebaseError.message);
+          // Don't fail the whole operation if Firebase delete fails
+        }
+      }
 
       return { success: true, recordsRemoved };
     } catch (error) {
