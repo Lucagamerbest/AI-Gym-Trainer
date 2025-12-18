@@ -240,6 +240,24 @@ function AppNavigator() {
     };
   }, []);
 
+  // Sync workouts to Firebase when user logs in
+  useEffect(() => {
+    const syncWorkouts = async () => {
+      if (user?.uid) {
+        try {
+          const { WorkoutStorageService } = await import('./src/services/workoutStorage');
+          const result = await WorkoutStorageService.syncAllWorkoutsToFirebase(user.uid);
+          if (result.success) {
+            console.log(`🔄 Synced ${result.synced} workouts to cloud`);
+          }
+        } catch (error) {
+          console.log('Workout sync skipped:', error.message);
+        }
+      }
+    };
+    syncWorkouts();
+  }, [user?.uid]);
+
   // Pre-cache recipes in background (non-blocking)
   useEffect(() => {
     const preCacheRecipes = async () => {

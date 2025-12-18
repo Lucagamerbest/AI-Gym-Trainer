@@ -1,4 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { db } from '../config/firebase';
+import { collection, doc, setDoc } from 'firebase/firestore';
 
 const STORAGE_KEYS = {
   WORKOUT_HISTORY: 'workout_history',
@@ -36,10 +38,24 @@ export class WorkoutStorageService {
         })
       };
 
-      // Save to workout history
+      // Save to workout history (local)
       const history = await this.getWorkoutHistory(userId);
       history.push(workout);
       await AsyncStorage.setItem(`${STORAGE_KEYS.WORKOUT_HISTORY}_${userId}`, JSON.stringify(history));
+
+      // Sync to Firebase if user is logged in
+      if (userId && userId !== 'guest' && db) {
+        try {
+          const workoutRef = doc(db, 'users', userId, 'workouts', workout.id);
+          await setDoc(workoutRef, {
+            ...workout,
+            syncedAt: new Date().toISOString(),
+          });
+          console.log('✅ Workout synced to Firebase:', workout.id);
+        } catch (firebaseError) {
+          console.warn('⚠️ Firebase sync failed (will retry later):', firebaseError.message);
+        }
+      }
 
       // Update exercise progress for each exercise
       for (let i = 0; i < workout.exercises.length; i++) {
@@ -65,6 +81,39 @@ export class WorkoutStorageService {
       return history ? JSON.parse(history) : [];
     } catch (error) {
       return [];
+    }
+  }
+
+  // Sync all local workouts to Firebase (for past workouts that weren't synced)
+  static async syncAllWorkoutsToFirebase(userId) {
+    if (!userId || userId === 'guest' || !db) {
+      return { success: false, message: 'User not logged in' };
+    }
+
+    try {
+      const history = await this.getWorkoutHistory(userId);
+      let synced = 0;
+      let failed = 0;
+
+      for (const workout of history) {
+        try {
+          const workoutRef = doc(db, 'users', userId, 'workouts', workout.id);
+          await setDoc(workoutRef, {
+            ...workout,
+            syncedAt: new Date().toISOString(),
+          });
+          synced++;
+        } catch (error) {
+          console.warn('Failed to sync workout:', workout.id, error.message);
+          failed++;
+        }
+      }
+
+      console.log(`✅ Synced ${synced} workouts to Firebase (${failed} failed)`);
+      return { success: true, synced, failed, total: history.length };
+    } catch (error) {
+      console.error('Error syncing workouts:', error);
+      return { success: false, error: error.message };
     }
   }
 
