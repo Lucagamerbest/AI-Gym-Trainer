@@ -10,6 +10,7 @@ import Logo from '../components/Logo';
 import ActiveWorkoutIndicator from '../components/ActiveWorkoutIndicator';
 import { getNutritionGoals } from '../services/userProfileService';
 import MealSyncService from '../services/backend/MealSyncService';
+import WorkoutSyncService from '../services/backend/WorkoutSyncService';
 import { WorkoutStorageService } from '../services/workoutStorage';
 
 // Helper function to get local date string in YYYY-MM-DD format (avoids UTC timezone issues)
@@ -56,10 +57,25 @@ function HomeScreen({ navigation }) {
   // Load nutrition and workout data when screen is focused
   useFocusEffect(
     React.useCallback(() => {
+      // Sync with Firebase first if user is logged in, then load local data
+      const syncAndLoad = async () => {
+        if (user?.uid) {
+          try {
+            // Download latest from Firebase (this handles deletions too)
+            await WorkoutSyncService.downloadCloudWorkouts(user.uid);
+          } catch (error) {
+            // Silently fail - local data will still be shown
+            console.log('Background sync failed:', error.message);
+          }
+        }
+        // Now load from local storage (which is now updated)
+        loadWorkoutStats();
+        loadWorkoutInsights();
+      };
+
       loadNutritionData();
-      loadWorkoutStats();
-      loadWorkoutInsights();
       loadNutritionInsights();
+      syncAndLoad();
     }, [user])
   );
 

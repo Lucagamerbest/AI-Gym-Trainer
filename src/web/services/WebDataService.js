@@ -9,6 +9,7 @@ import {
   getDocs,
   setDoc,
   addDoc,
+  deleteDoc,
   query,
   orderBy,
   limit,
@@ -721,6 +722,7 @@ class WebDataService {
             return d >= monthAgo;
           }).length,
           prs: Object.entries(prs).slice(0, 5).map(([name, data]) => ({ name, ...data })),
+          list: workouts, // Full workouts array for detail views
         },
         nutrition: {
           currentStreak: nutritionStreak.current,
@@ -972,6 +974,29 @@ class WebDataService {
     } catch (error) {
       console.error('Error fetching saved recipes:', error);
       return [];
+    }
+  }
+
+  /**
+   * Delete a workout from history
+   * @param {string} userId - User ID
+   * @param {string} workoutId - Workout ID to delete
+   * @returns {Promise<boolean>} Success status
+   */
+  async deleteWorkout(userId, workoutId) {
+    try {
+      if (!userId || !workoutId || !db) {
+        console.error('Missing userId, workoutId, or db not initialized');
+        return false;
+      }
+
+      const workoutRef = doc(db, 'users', userId, 'workouts', workoutId);
+      await deleteDoc(workoutRef);
+      console.log('✅ Workout deleted from Firebase:', workoutId);
+      return true;
+    } catch (error) {
+      console.error('Error deleting workout:', error);
+      return false;
     }
   }
 }

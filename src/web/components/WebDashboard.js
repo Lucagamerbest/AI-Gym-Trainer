@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Platform } from 'react-native';
 import { motion, AnimatePresence } from 'framer-motion';
 import WebDataService from '../services/WebDataService';
@@ -38,6 +38,127 @@ const getLocalDateString = (date = new Date()) => {
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
+};
+
+// Exercise image mapping for web (URL-based images only)
+const EXERCISE_IMAGE_BASE_URL = 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/';
+
+const EXERCISE_IMAGES = {
+  // CHEST
+  "Bench Press": { default: "Barbell_Bench_Press_-_Medium_Grip", "Barbell": "Barbell_Bench_Press_-_Medium_Grip", "Dumbbell": "Dumbbell_Bench_Press", "Smith Machine": "Smith_Machine_Bench_Press" },
+  "Incline Bench Press": { default: "Barbell_Incline_Bench_Press_-_Medium_Grip", "Barbell": "Barbell_Incline_Bench_Press_-_Medium_Grip", "Dumbbell": "Incline_Dumbbell_Press" },
+  "Decline Bench Press": { default: "Decline_Barbell_Bench_Press", "Barbell": "Decline_Barbell_Bench_Press", "Dumbbell": "Decline_Dumbbell_Bench_Press" },
+  "Chest Fly": { default: "Dumbbell_Flyes", "Dumbbell": "Dumbbell_Flyes", "Cable": "Cable_Crossover", "Machine (Pec Deck)": "Butterfly" },
+  "Cable Crossover": { default: "Cable_Crossover", "Low to High": "Low_Cable_Crossover" },
+  "Push-ups": { default: "Pushups", "Standard": "Pushups", "Wide Grip": "Push-Up_Wide", "Diamond": "Push-Ups_-_Close_Triceps_Position" },
+  "Chest Dips": { default: "Dip_Machine", "Assisted Machine": "Dip_Machine" },
+
+  // BACK
+  "Lat Pulldown": { default: "Wide-Grip_Lat_Pulldown", "Wide Grip": "Wide-Grip_Lat_Pulldown", "Close Grip": "Close-Grip_Front_Lat_Pulldown", "V-Bar (Neutral Grip)": "V-Bar_Pulldown" },
+  "Cable Row": { default: "Seated_Cable_Rows", "Low Angle (lats focus)": "Seated_Cable_Rows", "High Angle (upper back/rear delts focus)": "Leverage_High_Row" },
+  "One Arm Row": { default: "One-Arm_Dumbbell_Row", "Dumbbell": "One-Arm_Dumbbell_Row" },
+  "Pullover": { default: "Bent-Arm_Dumbbell_Pullover", "Dumbbell": "Bent-Arm_Dumbbell_Pullover" },
+  "Pull-ups": { default: "Pullups", "Wide Grip": "Wide-Grip_Rear_Pull-Up", "Close Grip": "Close-Grip_Pull-Up" },
+  "Chin-ups": { default: "Chin-Up" },
+  "Deadlift": { default: "Barbell_Deadlift", "Conventional": "Barbell_Deadlift", "Sumo": "Sumo_Deadlift", "Romanian": "Romanian_Deadlift" },
+  "T-Bar Row": { default: "Lying_T-Bar_Row", "Chest Supported": "Lying_T-Bar_Row" },
+  "Barbell Row": { default: "Bent_Over_Barbell_Row", "Overhand": "Bent_Over_Barbell_Row", "Underhand": "Reverse_Grip_Bent-Over_Rows" },
+  "Face Pull": { default: "Face_Pull" },
+  "Shrugs": { default: "Barbell_Shrug", "Barbell": "Barbell_Shrug", "Dumbbell": "Dumbbell_Shrug" },
+  "Hyperextension": { default: "Hyperextensions_With_No_Hyperextension_Bench" },
+
+  // SHOULDERS
+  "Overhead Press": { default: "Standing_Military_Press", "Barbell": "Standing_Military_Press", "Dumbbell": "Dumbbell_Shoulder_Press" },
+  "Lateral Raise": { default: "Side_Lateral_Raise", "Dumbbell": "Side_Lateral_Raise", "Cable": "Cable_Lateral_Raise" },
+  "Front Raise": { default: "Front_Dumbbell_Raise", "Dumbbell": "Front_Dumbbell_Raise", "Barbell": "Front_Plate_Raise" },
+  "Rear Delt Fly": { default: "Seated_Bent-Over_Rear_Delt_Raise", "Dumbbell": "Seated_Bent-Over_Rear_Delt_Raise", "Cable": "Cable_Rear_Delt_Fly" },
+  "Arnold Press": { default: "Arnold_Dumbbell_Press" },
+  "Upright Row": { default: "Upright_Barbell_Row", "Barbell": "Upright_Barbell_Row", "Dumbbell": "Dumbbell_Lying_Rear_Lateral_Raise" },
+
+  // BICEPS
+  "Bicep Curl": { default: "Barbell_Curl", "Barbell": "Barbell_Curl", "Dumbbell": "Dumbbell_Bicep_Curl", "EZ Bar": "EZ-Bar_Curl", "Cable": "Cable_Hammer_Curls_-_Rope_Attachment" },
+  "Hammer Curl": { default: "Hammer_Curls", "Dumbbell": "Hammer_Curls", "Cable": "Cable_Hammer_Curls_-_Rope_Attachment" },
+  "Preacher Curl": { default: "Preacher_Curl", "Barbell": "Preacher_Curl", "Dumbbell": "One_Arm_Dumbbell_Preacher_Curl", "EZ Bar": "EZ-Bar_Preacher_Curl" },
+  "Incline Curl": { default: "Incline_Dumbbell_Curl" },
+  "Concentration Curl": { default: "Concentration_Curls" },
+  "Cable Curl": { default: "Cable_Hammer_Curls_-_Rope_Attachment", "Rope": "Cable_Hammer_Curls_-_Rope_Attachment", "Straight Bar": "Standing_Bicep_Cable_Curl" },
+
+  // TRICEPS
+  "Tricep Pushdown": { default: "Triceps_Pushdown", "Rope": "Triceps_Pushdown_-_Rope_Attachment", "V-Bar": "Triceps_Pushdown_-_V-Bar_Attachment", "Straight Bar": "Triceps_Pushdown" },
+  "Skull Crushers": { default: "Lying_Triceps_Press", "EZ Bar": "Lying_Triceps_Press", "Dumbbell": "Lying_Dumbbell_Tricep_Extension" },
+  "Overhead Tricep Extension": { default: "Dumbbell_One-Arm_Triceps_Extension", "Dumbbell": "Dumbbell_One-Arm_Triceps_Extension", "Cable": "Cable_One_Arm_Tricep_Extension" },
+  "Tricep Dips": { default: "Tricep_Dip", "Bench Dips": "Bench_Dips" },
+  "Close Grip Bench Press": { default: "Close-Grip_Barbell_Bench_Press" },
+  "Tricep Kickback": { default: "Tricep_Dumbbell_Kickback" },
+
+  // LEGS
+  "Squat": { default: "Barbell_Full_Squat", "Barbell": "Barbell_Full_Squat", "Dumbbell": "Dumbbell_Squat", "Smith Machine": "Smith_Machine_Squat" },
+  "Leg Press": { default: "Leg_Press" },
+  "Leg Extension": { default: "Leg_Extensions" },
+  "Leg Curl": { default: "Seated_Leg_Curl", "Seated": "Seated_Leg_Curl", "Lying": "Lying_Leg_Curls" },
+  "Romanian Deadlift": { default: "Romanian_Deadlift", "Barbell": "Romanian_Deadlift", "Dumbbell": "Romanian_Deadlift_With_Dumbbells" },
+  "Lunges": { default: "Dumbbell_Lunges", "Dumbbell": "Dumbbell_Lunges", "Barbell": "Barbell_Lunge" },
+  "Bulgarian Split Squat": { default: "Dumbbell_Single_Leg_Split_Squat" },
+  "Hip Thrust": { default: "Barbell_Hip_Thrust" },
+  "Glute Kickback": { default: "Glute_Kickback" },
+  "Calf Raise": { default: "Standing_Calf_Raises", "Standing": "Standing_Calf_Raises", "Seated": "Seated_Calf_Raise" },
+  "Hack Squat": { default: "Hack_Squat" },
+  "Step Up": { default: "Dumbbell_Step_Ups" },
+  "Good Morning": { default: "Good_Morning" },
+  "Hip Abduction": { default: "Thigh_Abductor" },
+  "Hip Adduction": { default: "Thigh_Adductor" },
+
+  // CORE
+  "Plank": { default: "Plank" },
+  "Crunches": { default: "Crunches" },
+  "Leg Raise": { default: "Hanging_Leg_Raise", "Hanging": "Hanging_Leg_Raise", "Lying": "Flat_Bench_Lying_Leg_Raise" },
+  "Russian Twist": { default: "Russian_Twist" },
+  "Ab Rollout": { default: "Ab_Roller" },
+  "Cable Crunch": { default: "Cable_Crunch" },
+  "Bicycle Crunch": { default: "Air_Bike" },
+  "Mountain Climbers": { default: "Mountain_Climbers" },
+  "Dead Bug": { default: "Dead_Bug" },
+  "Woodchop": { default: "Cable_Woodchop" },
+  "Side Plank": { default: "Side_Plank" },
+};
+
+// Get exercise image URL for web
+const getExerciseImageUrl = (exerciseName, equipment = null) => {
+  if (!exerciseName) return null;
+
+  // Parse exercise name - might contain equipment in parentheses like "Lat Pulldown (Wide Grip)"
+  let baseName = exerciseName;
+  let parsedEquipment = equipment;
+
+  const parenMatch = exerciseName.match(/^(.+?)\s*\(([^)]+)\)$/);
+  if (parenMatch) {
+    baseName = parenMatch[1].trim();
+    parsedEquipment = parsedEquipment || parenMatch[2].trim();
+  }
+
+  // Try exact match first
+  let mapping = EXERCISE_IMAGES[exerciseName];
+
+  // Then try base name
+  if (!mapping) {
+    mapping = EXERCISE_IMAGES[baseName];
+  }
+
+  if (!mapping) return null;
+
+  // Try to find equipment-specific image, fall back to default
+  let imageId = null;
+  if (parsedEquipment && mapping[parsedEquipment]) {
+    imageId = mapping[parsedEquipment];
+  } else if (equipment && mapping[equipment]) {
+    imageId = mapping[equipment];
+  } else {
+    imageId = mapping.default;
+  }
+
+  if (!imageId) return null;
+
+  return `${EXERCISE_IMAGE_BASE_URL}${imageId}/0.jpg`;
 };
 
 // Helper to extract local date from various formats (fixes timezone offset issues)
@@ -222,11 +343,12 @@ const StatCard = ({ title, value, subtitle, color = '#8B5CF6', icon, isMobile = 
 );
 
 // Calendar component
-const Calendar = ({ workoutDates = [], nutritionDates = [], type = 'workout', onDayClick, workoutsByDate = {} }) => {
+const Calendar = ({ workoutDates = [], nutritionDates = [], type = 'workout', onDayClick, workoutsByDate = {}, mealsByDate = {} }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const dates = type === 'workout' ? workoutDates : nutritionDates;
   // Dates should already be in YYYY-MM-DD format from WebDataService, don't re-process
   const dateSet = new Set(dates.filter(Boolean));
+  const dataByDate = type === 'workout' ? workoutsByDate : mealsByDate;
 
   const getDaysInMonth = (date) => {
     const year = date.getFullYear();
@@ -277,7 +399,7 @@ const Calendar = ({ workoutDates = [], nutritionDates = [], type = 'workout', on
     if (!day || !isActive(day)) return;
     const dateStr = getDateStr(day);
     if (onDayClick) {
-      onDayClick(dateStr, workoutsByDate[dateStr] || []);
+      onDayClick(dateStr, dataByDate[dateStr] || []);
     }
   };
 
@@ -320,9 +442,9 @@ const Calendar = ({ workoutDates = [], nutritionDates = [], type = 'workout', on
           </motion.div>
         ))}
       </div>
-      {type === 'workout' && (
+      {onDayClick && (
         <div style={{ marginTop: '12px', fontSize: '11px', color: 'rgba(255,255,255,0.4)', textAlign: 'center' }}>
-          Click on highlighted days to view workout details
+          Click on highlighted days to view {type === 'workout' ? 'workout' : 'meal'} details
         </div>
       )}
     </div>
@@ -468,14 +590,1061 @@ const BarChart = ({ data, dataKey, color = '#8B5CF6', height = 180, showLabels =
           <div key={index} style={{
             flex: 1,
             textAlign: 'center',
-            fontSize: '11px',
-            color: (item[dataKey] || 0) > 0 ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.3)',
             fontWeight: '500',
           }}>
-            {item.label || ''}
+            <div style={{
+              fontSize: '11px',
+              color: (item[dataKey] || 0) > 0 ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.3)',
+            }}>
+              {item.label || ''}
+            </div>
+            {item.dayNum && (
+              <div style={{
+                fontSize: '10px',
+                color: 'rgba(255,255,255,0.4)',
+                marginTop: '2px',
+              }}>
+                {item.dayNum}
+              </div>
+            )}
           </div>
         ))}
       </div>
+    </div>
+  );
+};
+
+// Line chart component for exercise progress
+const LineChart = ({ data, height = 200, chartType = 'max', onPointClick }) => {
+  if (!data || data.length === 0) return null;
+
+  const values = data.map(d => d.weight);
+  const minValue = Math.min(...values);
+  const maxValue = Math.max(...values);
+
+  // Add padding to range
+  const range = maxValue - minValue;
+  const chartMin = range === 0 ? Math.max(0, minValue - 10) : Math.floor(minValue * 0.9);
+  const chartMax = range === 0 ? maxValue + 10 : Math.ceil(maxValue * 1.1);
+  const chartRange = chartMax - chartMin;
+
+  const chartAreaHeight = height - 40; // Space for labels
+
+  const getYPosition = (value) => {
+    if (chartRange === 0) return chartAreaHeight / 2;
+    return chartAreaHeight - ((value - chartMin) / chartRange) * chartAreaHeight;
+  };
+
+  const getXPosition = (index) => {
+    if (data.length === 1) return 50;
+    // Add padding so points aren't at the very edges (5% to 95%)
+    const padding = 5;
+    const usableWidth = 100 - (padding * 2);
+    return padding + (index / (data.length - 1)) * usableWidth;
+  };
+
+  // Progress colors
+  const getColor = (prevValue, currentValue) => {
+    if (currentValue > prevValue) return '#10B981'; // Green for progress
+    if (currentValue < prevValue) return '#EF4444'; // Red for regression
+    return '#8B5CF6'; // Purple for no change
+  };
+
+  // Format value for display
+  const formatValue = (value) => {
+    if (value >= 1000) return `${(value / 1000).toFixed(1)}k`;
+    return Math.round(value).toString();
+  };
+
+  // Calculate Y-axis labels
+  const yLabels = [chartMax, chartMin + (chartRange * 2/3), chartMin + (chartRange / 3), chartMin];
+
+  return (
+    <div style={{ height, position: 'relative' }}>
+      {/* Y-axis labels */}
+      <div style={{ position: 'absolute', left: 0, top: 0, bottom: 40, width: '40px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        {yLabels.map((label, i) => (
+          <span key={i} style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', textAlign: 'right', paddingRight: '8px' }}>
+            {formatValue(label)}
+          </span>
+        ))}
+      </div>
+
+      {/* Chart area */}
+      <div style={{ position: 'absolute', left: 40, right: 0, top: 0, bottom: 40, userSelect: 'none' }}>
+        {/* Grid lines */}
+        {[0, 0.33, 0.67, 1].map((ratio, i) => (
+          <div
+            key={i}
+            style={{
+              position: 'absolute',
+              left: 0,
+              right: 0,
+              top: `${ratio * 100}%`,
+              height: '1px',
+              background: 'rgba(255,255,255,0.06)',
+              pointerEvents: 'none',
+            }}
+          />
+        ))}
+
+        {/* SVG for lines and dots */}
+        <svg style={{ width: '100%', height: '100%', overflow: 'visible', pointerEvents: 'none' }}>
+          {/* Area fill */}
+          <defs>
+            <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.3" />
+              <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+
+          {data.length > 1 && (
+            <path
+              d={`M ${getXPosition(0)}% ${getYPosition(values[0])}
+                  ${data.map((_, i) => `L ${getXPosition(i)}% ${getYPosition(values[i])}`).join(' ')}
+                  L ${getXPosition(data.length - 1)}% ${chartAreaHeight}
+                  L ${getXPosition(0)}% ${chartAreaHeight} Z`}
+              fill="url(#areaGradient)"
+            />
+          )}
+
+          {/* Lines connecting points */}
+          {data.map((point, index) => {
+            if (index === 0) return null;
+            const x1 = `${getXPosition(index - 1)}%`;
+            const y1 = getYPosition(values[index - 1]);
+            const x2 = `${getXPosition(index)}%`;
+            const y2 = getYPosition(values[index]);
+            const color = getColor(values[index - 1], values[index]);
+
+            return (
+              <line
+                key={`line-${index}`}
+                x1={x1}
+                y1={y1}
+                x2={x2}
+                y2={y2}
+                stroke={color}
+                strokeWidth="3"
+                strokeLinecap="round"
+              />
+            );
+          })}
+
+          {/* Data points */}
+          {data.map((point, index) => {
+            const cx = `${getXPosition(index)}%`;
+            const cy = getYPosition(values[index]);
+            const color = index === 0 ? '#8B5CF6' : getColor(values[index - 1], values[index]);
+
+            return (
+              <g key={`point-${index}`}>
+                <circle cx={cx} cy={cy} r="8" fill={color} opacity="0.3" />
+                <circle cx={cx} cy={cy} r="5" fill="#111111" stroke={color} strokeWidth="2" />
+              </g>
+            );
+          })}
+        </svg>
+
+        {/* Clickable overlay areas for each point */}
+        {onPointClick && data.map((point, index) => {
+          const left = `${getXPosition(index)}%`;
+          const top = getYPosition(values[index]);
+
+          return (
+            <button
+              key={`click-${index}`}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onPointClick(point, index);
+              }}
+              style={{
+                position: 'absolute',
+                left,
+                top,
+                transform: 'translate(-50%, -50%)',
+                width: '50px',
+                height: '50px',
+                borderRadius: '50%',
+                cursor: 'pointer',
+                zIndex: 20,
+                userSelect: 'none',
+                WebkitUserSelect: 'none',
+                background: 'transparent',
+                border: 'none',
+                padding: 0,
+                outline: 'none',
+              }}
+            />
+          );
+        })}
+
+        {/* Value labels on points (show first, last, and max) */}
+        {data.map((point, index) => {
+          const showLabel = index === 0 || index === data.length - 1 || values[index] === maxValue;
+          if (!showLabel) return null;
+
+          const left = `${getXPosition(index)}%`;
+          const top = getYPosition(values[index]) - 24;
+          const color = index === 0 ? '#8B5CF6' : getColor(values[index - 1], values[index]);
+
+          return (
+            <div
+              key={`label-${index}`}
+              onClick={() => onPointClick && onPointClick(point, index)}
+              style={{
+                position: 'absolute',
+                left,
+                top,
+                transform: 'translateX(-50%)',
+                background: color,
+                padding: '2px 6px',
+                borderRadius: '4px',
+                fontSize: '10px',
+                fontWeight: '600',
+                color: '#FFFFFF',
+                whiteSpace: 'nowrap',
+                cursor: onPointClick ? 'pointer' : 'default',
+                zIndex: 11,
+              }}
+            >
+              {formatValue(values[index])}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* X-axis labels - positioned below each data point */}
+      <div style={{ position: 'absolute', left: 40, right: 0, bottom: 0, height: '40px' }}>
+        {data.map((point, index) => (
+          <span
+            key={index}
+            style={{
+              position: 'absolute',
+              left: `${getXPosition(index)}%`,
+              transform: 'translateX(-50%)',
+              fontSize: '11px',
+              color: 'rgba(255,255,255,0.5)',
+              textAlign: 'center',
+              top: '8px',
+            }}
+          >
+            {point.label || ''}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Single Exercise Chart Card Component
+const ExerciseChartCard = ({ exercise, isMobile = false }) => {
+  const records = exercise?.records || [];
+
+  // Group records by workout date and get max weight per day
+  const getChartData = () => {
+    const dateMap = {};
+
+    records.forEach(record => {
+      const dateKey = record.date?.split('T')[0] || record.date;
+      if (!dateMap[dateKey]) {
+        dateMap[dateKey] = [];
+      }
+      dateMap[dateKey].push(record.weight);
+    });
+
+    return Object.entries(dateMap)
+      .sort((a, b) => new Date(a[0]) - new Date(b[0]))
+      .slice(-12) // Last 12 workouts
+      .map(([date, weights]) => {
+        const d = new Date(date);
+        return {
+          date,
+          weight: Math.max(...weights),
+          label: `${d.getMonth() + 1}/${d.getDate()}`,
+        };
+      });
+  };
+
+  const chartData = getChartData();
+
+  // Calculate progress
+  const getProgressSummary = () => {
+    if (chartData.length < 2) return null;
+    const first = chartData[0].weight;
+    const last = chartData[chartData.length - 1].weight;
+    const diff = last - first;
+    const percent = first > 0 ? ((diff / first) * 100).toFixed(0) : 0;
+    return { diff, percent, isPositive: diff > 0, isNeutral: diff === 0 };
+  };
+
+  const progress = getProgressSummary();
+
+  // Show card even with just 1 data point
+  if (chartData.length === 0) {
+    return (
+      <div style={{
+        background: 'rgba(255,255,255,0.03)',
+        border: '1px solid rgba(255,255,255,0.08)',
+        borderRadius: isMobile ? '12px' : '16px',
+        padding: isMobile ? '14px' : '20px',
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+          <h4 style={{ fontSize: isMobile ? '13px' : '15px', fontWeight: '600', color: '#FFFFFF', margin: 0 }}>
+            {exercise.name}
+          </h4>
+          <span style={{ fontSize: '12px', color: '#8B5CF6', fontWeight: '600' }}>{exercise.maxWeight} lbs</span>
+        </div>
+        <div style={{
+          height: isMobile ? 80 : 100,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'rgba(255,255,255,0.3)',
+          fontSize: '12px',
+        }}>
+          No workout data yet
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{
+      background: 'rgba(255,255,255,0.03)',
+      border: '1px solid rgba(255,255,255,0.08)',
+      borderRadius: isMobile ? '12px' : '16px',
+      padding: isMobile ? '14px' : '20px',
+    }}>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+        <h4 style={{
+          fontSize: isMobile ? '13px' : '15px',
+          fontWeight: '600',
+          color: '#FFFFFF',
+          margin: 0,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+          maxWidth: '60%',
+        }}>
+          {exercise.name}
+        </h4>
+        {progress && (
+          <div style={{
+            background: progress.isNeutral ? 'rgba(139, 92, 246, 0.15)' : progress.isPositive ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+            borderRadius: '6px',
+            padding: '4px 8px',
+            fontSize: '11px',
+            fontWeight: '600',
+            color: progress.isNeutral ? '#8B5CF6' : progress.isPositive ? '#10B981' : '#EF4444',
+          }}>
+            {progress.isNeutral ? '→' : progress.isPositive ? '↑' : '↓'} {Math.abs(progress.diff).toFixed(0)} lbs
+          </div>
+        )}
+      </div>
+
+      {/* Mini Chart */}
+      <LineChart data={chartData} height={isMobile ? 100 : 120} chartType="max" />
+
+      {/* Stats */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        marginTop: '12px',
+        paddingTop: '12px',
+        borderTop: '1px solid rgba(255,255,255,0.06)',
+      }}>
+        <div>
+          <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase' }}>Max</div>
+          <div style={{ fontSize: isMobile ? '14px' : '16px', fontWeight: '700', color: '#8B5CF6' }}>{exercise.maxWeight} lbs</div>
+        </div>
+        <div>
+          <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase' }}>Volume</div>
+          <div style={{ fontSize: isMobile ? '14px' : '16px', fontWeight: '700', color: '#06B6D4' }}>{(exercise.totalVolume / 1000).toFixed(1)}k</div>
+        </div>
+        <div>
+          <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase' }}>Sessions</div>
+          <div style={{ fontSize: isMobile ? '14px' : '16px', fontWeight: '700', color: '#10B981' }}>{chartData.length}</div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Custom Exercise Dropdown with rounded cells
+const ExerciseDropdown = ({ exercises, selectedExercise, onSelect, isMobile }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const selected = exercises.find(ex => ex.name === selectedExercise) || exercises[0];
+
+  return (
+    <div ref={dropdownRef} style={{ position: 'relative', marginBottom: '20px' }}>
+      {/* Selected item / trigger */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        style={{
+          width: '100%',
+          padding: '14px 24px',
+          background: 'rgba(17, 17, 17, 0.8)',
+          border: '1px solid rgba(139, 92, 246, 0.4)',
+          borderRadius: '50px',
+          color: '#A78BFA',
+          fontSize: isMobile ? '15px' : '16px',
+          fontWeight: '600',
+          fontFamily: 'inherit',
+          cursor: 'pointer',
+          outline: 'none',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          textAlign: 'left',
+        }}
+      >
+        <span>{selected?.name}</span>
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#A78BFA"
+          strokeWidth="2.5"
+          style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}
+        >
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </button>
+
+      {/* Dropdown list */}
+      {isOpen && (
+        <div style={{
+          position: 'absolute',
+          top: '100%',
+          left: 0,
+          right: 0,
+          marginTop: '8px',
+          background: 'rgba(17, 17, 17, 0.95)',
+          border: '1px solid rgba(139, 92, 246, 0.3)',
+          borderRadius: '24px',
+          padding: '8px',
+          maxHeight: '300px',
+          overflowY: 'auto',
+          zIndex: 100,
+          backdropFilter: 'blur(10px)',
+        }}>
+          {exercises.map(ex => (
+            <button
+              key={ex.name}
+              onClick={() => {
+                onSelect(ex.name);
+                setIsOpen(false);
+              }}
+              style={{
+                width: '100%',
+                padding: '12px 20px',
+                background: ex.name === selectedExercise ? 'rgba(139, 92, 246, 0.2)' : 'transparent',
+                border: 'none',
+                borderRadius: '50px',
+                color: ex.name === selectedExercise ? '#A78BFA' : 'rgba(255, 255, 255, 0.7)',
+                fontSize: isMobile ? '14px' : '15px',
+                fontWeight: ex.name === selectedExercise ? '600' : '500',
+                fontFamily: 'inherit',
+                cursor: 'pointer',
+                textAlign: 'left',
+                marginBottom: '4px',
+                transition: 'all 0.15s ease',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+              onMouseEnter={(e) => {
+                if (ex.name !== selectedExercise) {
+                  e.target.style.background = 'rgba(139, 92, 246, 0.1)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (ex.name !== selectedExercise) {
+                  e.target.style.background = 'transparent';
+                }
+              }}
+            >
+              <span>{ex.name}</span>
+              <span style={{ color: '#8B5CF6', fontSize: '13px' }}>{ex.maxWeight} lbs</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Exercise Progress Charts Component - Single chart with selector
+const ExerciseProgressCharts = ({ exerciseProgress, isMobile = false, workouts = [] }) => {
+  const [selectedExercise, setSelectedExercise] = useState(null);
+  const [selectedWorkout, setSelectedWorkout] = useState(null);
+
+  // Sort exercises by number of records (most data first)
+  const sortedExercises = Object.values(exerciseProgress || {})
+    .filter(ex => ex.records && ex.records.length > 0)
+    .sort((a, b) => b.records.length - a.records.length);
+
+  // Set default selected exercise
+  useEffect(() => {
+    if (sortedExercises.length > 0 && !selectedExercise) {
+      setSelectedExercise(sortedExercises[0].name);
+    }
+  }, [sortedExercises.length]);
+
+  // Get current exercise data
+  const exercise = exerciseProgress?.[selectedExercise] || sortedExercises[0];
+
+  // Handle point click - find workout for that date
+  const handlePointClick = (point) => {
+    try {
+      const clickedDate = (point.date || '').split('T')[0];
+
+      // Try to find the full workout for this date
+      const workoutArray = Array.isArray(workouts) ? workouts : [];
+      const workout = workoutArray.find(w => {
+        const workoutDate = (w.date || '').split('T')[0];
+        return workoutDate === clickedDate;
+      });
+
+      if (workout) {
+        // Found full workout - show all details
+        setSelectedWorkout({
+          ...workout,
+          clickedExercise: selectedExercise,
+        });
+      } else {
+        // No full workout found - show exercise data from records
+        const currentExercise = exerciseProgress?.[selectedExercise];
+        const exerciseSets = (currentExercise?.records || []).filter(r => {
+          const recordDate = (r.date || '').split('T')[0];
+          return recordDate === clickedDate;
+        });
+
+        setSelectedWorkout({
+          date: point.date,
+          name: 'Workout',
+          clickedExercise: selectedExercise,
+          exercises: [{
+            name: selectedExercise,
+            sets: exerciseSets.length > 0
+              ? exerciseSets.map(s => ({ weight: s.weight, reps: s.reps }))
+              : [{ weight: point.weight, reps: point.reps || 0 }]
+          }],
+        });
+      }
+    } catch (err) {
+      alert('Error: ' + err.message);
+      console.error(err);
+    }
+  };
+
+  if (!exerciseProgress || Object.keys(exerciseProgress).length === 0) {
+    return (
+      <div style={{
+        background: 'rgba(255,255,255,0.03)',
+        border: '1px solid rgba(255,255,255,0.08)',
+        borderRadius: '16px',
+        padding: '40px',
+        textAlign: 'center',
+      }}>
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" style={{ marginBottom: '12px' }}>
+          <path d="M3 3v18h18"/><path d="M18 9l-5 5-4-4-3 3"/>
+        </svg>
+        <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.4)' }}>Complete workouts to see exercise progress charts</div>
+      </div>
+    );
+  }
+
+  if (!exercise) return null;
+
+  // Get chart data - show max weight per workout session (not every set)
+  const getChartData = () => {
+    const records = exercise.records || [];
+    const dateMap = {};
+
+    // Group by date and get max weight per workout
+    records.forEach(record => {
+      const dateKey = record.date?.split('T')[0] || record.date;
+      if (!dateMap[dateKey] || record.weight > dateMap[dateKey].weight) {
+        dateMap[dateKey] = {
+          date: dateKey,
+          weight: record.weight,
+          reps: record.reps,
+        };
+      }
+    });
+
+    // Sort by date and take last 20 workouts
+    return Object.values(dateMap)
+      .sort((a, b) => new Date(a.date) - new Date(b.date))
+      .slice(-20)
+      .map(record => {
+        const d = new Date(record.date);
+        return {
+          ...record,
+          label: `${d.getMonth() + 1}/${d.getDate()}`,
+        };
+      });
+  };
+
+  const chartData = getChartData();
+
+  // Calculate progress
+  const getProgressSummary = () => {
+    if (chartData.length < 2) return null;
+    const first = chartData[0].weight;
+    const last = chartData[chartData.length - 1].weight;
+    const diff = last - first;
+    return { diff, isPositive: diff > 0, isNeutral: diff === 0 };
+  };
+
+  const progress = getProgressSummary();
+
+  return (
+    <div style={{
+      background: 'rgba(255,255,255,0.03)',
+      border: '1px solid rgba(255,255,255,0.08)',
+      borderRadius: isMobile ? '12px' : '16px',
+      padding: isMobile ? '16px' : '24px',
+    }}>
+      {/* Exercise selector dropdown */}
+      <ExerciseDropdown
+        exercises={sortedExercises}
+        selectedExercise={selectedExercise}
+        onSelect={setSelectedExercise}
+        isMobile={isMobile}
+      />
+
+      {/* Progress badge */}
+      {progress && (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '12px' }}>
+          <div style={{
+            background: progress.isNeutral ? 'rgba(139, 92, 246, 0.15)' : progress.isPositive ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+            borderRadius: '8px',
+            padding: '6px 12px',
+            fontSize: '13px',
+            fontWeight: '600',
+            color: progress.isNeutral ? '#8B5CF6' : progress.isPositive ? '#10B981' : '#EF4444',
+          }}>
+            {progress.isNeutral ? '→' : progress.isPositive ? '↑' : '↓'} {Math.abs(progress.diff).toFixed(0)} lbs from first to last
+          </div>
+        </div>
+      )}
+
+      {/* Chart */}
+      {chartData.length > 0 ? (
+        <LineChart data={chartData} height={isMobile ? 180 : 220} chartType="max" onPointClick={handlePointClick} />
+      ) : (
+        <div style={{
+          height: isMobile ? 180 : 220,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'rgba(255,255,255,0.3)',
+          fontSize: '14px',
+        }}>
+          No data available
+        </div>
+      )}
+
+      {/* Stats */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-around',
+        marginTop: '20px',
+        paddingTop: '16px',
+        borderTop: '1px solid rgba(255,255,255,0.08)',
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', marginBottom: '4px' }}>Max Weight</div>
+          <div style={{ fontSize: isMobile ? '18px' : '22px', fontWeight: '700', color: '#8B5CF6' }}>{exercise.maxWeight} lbs</div>
+        </div>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', marginBottom: '4px' }}>Total Volume</div>
+          <div style={{ fontSize: isMobile ? '18px' : '22px', fontWeight: '700', color: '#06B6D4' }}>{(exercise.totalVolume / 1000).toFixed(1)}k lbs</div>
+        </div>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', marginBottom: '4px' }}>Workouts</div>
+          <div style={{ fontSize: isMobile ? '18px' : '22px', fontWeight: '700', color: '#10B981' }}>{chartData.length}</div>
+        </div>
+      </div>
+
+      {/* Workout Detail Modal */}
+      {selectedWorkout ? (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            background: 'rgba(0,0,0,0.9)',
+            backdropFilter: 'blur(10px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 99999,
+            padding: '20px',
+          }}
+          onClick={() => setSelectedWorkout(null)}
+        >
+          <div
+            style={{
+              background: '#111111',
+              borderRadius: '24px',
+              padding: isMobile ? '20px' : '32px',
+              maxWidth: '700px',
+              width: '100%',
+              maxHeight: '85vh',
+              overflowY: 'auto',
+              border: '1px solid rgba(255,255,255,0.1)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
+              <div>
+                <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#FFFFFF', margin: 0, marginBottom: '8px' }}>
+                  {selectedWorkout.workoutTitle || selectedWorkout.name || 'Workout Details'}
+                </h2>
+                <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.5)', margin: 0 }}>
+                  {new Date(selectedWorkout.date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                </p>
+              </div>
+              <button
+                onClick={() => setSelectedWorkout(null)}
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: '40px',
+                  height: '40px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  color: 'rgba(255,255,255,0.7)',
+                  fontSize: '20px',
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Workout Stats Header */}
+            <div style={{
+              background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(6, 182, 212, 0.15))',
+              borderRadius: '16px',
+              padding: '20px',
+              marginBottom: '20px',
+              border: '1px solid rgba(139, 92, 246, 0.2)',
+            }}>
+              <div style={{ display: 'flex', gap: '16px', fontSize: '13px', color: 'rgba(255,255,255,0.6)', flexWrap: 'wrap' }}>
+                {selectedWorkout.duration && (
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+                    </svg>
+                    {selectedWorkout.duration} min
+                  </span>
+                )}
+                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M6 4v16M18 4v16M6 12h12M3 8h6M15 8h6M3 16h6M15 16h6"/>
+                  </svg>
+                  {selectedWorkout.exercises?.length || 0} exercises
+                </span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M4 19h16M4 15h16M4 11h16M4 7h16"/>
+                  </svg>
+                  {selectedWorkout.exercises?.reduce((sum, ex) => sum + (ex.sets?.length || 0), 0) || 0} sets
+                </span>
+              </div>
+            </div>
+
+            {/* Workout Notes */}
+            {selectedWorkout.notes && selectedWorkout.notes.trim() && (
+              <div style={{
+                background: 'rgba(255,255,255,0.03)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                borderRadius: '12px',
+                padding: '16px',
+                marginBottom: '20px',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <path d="M14 2v6h6"/>
+                    <path d="M16 13H8"/>
+                    <path d="M16 17H8"/>
+                    <path d="M10 9H8"/>
+                  </svg>
+                  <h4 style={{ fontSize: '14px', fontWeight: '600', color: 'rgba(255,255,255,0.7)', margin: 0 }}>
+                    Workout Notes
+                  </h4>
+                </div>
+                <p style={{
+                  fontSize: '14px',
+                  color: 'rgba(255,255,255,0.8)',
+                  margin: 0,
+                  lineHeight: '1.5',
+                  whiteSpace: 'pre-wrap',
+                }}>
+                  {selectedWorkout.notes}
+                </p>
+              </div>
+            )}
+
+            {/* Workout Photos */}
+            {selectedWorkout.photos && selectedWorkout.photos.length > 0 && (
+              <div style={{ marginBottom: '20px' }}>
+                <h4 style={{ fontSize: '14px', fontWeight: '600', color: 'rgba(255,255,255,0.7)', margin: 0, marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                    <circle cx="12" cy="13" r="4"/>
+                  </svg>
+                  Workout Photos ({selectedWorkout.photos.length})
+                </h4>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+                  gap: '12px',
+                }}>
+                  {selectedWorkout.photos.map((photo, idx) => {
+                    const imageUrl = photo.startsWith('data:') ? photo : `data:image/jpeg;base64,${photo}`;
+                    return (
+                      <img
+                        key={idx}
+                        src={imageUrl}
+                        alt={`Workout photo ${idx + 1}`}
+                        style={{
+                          width: '100%',
+                          aspectRatio: '1',
+                          objectFit: 'cover',
+                          borderRadius: '12px',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          cursor: 'pointer',
+                        }}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* All Exercises */}
+            {selectedWorkout.exercises?.map((exercise, exIdx) => {
+              const isHighlighted = exercise.name === selectedWorkout.clickedExercise;
+              const totalReps = exercise.sets?.reduce((sum, s) => sum + (parseInt(s.reps) || 0), 0) || 0;
+              const totalVolume = exercise.sets?.reduce((sum, s) => sum + ((parseFloat(s.weight) || 0) * (parseInt(s.reps) || 0)), 0) || 0;
+              const exerciseImageUrl = getExerciseImageUrl(exercise.name, exercise.selectedEquipment || exercise.equipment);
+
+              return (
+                <div key={exIdx} style={{
+                  background: isHighlighted
+                    ? 'linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(6, 182, 212, 0.1) 100%)'
+                    : 'rgba(255,255,255,0.03)',
+                  borderRadius: '16px',
+                  padding: '20px',
+                  marginBottom: '12px',
+                  border: isHighlighted ? '1px solid rgba(139, 92, 246, 0.3)' : '1px solid rgba(255,255,255,0.08)',
+                }}>
+                  {/* Exercise Header with Icon */}
+                  <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
+                    {/* Exercise image */}
+                    <div style={{
+                      width: '70px',
+                      height: '70px',
+                      borderRadius: '12px',
+                      background: isHighlighted
+                        ? 'linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(6, 182, 212, 0.3))'
+                        : 'linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(6, 182, 212, 0.2))',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                      overflow: 'hidden',
+                    }}>
+                      {exerciseImageUrl ? (
+                        <img
+                          src={exerciseImageUrl}
+                          alt={exercise.name}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            e.target.nextSibling.style.display = 'flex';
+                          }}
+                        />
+                      ) : null}
+                      <svg
+                        width="28"
+                        height="28"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="rgba(255,255,255,0.5)"
+                        strokeWidth="2"
+                        style={{ display: exerciseImageUrl ? 'none' : 'block' }}
+                      >
+                        <path d="M6 4v16M18 4v16M6 12h12M3 8h6M15 8h6M3 16h6M15 16h6"/>
+                      </svg>
+                    </div>
+
+                    {/* Exercise info */}
+                    <div style={{ flex: 1 }}>
+                      <h4 style={{ fontSize: '16px', fontWeight: '600', color: isHighlighted ? '#A78BFA' : '#FFFFFF', margin: 0, marginBottom: '6px' }}>
+                        {exercise.name}
+                      </h4>
+                      {exercise.muscleGroup && (
+                        <span style={{
+                          display: 'inline-block',
+                          background: 'rgba(139, 92, 246, 0.2)',
+                          color: '#8B5CF6',
+                          fontSize: '11px',
+                          padding: '4px 10px',
+                          borderRadius: '20px',
+                        }}>
+                          {exercise.muscleGroup}
+                        </span>
+                      )}
+                      {exercise.notes && (
+                        <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', margin: 0, marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <path d="M14 2v6h6"/>
+                            <path d="M16 13H8"/>
+                            <path d="M16 17H8"/>
+                          </svg>
+                          {exercise.notes}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Sets Table */}
+                  {exercise.sets && exercise.sets.length > 0 && (
+                    <div style={{
+                      background: 'rgba(0,0,0,0.3)',
+                      borderRadius: '12px',
+                      overflow: 'hidden',
+                    }}>
+                      {/* Table Header */}
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: '50px 1fr 1fr 1fr',
+                        padding: '12px 16px',
+                        background: 'rgba(255,255,255,0.05)',
+                        fontSize: '11px',
+                        color: 'rgba(255,255,255,0.5)',
+                        textTransform: 'uppercase',
+                        letterSpacing: '1px',
+                      }}>
+                        <span>Set</span>
+                        <span>Weight</span>
+                        <span>Reps</span>
+                        <span>Volume</span>
+                      </div>
+                      {/* Sets */}
+                      {exercise.sets.map((set, setIdx) => {
+                        const weight = parseFloat(set.weight) || 0;
+                        const reps = parseInt(set.reps) || 0;
+                        const volume = weight * reps;
+                        const isPR = set.isPR || set.isPersonalRecord;
+
+                        return (
+                          <div key={setIdx}>
+                            <div style={{
+                              display: 'grid',
+                              gridTemplateColumns: '50px 1fr 1fr 1fr',
+                              padding: '12px 16px',
+                              fontSize: '14px',
+                              borderTop: '1px solid rgba(255,255,255,0.05)',
+                              alignItems: 'center',
+                              background: isPR ? 'rgba(245, 158, 11, 0.1)' : 'transparent',
+                            }}>
+                              <span style={{ color: 'rgba(255,255,255,0.5)' }}>{setIdx + 1}</span>
+                              <span style={{ color: '#8B5CF6', fontWeight: '600' }}>
+                                {weight > 0 ? `${weight} lbs` : '-'}
+                              </span>
+                              <span style={{ color: '#06B6D4', fontWeight: '600' }}>
+                                {reps > 0 ? reps : '-'}
+                              </span>
+                              <span style={{ color: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                {volume > 0 ? volume.toLocaleString() : '-'}
+                                {isPR && (
+                                  <span style={{
+                                    background: 'linear-gradient(135deg, #F59E0B, #EF4444)',
+                                    color: '#FFFFFF',
+                                    fontSize: '9px',
+                                    fontWeight: '700',
+                                    padding: '2px 6px',
+                                    borderRadius: '4px',
+                                  }}>
+                                    PR
+                                  </span>
+                                )}
+                              </span>
+                            </div>
+                            {set.comment && (
+                              <div style={{
+                                padding: '4px 16px 10px 16px',
+                                fontSize: '12px',
+                                color: 'rgba(255,255,255,0.4)',
+                                fontStyle: 'italic',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                              }}>
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                </svg>
+                                {set.comment}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                      {/* Total Row */}
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: '50px 1fr 1fr 1fr',
+                        padding: '12px 16px',
+                        fontSize: '13px',
+                        fontWeight: '600',
+                        borderTop: '1px solid rgba(255,255,255,0.1)',
+                        background: 'rgba(139, 92, 246, 0.1)',
+                      }}>
+                        <span style={{ color: '#8B5CF6' }}>Total</span>
+                        <span></span>
+                        <span style={{ color: '#06B6D4' }}>{totalReps} reps</span>
+                        <span style={{ color: '#8B5CF6' }}>{totalVolume.toLocaleString()} lbs</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 };
@@ -491,7 +1660,8 @@ const formatDateForDisplay = (dateValue) => {
 };
 
 // Workout card component
-const WorkoutCard = ({ workout, onClick, onPhotoClick }) => {
+const WorkoutCard = ({ workout, onClick, onPhotoClick, onDelete }) => {
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const exerciseCount = workout.exercises?.length || 0;
   const setCount = workout.exercises?.reduce((acc, ex) => acc + (ex.sets?.length || 0), 0) || 0;
   // Get exercise names (limit to first 3 for display)
@@ -503,6 +1673,22 @@ const WorkoutCard = ({ workout, onClick, onPhotoClick }) => {
 
   const getImageUrl = (photo) => {
     return photo.startsWith('data:') ? photo : `data:image/jpeg;base64,${photo}`;
+  };
+
+  const handleDeleteClick = (e) => {
+    e.stopPropagation();
+    setShowDeleteConfirm(true);
+  };
+
+  const handleConfirmDelete = (e) => {
+    e.stopPropagation();
+    if (onDelete) onDelete(workout);
+    setShowDeleteConfirm(false);
+  };
+
+  const handleCancelDelete = (e) => {
+    e.stopPropagation();
+    setShowDeleteConfirm(false);
   };
 
   return (
@@ -517,8 +1703,64 @@ const WorkoutCard = ({ workout, onClick, onPhotoClick }) => {
         padding: '16px',
         marginBottom: '10px',
         cursor: onClick ? 'pointer' : 'default',
+        position: 'relative',
       }}
     >
+      {/* Delete confirmation overlay */}
+      {showDeleteConfirm && (
+        <div
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'rgba(0,0,0,0.9)',
+            borderRadius: '12px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '12px',
+            zIndex: 10,
+          }}
+        >
+          <p style={{ color: '#FFFFFF', fontSize: '14px', margin: 0, textAlign: 'center' }}>
+            Delete this workout?
+          </p>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button
+              onClick={handleConfirmDelete}
+              style={{
+                background: 'rgba(239, 68, 68, 0.2)',
+                border: '1px solid rgba(239, 68, 68, 0.4)',
+                borderRadius: '8px',
+                padding: '8px 16px',
+                color: '#EF4444',
+                fontSize: '13px',
+                fontWeight: '600',
+                cursor: 'pointer',
+              }}
+            >
+              Delete
+            </button>
+            <button
+              onClick={handleCancelDelete}
+              style={{
+                background: 'rgba(255,255,255,0.1)',
+                border: '1px solid rgba(255,255,255,0.2)',
+                borderRadius: '8px',
+                padding: '8px 16px',
+                color: '#FFFFFF',
+                fontSize: '13px',
+                fontWeight: '500',
+                cursor: 'pointer',
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: '15px', fontWeight: '600', color: '#FFFFFF', marginBottom: '2px' }}>
@@ -559,6 +1801,30 @@ const WorkoutCard = ({ workout, onClick, onPhotoClick }) => {
             }}>
               {workout.duration} min
             </div>
+          )}
+          {/* Delete button */}
+          {onDelete && (
+            <button
+              onClick={handleDeleteClick}
+              style={{
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: 'none',
+                borderRadius: '50%',
+                width: '28px',
+                height: '28px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                transition: 'background 0.2s',
+              }}
+              onMouseOver={(e) => e.target.style.background = 'rgba(239, 68, 68, 0.25)'}
+              onMouseOut={(e) => e.target.style.background = 'rgba(239, 68, 68, 0.1)'}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+              </svg>
+            </button>
           )}
         </div>
       </div>
@@ -676,6 +1942,284 @@ const MealCard = ({ meal }) => (
   </motion.div>
 );
 
+// Meal Detail Modal
+const MealDetailModal = ({ isOpen, onClose, date, meals }) => {
+  if (!isOpen) return null;
+
+  const formatDate = (dateStr) => {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  };
+
+  // Group meals by meal type
+  const mealsByType = {};
+  (meals || []).forEach(meal => {
+    const type = meal.meal_type || 'other';
+    if (!mealsByType[type]) {
+      mealsByType[type] = [];
+    }
+    mealsByType[type].push(meal);
+  });
+
+  // Calculate totals
+  const totals = (meals || []).reduce((acc, meal) => ({
+    calories: acc.calories + (meal.calories_consumed || meal.calories || 0),
+    protein: acc.protein + (meal.protein_consumed || meal.protein || 0),
+    carbs: acc.carbs + (meal.carbs_consumed || meal.carbs || 0),
+    fat: acc.fat + (meal.fat_consumed || meal.fat || 0),
+  }), { calories: 0, protein: 0, carbs: 0, fat: 0 });
+
+  const mealTypeOrder = ['breakfast', 'lunch', 'dinner', 'snack', 'other'];
+  const mealTypeIcons = {
+    breakfast: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/>
+      </svg>
+    ),
+    lunch: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>
+      </svg>
+    ),
+    dinner: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>
+      </svg>
+    ),
+    snack: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5"/><path d="M8.5 8.5v.01"/><path d="M16 15.5v.01"/><path d="M12 12v.01"/><path d="M11 17v.01"/><path d="M7 14v.01"/>
+      </svg>
+    ),
+    other: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>
+      </svg>
+    ),
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onClose}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(0,0,0,0.9)',
+        backdropFilter: 'blur(10px)',
+        zIndex: 2000,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '20px',
+      }}
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.9, y: 20 }}
+        transition={{ duration: 0.3, ease: [0.65, 0.05, 0, 1] }}
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: '#111111',
+          borderRadius: '24px',
+          padding: '32px',
+          maxWidth: '600px',
+          width: '100%',
+          maxHeight: '85vh',
+          overflowY: 'auto',
+          border: '1px solid rgba(255,255,255,0.1)',
+        }}
+      >
+        {/* Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
+          <div>
+            <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#FFFFFF', margin: 0, marginBottom: '8px' }}>
+              Nutrition Log
+            </h2>
+            <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.5)', margin: 0 }}>
+              {formatDate(date)}
+            </p>
+          </div>
+          <motion.button
+            onClick={onClose}
+            whileHover={{ background: 'rgba(255,255,255,0.1)' }}
+            style={{
+              background: 'rgba(255,255,255,0.05)',
+              border: 'none',
+              borderRadius: '50%',
+              width: '40px',
+              height: '40px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              color: 'rgba(255,255,255,0.7)',
+              fontSize: '20px',
+            }}
+          >
+            ×
+          </motion.button>
+        </div>
+
+        {/* Daily Summary Card */}
+        <div style={{
+          background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(6, 182, 212, 0.15))',
+          borderRadius: '16px',
+          padding: '20px',
+          marginBottom: '24px',
+          border: '1px solid rgba(139, 92, 246, 0.2)',
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '10px',
+                background: 'rgba(139, 92, 246, 0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>
+                </svg>
+              </div>
+              <div>
+                <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#FFFFFF', margin: 0 }}>Daily Summary</h3>
+                <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>
+                  {meals?.length || 0} {(meals?.length || 0) === 1 ? 'meal' : 'meals'} logged
+                </div>
+              </div>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: '28px', fontWeight: '700', color: '#8B5CF6' }}>{Math.round(totals.calories)}</div>
+              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>calories</div>
+            </div>
+          </div>
+
+          {/* Macro bars */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+            <div style={{
+              background: 'rgba(139, 92, 246, 0.15)',
+              borderRadius: '10px',
+              padding: '12px',
+              textAlign: 'center',
+            }}>
+              <div style={{ fontSize: '18px', fontWeight: '700', color: '#FFFFFF' }}>{Math.round(totals.protein)}g</div>
+              <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Protein</div>
+            </div>
+            <div style={{
+              background: 'rgba(139, 92, 246, 0.15)',
+              borderRadius: '10px',
+              padding: '12px',
+              textAlign: 'center',
+            }}>
+              <div style={{ fontSize: '18px', fontWeight: '700', color: '#FFFFFF' }}>{Math.round(totals.carbs)}g</div>
+              <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Carbs</div>
+            </div>
+            <div style={{
+              background: 'rgba(139, 92, 246, 0.15)',
+              borderRadius: '10px',
+              padding: '12px',
+              textAlign: 'center',
+            }}>
+              <div style={{ fontSize: '18px', fontWeight: '700', color: '#FFFFFF' }}>{Math.round(totals.fat)}g</div>
+              <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Fat</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Meals by type */}
+        {meals && meals.length > 0 ? (
+          mealTypeOrder.filter(type => mealsByType[type]).map(type => (
+            <div key={type} style={{ marginBottom: '20px' }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                marginBottom: '12px',
+                paddingBottom: '8px',
+                borderBottom: '1px solid rgba(255,255,255,0.06)',
+              }}>
+                <div style={{ color: '#8B5CF6' }}>{mealTypeIcons[type]}</div>
+                <h4 style={{
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: 'rgba(255,255,255,0.8)',
+                  margin: 0,
+                  textTransform: 'capitalize',
+                  flex: 1,
+                }}>
+                  {type}
+                </h4>
+                <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>
+                  {mealsByType[type].reduce((sum, m) => sum + (m.calories_consumed || m.calories || 0), 0)} cal
+                </div>
+              </div>
+              {mealsByType[type].map((meal, i) => (
+                <motion.div
+                  key={meal.id || i}
+                  whileHover={{ background: 'rgba(255,255,255,0.05)' }}
+                  style={{
+                    background: 'rgba(255,255,255,0.02)',
+                    border: '1px solid rgba(255,255,255,0.06)',
+                    borderRadius: '12px',
+                    padding: '14px 16px',
+                    marginBottom: '8px',
+                    cursor: 'default',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: '15px', fontWeight: '500', color: '#FFFFFF', marginBottom: '4px' }}>
+                        {meal.food_name || meal.name || 'Food item'}
+                      </div>
+                      {meal.serving_size && (
+                        <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>
+                          {meal.serving_size}
+                        </div>
+                      )}
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '16px', fontWeight: '600', color: '#8B5CF6' }}>
+                        {Math.round(meal.calories_consumed || meal.calories || 0)}
+                        <span style={{ fontSize: '12px', fontWeight: '400', color: 'rgba(255,255,255,0.5)', marginLeft: '2px' }}>cal</span>
+                      </div>
+                      <div style={{
+                        fontSize: '11px',
+                        color: 'rgba(255,255,255,0.4)',
+                        marginTop: '4px',
+                      }}>
+                        {Math.round(meal.protein_consumed || meal.protein || 0)}g P · {Math.round(meal.carbs_consumed || meal.carbs || 0)}g C · {Math.round(meal.fat_consumed || meal.fat || 0)}g F
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          ))
+        ) : (
+          <div style={{
+            textAlign: 'center',
+            padding: '40px',
+            background: 'rgba(255,255,255,0.02)',
+            borderRadius: '16px',
+            border: '1px solid rgba(255,255,255,0.06)',
+          }}>
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" style={{ marginBottom: '12px' }}>
+              <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>
+            </svg>
+            <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.4)' }}>No meals recorded for this day</div>
+          </div>
+        )}
+      </motion.div>
+    </motion.div>
+  );
+};
+
 // Progress bar component
 const ProgressBar = ({ label, current, target, unit = '', color = '#8B5CF6' }) => {
   const percent = target > 0 ? Math.min((current / target) * 100, 100) : 0;
@@ -737,10 +2281,26 @@ const ExerciseIcon = () => (
 );
 
 // Workout Detail Modal
-const WorkoutDetailModal = ({ isOpen, onClose, date, workouts }) => {
+const WorkoutDetailModal = ({ isOpen, onClose, date, workouts, onDelete }) => {
   const [lightboxImage, setLightboxImage] = useState(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState(null);
 
   if (!isOpen) return null;
+
+  const handleDeleteClick = (workout) => {
+    setDeleteConfirmId(workout.id);
+  };
+
+  const handleConfirmDelete = (workout) => {
+    if (onDelete) {
+      onDelete(workout);
+      // If this was the only workout, close the modal
+      if (workouts.length === 1) {
+        onClose();
+      }
+    }
+    setDeleteConfirmId(null);
+  };
 
   const formatDate = (dateStr) => {
     const d = new Date(dateStr);
@@ -838,13 +2398,66 @@ const WorkoutDetailModal = ({ isOpen, onClose, date, workouts }) => {
                 padding: '20px',
                 marginBottom: '16px',
                 border: '1px solid rgba(139, 92, 246, 0.2)',
+                position: 'relative',
               }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
+                {/* Delete confirmation overlay */}
+                {deleteConfirmId === workout.id && (
+                  <div style={{
+                    position: 'absolute',
+                    inset: 0,
+                    background: 'rgba(0,0,0,0.95)',
+                    borderRadius: '16px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '12px',
+                    zIndex: 10,
+                  }}>
+                    <p style={{ color: '#FFFFFF', fontSize: '14px', margin: 0, textAlign: 'center' }}>
+                      Delete this workout?
+                    </p>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                      <button
+                        onClick={() => handleConfirmDelete(workout)}
+                        style={{
+                          background: 'rgba(239, 68, 68, 0.2)',
+                          border: '1px solid rgba(239, 68, 68, 0.4)',
+                          borderRadius: '8px',
+                          padding: '8px 16px',
+                          color: '#EF4444',
+                          fontSize: '13px',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Delete
+                      </button>
+                      <button
+                        onClick={() => setDeleteConfirmId(null)}
+                        style={{
+                          background: 'rgba(255,255,255,0.1)',
+                          border: '1px solid rgba(255,255,255,0.2)',
+                          borderRadius: '8px',
+                          padding: '8px 16px',
+                          color: '#FFFFFF',
+                          fontSize: '13px',
+                          fontWeight: '500',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div style={{ flex: 1 }}>
                     <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#FFFFFF', margin: 0, marginBottom: '4px' }}>
                       {workout.workoutTitle || workout.name || workout.workoutType || 'Workout'}
                     </h3>
-                    <div style={{ display: 'flex', gap: '16px', fontSize: '13px', color: 'rgba(255,255,255,0.6)' }}>
+                    <div style={{ display: 'flex', gap: '16px', fontSize: '13px', color: 'rgba(255,255,255,0.6)', flexWrap: 'wrap' }}>
                       {workout.duration && (
                         <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -867,6 +2480,31 @@ const WorkoutDetailModal = ({ isOpen, onClose, date, workouts }) => {
                       </span>
                     </div>
                   </div>
+                  {/* Delete button */}
+                  {onDelete && (
+                    <button
+                      onClick={() => handleDeleteClick(workout)}
+                      style={{
+                        background: 'rgba(239, 68, 68, 0.15)',
+                        border: '1px solid rgba(239, 68, 68, 0.3)',
+                        borderRadius: '8px',
+                        padding: '8px 12px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        cursor: 'pointer',
+                        color: '#EF4444',
+                        fontSize: '12px',
+                        fontWeight: '500',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                      </svg>
+                      Delete
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -948,7 +2586,9 @@ const WorkoutDetailModal = ({ isOpen, onClose, date, workouts }) => {
               )}
 
               {/* Exercises */}
-              {workout.exercises && workout.exercises.map((exercise, eIndex) => (
+              {workout.exercises && workout.exercises.map((exercise, eIndex) => {
+                const exerciseImageUrl = getExerciseImageUrl(exercise.name, exercise.selectedEquipment || exercise.equipment);
+                return (
                 <motion.div
                   key={eIndex}
                   initial={{ opacity: 0, y: 10 }}
@@ -977,15 +2617,15 @@ const WorkoutDetailModal = ({ isOpen, onClose, date, workouts }) => {
                       flexShrink: 0,
                       overflow: 'hidden',
                     }}>
-                      {exercise.imageUrl ? (
+                      {exerciseImageUrl ? (
                         <img
-                          src={exercise.imageUrl}
+                          src={exerciseImageUrl}
                           alt={exercise.name}
                           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                           onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
                         />
                       ) : null}
-                      <span style={{ display: exercise.imageUrl ? 'none' : 'flex', color: 'rgba(255,255,255,0.5)' }}>
+                      <span style={{ display: exerciseImageUrl ? 'none' : 'flex', color: 'rgba(255,255,255,0.5)' }}>
                         <ExerciseIcon />
                       </span>
                     </div>
@@ -1138,7 +2778,8 @@ const WorkoutDetailModal = ({ isOpen, onClose, date, workouts }) => {
                     </div>
                   )}
                 </motion.div>
-              ))}
+              );
+              })}
             </div>
           ))
         ) : (
@@ -1151,7 +2792,7 @@ const WorkoutDetailModal = ({ isOpen, onClose, date, workouts }) => {
 };
 
 // Workouts Section
-const WorkoutsSection = ({ data, loading, isMobile = false }) => {
+const WorkoutsSection = ({ data, loading, isMobile = false, onDeleteWorkout }) => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedWorkouts, setSelectedWorkouts] = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -1187,6 +2828,13 @@ const WorkoutsSection = ({ data, loading, isMobile = false }) => {
     setSelectedDate(date);
     setSelectedWorkouts([workout]);
     setShowModal(true);
+  };
+
+  const handleDeleteFromModal = (workout) => {
+    // Update local selectedWorkouts state
+    setSelectedWorkouts(prev => prev.filter(w => w.id !== workout.id));
+    // Call parent delete handler
+    if (onDeleteWorkout) onDeleteWorkout(workout);
   };
 
   return (
@@ -1226,6 +2874,17 @@ const WorkoutsSection = ({ data, loading, isMobile = false }) => {
           </div>
         )}
 
+        {/* Calendar - show on all devices */}
+        <div>
+          <h3 style={{ fontSize: isMobile ? '14px' : '16px', fontWeight: '600', color: 'rgba(255,255,255,0.8)', marginBottom: isMobile ? '10px' : '12px' }}>Workout Calendar</h3>
+          <Calendar
+            workoutDates={workoutDates || []}
+            type="workout"
+            onDayClick={handleDayClick}
+            workoutsByDate={workoutsByDate}
+          />
+        </div>
+
         {/* Recent Workouts */}
         <div>
           <h3 style={{ fontSize: isMobile ? '14px' : '16px', fontWeight: '600', color: 'rgba(255,255,255,0.8)', marginBottom: '10px' }}>Recent Workouts</h3>
@@ -1239,22 +2898,12 @@ const WorkoutsSection = ({ data, loading, isMobile = false }) => {
                   workout={workout}
                   onClick={() => handleWorkoutClick(workout)}
                   onPhotoClick={(imageUrl) => setLightboxImage(imageUrl)}
+                  onDelete={onDeleteWorkout}
                   isMobile={isMobile}
                 />
               ))
             )}
           </div>
-        </div>
-
-        {/* Calendar - show on all devices */}
-        <div>
-          <h3 style={{ fontSize: isMobile ? '14px' : '16px', fontWeight: '600', color: 'rgba(255,255,255,0.8)', marginBottom: isMobile ? '10px' : '12px' }}>Workout Calendar</h3>
-          <Calendar
-            workoutDates={workoutDates || []}
-            type="workout"
-            onDayClick={handleDayClick}
-            workoutsByDate={workoutsByDate}
-          />
         </div>
       </div>
 
@@ -1266,6 +2915,7 @@ const WorkoutsSection = ({ data, loading, isMobile = false }) => {
             onClose={() => setShowModal(false)}
             date={selectedDate}
             workouts={selectedWorkouts}
+            onDelete={handleDeleteFromModal}
           />
         )}
       </AnimatePresence>
@@ -1286,157 +2936,277 @@ const WorkoutsSection = ({ data, loading, isMobile = false }) => {
 
 // Nutrition Section
 const NutritionSection = ({ data, loading, isMobile = false }) => {
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedMeals, setSelectedMeals] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [weekOffset, setWeekOffset] = useState(0); // 0 = current week, 1 = last week, etc.
+
   if (loading) return <LoadingSpinner />;
 
   const { nutrition, nutritionDates, goals } = data || {};
   const mealList = data?.mealList || [];
 
-  // Get last 7 days data for chart
+  // Create meals by date mapping
+  const mealsByDate = {};
+  mealList.forEach(meal => {
+    const date = extractLocalDate(meal.date || meal.logged_at);
+    if (date) {
+      if (!mealsByDate[date]) {
+        mealsByDate[date] = [];
+      }
+      mealsByDate[date].push(meal);
+    }
+  });
+
+  const handleDayClick = (date, dayMeals) => {
+    const mealsForDay = dayMeals.length > 0 ? dayMeals : mealsByDate[date] || [];
+    setSelectedDate(date);
+    setSelectedMeals(mealsForDay);
+    setShowModal(true);
+  };
+
+  // Get 7 days data for chart based on weekOffset
   const chartData = [];
+  const baseOffset = weekOffset * 7;
   for (let i = 6; i >= 0; i--) {
     const date = new Date();
-    date.setDate(date.getDate() - i);
+    date.setDate(date.getDate() - i - baseOffset);
     const dateStr = getLocalDateString(date);
     const dayData = nutrition?.byDate?.[dateStr] || { calories: 0 };
     chartData.push({
       date: dateStr,
       label: date.toLocaleDateString('en-US', { weekday: 'short' }),
+      dayNum: date.getDate(),
       calories: dayData.calories,
       protein: dayData.protein || 0,
     });
   }
 
+  // Get date range for display
+  const getWeekDateRange = () => {
+    const endDate = new Date();
+    endDate.setDate(endDate.getDate() - baseOffset);
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - 6 - baseOffset);
+    const formatOpts = { month: 'short', day: 'numeric' };
+    return `${startDate.toLocaleDateString('en-US', formatOpts)} - ${endDate.toLocaleDateString('en-US', formatOpts)}`;
+  };
+
   return (
+    <>
     <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '16px' : '24px', paddingBottom: '40px', width: '100%' }}>
       <h2 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: '700', color: '#FFFFFF', marginBottom: isMobile ? '8px' : '20px' }}>Nutrition Tracking</h2>
 
-      {/* Today's Stats - 2x2 grid on mobile */}
-      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: isMobile ? '8px' : '12px' }}>
+      {/* Today's Stats - 2x2 grid on mobile, 3 on desktop (4th stat moves to sidebar) */}
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: isMobile ? '8px' : '12px' }}>
         <StatCard title="Today" value={nutrition?.todayCalories || 0} subtitle="calories" isMobile={isMobile} />
         <StatCard title="Protein" value={`${nutrition?.todayProtein || 0}g`} subtitle="today" color="#06B6D4" isMobile={isMobile} />
         <StatCard title="Streak" value={nutrition?.currentStreak || 0} subtitle="days" color="#10B981" isMobile={isMobile} />
-        <StatCard title="Avg Cal" value={nutrition?.avgCalories || 0} subtitle="daily" color="#F59E0B" isMobile={isMobile} />
+        {isMobile && <StatCard title="Avg Cal" value={nutrition?.avgCalories || 0} subtitle="daily" color="#F59E0B" isMobile={isMobile} />}
       </div>
 
-      {/* Macros Today */}
-      <div style={{
-        background: 'rgba(255,255,255,0.03)',
-        border: '1px solid rgba(255,255,255,0.08)',
-        borderRadius: isMobile ? '12px' : '16px',
-        padding: isMobile ? '14px' : '20px',
-      }}>
-        <h3 style={{ fontSize: isMobile ? '14px' : '16px', fontWeight: '600', color: 'rgba(255,255,255,0.8)', marginBottom: isMobile ? '12px' : '16px' }}>Today's Macros</h3>
-        <ProgressBar label="Calories" current={nutrition?.todayCalories || 0} target={goals?.targetCalories || 2000} unit="" color="#8B5CF6" />
-        <ProgressBar label="Protein" current={nutrition?.todayProtein || 0} target={goals?.proteinGrams || 150} unit="g" color="#06B6D4" />
-        <ProgressBar label="Carbs" current={nutrition?.todayCarbs || 0} target={goals?.carbsGrams || 200} unit="g" color="#10B981" />
-        <ProgressBar label="Fat" current={nutrition?.todayFat || 0} target={goals?.fatGrams || 65} unit="g" color="#F59E0B" />
-      </div>
-
-      {/* Weekly Chart */}
-      <div style={{
-        background: 'rgba(255,255,255,0.03)',
-        border: '1px solid rgba(255,255,255,0.08)',
-        borderRadius: isMobile ? '12px' : '16px',
-        padding: isMobile ? '14px' : '20px',
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
-          <h3 style={{ fontSize: isMobile ? '14px' : '16px', fontWeight: '600', color: 'rgba(255,255,255,0.9)', margin: 0 }}>Last 7 Days</h3>
-          <div style={{
-            fontSize: isMobile ? '11px' : '13px',
-            color: 'rgba(255,255,255,0.5)',
-          }}>
-            Goal: <span style={{ color: '#10B981', fontWeight: '600' }}>{goals?.targetCalories || 2000}</span> cal/day
-          </div>
-        </div>
-        <BarChart data={chartData} dataKey="calories" color="#8B5CF6" height={isMobile ? 140 : 160} target={goals?.targetCalories || 2000} />
-      </div>
-
-      {/* Daily Averages - show on mobile as compact cards */}
-      {isMobile && (
-        <div style={{
-          background: 'rgba(255,255,255,0.03)',
-          border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: '12px',
-          padding: '14px',
-        }}>
-          <h4 style={{ fontSize: '13px', fontWeight: '600', color: 'rgba(255,255,255,0.7)', marginBottom: '10px' }}>Daily Averages</h4>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>Calories</div>
-              <div style={{ fontSize: '14px', fontWeight: '600', color: '#8B5CF6' }}>{nutrition?.avgCalories || 0}</div>
-            </div>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>Protein</div>
-              <div style={{ fontSize: '14px', fontWeight: '600', color: '#06B6D4' }}>{nutrition?.avgProtein || 0}g</div>
-            </div>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>Carbs</div>
-              <div style={{ fontSize: '14px', fontWeight: '600', color: '#10B981' }}>{nutrition?.avgCarbs || 0}g</div>
-            </div>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>Fat</div>
-              <div style={{ fontSize: '14px', fontWeight: '600', color: '#F59E0B' }}>{nutrition?.avgFat || 0}g</div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Recent Meals */}
-      <div>
-        <h3 style={{ fontSize: isMobile ? '14px' : '16px', fontWeight: '600', color: 'rgba(255,255,255,0.8)', marginBottom: isMobile ? '8px' : '12px' }}>Recent Meals</h3>
-        <div style={{ maxHeight: isMobile ? 'none' : '300px', overflowY: isMobile ? 'visible' : 'auto', paddingRight: isMobile ? '0' : '8px' }}>
-          {mealList.length === 0 ? (
-            <EmptyState message="No meals logged yet" />
-          ) : (
-            mealList.slice(0, isMobile ? 10 : 20).map((meal) => (
-              <MealCard key={meal.id} meal={meal} />
-            ))
-          )}
-        </div>
-      </div>
-
-      {/* Calendar Sidebar - only show on desktop */}
-      {!isMobile && (
-        <div style={{
-          position: 'absolute',
-          right: '5vw',
-          top: '80px',
-          width: '320px',
-        }}>
-          <h3 style={{ fontSize: '16px', fontWeight: '600', color: 'rgba(255,255,255,0.8)', marginBottom: '12px' }}>Nutrition Calendar</h3>
-          <Calendar nutritionDates={nutritionDates || []} type="nutrition" />
-
-          {/* Averages */}
+      {/* Two-column layout for desktop: main content + calendar sidebar */}
+      <div style={{ display: 'flex', gap: '24px', flexDirection: isMobile ? 'column' : 'row' }}>
+        {/* Main Content */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: isMobile ? '16px' : '24px', minWidth: 0 }}>
+          {/* Macros Today */}
           <div style={{
             background: 'rgba(255,255,255,0.03)',
             border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: '16px',
-            padding: '16px',
-            marginTop: '16px',
+            borderRadius: isMobile ? '12px' : '16px',
+            padding: isMobile ? '14px' : '20px',
           }}>
-            <h4 style={{ fontSize: '14px', fontWeight: '600', color: 'rgba(255,255,255,0.7)', marginBottom: '12px' }}>Daily Averages</h4>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              <div>
-                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>Calories</div>
-                <div style={{ fontSize: '18px', fontWeight: '600', color: '#8B5CF6' }}>{nutrition?.avgCalories || 0}</div>
+            <h3 style={{ fontSize: isMobile ? '14px' : '16px', fontWeight: '600', color: 'rgba(255,255,255,0.8)', marginBottom: isMobile ? '12px' : '16px' }}>Today's Macros</h3>
+            <ProgressBar label="Calories" current={nutrition?.todayCalories || 0} target={goals?.targetCalories || 2000} unit="" color="#8B5CF6" />
+            <ProgressBar label="Protein" current={nutrition?.todayProtein || 0} target={goals?.proteinGrams || 150} unit="g" color="#06B6D4" />
+            <ProgressBar label="Carbs" current={nutrition?.todayCarbs || 0} target={goals?.carbsGrams || 200} unit="g" color="#10B981" />
+            <ProgressBar label="Fat" current={nutrition?.todayFat || 0} target={goals?.fatGrams || 65} unit="g" color="#F59E0B" />
+          </div>
+
+          {/* Weekly Chart */}
+          <div style={{
+            background: 'rgba(255,255,255,0.03)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            borderRadius: isMobile ? '12px' : '16px',
+            padding: isMobile ? '14px' : '20px',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <h3 style={{ fontSize: isMobile ? '14px' : '16px', fontWeight: '600', color: 'rgba(255,255,255,0.9)', margin: 0 }}>
+                  {weekOffset === 0 ? 'Last 7 Days' : 'Weekly History'}
+                </h3>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <motion.button
+                    onClick={() => setWeekOffset(prev => prev + 1)}
+                    whileHover={{ background: 'rgba(139, 92, 246, 0.2)' }}
+                    whileTap={{ scale: 0.95 }}
+                    style={{
+                      background: 'rgba(255,255,255,0.05)',
+                      border: 'none',
+                      borderRadius: '6px',
+                      width: '28px',
+                      height: '28px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      color: 'rgba(255,255,255,0.7)',
+                    }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M15 18l-6-6 6-6"/>
+                    </svg>
+                  </motion.button>
+                  <span style={{ fontSize: isMobile ? '11px' : '12px', color: 'rgba(255,255,255,0.5)', minWidth: isMobile ? '100px' : '120px', textAlign: 'center' }}>
+                    {getWeekDateRange()}
+                  </span>
+                  <motion.button
+                    onClick={() => setWeekOffset(prev => Math.max(0, prev - 1))}
+                    whileHover={{ background: weekOffset > 0 ? 'rgba(139, 92, 246, 0.2)' : 'transparent' }}
+                    whileTap={{ scale: weekOffset > 0 ? 0.95 : 1 }}
+                    style={{
+                      background: 'rgba(255,255,255,0.05)',
+                      border: 'none',
+                      borderRadius: '6px',
+                      width: '28px',
+                      height: '28px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: weekOffset > 0 ? 'pointer' : 'not-allowed',
+                      color: weekOffset > 0 ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.2)',
+                    }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M9 18l6-6-6-6"/>
+                    </svg>
+                  </motion.button>
+                </div>
               </div>
-              <div>
-                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>Protein</div>
-                <div style={{ fontSize: '18px', fontWeight: '600', color: '#06B6D4' }}>{nutrition?.avgProtein || 0}g</div>
+              <div style={{
+                fontSize: isMobile ? '11px' : '13px',
+                color: 'rgba(255,255,255,0.5)',
+              }}>
+                Goal: <span style={{ color: '#8B5CF6', fontWeight: '600' }}>{goals?.targetCalories || 2000}</span> cal/day
               </div>
-              <div>
-                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>Carbs</div>
-                <div style={{ fontSize: '18px', fontWeight: '600', color: '#10B981' }}>{nutrition?.avgCarbs || 0}g</div>
+            </div>
+            <BarChart data={chartData} dataKey="calories" color="#8B5CF6" height={isMobile ? 140 : 160} target={goals?.targetCalories || 2000} />
+          </div>
+
+          {/* Daily Averages - show on mobile as compact cards */}
+          {isMobile && (
+            <div style={{
+              background: 'rgba(255,255,255,0.03)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: '12px',
+              padding: '14px',
+            }}>
+              <h4 style={{ fontSize: '13px', fontWeight: '600', color: 'rgba(255,255,255,0.7)', marginBottom: '10px' }}>Daily Averages</h4>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>Calories</div>
+                  <div style={{ fontSize: '14px', fontWeight: '600', color: '#8B5CF6' }}>{nutrition?.avgCalories || 0}</div>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>Protein</div>
+                  <div style={{ fontSize: '14px', fontWeight: '600', color: '#06B6D4' }}>{nutrition?.avgProtein || 0}g</div>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>Carbs</div>
+                  <div style={{ fontSize: '14px', fontWeight: '600', color: '#10B981' }}>{nutrition?.avgCarbs || 0}g</div>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>Fat</div>
+                  <div style={{ fontSize: '14px', fontWeight: '600', color: '#F59E0B' }}>{nutrition?.avgFat || 0}g</div>
+                </div>
               </div>
-              <div>
-                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>Fat</div>
-                <div style={{ fontSize: '18px', fontWeight: '600', color: '#F59E0B' }}>{nutrition?.avgFat || 0}g</div>
-              </div>
+            </div>
+          )}
+
+          {/* Calendar - show on mobile */}
+          {isMobile && (
+            <div>
+              <h3 style={{ fontSize: '14px', fontWeight: '600', color: 'rgba(255,255,255,0.8)', marginBottom: '10px' }}>Nutrition Calendar</h3>
+              <Calendar
+                nutritionDates={nutritionDates || []}
+                type="nutrition"
+                onDayClick={handleDayClick}
+                mealsByDate={mealsByDate}
+              />
+            </div>
+          )}
+
+          {/* Recent Meals */}
+          <div>
+            <h3 style={{ fontSize: isMobile ? '14px' : '16px', fontWeight: '600', color: 'rgba(255,255,255,0.8)', marginBottom: isMobile ? '8px' : '12px' }}>Recent Meals</h3>
+            <div style={{ maxHeight: isMobile ? 'none' : '300px', overflowY: isMobile ? 'visible' : 'auto', paddingRight: isMobile ? '0' : '8px' }}>
+              {mealList.length === 0 ? (
+                <EmptyState message="No meals logged yet" />
+              ) : (
+                mealList.slice(0, isMobile ? 10 : 20).map((meal) => (
+                  <MealCard key={meal.id} meal={meal} />
+                ))
+              )}
             </div>
           </div>
         </div>
-      )}
+
+        {/* Calendar Sidebar - only show on desktop */}
+        {!isMobile && (
+          <div style={{ width: '320px', flexShrink: 0 }}>
+            <h3 style={{ fontSize: '16px', fontWeight: '600', color: 'rgba(255,255,255,0.8)', marginBottom: '12px' }}>Nutrition Calendar</h3>
+            <Calendar
+              nutritionDates={nutritionDates || []}
+              type="nutrition"
+              onDayClick={handleDayClick}
+              mealsByDate={mealsByDate}
+            />
+
+            {/* Averages */}
+            <div style={{
+              background: 'rgba(255,255,255,0.03)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: '16px',
+              padding: '16px',
+              marginTop: '16px',
+            }}>
+              <h4 style={{ fontSize: '14px', fontWeight: '600', color: 'rgba(255,255,255,0.7)', marginBottom: '12px' }}>Daily Averages</h4>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div>
+                  <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>Calories</div>
+                  <div style={{ fontSize: '18px', fontWeight: '600', color: '#8B5CF6' }}>{nutrition?.avgCalories || 0}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>Protein</div>
+                  <div style={{ fontSize: '18px', fontWeight: '600', color: '#06B6D4' }}>{nutrition?.avgProtein || 0}g</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>Carbs</div>
+                  <div style={{ fontSize: '18px', fontWeight: '600', color: '#10B981' }}>{nutrition?.avgCarbs || 0}g</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>Fat</div>
+                  <div style={{ fontSize: '18px', fontWeight: '600', color: '#F59E0B' }}>{nutrition?.avgFat || 0}g</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
+
+    {/* Meal Detail Modal */}
+    <AnimatePresence>
+      {showModal && (
+        <MealDetailModal
+          isOpen={showModal}
+          onClose={() => setShowModal(false)}
+          date={selectedDate}
+          meals={selectedMeals}
+        />
+      )}
+    </AnimatePresence>
+    </>
   );
 };
 
@@ -1505,40 +3275,11 @@ const ProgressSection = ({ data, loading, isMobile = false }) => {
         </div>
       </div>
 
-      {/* Exercise Progress - wrap on mobile */}
-      {exerciseProgress && Object.keys(exerciseProgress).length > 0 && (
-        <div>
-          <h3 style={{ fontSize: isMobile ? '14px' : '18px', fontWeight: '600', color: 'rgba(255,255,255,0.8)', marginBottom: isMobile ? '10px' : '16px' }}>Exercise Progress</h3>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fill, minmax(200px, 1fr))',
-            gap: isMobile ? '8px' : '12px',
-          }}>
-            {Object.values(exerciseProgress).slice(0, isMobile ? 6 : 8).map((exercise) => (
-              <div key={exercise.name} style={{
-                background: 'rgba(255,255,255,0.03)',
-                border: '1px solid rgba(255,255,255,0.08)',
-                borderRadius: isMobile ? '10px' : '12px',
-                padding: isMobile ? '10px' : '16px',
-              }}>
-                <div style={{ fontSize: isMobile ? '11px' : '14px', fontWeight: '600', color: '#FFFFFF', marginBottom: '6px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {exercise.name}
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
-                  <div>
-                    <div style={{ fontSize: isMobile ? '9px' : '11px', color: 'rgba(255,255,255,0.4)' }}>Max</div>
-                    <div style={{ fontSize: isMobile ? '13px' : '16px', fontWeight: '600', color: '#8B5CF6' }}>{exercise.maxWeight}</div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: isMobile ? '9px' : '11px', color: 'rgba(255,255,255,0.4)' }}>Vol</div>
-                    <div style={{ fontSize: isMobile ? '13px' : '16px', fontWeight: '600', color: '#06B6D4' }}>{(exercise.totalVolume / 1000).toFixed(1)}k</div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Exercise Progress Chart */}
+      <div>
+        <h3 style={{ fontSize: isMobile ? '14px' : '18px', fontWeight: '600', color: 'rgba(255,255,255,0.8)', marginBottom: isMobile ? '10px' : '16px' }}>Exercise Progress</h3>
+        <ExerciseProgressCharts exerciseProgress={exerciseProgress} workouts={workouts?.list || []} isMobile={isMobile} />
+      </div>
     </div>
   );
 };
@@ -2004,6 +3745,33 @@ export default function WebDashboard({ user, onSignOut, onGoHome }) {
     setLoading(false);
   };
 
+  const handleDeleteWorkout = async (workout) => {
+    if (!user?.uid || !workout?.id) return;
+
+    try {
+      setSyncStatus('Deleting workout...');
+      const success = await WebDataService.deleteWorkout(user.uid, workout.id);
+      if (success) {
+        // Remove from local state immediately for better UX
+        setData(prev => ({
+          ...prev,
+          workoutList: prev.workoutList.filter(w => w.id !== workout.id),
+          workouts: {
+            ...prev.workouts,
+            total: Math.max(0, (prev.workouts?.total || 0) - 1),
+          }
+        }));
+        setSyncStatus('Workout deleted');
+        setTimeout(() => setSyncStatus(''), 2000);
+      } else {
+        setSyncStatus('Failed to delete workout');
+      }
+    } catch (error) {
+      console.error('Error deleting workout:', error);
+      setSyncStatus(`Error: ${error.message}`);
+    }
+  };
+
   if (Platform.OS !== 'web') return null;
 
   // Mobile Layout
@@ -2089,7 +3857,7 @@ export default function WebDashboard({ user, onSignOut, onGoHome }) {
           overflowX: 'hidden',
           WebkitOverflowScrolling: 'touch',
         }}>
-          {activeTab === 'workouts' && <WorkoutsSection data={data} loading={loading} isMobile={true} />}
+          {activeTab === 'workouts' && <WorkoutsSection data={data} loading={loading} isMobile={true} onDeleteWorkout={handleDeleteWorkout} />}
           {activeTab === 'nutrition' && <NutritionSection data={data} loading={loading} isMobile={true} />}
           {activeTab === 'progress' && <ProgressSection data={data} loading={loading} isMobile={true} />}
           {activeTab === 'goals' && <GoalsSection data={data} loading={loading} isMobile={true} />}
@@ -2269,12 +4037,32 @@ export default function WebDashboard({ user, onSignOut, onGoHome }) {
               }}
             >
               {user?.photoURL ? (
-                <img src={user.photoURL} alt="" style={{ width: '28px', height: '28px', borderRadius: '50%', border: '2px solid rgba(139, 92, 246, 0.5)' }} />
-              ) : (
-                <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'linear-gradient(135deg, #8B5CF6, #06B6D4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '600', color: '#FFFFFF' }}>
-                  {(user?.displayName || user?.email || 'U')[0].toUpperCase()}
-                </div>
-              )}
+                <img
+                  src={user.photoURL}
+                  alt=""
+                  referrerPolicy="no-referrer"
+                  crossOrigin="anonymous"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'flex';
+                  }}
+                  style={{ width: '28px', height: '28px', borderRadius: '50%', border: '2px solid rgba(139, 92, 246, 0.5)', objectFit: 'cover' }}
+                />
+              ) : null}
+              <div style={{
+                width: '28px',
+                height: '28px',
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #8B5CF6, #06B6D4)',
+                display: user?.photoURL ? 'none' : 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '12px',
+                fontWeight: '600',
+                color: '#FFFFFF'
+              }}>
+                {(user?.displayName || user?.email || 'U')[0].toUpperCase()}
+              </div>
               <span style={{ fontSize: '13px', color: '#FFFFFF', fontWeight: '500' }}>{user?.displayName || user?.email?.split('@')[0]}</span>
               <svg
                 width="14"
@@ -2417,7 +4205,7 @@ export default function WebDashboard({ user, onSignOut, onGoHome }) {
               transition={{ duration: 0.2 }}
               style={{ width: '100%' }}
             >
-              {activeTab === 'workouts' && <WorkoutsSection data={data} loading={loading} />}
+              {activeTab === 'workouts' && <WorkoutsSection data={data} loading={loading} onDeleteWorkout={handleDeleteWorkout} />}
               {activeTab === 'nutrition' && <NutritionSection data={data} loading={loading} />}
               {activeTab === 'progress' && <ProgressSection data={data} loading={loading} />}
               {activeTab === 'goals' && <GoalsSection data={data} loading={loading} />}

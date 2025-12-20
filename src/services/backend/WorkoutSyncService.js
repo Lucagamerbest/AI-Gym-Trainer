@@ -298,24 +298,43 @@ class WorkoutSyncService {
       // Get local workouts
       const localWorkouts = await WorkoutStorageService.getWorkoutHistory(localStorageUserId);
 
-      // Merge strategy: Create a map with cloud ID as key
-      // Cloud data takes precedence
+      console.log('☁️ Cloud workouts count:', cloudWorkouts.length);
+      console.log('📱 Local workouts count:', localWorkouts.length);
+
+      // SIMPLE STRATEGY: Firebase is the source of truth
+      // Only keep local workouts that have NEVER been synced (no cloudId, no synced flag)
+      // Everything else comes from Firebase
+
+      const cloudWorkoutIds = new Set(cloudWorkouts.map(w => w.id));
       const workoutMap = new Map();
 
-      // Add local workouts first (these will be overridden if cloud version exists)
-      localWorkouts.forEach(workout => {
-        const key = workout.cloudId || workout.id;
-        workoutMap.set(key, workout);
-      });
-
-      // Override with cloud workouts (cloud is source of truth)
+      // First, add cloud workouts (these are the source of truth)
       cloudWorkouts.forEach(workout => {
         workoutMap.set(workout.id, {
           ...workout,
-          synced: true, // Mark as synced since it came from cloud
+          synced: true,
           cloudId: workout.id,
         });
       });
+
+      // Only keep truly local workouts (never synced to cloud)
+      // These are workouts created offline that haven't been uploaded yet
+      localWorkouts.forEach(workout => {
+        const hasCloudId = workout.cloudId;
+        const wasSynced = workout.synced === true;
+        const existsInCloud = cloudWorkoutIds.has(workout.cloudId) || cloudWorkoutIds.has(workout.id);
+
+        // If this workout was NEVER synced (truly local only), keep it
+        if (!hasCloudId && !wasSynced && !existsInCloud) {
+          console.log('📱 Keeping local-only workout:', workout.workoutTitle || workout.id);
+          workoutMap.set(workout.id, workout);
+        } else if (!existsInCloud && (hasCloudId || wasSynced)) {
+          // Was synced before but no longer in cloud = DELETED
+          console.log('🗑️ Removing deleted workout:', workout.workoutTitle || workout.id);
+        }
+      });
+
+      console.log('✅ Final workout count:', workoutMap.size);
 
       // Convert map back to array
       const mergedWorkouts = Array.from(workoutMap.values());

@@ -11,6 +11,7 @@ import AchievementDetailModal from '../components/AchievementDetailModal';
 import { Spacing, Typography, BorderRadius } from '../constants/theme';
 import { useColors } from '../context/ThemeContext';
 import { WorkoutStorageService } from '../services/workoutStorage';
+import WorkoutSyncService from '../services/backend/WorkoutSyncService';
 import { useAuth } from '../context/AuthContext';
 import { getExercisesByMuscleGroup } from '../data/exerciseDatabase';
 import { useAITracking } from '../components/AIScreenTracker';
@@ -91,7 +92,19 @@ export default function ProgressScreen({ navigation }) {
   // Reload data when screen comes into focus (e.g., after deleting a workout)
   useFocusEffect(
     React.useCallback(() => {
-      loadProgressData();
+      const syncAndLoad = async () => {
+        // Sync with Firebase first if user is logged in
+        if (user?.uid) {
+          try {
+            await WorkoutSyncService.downloadCloudWorkouts(user.uid);
+          } catch (error) {
+            console.log('Background sync failed:', error.message);
+          }
+        }
+        // Then load local data (now updated with any deletions)
+        loadProgressData();
+      };
+      syncAndLoad();
     }, [user])
   );
 
