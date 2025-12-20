@@ -2,11 +2,130 @@ import React, { useRef } from 'react';
 import { Platform } from 'react-native';
 import { motion, useInView } from 'framer-motion';
 
-export default function CTASection({ onGetStarted }) {
+export default function CTASection({ onGetStarted, isMobile = false }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-100px' });
 
   if (Platform.OS !== 'web') return null;
+
+  // Mobile: simplified static version
+  if (isMobile) {
+    return (
+      <section
+        style={{
+          padding: '80px 20px',
+          position: 'relative',
+          overflow: 'hidden',
+          borderTop: '1px solid rgba(255,255,255,0.05)',
+        }}
+      >
+        {/* Static gradient background on mobile */}
+        <div
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '300px',
+            height: '300px',
+            background: 'radial-gradient(circle, rgba(139, 92, 246, 0.2) 0%, transparent 60%)',
+            filter: 'blur(60px)',
+            pointerEvents: 'none',
+          }}
+        />
+
+        {/* Content */}
+        <div style={{ textAlign: 'center', position: 'relative' }}>
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '10px',
+            marginBottom: '20px',
+          }}>
+            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#8B5CF6' }} />
+            <span style={{
+              fontSize: '11px',
+              color: 'rgba(255,255,255,0.5)',
+              textTransform: 'uppercase',
+              letterSpacing: '2px',
+            }}>
+              Start Today
+            </span>
+          </div>
+
+          <h2 style={{
+            fontSize: '32px',
+            fontWeight: '800',
+            color: '#FFFFFF',
+            lineHeight: 1.1,
+            marginBottom: '20px',
+          }}>
+            Ready to{' '}
+            <span style={{
+              background: 'linear-gradient(135deg, #8B5CF6, #06B6D4)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}>
+              Level Up
+            </span>
+            ?
+          </h2>
+
+          <p style={{
+            fontSize: '15px',
+            color: 'rgba(255,255,255,0.5)',
+            marginBottom: '32px',
+            lineHeight: 1.6,
+          }}>
+            Voice logging, AI coaching, and smart workout imports.
+          </p>
+
+          <button
+            onClick={onGetStarted}
+            style={{
+              background: '#FFFFFF',
+              color: '#000000',
+              border: 'none',
+              padding: '16px 36px',
+              borderRadius: '60px',
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              textTransform: 'uppercase',
+            }}
+          >
+            Launch App
+          </button>
+
+          {/* Feature tags */}
+          <div style={{
+            marginTop: '40px',
+            display: 'flex',
+            justifyContent: 'center',
+            gap: '12px',
+            flexWrap: 'wrap',
+          }}>
+            {['Voice', 'AI Recipes', 'Import', '3D Map'].map((feature, index) => (
+              <div
+                key={index}
+                style={{
+                  fontSize: '11px',
+                  color: 'rgba(255,255,255,0.5)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '1px',
+                  padding: '8px 16px',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: '20px',
+                }}
+              >
+                {feature}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section

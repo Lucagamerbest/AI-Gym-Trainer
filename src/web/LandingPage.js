@@ -2,6 +2,37 @@ import React, { useState, useEffect } from 'react';
 import { Platform, View, StyleSheet, ScrollView } from 'react-native';
 import { motion, AnimatePresence } from 'framer-motion';
 
+// Mobile detection hook - uses user agent for reliable detection
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    // Check user agent for mobile devices
+    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+    const isMobileUA = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile|tablet/i.test(userAgent);
+    const isSmallScreen = window.innerWidth < 900;
+    const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    return isMobileUA || (isSmallScreen && hasTouch);
+  });
+
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+
+    const checkMobile = () => {
+      const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+      const isMobileUA = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile|tablet/i.test(userAgent);
+      const isSmallScreen = window.innerWidth < 900;
+      const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      setIsMobile(isMobileUA || (isSmallScreen && hasTouch));
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  return isMobile;
+};
+
 // Import sections
 import AnimatedBackground from './components/AnimatedBackground';
 import HeroSection from './components/HeroSection';
@@ -298,12 +329,18 @@ const NavBar = ({ onLogin, user, onSignOut, onGoToDashboard }) => {
   );
 };
 
-// Loading screen - minimal design
-const LoadingScreen = ({ onComplete }) => {
+// Loading screen - minimal design (skip on mobile for performance)
+const LoadingScreen = ({ onComplete, isMobile }) => {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    // Animate progress from 0 to 100
+    // Skip loading animation on mobile - go straight to content
+    if (isMobile) {
+      setTimeout(onComplete, 100);
+      return;
+    }
+
+    // Animate progress from 0 to 100 on desktop
     const duration = 1800;
     const steps = 60;
     const increment = 100 / steps;
@@ -321,9 +358,44 @@ const LoadingScreen = ({ onComplete }) => {
     }, duration / steps);
 
     return () => clearInterval(interval);
-  }, [onComplete]);
+  }, [onComplete, isMobile]);
 
   if (Platform.OS !== 'web') return null;
+
+  // Simple fade on mobile
+  if (isMobile) {
+    return (
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          background: '#000000',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+        }}
+      >
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+        }}>
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <defs>
+              <linearGradient id="loadingWaveGradientMobile" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#8B5CF6" />
+                <stop offset="100%" stopColor="#06B6D4" />
+              </linearGradient>
+            </defs>
+            <circle cx="16" cy="16" r="15" stroke="url(#loadingWaveGradientMobile)" strokeWidth="2" fill="none" />
+            <path d="M6 16 Q10 10, 14 16 T22 16 T26 16" stroke="url(#loadingWaveGradientMobile)" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+          </svg>
+          <span style={{ fontSize: '18px', fontWeight: '700', color: '#FFFFFF' }}>Workout Wave</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -397,7 +469,7 @@ const LoadingScreen = ({ onComplete }) => {
             fontSize: '72px',
             fontWeight: '800',
             color: '#FFFFFF',
-            fontFamily: '"Inter", -apple-system, sans-serif',
+            fontFamily: '"Outfit", -apple-system, sans-serif',
             marginBottom: '24px',
           }}
         >
@@ -577,6 +649,7 @@ export default function LandingPage({ onEnterApp }) {
   const [showAuthPage, setShowAuthPage] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [showDashboard, setShowDashboard] = useState(true); // Show dashboard by default when logged in
+  const isMobile = useIsMobile();
 
   // Listen for auth state changes
   useEffect(() => {
@@ -674,12 +747,12 @@ export default function LandingPage({ onEnterApp }) {
       minHeight: '100vh',
       background: '#000000',
       color: '#FFFFFF',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      fontFamily: '"Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
       overflowX: 'hidden',
     }}>
       <AnimatePresence>
         {isLoading && (
-          <LoadingScreen onComplete={() => setIsLoading(false)} />
+          <LoadingScreen onComplete={() => setIsLoading(false)} isMobile={isMobile} />
         )}
       </AnimatePresence>
 
@@ -697,21 +770,22 @@ export default function LandingPage({ onEnterApp }) {
             <HeroSection
               onGetStarted={handleGetStarted}
               onLearnMore={scrollToFeatures}
+              isMobile={isMobile}
             />
 
             {/* Marquee Section - scrolling text */}
-            <MarqueeSection />
+            <MarqueeSection isMobile={isMobile} />
 
             {/* Screenshot Showcase with Feature Highlights */}
             <div id="features">
-              <ScreenshotShowcase />
+              <ScreenshotShowcase isMobile={isMobile} />
             </div>
 
             {/* Additional Features Grid */}
-            <FeaturesSection />
+            <FeaturesSection isMobile={isMobile} />
 
             {/* CTA Section */}
-            <CTASection onGetStarted={handleGetStarted} />
+            <CTASection onGetStarted={handleGetStarted} isMobile={isMobile} />
 
             {/* Footer */}
             <Footer />
@@ -732,9 +806,9 @@ export default function LandingPage({ onEnterApp }) {
         )}
       </AnimatePresence>
 
-      {/* Global styles with Inter font */}
+      {/* Global styles with Outfit font - distinctive, less AI-like */}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
 
         * {
           box-sizing: border-box;
@@ -750,9 +824,20 @@ export default function LandingPage({ onEnterApp }) {
           background: #000000;
           color: #FFFFFF;
           overflow-x: hidden;
-          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          overflow-y: auto !important;
+          font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
           -webkit-font-smoothing: antialiased;
           -moz-osx-font-smoothing: grayscale;
+          -webkit-overflow-scrolling: touch;
+        }
+
+        /* Mobile-specific styles */
+        @media (max-width: 768px) {
+          html, body, #root {
+            overflow-y: auto !important;
+            height: auto !important;
+            min-height: 100vh;
+          }
         }
 
         ::-webkit-scrollbar {

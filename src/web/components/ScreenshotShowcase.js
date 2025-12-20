@@ -15,10 +15,58 @@ const getImageUrl = (src) => {
 };
 
 // Phone mockup component
-const PhoneMockup = ({ imageSrc, alt, index, isMain = false }) => {
+const PhoneMockup = ({ imageSrc, alt, index, isMain = false, isMobile = false }) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-100px' });
   const imageUrl = getImageUrl(imageSrc);
+
+  // Mobile: static version without complex 3D animations
+  if (isMobile) {
+    return (
+      <div
+        style={{
+          position: 'relative',
+          width: isMain ? '200px' : '160px',
+          height: isMain ? '410px' : '330px',
+          borderRadius: '24px',
+          background: 'linear-gradient(145deg, #2a2a2a 0%, #1a1a1a 100%)',
+          padding: '8px',
+          boxShadow: '0 20px 40px -10px rgba(0,0,0,0.4)',
+          flexShrink: 0,
+        }}
+      >
+        {/* Notch */}
+        <div style={{
+          position: 'absolute',
+          top: '8px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: '60px',
+          height: '18px',
+          background: '#000',
+          borderRadius: '0 0 12px 12px',
+          zIndex: 10,
+        }} />
+        {/* Screen */}
+        <div style={{
+          width: '100%',
+          height: '100%',
+          borderRadius: '20px',
+          overflow: 'hidden',
+          background: '#000',
+        }}>
+          {imageUrl ? (
+            <img src={imageUrl} alt={alt} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ) : (
+            <div style={{
+              width: '100%', height: '100%', background: 'linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.3)', fontSize: '12px',
+            }}>Screenshot</div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -116,9 +164,42 @@ const PhoneMockup = ({ imageSrc, alt, index, isMain = false }) => {
 };
 
 // Auto-scrolling horizontal gallery (marquee style)
-const HorizontalGallery = ({ screenshots }) => {
+const HorizontalGallery = ({ screenshots, isMobile = false }) => {
   // Duplicate screenshots for seamless loop
   const duplicatedScreenshots = [...screenshots, ...screenshots];
+
+  // Mobile: CSS animation instead of framer-motion
+  if (isMobile) {
+    return (
+      <div style={{ width: '100%', overflow: 'hidden', padding: '30px 0' }}>
+        <div
+          style={{
+            display: 'flex',
+            gap: '20px',
+            width: 'fit-content',
+            animation: 'scroll-gallery 25s linear infinite',
+          }}
+        >
+          {duplicatedScreenshots.map((screenshot, index) => (
+            <PhoneMockup
+              key={index}
+              index={index % screenshots.length}
+              imageSrc={screenshot.src}
+              alt={screenshot.alt}
+              isMain={false}
+              isMobile={true}
+            />
+          ))}
+        </div>
+        <style>{`
+          @keyframes scroll-gallery {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+          }
+        `}</style>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -158,9 +239,75 @@ const HorizontalGallery = ({ screenshots }) => {
 };
 
 // Feature highlight with screenshot
-const FeatureHighlight = ({ title, description, features, imageSrc, imageAlt, reverse = false, accentColor = '#8B5CF6' }) => {
+const FeatureHighlight = ({ title, description, features, imageSrc, imageAlt, reverse = false, accentColor = '#8B5CF6', isMobile = false }) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-100px' });
+
+  // Mobile: simplified layout without complex animations
+  if (isMobile) {
+    return (
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '32px',
+          padding: '60px 20px',
+        }}
+      >
+        {/* Content */}
+        <div>
+          <div style={{
+            width: '40px',
+            height: '3px',
+            background: accentColor,
+            marginBottom: '16px',
+            borderRadius: '2px',
+          }} />
+          <h3 style={{
+            fontSize: '28px',
+            fontWeight: '800',
+            color: '#FFFFFF',
+            marginBottom: '16px',
+            lineHeight: 1.2,
+          }}>
+            {title}
+          </h3>
+          <p style={{
+            fontSize: '15px',
+            color: 'rgba(255,255,255,0.6)',
+            lineHeight: 1.6,
+            marginBottom: '24px',
+          }}>
+            {description}
+          </p>
+          {/* Feature list */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {features.map((feature, index) => (
+              <div key={index} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                <div style={{
+                  width: '20px', height: '20px', borderRadius: '50%',
+                  background: `${accentColor}20`, border: `1px solid ${accentColor}40`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '2px',
+                }}>
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={accentColor} strokeWidth="3">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                </div>
+                <div>
+                  <div style={{ color: '#FFFFFF', fontWeight: '600', fontSize: '14px', marginBottom: '2px' }}>{feature.title}</div>
+                  <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px' }}>{feature.description}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* Screenshot */}
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <PhoneMockup imageSrc={imageSrc} alt={imageAlt} index={0} isMain isMobile={true} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -469,7 +616,7 @@ const screenshots = {
   fastfoodrecipe: require('../../../assets/screenshots/fastfoodrecipe.jpg'),
 };
 
-export default function ScreenshotShowcase() {
+export default function ScreenshotShowcase({ isMobile = false }) {
   if (Platform.OS !== 'web') return null;
 
   // Gallery screenshots for horizontal scroll
@@ -481,6 +628,90 @@ export default function ScreenshotShowcase() {
     { src: screenshots.progressai, alt: 'AI Coach' },
     { src: screenshots.nutritionpage, alt: 'Nutrition Dashboard' },
   ];
+
+  // Mobile: simplified layout
+  if (isMobile) {
+    return (
+      <section style={{ position: 'relative' }}>
+        {/* Section header - static on mobile */}
+        <div style={{
+          textAlign: 'center',
+          padding: '60px 20px 24px',
+        }}>
+          <div style={{
+            fontSize: '11px',
+            color: '#8B5CF6',
+            textTransform: 'uppercase',
+            letterSpacing: '2px',
+            marginBottom: '12px',
+          }}>
+            App Preview
+          </div>
+          <h2 style={{
+            fontSize: '28px',
+            fontWeight: '800',
+            color: '#FFFFFF',
+            lineHeight: 1.2,
+          }}>
+            Designed for
+            <span style={{
+              background: 'linear-gradient(135deg, #8B5CF6, #06B6D4)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}> Athletes</span>
+          </h2>
+        </div>
+
+        {/* Horizontal scroll gallery */}
+        <HorizontalGallery screenshots={galleryScreenshots} isMobile={true} />
+
+        {/* Feature highlights with screenshots */}
+        <FeatureHighlight
+          title="Smart Workout Tracking"
+          description="Log your exercises with intelligent suggestions and automatic PR detection."
+          features={[
+            { title: '500+ Exercises', description: 'Complete exercise library' },
+            { title: 'Auto PR Detection', description: 'Celebrates your records' },
+            { title: '3D Muscle Map', description: 'See muscles targeted' },
+          ]}
+          imageSrc={screenshots.workoutpage}
+          imageAlt="Workout tracking screen"
+          accentColor="#8B5CF6"
+          isMobile={true}
+        />
+
+        <FeatureHighlight
+          title="AI-Powered Coach"
+          description="Get personalized recommendations from your intelligent fitness companion."
+          features={[
+            { title: 'Progress Analysis', description: 'AI analyzes your history' },
+            { title: 'Recipe Generation', description: 'Custom recipes for your macros' },
+            { title: 'Smart Suggestions', description: 'Personalized advice' },
+          ]}
+          imageSrc={screenshots.recipeai}
+          imageAlt="AI Coach screen"
+          accentColor="#06B6D4"
+          isMobile={true}
+        />
+
+        <FeatureHighlight
+          title="Nutrition Tracking"
+          description="Log meals, scan barcodes, and track your macros effectively."
+          features={[
+            { title: 'Barcode Scanner', description: 'Scan packages instantly' },
+            { title: 'Macro Tracking', description: 'Track with precision' },
+            { title: 'AI Recipes', description: 'Hit your macro targets' },
+          ]}
+          imageSrc={screenshots.nutritionpage}
+          imageAlt="Nutrition dashboard"
+          accentColor="#10B981"
+          isMobile={true}
+        />
+
+        {/* Testimonials - skip on mobile for now to reduce page weight */}
+      </section>
+    );
+  }
 
   return (
     <section style={{ position: 'relative' }}>

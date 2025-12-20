@@ -99,7 +99,7 @@ export default function AuthPage({ onSuccess, onBack }) {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      fontFamily: '"Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     }}>
       {/* Background gradient */}
       <motion.div

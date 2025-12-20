@@ -135,7 +135,12 @@
       "Bash(git -C \"C:\\Users\\lucar\\AI-Gym-Trainer\" commit -m \"$(cat <<''EOF''\nfeat: Add recommended incline/decline degrees to exercises\n\n- Chest Fly: Added incline (30-45°) and decline (15-30°) recommendations\n- Dips: Added body angle info - upright (90°) for triceps, lean 20-30° for chest\n- Rear Delt Fly: Added 60-90° hip bend recommendation for bent-over variants\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\")",
       "WebFetch(domain:landonorris.com)",
       "Bash(timeout /t 8)",
-      "Bash(if not exist \"C:\\Users\\lucar\\AI-Gym-Trainer\\assets\\screenshots\" mkdir \"C:\\Users\\lucar\\AI-Gym-Trainer\\assets\\screenshots\")"
+      "Bash(if not exist \"C:\\Users\\lucar\\AI-Gym-Trainer\\assets\\screenshots\" mkdir \"C:\\Users\\lucar\\AI-Gym-Trainer\\assets\\screenshots\")",
+      "Bash(npx expo export:web)",
+      "Bash(git -C \"C:\\Users\\lucar\\AI-Gym-Trainer\" log --oneline -3)",
+      "Bash(git -C \"C:\\Users\\lucar\\AI-Gym-Trainer\" diff --stat src/web/components/WebDashboard.js firebase.json)",
+      "Bash(git -C \"C:\\Users\\lucar\\AI-Gym-Trainer\" add src/web/components/WebDashboard.js firebase.json)",
+      "Bash(git -C \"C:\\Users\\lucar\\AI-Gym-Trainer\" commit -m \"$(cat <<''EOF''\nfeat: Enhance web dashboard with workout photos, lightbox, and notes\n\n- Add workout photo thumbnails on workout cards with photo count badge\n- Add fullscreen image lightbox with download capability\n- Display workout notes and per-set comments in workout detail modal\n- Make workout cards clickable to open detail modal\n- Replace all emojis with clean SVG icons for consistent theme\n- Add Firebase Hosting configuration for deployment\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\")"
     ],
     "deny": [],
     "ask": []

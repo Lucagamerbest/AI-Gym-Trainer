@@ -2,10 +2,15 @@ import React, { useRef, useState } from 'react';
 import { Platform } from 'react-native';
 import { motion, useInView, useScroll, useTransform } from 'framer-motion';
 
-// Text reveal animation with clip-path (Lando Norris style)
-const RevealText = ({ children, delay = 0, className = '' }) => {
+// Text reveal animation with clip-path (Lando Norris style) - static on mobile
+const RevealText = ({ children, delay = 0, className = '', isMobile = false }) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-100px' });
+
+  // Static version for mobile - no animation
+  if (isMobile) {
+    return <div>{children}</div>;
+  }
 
   return (
     <div ref={ref} style={{ overflow: 'hidden' }}>
@@ -52,12 +57,13 @@ const SplitRevealText = ({ text, delay = 0, style = {} }) => {
   );
 };
 
-// Magnetic button effect
-const MagneticButton = ({ children, onClick, primary = false }) => {
+// Magnetic button effect - simplified on mobile
+const MagneticButton = ({ children, onClick, primary = false, isMobile = false }) => {
   const ref = useRef(null);
   const [position, setPosition] = useState({ x: 0, y: 0 });
 
   const handleMouse = (e) => {
+    if (isMobile) return;
     const { clientX, clientY } = e;
     const { left, top, width, height } = ref.current.getBoundingClientRect();
     const x = (clientX - left - width / 2) * 0.3;
@@ -71,7 +77,7 @@ const MagneticButton = ({ children, onClick, primary = false }) => {
 
   const buttonStyle = {
     padding: primary ? '20px 48px' : '18px 40px',
-    fontSize: '16px',
+    fontSize: isMobile ? '14px' : '16px',
     fontWeight: '600',
     borderRadius: '60px',
     cursor: 'pointer',
@@ -93,6 +99,19 @@ const MagneticButton = ({ children, onClick, primary = false }) => {
       border: '1px solid rgba(255, 255, 255, 0.3)',
     }),
   };
+
+  // Simple button for mobile - no magnetic effect or complex animations
+  if (isMobile) {
+    return (
+      <button
+        ref={ref}
+        onClick={onClick}
+        style={buttonStyle}
+      >
+        <span>{children}</span>
+      </button>
+    );
+  }
 
   return (
     <motion.button
@@ -190,9 +209,155 @@ const FeatureHighlightItem = ({ title, description, delay = 0 }) => {
   );
 };
 
-export default function HeroSection({ onGetStarted, onLearnMore }) {
+export default function HeroSection({ onGetStarted, onLearnMore, isMobile = false }) {
   if (Platform.OS !== 'web') return null;
 
+  // Mobile version - static, no animations, better layout
+  if (isMobile) {
+    return (
+      <section style={{
+        minHeight: '100vh',
+        width: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        position: 'relative',
+        overflow: 'hidden',
+      }}>
+        {/* Main hero content - mobile optimized */}
+        <div style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: '100px 20px 60px',
+          textAlign: 'center',
+          width: '100%',
+        }}>
+          {/* Eyebrow text - static */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            marginBottom: '24px',
+          }}>
+            <div style={{
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              background: '#8B5CF6',
+            }} />
+            <span style={{
+              fontSize: '11px',
+              color: 'rgba(255,255,255,0.6)',
+              textTransform: 'uppercase',
+              letterSpacing: '2px',
+              fontWeight: '500',
+            }}>
+              The Future of Fitness
+            </span>
+          </div>
+
+          {/* Main title - static, mobile sized */}
+          <div style={{
+            fontSize: '36px',
+            fontWeight: '800',
+            lineHeight: 1.1,
+            marginBottom: '24px',
+            color: '#FFFFFF',
+          }}>
+            <span style={{ display: 'block' }}>Transform Your</span>
+            <span style={{
+              display: 'block',
+              background: 'linear-gradient(135deg, #8B5CF6 0%, #06B6D4 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}>
+              Fitness Journey
+            </span>
+          </div>
+
+          {/* Subtitle - static */}
+          <p style={{
+            fontSize: '15px',
+            color: 'rgba(255,255,255,0.6)',
+            maxWidth: '320px',
+            lineHeight: 1.6,
+            marginBottom: '32px',
+          }}>
+            Track workouts, log nutrition, and crush your goals with an AI-powered coach.
+          </p>
+
+          {/* Button - static */}
+          <div style={{ marginBottom: '32px' }}>
+            <MagneticButton onClick={onLearnMore} isMobile={true}>
+              Explore Features
+            </MagneticButton>
+          </div>
+
+          {/* App Store Badges - static, stacked on mobile */}
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+            alignItems: 'center',
+          }}>
+            <a
+              href="#"
+              onClick={(e) => { e.preventDefault(); onGetStarted(); }}
+              style={{ display: 'block' }}
+            >
+              <img
+                src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-us?size=250x83"
+                alt="Download on the App Store"
+                style={{ height: '50px', width: 'auto' }}
+              />
+            </a>
+            <a
+              href="#"
+              onClick={(e) => { e.preventDefault(); onGetStarted(); }}
+              style={{ display: 'block' }}
+            >
+              <img
+                src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png"
+                alt="Get it on Google Play"
+                style={{ height: '75px', width: 'auto', marginTop: '-12px', marginBottom: '-12px' }}
+              />
+            </a>
+          </div>
+        </div>
+
+        {/* Feature highlights - 2x2 grid on mobile */}
+        <div style={{
+          width: '100%',
+          padding: '40px 20px',
+          borderTop: '1px solid rgba(255,255,255,0.1)',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(2, 1fr)',
+          gap: '24px',
+        }}>
+          <div style={{ textAlign: 'center', padding: '12px' }}>
+            <div style={{ fontSize: '20px', fontWeight: '800', color: '#FFFFFF', marginBottom: '4px' }}>Voice Logging</div>
+            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>Speak your sets</div>
+          </div>
+          <div style={{ textAlign: 'center', padding: '12px' }}>
+            <div style={{ fontSize: '20px', fontWeight: '800', color: '#FFFFFF', marginBottom: '4px' }}>AI Recipes</div>
+            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>Custom meals</div>
+          </div>
+          <div style={{ textAlign: 'center', padding: '12px' }}>
+            <div style={{ fontSize: '20px', fontWeight: '800', color: '#FFFFFF', marginBottom: '4px' }}>Smart Import</div>
+            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>Screenshot to plan</div>
+          </div>
+          <div style={{ textAlign: 'center', padding: '12px' }}>
+            <div style={{ fontSize: '20px', fontWeight: '800', color: '#FFFFFF', marginBottom: '4px' }}>3D Muscle Map</div>
+            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>See your training</div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Desktop version with animations
   return (
     <section style={{
       minHeight: '100vh',

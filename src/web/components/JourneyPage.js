@@ -16,7 +16,7 @@ export default function JourneyPage({ onBack }) {
       height: '100vh',
       background: '#000000',
       color: '#FFFFFF',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      fontFamily: '"Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',

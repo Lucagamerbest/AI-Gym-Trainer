@@ -4,6 +4,34 @@ import { motion, AnimatePresence } from 'framer-motion';
 import WebDataService from '../services/WebDataService';
 import ScreenshotImporter from './ScreenshotImporter';
 
+// Mobile detection hook
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+    const isMobileUA = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile|tablet/i.test(userAgent);
+    const isSmallScreen = window.innerWidth < 900;
+    const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    return isMobileUA || (isSmallScreen && hasTouch);
+  });
+
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    const checkMobile = () => {
+      const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+      const isMobileUA = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile|tablet/i.test(userAgent);
+      const isSmallScreen = window.innerWidth < 900;
+      const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      setIsMobile(isMobileUA || (isSmallScreen && hasTouch));
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  return isMobile;
+};
+
 // Helper to get local date string
 const getLocalDateString = (date = new Date()) => {
   const year = date.getFullYear();
@@ -168,30 +196,29 @@ const TABS = [
 ];
 
 // Stat card component
-const StatCard = ({ title, value, subtitle, color = '#8B5CF6', icon }) => (
-  <motion.div
-    whileHover={{ scale: 1.02, y: -2 }}
+const StatCard = ({ title, value, subtitle, color = '#8B5CF6', icon, isMobile = false }) => (
+  <div
     style={{
       background: 'rgba(255,255,255,0.03)',
       border: '1px solid rgba(255,255,255,0.08)',
-      borderRadius: '16px',
-      padding: '20px',
+      borderRadius: isMobile ? '12px' : '16px',
+      padding: isMobile ? '12px' : '20px',
       flex: 1,
-      minWidth: '120px',
+      minWidth: isMobile ? '80px' : '120px',
     }}
   >
-    <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+    <div style={{ fontSize: isMobile ? '10px' : '12px', color: 'rgba(255,255,255,0.5)', marginBottom: isMobile ? '4px' : '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>
       {title}
     </div>
-    <div style={{ fontSize: '28px', fontWeight: '700', color, marginBottom: '4px' }}>
+    <div style={{ fontSize: isMobile ? '20px' : '28px', fontWeight: '700', color, marginBottom: '2px' }}>
       {value}
     </div>
     {subtitle && (
-      <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>
+      <div style={{ fontSize: isMobile ? '10px' : '12px', color: 'rgba(255,255,255,0.4)' }}>
         {subtitle}
       </div>
     )}
-  </motion.div>
+  </div>
 );
 
 // Calendar component
@@ -1124,7 +1151,7 @@ const WorkoutDetailModal = ({ isOpen, onClose, date, workouts }) => {
 };
 
 // Workouts Section
-const WorkoutsSection = ({ data, loading }) => {
+const WorkoutsSection = ({ data, loading, isMobile = false }) => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedWorkouts, setSelectedWorkouts] = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -1164,59 +1191,64 @@ const WorkoutsSection = ({ data, loading }) => {
 
   return (
     <>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '24px', width: '100%' }}>
-        <div>
-          <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#FFFFFF', marginBottom: '20px' }}>Workout History</h2>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '16px' : '24px', width: '100%' }}>
+        <h2 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: '700', color: '#FFFFFF', marginBottom: isMobile ? '8px' : '20px' }}>Workout History</h2>
 
-          {/* Stats */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '24px' }}>
-            <StatCard title="Total" value={workouts?.total || 0} subtitle="workouts" />
-            <StatCard title="This Week" value={workouts?.thisWeek || 0} subtitle="workouts" color="#06B6D4" />
-            <StatCard title="Streak" value={workouts?.currentStreak || 0} subtitle="days" color="#10B981" />
-            <StatCard title="Best Streak" value={workouts?.longestStreak || 0} subtitle="days" color="#F59E0B" />
-          </div>
+        {/* Stats - 2x2 grid on mobile */}
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: isMobile ? '8px' : '12px' }}>
+          <StatCard title="Total" value={workouts?.total || 0} subtitle="workouts" isMobile={isMobile} />
+          <StatCard title="This Week" value={workouts?.thisWeek || 0} subtitle="workouts" color="#06B6D4" isMobile={isMobile} />
+          <StatCard title="Streak" value={workouts?.currentStreak || 0} subtitle="days" color="#10B981" isMobile={isMobile} />
+          <StatCard title="Best" value={workouts?.longestStreak || 0} subtitle="days" color="#F59E0B" isMobile={isMobile} />
+        </div>
 
-          {/* PRs */}
-          {workouts?.prs && workouts.prs.length > 0 && (
-            <div style={{ marginBottom: '24px' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: '600', color: 'rgba(255,255,255,0.8)', marginBottom: '12px' }}>Personal Records</h3>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '10px' }}>
-                {workouts.prs.map((pr, i) => (
-                  <div key={i} style={{
-                    background: 'rgba(255,255,255,0.03)',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    borderRadius: '10px',
-                    padding: '12px',
-                  }}>
-                    <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginBottom: '4px' }}>{pr.name}</div>
-                    <div style={{ fontSize: '18px', fontWeight: '700', color: '#8B5CF6' }}>{pr.weight} lbs</div>
-                  </div>
-                ))}
-              </div>
+        {/* PRs - wrap on mobile */}
+        {workouts?.prs && workouts.prs.length > 0 && (
+          <div>
+            <h3 style={{ fontSize: isMobile ? '14px' : '16px', fontWeight: '600', color: 'rgba(255,255,255,0.8)', marginBottom: '10px' }}>Personal Records</h3>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fill, minmax(150px, 1fr))',
+              gap: '8px',
+            }}>
+              {workouts.prs.slice(0, isMobile ? 6 : undefined).map((pr, i) => (
+                <div key={i} style={{
+                  background: 'rgba(255,255,255,0.03)',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  borderRadius: '10px',
+                  padding: isMobile ? '10px' : '12px',
+                }}>
+                  <div style={{ fontSize: isMobile ? '10px' : '12px', color: 'rgba(255,255,255,0.5)', marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{pr.name}</div>
+                  <div style={{ fontSize: isMobile ? '16px' : '18px', fontWeight: '700', color: '#8B5CF6' }}>{pr.weight} lbs</div>
+                </div>
+              ))}
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Recent Workouts */}
-          <h3 style={{ fontSize: '16px', fontWeight: '600', color: 'rgba(255,255,255,0.8)', marginBottom: '12px' }}>Recent Workouts</h3>
-          <div style={{ maxHeight: '400px', overflowY: 'auto', paddingRight: '8px' }}>
+        {/* Recent Workouts */}
+        <div>
+          <h3 style={{ fontSize: isMobile ? '14px' : '16px', fontWeight: '600', color: 'rgba(255,255,255,0.8)', marginBottom: '10px' }}>Recent Workouts</h3>
+          <div style={{ maxHeight: isMobile ? 'none' : '400px', overflowY: isMobile ? 'visible' : 'auto' }}>
             {workoutList.length === 0 ? (
               <EmptyState message="No workouts recorded yet" />
             ) : (
-              workoutList.slice(0, 15).map((workout) => (
+              workoutList.slice(0, isMobile ? 10 : 15).map((workout) => (
                 <WorkoutCard
                   key={workout.id}
                   workout={workout}
                   onClick={() => handleWorkoutClick(workout)}
                   onPhotoClick={(imageUrl) => setLightboxImage(imageUrl)}
+                  isMobile={isMobile}
                 />
               ))
             )}
           </div>
         </div>
 
-        {/* Calendar Sidebar */}
+        {/* Calendar - show on all devices */}
         <div>
-          <h3 style={{ fontSize: '16px', fontWeight: '600', color: 'rgba(255,255,255,0.8)', marginBottom: '12px' }}>Workout Calendar</h3>
+          <h3 style={{ fontSize: isMobile ? '14px' : '16px', fontWeight: '600', color: 'rgba(255,255,255,0.8)', marginBottom: isMobile ? '10px' : '12px' }}>Workout Calendar</h3>
           <Calendar
             workoutDates={workoutDates || []}
             type="workout"
@@ -1253,7 +1285,7 @@ const WorkoutsSection = ({ data, loading }) => {
 };
 
 // Nutrition Section
-const NutritionSection = ({ data, loading }) => {
+const NutritionSection = ({ data, loading, isMobile = false }) => {
   if (loading) return <LoadingSpinner />;
 
   const { nutrition, nutritionDates, goals } = data || {};
@@ -1275,106 +1307,141 @@ const NutritionSection = ({ data, loading }) => {
   }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '24px', paddingBottom: '40px', width: '100%' }}>
-      <div>
-        <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#FFFFFF', marginBottom: '20px' }}>Nutrition Tracking</h2>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '16px' : '24px', paddingBottom: '40px', width: '100%' }}>
+      <h2 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: '700', color: '#FFFFFF', marginBottom: isMobile ? '8px' : '20px' }}>Nutrition Tracking</h2>
 
-        {/* Today's Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '24px' }}>
-          <StatCard title="Today" value={nutrition?.todayCalories || 0} subtitle="calories" />
-          <StatCard title="Protein" value={`${nutrition?.todayProtein || 0}g`} subtitle="today" color="#06B6D4" />
-          <StatCard title="Streak" value={nutrition?.currentStreak || 0} subtitle="days" color="#10B981" />
-          <StatCard title="Avg Cal" value={nutrition?.avgCalories || 0} subtitle="daily" color="#F59E0B" />
+      {/* Today's Stats - 2x2 grid on mobile */}
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: isMobile ? '8px' : '12px' }}>
+        <StatCard title="Today" value={nutrition?.todayCalories || 0} subtitle="calories" isMobile={isMobile} />
+        <StatCard title="Protein" value={`${nutrition?.todayProtein || 0}g`} subtitle="today" color="#06B6D4" isMobile={isMobile} />
+        <StatCard title="Streak" value={nutrition?.currentStreak || 0} subtitle="days" color="#10B981" isMobile={isMobile} />
+        <StatCard title="Avg Cal" value={nutrition?.avgCalories || 0} subtitle="daily" color="#F59E0B" isMobile={isMobile} />
+      </div>
+
+      {/* Macros Today */}
+      <div style={{
+        background: 'rgba(255,255,255,0.03)',
+        border: '1px solid rgba(255,255,255,0.08)',
+        borderRadius: isMobile ? '12px' : '16px',
+        padding: isMobile ? '14px' : '20px',
+      }}>
+        <h3 style={{ fontSize: isMobile ? '14px' : '16px', fontWeight: '600', color: 'rgba(255,255,255,0.8)', marginBottom: isMobile ? '12px' : '16px' }}>Today's Macros</h3>
+        <ProgressBar label="Calories" current={nutrition?.todayCalories || 0} target={goals?.targetCalories || 2000} unit="" color="#8B5CF6" />
+        <ProgressBar label="Protein" current={nutrition?.todayProtein || 0} target={goals?.proteinGrams || 150} unit="g" color="#06B6D4" />
+        <ProgressBar label="Carbs" current={nutrition?.todayCarbs || 0} target={goals?.carbsGrams || 200} unit="g" color="#10B981" />
+        <ProgressBar label="Fat" current={nutrition?.todayFat || 0} target={goals?.fatGrams || 65} unit="g" color="#F59E0B" />
+      </div>
+
+      {/* Weekly Chart */}
+      <div style={{
+        background: 'rgba(255,255,255,0.03)',
+        border: '1px solid rgba(255,255,255,0.08)',
+        borderRadius: isMobile ? '12px' : '16px',
+        padding: isMobile ? '14px' : '20px',
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+          <h3 style={{ fontSize: isMobile ? '14px' : '16px', fontWeight: '600', color: 'rgba(255,255,255,0.9)', margin: 0 }}>Last 7 Days</h3>
+          <div style={{
+            fontSize: isMobile ? '11px' : '13px',
+            color: 'rgba(255,255,255,0.5)',
+          }}>
+            Goal: <span style={{ color: '#10B981', fontWeight: '600' }}>{goals?.targetCalories || 2000}</span> cal/day
+          </div>
         </div>
+        <BarChart data={chartData} dataKey="calories" color="#8B5CF6" height={isMobile ? 140 : 160} target={goals?.targetCalories || 2000} />
+      </div>
 
-        {/* Macros Today */}
+      {/* Daily Averages - show on mobile as compact cards */}
+      {isMobile && (
         <div style={{
           background: 'rgba(255,255,255,0.03)',
           border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: '16px',
-          padding: '20px',
-          marginBottom: '24px',
+          borderRadius: '12px',
+          padding: '14px',
         }}>
-          <h3 style={{ fontSize: '16px', fontWeight: '600', color: 'rgba(255,255,255,0.8)', marginBottom: '16px' }}>Today's Macros</h3>
-          <ProgressBar label="Calories" current={nutrition?.todayCalories || 0} target={goals?.targetCalories || 2000} unit="" color="#8B5CF6" />
-          <ProgressBar label="Protein" current={nutrition?.todayProtein || 0} target={goals?.proteinGrams || 150} unit="g" color="#06B6D4" />
-          <ProgressBar label="Carbs" current={nutrition?.todayCarbs || 0} target={goals?.carbsGrams || 200} unit="g" color="#10B981" />
-          <ProgressBar label="Fat" current={nutrition?.todayFat || 0} target={goals?.fatGrams || 65} unit="g" color="#F59E0B" />
-        </div>
-
-        {/* Weekly Chart */}
-        <div style={{
-          background: 'rgba(255,255,255,0.03)',
-          border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: '16px',
-          padding: '20px',
-          marginBottom: '24px',
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '600', color: 'rgba(255,255,255,0.9)', margin: 0 }}>Last 7 Days</h3>
-            <div style={{
-              fontSize: '13px',
-              color: 'rgba(255,255,255,0.5)',
-            }}>
-              Goal: <span style={{ color: '#10B981', fontWeight: '600' }}>{goals?.targetCalories || 2000}</span> cal/day
+          <h4 style={{ fontSize: '13px', fontWeight: '600', color: 'rgba(255,255,255,0.7)', marginBottom: '10px' }}>Daily Averages</h4>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>Calories</div>
+              <div style={{ fontSize: '14px', fontWeight: '600', color: '#8B5CF6' }}>{nutrition?.avgCalories || 0}</div>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>Protein</div>
+              <div style={{ fontSize: '14px', fontWeight: '600', color: '#06B6D4' }}>{nutrition?.avgProtein || 0}g</div>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>Carbs</div>
+              <div style={{ fontSize: '14px', fontWeight: '600', color: '#10B981' }}>{nutrition?.avgCarbs || 0}g</div>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>Fat</div>
+              <div style={{ fontSize: '14px', fontWeight: '600', color: '#F59E0B' }}>{nutrition?.avgFat || 0}g</div>
             </div>
           </div>
-          <BarChart data={chartData} dataKey="calories" color="#8B5CF6" height={160} target={goals?.targetCalories || 2000} />
         </div>
+      )}
 
-        {/* Recent Meals */}
-        <h3 style={{ fontSize: '16px', fontWeight: '600', color: 'rgba(255,255,255,0.8)', marginBottom: '12px' }}>Recent Meals</h3>
-        <div style={{ maxHeight: '300px', overflowY: 'auto', paddingRight: '8px' }}>
+      {/* Recent Meals */}
+      <div>
+        <h3 style={{ fontSize: isMobile ? '14px' : '16px', fontWeight: '600', color: 'rgba(255,255,255,0.8)', marginBottom: isMobile ? '8px' : '12px' }}>Recent Meals</h3>
+        <div style={{ maxHeight: isMobile ? 'none' : '300px', overflowY: isMobile ? 'visible' : 'auto', paddingRight: isMobile ? '0' : '8px' }}>
           {mealList.length === 0 ? (
             <EmptyState message="No meals logged yet" />
           ) : (
-            mealList.slice(0, 20).map((meal) => (
+            mealList.slice(0, isMobile ? 10 : 20).map((meal) => (
               <MealCard key={meal.id} meal={meal} />
             ))
           )}
         </div>
       </div>
 
-      {/* Calendar Sidebar */}
-      <div>
-        <h3 style={{ fontSize: '16px', fontWeight: '600', color: 'rgba(255,255,255,0.8)', marginBottom: '12px' }}>Nutrition Calendar</h3>
-        <Calendar nutritionDates={nutritionDates || []} type="nutrition" />
-
-        {/* Averages */}
+      {/* Calendar Sidebar - only show on desktop */}
+      {!isMobile && (
         <div style={{
-          background: 'rgba(255,255,255,0.03)',
-          border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: '16px',
-          padding: '16px',
-          marginTop: '16px',
+          position: 'absolute',
+          right: '5vw',
+          top: '80px',
+          width: '320px',
         }}>
-          <h4 style={{ fontSize: '14px', fontWeight: '600', color: 'rgba(255,255,255,0.7)', marginBottom: '12px' }}>Daily Averages</h4>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-            <div>
-              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>Calories</div>
-              <div style={{ fontSize: '18px', fontWeight: '600', color: '#8B5CF6' }}>{nutrition?.avgCalories || 0}</div>
-            </div>
-            <div>
-              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>Protein</div>
-              <div style={{ fontSize: '18px', fontWeight: '600', color: '#06B6D4' }}>{nutrition?.avgProtein || 0}g</div>
-            </div>
-            <div>
-              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>Carbs</div>
-              <div style={{ fontSize: '18px', fontWeight: '600', color: '#10B981' }}>{nutrition?.avgCarbs || 0}g</div>
-            </div>
-            <div>
-              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>Fat</div>
-              <div style={{ fontSize: '18px', fontWeight: '600', color: '#F59E0B' }}>{nutrition?.avgFat || 0}g</div>
+          <h3 style={{ fontSize: '16px', fontWeight: '600', color: 'rgba(255,255,255,0.8)', marginBottom: '12px' }}>Nutrition Calendar</h3>
+          <Calendar nutritionDates={nutritionDates || []} type="nutrition" />
+
+          {/* Averages */}
+          <div style={{
+            background: 'rgba(255,255,255,0.03)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            borderRadius: '16px',
+            padding: '16px',
+            marginTop: '16px',
+          }}>
+            <h4 style={{ fontSize: '14px', fontWeight: '600', color: 'rgba(255,255,255,0.7)', marginBottom: '12px' }}>Daily Averages</h4>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div>
+                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>Calories</div>
+                <div style={{ fontSize: '18px', fontWeight: '600', color: '#8B5CF6' }}>{nutrition?.avgCalories || 0}</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>Protein</div>
+                <div style={{ fontSize: '18px', fontWeight: '600', color: '#06B6D4' }}>{nutrition?.avgProtein || 0}g</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>Carbs</div>
+                <div style={{ fontSize: '18px', fontWeight: '600', color: '#10B981' }}>{nutrition?.avgCarbs || 0}g</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>Fat</div>
+                <div style={{ fontSize: '18px', fontWeight: '600', color: '#F59E0B' }}>{nutrition?.avgFat || 0}g</div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
 
 // Progress Section
-const ProgressSection = ({ data, loading }) => {
+const ProgressSection = ({ data, loading, isMobile = false }) => {
   if (loading) return <LoadingSpinner />;
 
   const { achievements, workouts, profile, exerciseProgress } = data || {};
@@ -1394,163 +1461,184 @@ const ProgressSection = ({ data, loading }) => {
   const unlockedIds = new Set(achievementList.map(a => a.id));
 
   return (
-    <div style={{ width: '100%' }}>
-      <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#FFFFFF', marginBottom: '20px' }}>Your Progress</h2>
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: isMobile ? '16px' : '24px' }}>
+      <h2 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: '700', color: '#FFFFFF', marginBottom: isMobile ? '4px' : '20px' }}>Your Progress</h2>
 
-      {/* Overview Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '12px', marginBottom: '24px' }}>
-        <StatCard title="Total Workouts" value={workouts?.total || 0} subtitle="completed" />
-        <StatCard title="Current Streak" value={workouts?.currentStreak || 0} subtitle="days" color="#10B981" />
-        <StatCard title="Best Streak" value={workouts?.longestStreak || 0} subtitle="days" color="#F59E0B" />
-        <StatCard title="This Month" value={workouts?.thisMonth || 0} subtitle="workouts" color="#06B6D4" />
-        <StatCard title="Badges" value={achievementList.length} subtitle="earned" color="#EC4899" />
-      </div>
-
-      {/* Achievements Grid */}
-      <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'rgba(255,255,255,0.8)', marginBottom: '16px' }}>Achievements & Badges</h3>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '12px', marginBottom: '32px' }}>
-        {displayAchievements.map((achievement) => (
-          <AchievementBadge
-            key={achievement.id}
-            achievement={achievement}
-            unlocked={achievementList.length > 0 ? unlockedIds.has(achievement.id) || achievement.unlocked : false}
-          />
-        ))}
-      </div>
-
-      {/* Exercise Progress */}
-      {exerciseProgress && Object.keys(exerciseProgress).length > 0 && (
+      {/* Overview Stats - 2x2 on mobile, then extra row */}
+      {isMobile ? (
         <>
-          <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'rgba(255,255,255,0.8)', marginBottom: '16px' }}>Exercise Progress</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px' }}>
-            {Object.values(exerciseProgress).slice(0, 8).map((exercise) => (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
+            <StatCard title="Total" value={workouts?.total || 0} subtitle="workouts" isMobile={true} />
+            <StatCard title="Streak" value={workouts?.currentStreak || 0} subtitle="days" color="#10B981" isMobile={true} />
+            <StatCard title="Best" value={workouts?.longestStreak || 0} subtitle="days" color="#F59E0B" isMobile={true} />
+            <StatCard title="Month" value={workouts?.thisMonth || 0} subtitle="workouts" color="#06B6D4" isMobile={true} />
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <StatCard title="Badges" value={achievementList.length} subtitle="earned" color="#EC4899" isMobile={true} />
+          </div>
+        </>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '12px' }}>
+          <StatCard title="Total Workouts" value={workouts?.total || 0} subtitle="completed" />
+          <StatCard title="Current Streak" value={workouts?.currentStreak || 0} subtitle="days" color="#10B981" />
+          <StatCard title="Best Streak" value={workouts?.longestStreak || 0} subtitle="days" color="#F59E0B" />
+          <StatCard title="This Month" value={workouts?.thisMonth || 0} subtitle="workouts" color="#06B6D4" />
+          <StatCard title="Badges" value={achievementList.length} subtitle="earned" color="#EC4899" />
+        </div>
+      )}
+
+      {/* Achievements Grid - wrap on mobile */}
+      <div>
+        <h3 style={{ fontSize: isMobile ? '14px' : '18px', fontWeight: '600', color: 'rgba(255,255,255,0.8)', marginBottom: isMobile ? '10px' : '16px' }}>Achievements & Badges</h3>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fill, minmax(150px, 1fr))',
+          gap: isMobile ? '8px' : '12px',
+        }}>
+          {displayAchievements.map((achievement) => (
+            <AchievementBadge
+              key={achievement.id}
+              achievement={achievement}
+              unlocked={achievementList.length > 0 ? unlockedIds.has(achievement.id) || achievement.unlocked : false}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Exercise Progress - wrap on mobile */}
+      {exerciseProgress && Object.keys(exerciseProgress).length > 0 && (
+        <div>
+          <h3 style={{ fontSize: isMobile ? '14px' : '18px', fontWeight: '600', color: 'rgba(255,255,255,0.8)', marginBottom: isMobile ? '10px' : '16px' }}>Exercise Progress</h3>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fill, minmax(200px, 1fr))',
+            gap: isMobile ? '8px' : '12px',
+          }}>
+            {Object.values(exerciseProgress).slice(0, isMobile ? 6 : 8).map((exercise) => (
               <div key={exercise.name} style={{
                 background: 'rgba(255,255,255,0.03)',
                 border: '1px solid rgba(255,255,255,0.08)',
-                borderRadius: '12px',
-                padding: '16px',
+                borderRadius: isMobile ? '10px' : '12px',
+                padding: isMobile ? '10px' : '16px',
               }}>
-                <div style={{ fontSize: '14px', fontWeight: '600', color: '#FFFFFF', marginBottom: '8px' }}>
+                <div style={{ fontSize: isMobile ? '11px' : '14px', fontWeight: '600', color: '#FFFFFF', marginBottom: '6px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {exercise.name}
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
                   <div>
-                    <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>Max Weight</div>
-                    <div style={{ fontSize: '16px', fontWeight: '600', color: '#8B5CF6' }}>{exercise.maxWeight} lbs</div>
+                    <div style={{ fontSize: isMobile ? '9px' : '11px', color: 'rgba(255,255,255,0.4)' }}>Max</div>
+                    <div style={{ fontSize: isMobile ? '13px' : '16px', fontWeight: '600', color: '#8B5CF6' }}>{exercise.maxWeight}</div>
                   </div>
                   <div>
-                    <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>Volume</div>
-                    <div style={{ fontSize: '16px', fontWeight: '600', color: '#06B6D4' }}>{(exercise.totalVolume / 1000).toFixed(1)}k</div>
+                    <div style={{ fontSize: isMobile ? '9px' : '11px', color: 'rgba(255,255,255,0.4)' }}>Vol</div>
+                    <div style={{ fontSize: isMobile ? '13px' : '16px', fontWeight: '600', color: '#06B6D4' }}>{(exercise.totalVolume / 1000).toFixed(1)}k</div>
                   </div>
                 </div>
               </div>
             ))}
           </div>
-        </>
+        </div>
       )}
     </div>
   );
 };
 
 // Goals Section
-const GoalsSection = ({ data, loading }) => {
+const GoalsSection = ({ data, loading, isMobile = false }) => {
   if (loading) return <LoadingSpinner />;
 
   const { goals, nutrition, workouts } = data || {};
 
   return (
-    <div style={{ width: '100%' }}>
-      <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#FFFFFF', marginBottom: '20px' }}>Your Goals</h2>
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: isMobile ? '16px' : '24px' }}>
+      <h2 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: '700', color: '#FFFFFF', marginBottom: isMobile ? '4px' : '20px' }}>Your Goals</h2>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-        {/* Nutrition Goals */}
-        <div style={{
-          background: 'rgba(255,255,255,0.03)',
-          border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: '16px',
-          padding: '24px',
-        }}>
-          <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#FFFFFF', marginBottom: '20px' }}>Nutrition Goals</h3>
-          <ProgressBar label="Calories" current={nutrition?.todayCalories || 0} target={goals?.targetCalories || 2000} unit="" color="#8B5CF6" />
-          <ProgressBar label="Protein" current={nutrition?.todayProtein || 0} target={goals?.proteinGrams || 150} unit="g" color="#06B6D4" />
-          <ProgressBar label="Carbs" current={nutrition?.todayCarbs || 0} target={goals?.carbsGrams || 200} unit="g" color="#10B981" />
-          <ProgressBar label="Fat" current={nutrition?.todayFat || 0} target={goals?.fatGrams || 65} unit="g" color="#F59E0B" />
+      {/* Nutrition Goals */}
+      <div style={{
+        background: 'rgba(255,255,255,0.03)',
+        border: '1px solid rgba(255,255,255,0.08)',
+        borderRadius: isMobile ? '12px' : '16px',
+        padding: isMobile ? '14px' : '24px',
+      }}>
+        <h3 style={{ fontSize: isMobile ? '15px' : '18px', fontWeight: '600', color: '#FFFFFF', marginBottom: isMobile ? '12px' : '20px' }}>Nutrition Goals</h3>
+        <ProgressBar label="Calories" current={nutrition?.todayCalories || 0} target={goals?.targetCalories || 2000} unit="" color="#8B5CF6" />
+        <ProgressBar label="Protein" current={nutrition?.todayProtein || 0} target={goals?.proteinGrams || 150} unit="g" color="#06B6D4" />
+        <ProgressBar label="Carbs" current={nutrition?.todayCarbs || 0} target={goals?.carbsGrams || 200} unit="g" color="#10B981" />
+        <ProgressBar label="Fat" current={nutrition?.todayFat || 0} target={goals?.fatGrams || 65} unit="g" color="#F59E0B" />
 
-          <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-              <div>
-                <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginBottom: '4px' }}>Logging Streak</div>
-                <div style={{ fontSize: '24px', fontWeight: '700', color: '#10B981' }}>{nutrition?.currentStreak || 0} days</div>
-              </div>
-              <div>
-                <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginBottom: '4px' }}>Best Streak</div>
-                <div style={{ fontSize: '24px', fontWeight: '700', color: '#F59E0B' }}>{nutrition?.longestStreak || 0} days</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Workout Goals */}
-        <div style={{
-          background: 'rgba(255,255,255,0.03)',
-          border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: '16px',
-          padding: '24px',
-        }}>
-          <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#FFFFFF', marginBottom: '20px' }}>Workout Goals</h3>
-
-          <div style={{ marginBottom: '20px' }}>
-            <ProgressBar label="Weekly Goal" current={workouts?.thisWeek || 0} target={4} unit=" workouts" color="#8B5CF6" />
-            <ProgressBar label="Monthly Goal" current={workouts?.thisMonth || 0} target={16} unit=" workouts" color="#06B6D4" />
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        <div style={{ marginTop: isMobile ? '12px' : '20px', paddingTop: isMobile ? '12px' : '20px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: isMobile ? '8px' : '16px' }}>
             <div>
-              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginBottom: '4px' }}>Current Streak</div>
-              <div style={{ fontSize: '24px', fontWeight: '700', color: '#10B981' }}>{workouts?.currentStreak || 0} days</div>
+              <div style={{ fontSize: isMobile ? '10px' : '12px', color: 'rgba(255,255,255,0.4)', marginBottom: '4px' }}>Logging Streak</div>
+              <div style={{ fontSize: isMobile ? '18px' : '24px', fontWeight: '700', color: '#10B981' }}>{nutrition?.currentStreak || 0} days</div>
             </div>
             <div>
-              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginBottom: '4px' }}>Best Streak</div>
-              <div style={{ fontSize: '24px', fontWeight: '700', color: '#F59E0B' }}>{workouts?.longestStreak || 0} days</div>
-            </div>
-            <div>
-              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginBottom: '4px' }}>Total Workouts</div>
-              <div style={{ fontSize: '24px', fontWeight: '700', color: '#8B5CF6' }}>{workouts?.total || 0}</div>
-            </div>
-            <div>
-              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginBottom: '4px' }}>This Week</div>
-              <div style={{ fontSize: '24px', fontWeight: '700', color: '#06B6D4' }}>{workouts?.thisWeek || 0}</div>
+              <div style={{ fontSize: isMobile ? '10px' : '12px', color: 'rgba(255,255,255,0.4)', marginBottom: '4px' }}>Best Streak</div>
+              <div style={{ fontSize: isMobile ? '18px' : '24px', fontWeight: '700', color: '#F59E0B' }}>{nutrition?.longestStreak || 0} days</div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Goal Summary */}
+      {/* Workout Goals */}
+      <div style={{
+        background: 'rgba(255,255,255,0.03)',
+        border: '1px solid rgba(255,255,255,0.08)',
+        borderRadius: isMobile ? '12px' : '16px',
+        padding: isMobile ? '14px' : '24px',
+      }}>
+        <h3 style={{ fontSize: isMobile ? '15px' : '18px', fontWeight: '600', color: '#FFFFFF', marginBottom: isMobile ? '12px' : '20px' }}>Workout Goals</h3>
+
+        <div style={{ marginBottom: isMobile ? '12px' : '20px' }}>
+          <ProgressBar label="Weekly Goal" current={workouts?.thisWeek || 0} target={4} unit=" workouts" color="#8B5CF6" />
+          <ProgressBar label="Monthly Goal" current={workouts?.thisMonth || 0} target={16} unit=" workouts" color="#06B6D4" />
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: isMobile ? '8px' : '16px' }}>
+          <div>
+            <div style={{ fontSize: isMobile ? '10px' : '12px', color: 'rgba(255,255,255,0.4)', marginBottom: '4px' }}>Current Streak</div>
+            <div style={{ fontSize: isMobile ? '18px' : '24px', fontWeight: '700', color: '#10B981' }}>{workouts?.currentStreak || 0} days</div>
+          </div>
+          <div>
+            <div style={{ fontSize: isMobile ? '10px' : '12px', color: 'rgba(255,255,255,0.4)', marginBottom: '4px' }}>Best Streak</div>
+            <div style={{ fontSize: isMobile ? '18px' : '24px', fontWeight: '700', color: '#F59E0B' }}>{workouts?.longestStreak || 0} days</div>
+          </div>
+          <div>
+            <div style={{ fontSize: isMobile ? '10px' : '12px', color: 'rgba(255,255,255,0.4)', marginBottom: '4px' }}>Total Workouts</div>
+            <div style={{ fontSize: isMobile ? '18px' : '24px', fontWeight: '700', color: '#8B5CF6' }}>{workouts?.total || 0}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: isMobile ? '10px' : '12px', color: 'rgba(255,255,255,0.4)', marginBottom: '4px' }}>This Week</div>
+            <div style={{ fontSize: isMobile ? '18px' : '24px', fontWeight: '700', color: '#06B6D4' }}>{workouts?.thisWeek || 0}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Goal Summary - Daily Targets */}
       {goals && (
         <div style={{
           background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(6, 182, 212, 0.1))',
           border: '1px solid rgba(139, 92, 246, 0.2)',
-          borderRadius: '16px',
-          padding: '24px',
-          marginTop: '24px',
+          borderRadius: isMobile ? '12px' : '16px',
+          padding: isMobile ? '14px' : '24px',
         }}>
-          <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#8B5CF6', marginBottom: '16px' }}>Daily Targets</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
+          <h3 style={{ fontSize: isMobile ? '13px' : '16px', fontWeight: '600', color: '#8B5CF6', marginBottom: isMobile ? '10px' : '16px' }}>Daily Targets</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: isMobile ? '10px' : '20px' }}>
             <div>
-              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginBottom: '4px' }}>Calories</div>
-              <div style={{ fontSize: '24px', fontWeight: '700', color: '#FFFFFF' }}>{goals.targetCalories || 2000}</div>
+              <div style={{ fontSize: isMobile ? '10px' : '12px', color: 'rgba(255,255,255,0.5)', marginBottom: '4px' }}>Calories</div>
+              <div style={{ fontSize: isMobile ? '18px' : '24px', fontWeight: '700', color: '#FFFFFF' }}>{goals.targetCalories || 2000}</div>
             </div>
             <div>
-              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginBottom: '4px' }}>Protein</div>
-              <div style={{ fontSize: '24px', fontWeight: '700', color: '#FFFFFF' }}>{goals.proteinGrams || 150}g</div>
+              <div style={{ fontSize: isMobile ? '10px' : '12px', color: 'rgba(255,255,255,0.5)', marginBottom: '4px' }}>Protein</div>
+              <div style={{ fontSize: isMobile ? '18px' : '24px', fontWeight: '700', color: '#FFFFFF' }}>{goals.proteinGrams || 150}g</div>
             </div>
             <div>
-              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginBottom: '4px' }}>Carbs</div>
-              <div style={{ fontSize: '24px', fontWeight: '700', color: '#FFFFFF' }}>{goals.carbsGrams || 200}g</div>
+              <div style={{ fontSize: isMobile ? '10px' : '12px', color: 'rgba(255,255,255,0.5)', marginBottom: '4px' }}>Carbs</div>
+              <div style={{ fontSize: isMobile ? '18px' : '24px', fontWeight: '700', color: '#FFFFFF' }}>{goals.carbsGrams || 200}g</div>
             </div>
             <div>
-              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginBottom: '4px' }}>Fat</div>
-              <div style={{ fontSize: '24px', fontWeight: '700', color: '#FFFFFF' }}>{goals.fatGrams || 65}g</div>
+              <div style={{ fontSize: isMobile ? '10px' : '12px', color: 'rgba(255,255,255,0.5)', marginBottom: '4px' }}>Fat</div>
+              <div style={{ fontSize: isMobile ? '18px' : '24px', fontWeight: '700', color: '#FFFFFF' }}>{goals.fatGrams || 65}g</div>
             </div>
           </div>
         </div>
@@ -1560,7 +1648,7 @@ const GoalsSection = ({ data, loading }) => {
 };
 
 // Import Section
-const ImportSection = ({ user, onImportSuccess }) => {
+const ImportSection = ({ user, onImportSuccess, isMobile = false }) => {
   const [importedItems, setImportedItems] = useState([]);
   const [successMessage, setSuccessMessage] = useState('');
   const [saving, setSaving] = useState(false);
@@ -1695,13 +1783,13 @@ const ImportSection = ({ user, onImportSuccess }) => {
   };
 
   return (
-    <div style={{ width: '100%' }}>
-      <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#FFFFFF', marginBottom: '20px' }}>
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: isMobile ? '16px' : '24px' }}>
+      <h2 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: '700', color: '#FFFFFF', marginBottom: isMobile ? '4px' : '20px' }}>
         Import Content
       </h2>
 
-      <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.6)', marginBottom: '24px' }}>
-        Import recipes and workouts from screenshots. Simply drag & drop an image, paste from clipboard (Ctrl+V), or enter an image URL.
+      <p style={{ fontSize: isMobile ? '13px' : '14px', color: 'rgba(255,255,255,0.6)' }}>
+        {isMobile ? 'Import recipes and workouts from screenshots.' : 'Import recipes and workouts from screenshots. Simply drag & drop an image, paste from clipboard (Ctrl+V), or enter an image URL.'}
       </p>
 
       {/* Success message */}
@@ -1712,23 +1800,25 @@ const ImportSection = ({ user, onImportSuccess }) => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             style={{
-              padding: '12px 16px',
+              padding: isMobile ? '10px 12px' : '12px 16px',
               borderRadius: '8px',
               background: 'rgba(16, 185, 129, 0.1)',
               border: '1px solid rgba(16, 185, 129, 0.3)',
               color: '#10B981',
-              fontSize: '14px',
-              marginBottom: '24px',
+              fontSize: isMobile ? '12px' : '14px',
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
+              flexWrap: 'wrap',
             }}
           >
-            <span style={{ fontSize: '18px' }}>✓</span>
+            <span style={{ fontSize: isMobile ? '14px' : '18px' }}>✓</span>
             {successMessage}
-            <span style={{ fontSize: '12px', marginLeft: 'auto', opacity: 0.8 }}>
-              Syncs to your app automatically!
-            </span>
+            {!isMobile && (
+              <span style={{ fontSize: '12px', marginLeft: 'auto', opacity: 0.8 }}>
+                Syncs to your app automatically!
+              </span>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -1741,34 +1831,33 @@ const ImportSection = ({ user, onImportSuccess }) => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             style={{
-              padding: '12px 16px',
+              padding: isMobile ? '10px 12px' : '12px 16px',
               borderRadius: '8px',
               background: 'rgba(239, 68, 68, 0.1)',
               border: '1px solid rgba(239, 68, 68, 0.3)',
               color: '#EF4444',
-              fontSize: '14px',
-              marginBottom: '24px',
+              fontSize: isMobile ? '12px' : '14px',
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
             }}
           >
-            <span style={{ fontSize: '18px' }}>✕</span>
+            <span style={{ fontSize: isMobile ? '14px' : '18px' }}>✕</span>
             {saveError}
           </motion.div>
         )}
       </AnimatePresence>
 
       {/* Screenshot Importer */}
-      <ScreenshotImporter onImport={handleImport} />
+      <ScreenshotImporter onImport={handleImport} isMobile={isMobile} />
 
       {/* Recently imported items */}
       {importedItems.length > 0 && (
-        <div style={{ marginTop: '32px' }}>
-          <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'rgba(255,255,255,0.8)', marginBottom: '16px' }}>
+        <div>
+          <h3 style={{ fontSize: isMobile ? '14px' : '18px', fontWeight: '600', color: 'rgba(255,255,255,0.8)', marginBottom: isMobile ? '10px' : '16px' }}>
             Recently Imported
           </h3>
-          <div style={{ display: 'grid', gap: '12px' }}>
+          <div style={{ display: 'grid', gap: isMobile ? '8px' : '12px' }}>
             {importedItems.map((item) => (
               <motion.div
                 key={item.id}
@@ -1777,32 +1866,33 @@ const ImportSection = ({ user, onImportSuccess }) => {
                 style={{
                   background: 'rgba(255,255,255,0.03)',
                   border: '1px solid rgba(255,255,255,0.08)',
-                  borderRadius: '12px',
-                  padding: '16px',
+                  borderRadius: isMobile ? '10px' : '12px',
+                  padding: isMobile ? '12px' : '16px',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '12px',
+                  gap: isMobile ? '10px' : '12px',
                 }}
               >
                 <div style={{
-                  width: '48px',
-                  height: '48px',
-                  borderRadius: '12px',
+                  width: isMobile ? '40px' : '48px',
+                  height: isMobile ? '40px' : '48px',
+                  borderRadius: isMobile ? '10px' : '12px',
                   background: item.type === 'recipe'
                     ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(6, 182, 212, 0.2))'
                     : 'linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(236, 72, 153, 0.2))',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: '24px',
+                  fontSize: isMobile ? '18px' : '24px',
+                  flexShrink: 0,
                 }}>
                   {item.type === 'recipe' ? '🍳' : '💪'}
                 </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '15px', fontWeight: '600', color: '#FFFFFF', marginBottom: '4px' }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: isMobile ? '13px' : '15px', fontWeight: '600', color: '#FFFFFF', marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {item.data.name || item.data.title || 'Untitled'}
                   </div>
-                  <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>
+                  <div style={{ fontSize: isMobile ? '10px' : '12px', color: 'rgba(255,255,255,0.5)' }}>
                     {item.type === 'recipe' ? (
                       <>
                         {item.data.ingredients?.length || 0} ingredients •
@@ -1817,12 +1907,13 @@ const ImportSection = ({ user, onImportSuccess }) => {
                   </div>
                 </div>
                 <div style={{
-                  padding: '4px 10px',
+                  padding: isMobile ? '3px 8px' : '4px 10px',
                   borderRadius: '20px',
                   background: item.type === 'recipe' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(139, 92, 246, 0.2)',
                   color: item.type === 'recipe' ? '#10B981' : '#8B5CF6',
-                  fontSize: '11px',
+                  fontSize: isMobile ? '9px' : '11px',
                   fontWeight: '600',
+                  flexShrink: 0,
                   textTransform: 'uppercase',
                 }}>
                   {item.type}
@@ -1833,27 +1924,31 @@ const ImportSection = ({ user, onImportSuccess }) => {
         </div>
       )}
 
-      {/* Instructions */}
+      {/* Instructions - simplified on mobile */}
       <div style={{
-        marginTop: '32px',
-        padding: '20px',
+        padding: isMobile ? '14px' : '20px',
         background: 'rgba(255,255,255,0.02)',
-        borderRadius: '12px',
+        borderRadius: isMobile ? '10px' : '12px',
         border: '1px solid rgba(255,255,255,0.05)',
       }}>
-        <h4 style={{ fontSize: '14px', fontWeight: '600', color: 'rgba(255,255,255,0.7)', marginBottom: '12px' }}>
+        <h4 style={{ fontSize: isMobile ? '12px' : '14px', fontWeight: '600', color: 'rgba(255,255,255,0.7)', marginBottom: isMobile ? '10px' : '12px' }}>
           How it works
         </h4>
-        <div style={{ display: 'grid', gap: '12px' }}>
-          {[
+        <div style={{ display: 'grid', gap: isMobile ? '8px' : '12px' }}>
+          {(isMobile ? [
+            { icon: '📸', text: 'Screenshot a recipe or workout' },
+            { icon: '📥', text: 'Upload or paste the image' },
+            { icon: '🤖', text: 'AI extracts the content' },
+            { icon: '✨', text: 'Add to your collection' },
+          ] : [
             { icon: '📸', text: 'Take a screenshot of a recipe or workout from any app or website' },
             { icon: '📥', text: 'Drag & drop the image, paste with Ctrl+V, or enter the URL' },
             { icon: '🤖', text: 'AI analyzes the image and extracts the content' },
             { icon: '✨', text: 'Review and add to your collection in the app' },
-          ].map((step, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <span style={{ fontSize: '20px' }}>{step.icon}</span>
-              <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)' }}>{step.text}</span>
+          ]).map((step, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '12px' }}>
+              <span style={{ fontSize: isMobile ? '16px' : '20px' }}>{step.icon}</span>
+              <span style={{ fontSize: isMobile ? '11px' : '13px', color: 'rgba(255,255,255,0.6)' }}>{step.text}</span>
             </div>
           ))}
         </div>
@@ -1869,6 +1964,7 @@ export default function WebDashboard({ user, onSignOut, onGoHome }) {
   const [loading, setLoading] = useState(true);
   const [syncStatus, setSyncStatus] = useState('');
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const isMobile = useIsMobile();
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -1910,12 +2006,157 @@ export default function WebDashboard({ user, onSignOut, onGoHome }) {
 
   if (Platform.OS !== 'web') return null;
 
+  // Mobile Layout
+  if (isMobile) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: '#000000',
+        color: '#FFFFFF',
+        fontFamily: '"Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        display: 'flex',
+        flexDirection: 'column',
+      }}>
+        {/* Mobile Header */}
+        <header style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 100,
+          background: 'rgba(0,0,0,0.95)',
+          backdropFilter: 'blur(20px)',
+          borderBottom: '1px solid rgba(255,255,255,0.08)',
+          padding: '10px 16px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <svg width="24" height="24" viewBox="0 0 32 32" fill="none">
+              <defs>
+                <linearGradient id="mobileWaveGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#8B5CF6" />
+                  <stop offset="100%" stopColor="#06B6D4" />
+                </linearGradient>
+              </defs>
+              <circle cx="16" cy="16" r="15" stroke="url(#mobileWaveGradient)" strokeWidth="2" fill="none" />
+              <path d="M6 16 Q10 10, 14 16 T22 16 T26 16" stroke="url(#mobileWaveGradient)" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+            </svg>
+            <span style={{ fontSize: '14px', fontWeight: '700', color: '#FFFFFF' }}>Dashboard</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button
+              onClick={loadData}
+              disabled={loading}
+              style={{
+                background: 'rgba(139, 92, 246, 0.1)',
+                border: '1px solid rgba(139, 92, 246, 0.3)',
+                borderRadius: '6px',
+                padding: '6px 10px',
+                color: '#8B5CF6',
+                fontSize: '11px',
+                fontWeight: '500',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                opacity: loading ? 0.6 : 1,
+              }}
+            >
+              {loading ? '...' : 'Sync'}
+            </button>
+            <button
+              onClick={onSignOut}
+              style={{
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                borderRadius: '6px',
+                padding: '6px 10px',
+                color: '#EF4444',
+                fontSize: '11px',
+                fontWeight: '500',
+                cursor: 'pointer',
+              }}
+            >
+              Sign Out
+            </button>
+          </div>
+        </header>
+
+        {/* Mobile Content */}
+        <main style={{
+          flex: 1,
+          padding: '56px 12px 72px',
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          WebkitOverflowScrolling: 'touch',
+        }}>
+          {activeTab === 'workouts' && <WorkoutsSection data={data} loading={loading} isMobile={true} />}
+          {activeTab === 'nutrition' && <NutritionSection data={data} loading={loading} isMobile={true} />}
+          {activeTab === 'progress' && <ProgressSection data={data} loading={loading} isMobile={true} />}
+          {activeTab === 'goals' && <GoalsSection data={data} loading={loading} isMobile={true} />}
+          {activeTab === 'import' && <ImportSection user={user} onImportSuccess={(item) => console.log('Import success:', item)} isMobile={true} />}
+        </main>
+
+        {/* Mobile Bottom Tab Bar */}
+        <nav style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          background: 'rgba(0,0,0,0.95)',
+          backdropFilter: 'blur(20px)',
+          borderTop: '1px solid rgba(255,255,255,0.08)',
+          display: 'flex',
+          justifyContent: 'space-around',
+          padding: '8px 0 12px',
+          zIndex: 100,
+        }}>
+          {TABS.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '6px 12px',
+                cursor: 'pointer',
+                color: activeTab === tab.id ? '#8B5CF6' : 'rgba(255,255,255,0.5)',
+              }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d={tab.icon} />
+              </svg>
+              <span style={{ fontSize: '10px', fontWeight: activeTab === tab.id ? '600' : '400' }}>{tab.label}</span>
+            </button>
+          ))}
+        </nav>
+
+        {/* Mobile styles */}
+        <style>{`
+          html, body, #root {
+            background: #000000 !important;
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow-y: auto !important;
+            -webkit-overflow-scrolling: touch;
+          }
+          * { box-sizing: border-box; }
+        `}</style>
+      </div>
+    );
+  }
+
+  // Desktop Layout
   return (
     <div style={{
       minHeight: '100vh',
       background: '#000000',
       color: '#FFFFFF',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      fontFamily: '"Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     }}>
       {/* Header */}
       <header style={{

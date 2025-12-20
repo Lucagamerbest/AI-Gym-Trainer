@@ -2,10 +2,58 @@ import React from 'react';
 import { Platform } from 'react-native';
 import { motion } from 'framer-motion';
 
-// Infinite marquee component
-const InfiniteMarquee = ({ items, direction = 'left', speed = 30 }) => {
+// Infinite marquee component - uses CSS animation on mobile for performance
+const InfiniteMarquee = ({ items, direction = 'left', speed = 30, isMobile = false }) => {
   const duplicatedItems = [...items, ...items, ...items]; // Triple for seamless loop
 
+  // CSS animation class name based on direction
+  const animationClass = direction === 'left' ? 'marquee-left' : 'marquee-right';
+
+  // Mobile: Use pure CSS animation (more performant)
+  if (isMobile) {
+    return (
+      <div style={{
+        overflow: 'hidden',
+        whiteSpace: 'nowrap',
+        width: '100%',
+      }}>
+        <div
+          className={animationClass}
+          style={{
+            display: 'inline-flex',
+            gap: '30px',
+            animation: `${animationClass} ${speed}s linear infinite`,
+          }}
+        >
+          {duplicatedItems.map((item, index) => (
+            <span
+              key={index}
+              style={{
+                fontSize: '28px',
+                fontWeight: '800',
+                color: item.highlight ? '#FFFFFF' : 'rgba(255,255,255,0.15)',
+                textTransform: 'uppercase',
+                letterSpacing: '-1px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '20px',
+              }}
+            >
+              {item.text}
+              <span style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                background: item.highlight ? '#8B5CF6' : 'rgba(255,255,255,0.15)',
+              }} />
+            </span>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Desktop: Use framer-motion
   return (
     <div style={{
       overflow: 'hidden',
@@ -54,7 +102,7 @@ const InfiniteMarquee = ({ items, direction = 'left', speed = 30 }) => {
   );
 };
 
-export default function MarqueeSection() {
+export default function MarqueeSection({ isMobile = false }) {
   if (Platform.OS !== 'web') return null;
 
   const topItems = [
@@ -73,13 +121,27 @@ export default function MarqueeSection() {
 
   return (
     <section style={{
-      padding: '80px 0',
+      padding: isMobile ? '40px 0' : '80px 0',
       background: 'linear-gradient(180deg, transparent 0%, rgba(139, 92, 246, 0.05) 50%, transparent 100%)',
       overflow: 'hidden',
     }}>
-      <InfiniteMarquee items={topItems} direction="left" speed={40} />
-      <div style={{ height: '20px' }} />
-      <InfiniteMarquee items={bottomItems} direction="right" speed={35} />
+      <InfiniteMarquee items={topItems} direction="left" speed={isMobile ? 20 : 40} isMobile={isMobile} />
+      <div style={{ height: isMobile ? '12px' : '20px' }} />
+      <InfiniteMarquee items={bottomItems} direction="right" speed={isMobile ? 18 : 35} isMobile={isMobile} />
+
+      {/* CSS keyframes for mobile animation */}
+      {isMobile && (
+        <style>{`
+          @keyframes marquee-left {
+            0% { transform: translateX(0%); }
+            100% { transform: translateX(-33.33%); }
+          }
+          @keyframes marquee-right {
+            0% { transform: translateX(-33.33%); }
+            100% { transform: translateX(0%); }
+          }
+        `}</style>
+      )}
     </section>
   );
 }

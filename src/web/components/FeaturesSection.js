@@ -43,9 +43,50 @@ const features = [
 ];
 
 // Minimalist feature card - Lando Norris style
-const FeatureCard = ({ feature, index }) => {
+const FeatureCard = ({ feature, index, isMobile = false }) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-50px' });
+
+  // Mobile: static version
+  if (isMobile) {
+    return (
+      <div
+        style={{
+          padding: '24px 0',
+          borderBottom: '1px solid rgba(255,255,255,0.08)',
+        }}
+      >
+        <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+          <span style={{
+            fontSize: '12px',
+            fontWeight: '600',
+            color: feature.color,
+            letterSpacing: '1px',
+            minWidth: '32px',
+          }}>
+            {feature.number}
+          </span>
+          <div>
+            <h3 style={{
+              fontSize: '18px',
+              fontWeight: '700',
+              color: '#FFFFFF',
+              marginBottom: '6px',
+            }}>
+              {feature.title}
+            </h3>
+            <p style={{
+              fontSize: '14px',
+              color: 'rgba(255,255,255,0.5)',
+              lineHeight: 1.5,
+            }}>
+              {feature.description}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -106,11 +147,43 @@ const FeatureCard = ({ feature, index }) => {
   );
 };
 
-export default function FeaturesSection() {
+export default function FeaturesSection({ isMobile = false }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-100px' });
 
   if (Platform.OS !== 'web') return null;
+
+  // Mobile: simplified layout
+  if (isMobile) {
+    return (
+      <section style={{ padding: '60px 20px' }}>
+        <div style={{ marginBottom: '40px' }}>
+          <div style={{
+            fontSize: '11px',
+            color: '#8B5CF6',
+            textTransform: 'uppercase',
+            letterSpacing: '2px',
+            marginBottom: '12px',
+          }}>
+            More Features
+          </div>
+          <h2 style={{
+            fontSize: '28px',
+            fontWeight: '800',
+            color: '#FFFFFF',
+            lineHeight: 1.2,
+          }}>
+            Built for <span style={{ color: 'rgba(255,255,255,0.3)' }}>Serious</span> Athletes
+          </h2>
+        </div>
+        <div>
+          {features.map((feature, index) => (
+            <FeatureCard key={index} feature={feature} index={index} isMobile={true} />
+          ))}
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section
