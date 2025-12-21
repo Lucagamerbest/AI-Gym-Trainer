@@ -26,6 +26,12 @@ export class WorkoutStorageService {
         workoutType: workoutData.workoutType || 'quick', // 'program', 'standalone', 'quick'
         notes: workoutData.notes || '',
         photos: workoutData.photos || [], // Array of base64 strings
+        // Calorie tracking
+        totalCardioCalories: workoutData.totalCardioCalories || 0,
+        strengthCalories: workoutData.strengthCalories || 0,
+        totalWorkoutCalories: workoutData.totalWorkoutCalories || 0,
+        totalVolume: workoutData.totalVolume || 0,
+        totalSets: workoutData.totalSets || 0,
         exercises: workoutData.exercises.map((exercise, index) => {
           const setsForExercise = exerciseSets[index] || [];
 

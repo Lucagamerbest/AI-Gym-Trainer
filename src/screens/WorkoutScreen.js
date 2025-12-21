@@ -24,7 +24,16 @@ import VoiceInputButton from '../components/VoiceInputButton';
 import VoiceWorkoutConfirmModal from '../components/VoiceWorkoutConfirmModal';
 import { parseVoiceWorkout } from '../services/ai/VoiceWorkoutParser';
 import { findBestExerciseMatch } from '../utils/exerciseNameMatcher';
-import { getCardioConfig, getCardioExerciseId, calculateTotalCalories, lbsToKg, CARDIO_EXERCISE_CONFIG } from '../services/CardioCalorieService';
+import {
+  getCardioConfig,
+  getCardioExerciseId,
+  calculateTotalCalories,
+  lbsToKg,
+  CARDIO_EXERCISE_CONFIG,
+  calculateStrengthCalories,
+  determineIntensity,
+  calculateTotalWorkoutCalories
+} from '../services/CardioCalorieService';
 import { loadUserProfile } from '../services/userProfileAssessment';
 
 // Configure notification handler - always show notifications
@@ -648,6 +657,10 @@ export default function WorkoutScreen({ navigation, route }) {
   // Cardio calorie tracking state
   const [totalCardioCalories, setTotalCardioCalories] = useState(0);
   const [userWeightKg, setUserWeightKg] = useState(70); // Default 70kg, loaded from profile
+
+  // Strength training calorie tracking
+  const [strengthCalories, setStrengthCalories] = useState(0);
+  const [totalWorkoutCalories, setTotalWorkoutCalories] = useState(0);
 
   // Previous exercise history state: { exerciseIndex: [{ weight, reps, comment }, ...] }
   const [previousExerciseHistory, setPreviousExerciseHistory] = useState({});
@@ -1725,6 +1738,54 @@ export default function WorkoutScreen({ navigation, route }) {
     setTotalCardioCalories(Math.round(total * 10) / 10);
   }, [exerciseSets, cardioTimers, workoutExercises, userWeightKg]);
 
+  // Calculate strength training calories based on volume, sets, and duration
+  useEffect(() => {
+    if (!workoutStartTime || totalVolume === 0) {
+      setStrengthCalories(0);
+      return;
+    }
+
+    // Calculate workout duration in minutes (excluding paused time)
+    const now = new Date();
+    const elapsedMs = now - workoutStartTime - (pausedDuration * 1000);
+    const durationMinutes = Math.max(elapsedMs / 1000 / 60, 1);
+
+    // Count total reps for intensity calculation
+    let totalReps = 0;
+    Object.values(exerciseSets).forEach(sets => {
+      sets.forEach(set => {
+        if (set.reps) {
+          const repsValue = set.reps.includes('-')
+            ? parseFloat(set.reps.split('-')[0])
+            : parseFloat(set.reps);
+          if (!isNaN(repsValue)) {
+            totalReps += repsValue;
+          }
+        }
+      });
+    });
+
+    // Determine intensity based on weight relative to body weight
+    const intensity = determineIntensity(totalVolume, totalSets, totalReps, userWeightKg);
+
+    // Calculate strength training calories
+    const calories = calculateStrengthCalories(
+      userWeightKg,
+      durationMinutes,
+      totalVolume,
+      totalSets,
+      intensity
+    );
+
+    setStrengthCalories(calories);
+  }, [totalVolume, totalSets, userWeightKg, pausedDuration, workoutStartTime, exerciseSets]);
+
+  // Combine cardio and strength calories into total
+  useEffect(() => {
+    const total = calculateTotalWorkoutCalories(totalCardioCalories, strengthCalories);
+    setTotalWorkoutCalories(total);
+  }, [totalCardioCalories, strengthCalories]);
+
   // Pause/Resume workout timer
   const toggleWorkoutPause = () => {
     if (isWorkoutPaused) {
@@ -1772,7 +1833,10 @@ export default function WorkoutScreen({ navigation, route }) {
       endTime: new Date().toISOString(),
       totalVolume: totalVolume,
       totalSets: totalSets,
-      totalCardioCalories: totalCardioCalories, // Cardio calories burned
+      // Calorie tracking - both individual and total
+      totalCardioCalories: totalCardioCalories,
+      strengthCalories: strengthCalories,
+      totalWorkoutCalories: totalWorkoutCalories, // Combined cardio + strength
       volumePerExercise: calculateVolumePerExercise(),
       programName: activeWorkout?.programName || null,
       dayName: activeWorkout?.dayName || null,
@@ -2632,11 +2696,11 @@ export default function WorkoutScreen({ navigation, route }) {
               {getElapsedTime()}
             </Text>
           </TouchableOpacity>
-          {/* Cardio Calories Display */}
-          {totalCardioCalories > 0 && (
+          {/* Total Workout Calories Display (Cardio + Strength) */}
+          {totalWorkoutCalories > 0 && (
             <View style={styles.caloriesDisplay}>
               <Ionicons name="flame" size={14} color="#FF6B35" />
-              <Text style={styles.caloriesText}>{Math.round(totalCardioCalories)} cal</Text>
+              <Text style={styles.caloriesText}>{Math.round(totalWorkoutCalories)} cal</Text>
             </View>
           )}
         </View>

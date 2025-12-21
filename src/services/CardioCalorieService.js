@@ -124,6 +124,104 @@ export function getActivityLevel(occupation, workoutDaysPerWeek = 0) {
 // END BMR & TDEE CALCULATIONS
 // ============================================
 
+// ============================================
+// STRENGTH TRAINING CALORIE CALCULATIONS
+// ============================================
+
+/**
+ * MET values for different strength training intensities
+ * Based on Compendium of Physical Activities
+ */
+const STRENGTH_MET_VALUES = {
+  light: 3.5,      // Light effort, general conditioning
+  moderate: 5.0,   // Moderate effort, vigorous effort
+  vigorous: 6.0,   // High intensity, powerlifting
+};
+
+/**
+ * Calculate calories burned during strength training
+ * Uses a combination of:
+ * 1. MET-based calculation using workout duration and body weight
+ * 2. Volume bonus for heavy lifting (more weight = more energy)
+ *
+ * @param {number} weightKg - User's body weight in kg
+ * @param {number} durationMinutes - Total workout duration in minutes
+ * @param {number} totalVolume - Total weight lifted (sets × reps × weight)
+ * @param {number} totalSets - Total number of sets completed
+ * @param {string} intensity - 'light', 'moderate', or 'vigorous'
+ * @returns {number} Estimated calories burned
+ */
+export function calculateStrengthCalories(weightKg, durationMinutes, totalVolume = 0, totalSets = 0, intensity = 'moderate') {
+  if (!weightKg || !durationMinutes) return 0;
+
+  // Base MET value based on intensity
+  const baseMET = STRENGTH_MET_VALUES[intensity] || STRENGTH_MET_VALUES.moderate;
+
+  // Adjust MET based on volume per minute (heavier lifting = higher intensity)
+  // Average volume per minute gives us an idea of workout intensity
+  const volumePerMinute = totalVolume / Math.max(durationMinutes, 1);
+
+  // Volume intensity bonus: +0.5 MET per 500 lbs/min lifted
+  // This accounts for heavier lifters burning more calories
+  const volumeBonus = Math.min((volumePerMinute / 500) * 0.5, 2.0); // Cap at +2 MET
+
+  const adjustedMET = baseMET + volumeBonus;
+
+  // Calculate calories using standard MET formula
+  // Calories/min = (MET × 3.5 × weight_kg) / 200
+  const caloriesPerMinute = (adjustedMET * 3.5 * weightKg) / 200;
+
+  // Total calories from duration
+  let totalCalories = caloriesPerMinute * durationMinutes;
+
+  // Add small bonus for each set completed (accounts for effort between sets)
+  // Each set adds approximately 2-3 calories of additional effort
+  const setBonus = totalSets * 2.5;
+  totalCalories += setBonus;
+
+  return Math.round(totalCalories);
+}
+
+/**
+ * Determine workout intensity based on average weight per set
+ * @param {number} totalVolume - Total weight lifted
+ * @param {number} totalSets - Number of sets
+ * @param {number} totalReps - Number of reps
+ * @param {number} userWeightKg - User's body weight in kg
+ * @returns {string} 'light', 'moderate', or 'vigorous'
+ */
+export function determineIntensity(totalVolume, totalSets, totalReps, userWeightKg) {
+  if (!totalSets || !totalReps || !userWeightKg) return 'moderate';
+
+  // Calculate average weight per rep
+  const avgWeightPerRep = totalVolume / Math.max(totalReps, 1);
+
+  // Compare to user's body weight to determine intensity
+  // Light: < 25% of body weight per rep
+  // Moderate: 25-75% of body weight per rep
+  // Vigorous: > 75% of body weight per rep
+  const userWeightLbs = userWeightKg * 2.20462;
+  const ratio = avgWeightPerRep / userWeightLbs;
+
+  if (ratio < 0.25) return 'light';
+  if (ratio > 0.75) return 'vigorous';
+  return 'moderate';
+}
+
+/**
+ * Calculate total workout calories (cardio + strength)
+ * @param {number} cardioCalories - Calories from cardio exercises
+ * @param {number} strengthCalories - Calories from strength training
+ * @returns {number} Total workout calories
+ */
+export function calculateTotalWorkoutCalories(cardioCalories, strengthCalories) {
+  return Math.round((cardioCalories || 0) + (strengthCalories || 0));
+}
+
+// ============================================
+// END STRENGTH TRAINING CALCULATIONS
+// ============================================
+
 // Exercise type configurations with input fields and MET calculations
 export const CARDIO_EXERCISE_CONFIG = {
   'cardio-1': { // Treadmill
@@ -586,4 +684,8 @@ export default {
   getPassiveCaloriesBurnedToday,
   getActivityLevel,
   ACTIVITY_MULTIPLIERS,
+  // Strength training calorie functions
+  calculateStrengthCalories,
+  determineIntensity,
+  calculateTotalWorkoutCalories,
 };

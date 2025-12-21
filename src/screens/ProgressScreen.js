@@ -2364,6 +2364,8 @@ export default function ProgressScreen({ navigation }) {
                         <View style={styles.workoutListDetails}>
                           <Text style={styles.workoutListDetailText}>
                             {totalSets} sets · {formatTimeAgo(workout.date)}
+                            {(workout.totalWorkoutCalories || workout.totalCardioCalories || workout.strengthCalories) ?
+                              ` · 🔥 ${workout.totalWorkoutCalories || ((workout.totalCardioCalories || 0) + (workout.strengthCalories || 0))} cal` : ''}
                           </Text>
                         </View>
                       </TouchableOpacity>
@@ -2652,7 +2654,12 @@ export default function ProgressScreen({ navigation }) {
                           {Math.round(workout.totalVolume).toLocaleString()} lbs
                         </Text>
                         <Text style={styles.topVolumeDetails}>
-                          {workout.exerciseCount} exercises · {workout.setCount} sets · {formatTimeAgo(workout.date)}
+                          {workout.exerciseCount} exercises · {workout.setCount} sets
+                          {(workout.totalWorkoutCalories || workout.totalCardioCalories) ?
+                            ` · 🔥 ${workout.totalWorkoutCalories || ((workout.totalCardioCalories || 0) + (workout.strengthCalories || 0))} cal` : ''}
+                        </Text>
+                        <Text style={styles.topVolumeDate}>
+                          {formatTimeAgo(workout.date)}
                         </Text>
                       </View>
                     </TouchableOpacity>

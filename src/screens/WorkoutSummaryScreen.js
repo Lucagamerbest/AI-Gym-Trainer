@@ -22,8 +22,14 @@ export default function WorkoutSummaryScreen({ navigation, route }) {
     workoutTitle = 'Quick Workout',
     workoutType = 'quick',
     notes = '',
-    photos = []
+    photos = [],
+    totalWorkoutCalories = 0,
+    totalCardioCalories = 0,
+    strengthCalories = 0
   } = workoutData || {};
+
+  // Calculate total calories (use stored total or sum components)
+  const caloriesBurned = totalWorkoutCalories || (totalCardioCalories + strengthCalories);
 
   // Calculate summary stats from exercise sets
   const calculateStats = () => {
@@ -154,20 +160,20 @@ export default function WorkoutSummaryScreen({ navigation, route }) {
           {/* Additional Stats Row */}
           <View style={styles.additionalStats}>
             <View style={styles.additionalStatItem}>
-              <Text style={styles.additionalStatValue}>{totalSets}</Text>
-              <Text style={styles.additionalStatLabel}>Total Sets</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.additionalStatItem}>
-              <Text style={styles.additionalStatValue}>{Math.round(totalVolume)}</Text>
+              <Text style={styles.additionalStatValue}>{Math.round(totalVolume).toLocaleString()}</Text>
               <Text style={styles.additionalStatLabel}>Volume (lbs)</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.additionalStatItem}>
-              <Text style={styles.additionalStatValue}>
-                {totalSets > 0 ? Math.round((completedSets / totalSets) * 100) : 0}%
+              <Text style={[styles.additionalStatValue, caloriesBurned > 0 && styles.calorieValue]}>
+                {caloriesBurned > 0 ? caloriesBurned : '--'}
               </Text>
-              <Text style={styles.additionalStatLabel}>Completion</Text>
+              <Text style={styles.additionalStatLabel}>🔥 Calories</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.additionalStatItem}>
+              <Text style={styles.additionalStatValue}>{totalSets}</Text>
+              <Text style={styles.additionalStatLabel}>Total Sets</Text>
             </View>
           </View>
         </LinearGradient>
@@ -384,6 +390,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: Colors.text,
     marginBottom: Spacing.xs,
+  },
+  calorieValue: {
+    color: '#FF6B35',
   },
   additionalStatLabel: {
     fontSize: Typography.fontSize.xs,

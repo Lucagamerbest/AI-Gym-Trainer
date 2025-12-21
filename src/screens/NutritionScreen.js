@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, Modal } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ScreenLayout from '../components/ScreenLayout';
@@ -40,9 +41,13 @@ const getLocalDateString = (date = new Date()) => {
 
 export default function NutritionScreen({ navigation, route }) {
   const { user } = useAuth();
-  const [burned, setBurned] = useState(0); // Real-time passive calorie burn
+  const [burned, setBurned] = useState(0); // Total burned calories
+  const [passiveCalories, setPassiveCalories] = useState(0); // BMR calories burned so far
   const [userBMR, setUserBMR] = useState(0); // User's Basal Metabolic Rate
-  const [workoutCalories, setWorkoutCalories] = useState(0); // Calories from today's workouts
+  const [workoutCalories, setWorkoutCalories] = useState(0); // Total workout calories
+  const [cardioCalories, setCardioCalories] = useState(0); // Cardio portion of workout
+  const [strengthCaloriesState, setStrengthCaloriesState] = useState(0); // Strength portion of workout
+  const [showBurnedBreakdown, setShowBurnedBreakdown] = useState(false); // Modal for breakdown
   const [showMacroModal, setShowMacroModal] = useState(false);
   const [selectedMeal, setSelectedMeal] = useState(() => getCurrentMealType());
   const [expandedMeal, setExpandedMeal] = useState(null);
@@ -183,6 +188,7 @@ export default function NutritionScreen({ navigation, route }) {
     // Update immediately
     const updateBurned = () => {
       const passiveBurned = getPassiveCaloriesBurnedToday(userBMR);
+      setPassiveCalories(passiveBurned); // Track passive separately
       setBurned(passiveBurned + workoutCalories);
     };
 
@@ -200,21 +206,36 @@ export default function NutritionScreen({ navigation, route }) {
       const allWorkouts = await WorkoutSyncService.getAllWorkouts(20);
       if (!allWorkouts || allWorkouts.length === 0) {
         setWorkoutCalories(0);
+        setCardioCalories(0);
+        setStrengthCaloriesState(0);
         return;
       }
 
       // Get today's date string for comparison
       const today = getLocalDateString();
 
-      // Filter to today's workouts and sum cardio calories
+      // Filter to today's workouts and sum all workout calories
       const todaysWorkouts = allWorkouts.filter(w =>
         w.date && w.date.startsWith(today)
       );
 
+      let totalCardio = 0;
+      let totalStrength = 0;
+
+      todaysWorkouts.forEach(workout => {
+        totalCardio += workout.totalCardioCalories || 0;
+        totalStrength += workout.strengthCalories || 0;
+      });
+
+      // Calculate total (use stored total if available, otherwise sum components)
       const totalWorkoutCals = todaysWorkouts.reduce((sum, workout) => {
-        return sum + (workout.totalCardioCalories || 0);
+        const workoutCals = workout.totalWorkoutCalories ||
+          ((workout.totalCardioCalories || 0) + (workout.strengthCalories || 0));
+        return sum + workoutCals;
       }, 0);
 
+      setCardioCalories(Math.round(totalCardio));
+      setStrengthCaloriesState(Math.round(totalStrength));
       setWorkoutCalories(Math.round(totalWorkoutCals));
     } catch (error) {
       console.error('Error loading workout calories:', error);
@@ -984,7 +1005,7 @@ export default function NutritionScreen({ navigation, route }) {
   const proteinProgress = calculateProgress(consumedMacros.proteinGrams, macroGoals.proteinGrams);
   const carbsProgress = calculateProgress(consumedMacros.carbsGrams, macroGoals.carbsGrams);
   const fatProgress = calculateProgress(consumedMacros.fatGrams, macroGoals.fatGrams);
-  const calorieDeficit = macroGoals.calories - consumed - burned;
+  const calorieDeficit = macroGoals.calories - consumed + burned;
 
   // Calculate macro breakdown by meal type
   const getMacroBreakdownByMeal = (macroType) => {
@@ -1117,11 +1138,15 @@ export default function NutritionScreen({ navigation, route }) {
               <Text style={styles.statUnit}>cal</Text>
             </TouchableOpacity>
             <View style={styles.divider} />
-            <View style={styles.statItem}>
+            <TouchableOpacity
+              style={[styles.statItem, styles.clickableStatItem]}
+              onPress={() => setShowBurnedBreakdown(true)}
+              activeOpacity={0.7}
+            >
               <Text style={styles.statLabel}>Burned</Text>
               <Text style={styles.statValue}>{burned}</Text>
               <Text style={styles.statUnit}>cal</Text>
-            </View>
+            </TouchableOpacity>
           </View>
         <Text style={[styles.deficitText, calorieDeficit > 0 ? styles.deficitPositive : styles.deficitNegative]}>
           {calorieDeficit > 0 ? '🎯 Deficit' : '⚠️ Surplus'}: {Math.round(Math.abs(calorieDeficit))} cal
@@ -1576,6 +1601,98 @@ export default function NutritionScreen({ navigation, route }) {
         message={mealCountInfo.message}
         foodName={mealCountInfo.foodName}
       />
+
+      {/* Burned Calories Breakdown Modal */}
+      <Modal
+        visible={showBurnedBreakdown}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowBurnedBreakdown(false)}
+      >
+        <TouchableOpacity
+          style={styles.burnedModalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowBurnedBreakdown(false)}
+        >
+          <View style={styles.burnedModalContent}>
+            <View style={styles.burnedModalHeader}>
+              <Text style={styles.burnedModalTitle}>Calories Burned Today</Text>
+              <TouchableOpacity onPress={() => setShowBurnedBreakdown(false)}>
+                <Ionicons name="close" size={24} color={Colors.text} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.burnedModalTotal}>
+              <Ionicons name="flame" size={32} color="#FF6B35" />
+              <Text style={styles.burnedModalTotalValue}>{burned}</Text>
+              <Text style={styles.burnedModalTotalLabel}>total calories</Text>
+            </View>
+
+            <View style={styles.burnedModalDivider} />
+
+            {/* Passive BMR */}
+            <View style={styles.burnedModalRow}>
+              <View style={styles.burnedModalRowLeft}>
+                <Ionicons name="body-outline" size={20} color={Colors.primary} />
+                <View style={styles.burnedModalRowText}>
+                  <Text style={styles.burnedModalRowLabel}>Passive (BMR)</Text>
+                  <Text style={styles.burnedModalRowDesc}>Calories burned at rest</Text>
+                </View>
+              </View>
+              <Text style={styles.burnedModalRowValue}>{passiveCalories}</Text>
+            </View>
+
+            {/* Workout Total */}
+            {workoutCalories > 0 && (
+              <>
+                <View style={styles.burnedModalDivider} />
+                <View style={styles.burnedModalRow}>
+                  <View style={styles.burnedModalRowLeft}>
+                    <Ionicons name="barbell-outline" size={20} color="#4CAF50" />
+                    <View style={styles.burnedModalRowText}>
+                      <Text style={styles.burnedModalRowLabel}>Workouts</Text>
+                      <Text style={styles.burnedModalRowDesc}>Today's exercise</Text>
+                    </View>
+                  </View>
+                  <Text style={styles.burnedModalRowValue}>{workoutCalories}</Text>
+                </View>
+
+                {/* Cardio breakdown */}
+                {cardioCalories > 0 && (
+                  <View style={styles.burnedModalSubRow}>
+                    <View style={styles.burnedModalRowLeft}>
+                      <Ionicons name="walk-outline" size={16} color={Colors.textMuted} style={{ marginLeft: 24 }} />
+                      <Text style={styles.burnedModalSubLabel}>Cardio</Text>
+                    </View>
+                    <Text style={styles.burnedModalSubValue}>{cardioCalories}</Text>
+                  </View>
+                )}
+
+                {/* Strength breakdown */}
+                {strengthCaloriesState > 0 && (
+                  <View style={styles.burnedModalSubRow}>
+                    <View style={styles.burnedModalRowLeft}>
+                      <Ionicons name="fitness-outline" size={16} color={Colors.textMuted} style={{ marginLeft: 24 }} />
+                      <Text style={styles.burnedModalSubLabel}>Strength</Text>
+                    </View>
+                    <Text style={styles.burnedModalSubValue}>{strengthCaloriesState}</Text>
+                  </View>
+                )}
+              </>
+            )}
+
+            <View style={styles.burnedModalDivider} />
+
+            {/* BMR Info */}
+            <View style={styles.burnedModalInfo}>
+              <Ionicons name="information-circle-outline" size={16} color={Colors.textMuted} />
+              <Text style={styles.burnedModalInfoText}>
+                Your BMR is ~{userBMR} cal/day based on your profile
+              </Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </ScreenLayout>
   );
 }
@@ -2498,5 +2615,110 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     textAlign: 'center',
     paddingVertical: Spacing.lg,
+  },
+  // Burned Breakdown Modal Styles
+  burnedModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: Spacing.lg,
+  },
+  burnedModalContent: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.lg,
+    width: '100%',
+    maxWidth: 340,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  burnedModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
+  burnedModalTitle: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: '700',
+    color: Colors.text,
+  },
+  burnedModalTotal: {
+    alignItems: 'center',
+    paddingVertical: Spacing.md,
+  },
+  burnedModalTotalValue: {
+    fontSize: 48,
+    fontWeight: '700',
+    color: '#FF6B35',
+    marginTop: Spacing.xs,
+  },
+  burnedModalTotalLabel: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+    marginTop: Spacing.xs,
+  },
+  burnedModalDivider: {
+    height: 1,
+    backgroundColor: Colors.border,
+    marginVertical: Spacing.md,
+  },
+  burnedModalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: Spacing.sm,
+  },
+  burnedModalRowLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  burnedModalRowText: {
+    gap: 2,
+  },
+  burnedModalRowLabel: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  burnedModalRowDesc: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textMuted,
+  },
+  burnedModalRowValue: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: '700',
+    color: Colors.text,
+  },
+  burnedModalSubRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: Spacing.xs,
+    paddingLeft: Spacing.sm,
+  },
+  burnedModalSubLabel: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textMuted,
+    marginLeft: Spacing.sm,
+  },
+  burnedModalSubValue: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.textSecondary,
+  },
+  burnedModalInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    backgroundColor: Colors.background,
+    padding: Spacing.sm,
+    borderRadius: BorderRadius.md,
+  },
+  burnedModalInfoText: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textMuted,
+    flex: 1,
   },
 });
