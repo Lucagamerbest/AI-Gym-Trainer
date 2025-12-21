@@ -24,6 +24,8 @@ import VoiceInputButton from '../components/VoiceInputButton';
 import VoiceWorkoutConfirmModal from '../components/VoiceWorkoutConfirmModal';
 import { parseVoiceWorkout } from '../services/ai/VoiceWorkoutParser';
 import { findBestExerciseMatch } from '../utils/exerciseNameMatcher';
+import { getCardioConfig, getCardioExerciseId, calculateTotalCalories, lbsToKg, CARDIO_EXERCISE_CONFIG } from '../services/CardioCalorieService';
+import { loadUserProfile } from '../services/userProfileAssessment';
 
 // Configure notification handler - always show notifications
 Notifications.setNotificationHandler({
@@ -221,6 +223,9 @@ const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exercise
   // Check if this is a cardio exercise
   const isCardio = isCardioExercise(exercise);
 
+  // Get cardio config for input fields
+  const cardioConfig = isCardio ? getCardioConfig(exercise) : null;
+
   // Check if this is a bodyweight exercise
   const isBodyweight = isBodyweightExercise(exercise);
 
@@ -339,12 +344,20 @@ const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exercise
         {/* Sets Tracking - Conditional rendering based on exercise type */}
         <View style={styles.setsContainer}>
           {isCardio ? (
-            // Cardio Exercise - Show Set, Duration, Timer Button
+            // Cardio Exercise - Show Set, Speed/Pace, Incline/Resist, Duration, Timer
             <>
               <View style={styles.setsHeader}>
-                <Text style={styles.setHeaderText}>Set</Text>
-                <Text style={[styles.setHeaderText, { flex: 2 }]}>Duration</Text>
-                <Text style={styles.setHeaderText}>Timer</Text>
+                <Text style={[styles.setHeaderText, { width: 28 }]}>Set</Text>
+                <Text style={[styles.setHeaderText, { flex: 1 }]}>
+                  {cardioConfig?.primaryInput?.label || 'Speed'}
+                </Text>
+                {cardioConfig?.secondaryInput && (
+                  <Text style={[styles.setHeaderText, { flex: 1 }]}>
+                    {cardioConfig.secondaryInput.label}
+                  </Text>
+                )}
+                <Text style={[styles.setHeaderText, { flex: 1 }]}>Time</Text>
+                <Text style={[styles.setHeaderText, { width: 40 }]}></Text>
               </View>
             </>
           ) : (
@@ -361,20 +374,56 @@ const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exercise
             <React.Fragment key={setIndex}>
               <View style={styles.setRow}>
                 {isCardio ? (
-                // Cardio set row: Set number | Duration display | Timer button
+                // Cardio set row: Set number | Speed | Incline/Resist | Duration | Timer
                 <>
-                  <View style={styles.setNumberContainer}>
+                  <View style={[styles.setNumberContainer, { width: 28 }]}>
                     <Text style={[styles.setNumber, { color: Colors.primary }]}>
                       {setIndex + 1}
                     </Text>
                   </View>
 
-                  <View style={[styles.setInput, { flex: 2 }]}>
+                  {/* Primary Input (Speed/RPM/Steps) */}
+                  <View style={[styles.cardioInputWrapper, { flex: 1 }]}>
+                    <TextInput
+                      style={styles.cardioInput}
+                      value={set.cardioSpeed || ''}
+                      onChangeText={(value) => onUpdateSet(index, setIndex, 'cardioSpeed', value)}
+                      placeholder={cardioConfig?.primaryInput?.placeholder || '0'}
+                      placeholderTextColor={Colors.textMuted}
+                      keyboardType="decimal-pad"
+                      maxLength={5}
+                    />
+                    <Text style={styles.cardioInputUnit}>
+                      {cardioConfig?.primaryInput?.unit || ''}
+                    </Text>
+                  </View>
+
+                  {/* Secondary Input (Incline/Resistance) - only if config has it */}
+                  {cardioConfig?.secondaryInput && (
+                    <View style={[styles.cardioInputWrapper, { flex: 1 }]}>
+                      <TextInput
+                        style={styles.cardioInput}
+                        value={set.cardioResistance || ''}
+                        onChangeText={(value) => onUpdateSet(index, setIndex, 'cardioResistance', value)}
+                        placeholder={cardioConfig.secondaryInput.placeholder || '0'}
+                        placeholderTextColor={Colors.textMuted}
+                        keyboardType="decimal-pad"
+                        maxLength={4}
+                      />
+                      <Text style={styles.cardioInputUnit}>
+                        {cardioConfig.secondaryInput.unit}
+                      </Text>
+                    </View>
+                  )}
+
+                  {/* Duration Display */}
+                  <View style={[styles.cardioDurationWrapper, { flex: 1 }]}>
                     <Text style={styles.cardioDurationText}>
                       {formatDuration(set.duration || 0)}
                     </Text>
                   </View>
 
+                  {/* Timer Button */}
                   <TouchableOpacity
                     style={styles.cardioTimerButton}
                     onPress={() => {
@@ -596,6 +645,10 @@ export default function WorkoutScreen({ navigation, route }) {
   const [cardioTimers, setCardioTimers] = useState({});
   const cardioTimerIntervals = useRef({});
 
+  // Cardio calorie tracking state
+  const [totalCardioCalories, setTotalCardioCalories] = useState(0);
+  const [userWeightKg, setUserWeightKg] = useState(70); // Default 70kg, loaded from profile
+
   // Previous exercise history state: { exerciseIndex: [{ weight, reps, comment }, ...] }
   const [previousExerciseHistory, setPreviousExerciseHistory] = useState({});
 
@@ -746,6 +799,26 @@ export default function WorkoutScreen({ navigation, route }) {
 
     syncWorkoutToStorage();
   }, [activeWorkout]);
+
+  // Load user weight from profile for cardio calorie calculations
+  useEffect(() => {
+    const fetchUserWeight = async () => {
+      try {
+        const profile = await loadUserProfile();
+        if (profile?.currentWeight) {
+          // Convert to kg if needed (assume lbs if > 120, since that's unlikely in kg)
+          const weight = parseFloat(profile.currentWeight);
+          const weightInKg = weight > 120 ? lbsToKg(weight) : weight;
+          setUserWeightKg(weightInKg);
+        }
+        // If no weight set, keep default 70kg
+      } catch (error) {
+        // Profile not set up yet - use default weight (70kg)
+        console.log('User profile not available, using default weight for calorie calculations');
+      }
+    };
+    fetchUserWeight();
+  }, []);
 
   // Load RPE setting and request notification permissions
   useEffect(() => {
@@ -1622,6 +1695,36 @@ export default function WorkoutScreen({ navigation, route }) {
     };
   }, []);
 
+  // Calculate total cardio calories whenever exerciseSets or cardioTimers change
+  useEffect(() => {
+    let total = 0;
+    workoutExercises.forEach((exercise, exerciseIndex) => {
+      const exerciseId = getCardioExerciseId(exercise);
+      if (!exerciseId) return; // Not a cardio exercise
+
+      const sets = exerciseSets[exerciseIndex] || [];
+      sets.forEach((set, setIndex) => {
+        // Get duration - check if timer is running for live updates
+        const timerKey = `${exerciseIndex}-${setIndex}`;
+        let duration = set.duration || 0;
+        if (cardioTimers[timerKey]?.isRunning) {
+          const elapsed = Math.floor((Date.now() - cardioTimers[timerKey].startTime) / 1000);
+          duration = (cardioTimers[timerKey].baseDuration || 0) + elapsed;
+        }
+
+        if (duration > 0) {
+          const inputs = {
+            primary: set.cardioSpeed || set.speed || 0,
+            secondary: set.cardioResistance || set.incline || 0,
+          };
+          const calories = calculateTotalCalories(exerciseId, inputs, duration, userWeightKg);
+          total += calories;
+        }
+      });
+    });
+    setTotalCardioCalories(Math.round(total * 10) / 10);
+  }, [exerciseSets, cardioTimers, workoutExercises, userWeightKg]);
+
   // Pause/Resume workout timer
   const toggleWorkoutPause = () => {
     if (isWorkoutPaused) {
@@ -1669,6 +1772,7 @@ export default function WorkoutScreen({ navigation, route }) {
       endTime: new Date().toISOString(),
       totalVolume: totalVolume,
       totalSets: totalSets,
+      totalCardioCalories: totalCardioCalories, // Cardio calories burned
       volumePerExercise: calculateVolumePerExercise(),
       programName: activeWorkout?.programName || null,
       dayName: activeWorkout?.dayName || null,
@@ -2528,6 +2632,13 @@ export default function WorkoutScreen({ navigation, route }) {
               {getElapsedTime()}
             </Text>
           </TouchableOpacity>
+          {/* Cardio Calories Display */}
+          {totalCardioCalories > 0 && (
+            <View style={styles.caloriesDisplay}>
+              <Ionicons name="flame" size={14} color="#FF6B35" />
+              <Text style={styles.caloriesText}>{Math.round(totalCardioCalories)} cal</Text>
+            </View>
+          )}
         </View>
 
         {/* Right Section: Rest Timer (centered vertically) */}
@@ -3256,6 +3367,17 @@ const styles = StyleSheet.create({
   },
   workoutTimerPaused: {
     color: '#FF9800',
+  },
+  caloriesDisplay: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 4,
+  },
+  caloriesText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FF6B35',
   },
   restTimerButton: {
     flexDirection: 'row',
@@ -4407,6 +4529,33 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   // Cardio-specific styles
+  cardioInputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    marginHorizontal: 2,
+    paddingHorizontal: 4,
+  },
+  cardioInput: {
+    flex: 1,
+    fontSize: Typography.fontSize.sm,
+    color: Colors.text,
+    textAlign: 'center',
+    paddingVertical: 6,
+    minWidth: 30,
+  },
+  cardioInputUnit: {
+    fontSize: 10,
+    color: Colors.textMuted,
+    marginLeft: 2,
+  },
+  cardioDurationWrapper: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   cardioDurationText: {
     fontSize: Typography.fontSize.md,
     fontWeight: 'bold',
@@ -4414,7 +4563,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   cardioTimerButton: {
-    flex: 1,
+    width: 40,
     backgroundColor: Colors.primary,
     borderRadius: BorderRadius.sm,
     paddingVertical: Spacing.xs,

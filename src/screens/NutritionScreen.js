@@ -15,6 +15,14 @@ import MealHistoryTabs from '../components/MealHistoryTabs';
 import MealCountModal from '../components/MealCountModal';
 import { getCurrentMealType } from '../config/aiSectionConfig';
 import { checkMealCountLimit } from '../services/mealCountService';
+import { loadUserProfile } from '../services/userProfileAssessment';
+import {
+  calculateBMR,
+  getPassiveCaloriesBurnedToday,
+  getActivityLevel,
+  lbsToKg
+} from '../services/CardioCalorieService';
+import WorkoutSyncService from '../services/backend/WorkoutSyncService';
 
 const MACROS_KEY = '@macro_goals';
 const DAILY_NUTRITION_KEY = '@daily_nutrition';
@@ -32,7 +40,9 @@ const getLocalDateString = (date = new Date()) => {
 
 export default function NutritionScreen({ navigation, route }) {
   const { user } = useAuth();
-  const [burned] = useState(0); // Will be updated when exercise tracking is implemented
+  const [burned, setBurned] = useState(0); // Real-time passive calorie burn
+  const [userBMR, setUserBMR] = useState(0); // User's Basal Metabolic Rate
+  const [workoutCalories, setWorkoutCalories] = useState(0); // Calories from today's workouts
   const [showMacroModal, setShowMacroModal] = useState(false);
   const [selectedMeal, setSelectedMeal] = useState(() => getCurrentMealType());
   const [expandedMeal, setExpandedMeal] = useState(null);
@@ -123,6 +133,99 @@ export default function NutritionScreen({ navigation, route }) {
     initializeData();
   }, [user]);
 
+  // Load user profile and calculate BMR for passive calorie burn
+  useEffect(() => {
+    const loadBMRData = async () => {
+      try {
+        const profile = await loadUserProfile();
+
+        // Get user stats from profile with sensible defaults
+        const weightLbs = profile?.currentWeight || 160; // Default 160 lbs
+        const heightInches = profile?.height || 68; // Default 5'8"
+        const age = profile?.age || 30; // Default 30 years
+        const gender = profile?.gender || 'other';
+
+        // Convert to metric
+        const weightKg = lbsToKg(weightLbs);
+        const heightCm = heightInches * 2.54;
+
+        // Calculate BMR (will use defaults if profile incomplete)
+        const bmr = calculateBMR(weightKg, heightCm, age, gender);
+
+        if (bmr > 0) {
+          setUserBMR(bmr);
+          const passiveBurned = getPassiveCaloriesBurnedToday(bmr);
+          setBurned(passiveBurned + workoutCalories);
+        } else {
+          // Fallback: Use average BMR of ~1800 cal/day if calculation fails
+          const fallbackBMR = 1800;
+          setUserBMR(fallbackBMR);
+          const passiveBurned = getPassiveCaloriesBurnedToday(fallbackBMR);
+          setBurned(passiveBurned + workoutCalories);
+        }
+      } catch (error) {
+        console.error('Error loading BMR data:', error);
+        // Use fallback BMR on error
+        const fallbackBMR = 1800;
+        setUserBMR(fallbackBMR);
+        const passiveBurned = getPassiveCaloriesBurnedToday(fallbackBMR);
+        setBurned(passiveBurned + workoutCalories);
+      }
+    };
+
+    loadBMRData();
+  }, [workoutCalories]);
+
+  // Update burned calories in real-time (every second for live counter effect)
+  useEffect(() => {
+    if (userBMR <= 0) return;
+
+    // Update immediately
+    const updateBurned = () => {
+      const passiveBurned = getPassiveCaloriesBurnedToday(userBMR);
+      setBurned(passiveBurned + workoutCalories);
+    };
+
+    updateBurned();
+
+    // Update every second for real-time ticking effect
+    const interval = setInterval(updateBurned, 1000);
+
+    return () => clearInterval(interval);
+  }, [userBMR, workoutCalories]);
+
+  // Load today's workout calories from completed workouts
+  const loadTodayWorkoutCalories = async () => {
+    try {
+      const allWorkouts = await WorkoutSyncService.getAllWorkouts(20);
+      if (!allWorkouts || allWorkouts.length === 0) {
+        setWorkoutCalories(0);
+        return;
+      }
+
+      // Get today's date string for comparison
+      const today = getLocalDateString();
+
+      // Filter to today's workouts and sum cardio calories
+      const todaysWorkouts = allWorkouts.filter(w =>
+        w.date && w.date.startsWith(today)
+      );
+
+      const totalWorkoutCals = todaysWorkouts.reduce((sum, workout) => {
+        return sum + (workout.totalCardioCalories || 0);
+      }, 0);
+
+      setWorkoutCalories(Math.round(totalWorkoutCals));
+    } catch (error) {
+      console.error('Error loading workout calories:', error);
+    }
+  };
+
+  // Load workout calories on mount and when screen is focused
+  useEffect(() => {
+    loadTodayWorkoutCalories();
+  }, []);
+
   // Reload data when screen is focused (e.g., coming back from CalorieBreakdown)
   // Always reload to ensure data is fresh from Firebase
   useFocusEffect(
@@ -134,6 +237,9 @@ export default function NutritionScreen({ navigation, route }) {
       // Always reload from Firebase when screen is focused
       // This ensures calorie breakdown updates after unlogging food
       loadDailyNutrition();
+
+      // Reload workout calories in case user completed a workout
+      loadTodayWorkoutCalories();
     }, [])
   );
 

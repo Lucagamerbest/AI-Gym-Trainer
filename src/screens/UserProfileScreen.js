@@ -176,6 +176,14 @@ const UserProfileScreen = ({ navigation }) => {
       </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Basic Stats - Weight, Height, Age, Gender */}
+        <InfoSection title="Basic Stats" icon="body-outline" sectionKey="basicStats">
+          <InfoRow label="Weight" value={profile.currentWeight ? `${profile.currentWeight} lbs` : null} />
+          <InfoRow label="Height" value={profile.height ? `${Math.floor(profile.height / 12)}' ${profile.height % 12}"` : null} />
+          <InfoRow label="Age" value={profile.age?.toString()} />
+          <InfoRow label="Gender" value={profile.gender ? profile.gender.charAt(0).toUpperCase() + profile.gender.slice(1) : null} />
+        </InfoSection>
+
         {/* Experience */}
         <InfoSection title="Experience" icon="barbell-outline" sectionKey="experience">
           <InfoRow label="Level" value={profile.experienceLevel?.toUpperCase()} />

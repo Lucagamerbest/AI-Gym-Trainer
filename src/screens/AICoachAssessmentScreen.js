@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  Animated,
+  PanResponder,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,10 +19,577 @@ import { auth } from '../config/firebase';
 import { Colors } from '../constants/theme';
 import { getAllExercises } from '../data/exerciseDatabase';
 
+// Weight Scale Picker Component - Visual scale with dial
+const WeightScalePicker = ({ value, onChange, unit, onUnitChange }) => {
+  const scrollViewRef = useRef(null);
+  const [localValue, setLocalValue] = useState(value || (unit === 'kg' ? 70 : 154));
+
+  // Weight ranges
+  const minWeight = unit === 'kg' ? 30 : 66;
+  const maxWeight = unit === 'kg' ? 200 : 440;
+  const step = unit === 'kg' ? 0.5 : 1;
+
+  // Generate tick marks
+  const generateTicks = () => {
+    const ticks = [];
+    for (let w = minWeight; w <= maxWeight; w += step) {
+      ticks.push(w);
+    }
+    return ticks;
+  };
+
+  const ticks = generateTicks();
+  const tickWidth = 12;
+  const containerWidth = 300;
+  const centerOffset = containerWidth / 2;
+
+  // Handle scroll
+  const handleScroll = (event) => {
+    const scrollX = event.nativeEvent.contentOffset.x;
+    const index = Math.round(scrollX / tickWidth);
+    const newWeight = ticks[Math.min(Math.max(index, 0), ticks.length - 1)];
+    if (newWeight !== localValue) {
+      setLocalValue(newWeight);
+      onChange(newWeight);
+    }
+  };
+
+  // Scroll to current value on mount/unit change
+  React.useEffect(() => {
+    const targetWeight = value || (unit === 'kg' ? 70 : 154);
+    const index = ticks.findIndex(t => t >= targetWeight);
+    if (index >= 0 && scrollViewRef.current) {
+      setTimeout(() => {
+        scrollViewRef.current?.scrollTo({ x: index * tickWidth, animated: false });
+      }, 100);
+    }
+    setLocalValue(targetWeight);
+  }, [unit]);
+
+  // Convert weight between units (display only - don't update stored value)
+  const handleUnitChange = (newUnit) => {
+    if (newUnit !== unit) {
+      let convertedWeight;
+      if (newUnit === 'kg') {
+        // Converting display from lbs to kg
+        convertedWeight = Math.round(localValue * 0.453592 * 2) / 2; // Round to 0.5
+      } else {
+        // Converting display from kg to lbs
+        convertedWeight = Math.round(localValue * 2.20462);
+      }
+      setLocalValue(convertedWeight);
+      onUnitChange(newUnit);
+      // Don't call onChange here - the stored value (in lbs) shouldn't change
+      // when just toggling display units
+    }
+  };
+
+  return (
+    <View style={scaleStyles.container}>
+      {/* Scale Display - Digital Readout */}
+      <View style={scaleStyles.display}>
+        <View style={scaleStyles.displayInner}>
+          <Text style={scaleStyles.weightValue}>{localValue.toFixed(unit === 'kg' ? 1 : 0)}</Text>
+          <Text style={scaleStyles.weightUnitDisplay}>{unit}</Text>
+        </View>
+      </View>
+
+      {/* Unit Toggle */}
+      <View style={scaleStyles.unitToggle}>
+        <TouchableOpacity
+          style={[scaleStyles.unitButton, unit === 'lbs' && scaleStyles.unitButtonActive]}
+          onPress={() => handleUnitChange('lbs')}
+        >
+          <Text style={[scaleStyles.unitButtonText, unit === 'lbs' && scaleStyles.unitButtonTextActive]}>
+            LBS
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[scaleStyles.unitButton, unit === 'kg' && scaleStyles.unitButtonActive]}
+          onPress={() => handleUnitChange('kg')}
+        >
+          <Text style={[scaleStyles.unitButtonText, unit === 'kg' && scaleStyles.unitButtonTextActive]}>
+            KG
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Scale Dial */}
+      <View style={scaleStyles.dialContainer}>
+        {/* Center indicator */}
+        <View style={scaleStyles.centerIndicator} />
+
+        {/* Scrollable tick marks */}
+        <ScrollView
+          ref={scrollViewRef}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          snapToInterval={tickWidth}
+          decelerationRate="fast"
+          onMomentumScrollEnd={handleScroll}
+          onScrollEndDrag={handleScroll}
+          contentContainerStyle={{
+            paddingHorizontal: centerOffset - tickWidth / 2,
+          }}
+          style={scaleStyles.tickScroll}
+        >
+          {ticks.map((tick, index) => {
+            const isMajor = tick % (unit === 'kg' ? 5 : 10) === 0;
+            const isSelected = tick === localValue;
+            return (
+              <View key={index} style={scaleStyles.tickWrapper}>
+                <View
+                  style={[
+                    scaleStyles.tick,
+                    isMajor && scaleStyles.tickMajor,
+                    isSelected && scaleStyles.tickSelected,
+                  ]}
+                />
+                {isMajor && (
+                  <Text style={[scaleStyles.tickLabel, isSelected && scaleStyles.tickLabelSelected]}>
+                    {tick}
+                  </Text>
+                )}
+              </View>
+            );
+          })}
+        </ScrollView>
+      </View>
+
+      {/* Scale Base */}
+      <View style={scaleStyles.scaleBase}>
+        <View style={scaleStyles.scaleBaseLine} />
+        <Ionicons name="fitness" size={20} color={Colors.primary} />
+        <View style={scaleStyles.scaleBaseLine} />
+      </View>
+    </View>
+  );
+};
+
+const scaleStyles = StyleSheet.create({
+  container: {
+    alignItems: 'center',
+    marginVertical: 16,
+  },
+  display: {
+    width: 180,
+    height: 80,
+    backgroundColor: '#1a1a2e',
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+    borderWidth: 3,
+    borderColor: '#2d2d44',
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  displayInner: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+  },
+  weightValue: {
+    fontSize: 42,
+    fontWeight: 'bold',
+    color: Colors.primary,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
+  weightUnitDisplay: {
+    fontSize: 18,
+    color: Colors.primary,
+    marginLeft: 4,
+    opacity: 0.8,
+  },
+  unitToggle: {
+    flexDirection: 'row',
+    backgroundColor: Colors.card,
+    borderRadius: 25,
+    padding: 4,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  unitButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 28,
+    borderRadius: 20,
+  },
+  unitButtonActive: {
+    backgroundColor: Colors.primary,
+  },
+  unitButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.textSecondary,
+  },
+  unitButtonTextActive: {
+    color: Colors.background,
+  },
+  dialContainer: {
+    width: 300,
+    height: 80,
+    position: 'relative',
+  },
+  centerIndicator: {
+    position: 'absolute',
+    top: 0,
+    left: '50%',
+    marginLeft: -2,
+    width: 4,
+    height: 45,
+    backgroundColor: Colors.primary,
+    borderRadius: 2,
+    zIndex: 10,
+  },
+  tickScroll: {
+    width: '100%',
+  },
+  tickWrapper: {
+    width: 12,
+    alignItems: 'center',
+  },
+  tick: {
+    width: 2,
+    height: 20,
+    backgroundColor: Colors.textMuted,
+    borderRadius: 1,
+  },
+  tickMajor: {
+    height: 35,
+    width: 3,
+    backgroundColor: Colors.textSecondary,
+  },
+  tickSelected: {
+    backgroundColor: Colors.primary,
+  },
+  tickLabel: {
+    fontSize: 10,
+    color: Colors.textMuted,
+    marginTop: 4,
+  },
+  tickLabelSelected: {
+    color: Colors.primary,
+    fontWeight: 'bold',
+  },
+  scaleBase: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 12,
+    gap: 12,
+  },
+  scaleBaseLine: {
+    width: 60,
+    height: 2,
+    backgroundColor: Colors.border,
+    borderRadius: 1,
+  },
+});
+
+// Height Ruler Picker Component - Visual measuring tape with person silhouette
+const HeightRulerPicker = ({ feet, inches, onChangeFeet, onChangeInches }) => {
+  const scrollViewRef = useRef(null);
+  const totalInches = (feet || 5) * 12 + (inches || 6);
+  const [localTotal, setLocalTotal] = useState(totalInches);
+
+  // Height range: 4'0" to 7'6" (48 to 90 inches)
+  const minInches = 48;
+  const maxInches = 90;
+  const tickHeight = 8;
+
+  // Generate tick marks (each inch)
+  const generateTicks = () => {
+    const ticks = [];
+    for (let i = minInches; i <= maxInches; i++) {
+      ticks.push(i);
+    }
+    return ticks;
+  };
+
+  const ticks = generateTicks();
+  const containerHeight = 200;
+  const centerOffset = containerHeight / 2;
+
+  // Handle scroll
+  const handleScroll = (event) => {
+    const scrollY = event.nativeEvent.contentOffset.y;
+    const index = Math.round(scrollY / tickHeight);
+    const newTotal = ticks[Math.min(Math.max(index, 0), ticks.length - 1)];
+    if (newTotal !== localTotal) {
+      setLocalTotal(newTotal);
+      const newFeet = Math.floor(newTotal / 12);
+      const newInches = newTotal % 12;
+      onChangeFeet(newFeet);
+      onChangeInches(newInches);
+    }
+  };
+
+  // Scroll to current value on mount
+  React.useEffect(() => {
+    const index = ticks.findIndex(t => t >= totalInches);
+    if (index >= 0 && scrollViewRef.current) {
+      setTimeout(() => {
+        scrollViewRef.current?.scrollTo({ y: index * tickHeight, animated: false });
+      }, 100);
+    }
+  }, []);
+
+  // Calculate person silhouette height (scaled)
+  const personHeight = 60 + ((localTotal - minInches) / (maxInches - minInches)) * 80;
+
+  const displayFeet = Math.floor(localTotal / 12);
+  const displayInches = localTotal % 12;
+
+  return (
+    <View style={heightStyles.container}>
+      {/* Left side - Person silhouette */}
+      <View style={heightStyles.personContainer}>
+        <View style={[heightStyles.personWrapper, { height: personHeight }]}>
+          {/* Head */}
+          <View style={heightStyles.personHead} />
+          {/* Body */}
+          <View style={heightStyles.personBody}>
+            {/* Arms */}
+            <View style={heightStyles.personArms} />
+          </View>
+          {/* Legs */}
+          <View style={heightStyles.personLegs}>
+            <View style={heightStyles.personLeg} />
+            <View style={heightStyles.personLeg} />
+          </View>
+        </View>
+        {/* Ground line */}
+        <View style={heightStyles.groundLine} />
+      </View>
+
+      {/* Center - Display */}
+      <View style={heightStyles.displayContainer}>
+        <View style={heightStyles.display}>
+          <Text style={heightStyles.heightValue}>{displayFeet}</Text>
+          <Text style={heightStyles.heightUnit}>ft</Text>
+          <Text style={heightStyles.heightValue}>{displayInches}</Text>
+          <Text style={heightStyles.heightUnit}>in</Text>
+        </View>
+        <Text style={heightStyles.heightCm}>
+          {Math.round(localTotal * 2.54)} cm
+        </Text>
+      </View>
+
+      {/* Right side - Measuring tape */}
+      <View style={heightStyles.rulerContainer}>
+        {/* Center indicator */}
+        <View style={heightStyles.centerIndicator} />
+
+        {/* Scrollable ruler */}
+        <ScrollView
+          ref={scrollViewRef}
+          showsVerticalScrollIndicator={false}
+          snapToInterval={tickHeight}
+          decelerationRate="fast"
+          onMomentumScrollEnd={handleScroll}
+          onScrollEndDrag={handleScroll}
+          contentContainerStyle={{
+            paddingVertical: centerOffset - tickHeight / 2,
+          }}
+          style={heightStyles.rulerScroll}
+        >
+          {ticks.map((tick, index) => {
+            const isFoot = tick % 12 === 0;
+            const isHalfFoot = tick % 6 === 0 && !isFoot;
+            const isSelected = tick === localTotal;
+            return (
+              <View key={index} style={heightStyles.tickWrapper}>
+                <View
+                  style={[
+                    heightStyles.tick,
+                    isFoot && heightStyles.tickFoot,
+                    isHalfFoot && heightStyles.tickHalf,
+                    isSelected && heightStyles.tickSelected,
+                  ]}
+                />
+                {isFoot && (
+                  <Text style={[heightStyles.tickLabel, isSelected && heightStyles.tickLabelSelected]}>
+                    {tick / 12}'
+                  </Text>
+                )}
+              </View>
+            );
+          })}
+        </ScrollView>
+
+        {/* Ruler edge */}
+        <View style={heightStyles.rulerEdge} />
+      </View>
+    </View>
+  );
+};
+
+const heightStyles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 16,
+    gap: 16,
+  },
+  personContainer: {
+    width: 60,
+    height: 200,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+  },
+  personWrapper: {
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+  },
+  personHead: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: Colors.primary,
+    marginBottom: 2,
+  },
+  personBody: {
+    width: 24,
+    height: '40%',
+    backgroundColor: Colors.primary,
+    borderRadius: 4,
+    alignItems: 'center',
+  },
+  personArms: {
+    position: 'absolute',
+    top: 4,
+    width: 40,
+    height: 6,
+    backgroundColor: Colors.primary,
+    borderRadius: 3,
+  },
+  personLegs: {
+    flexDirection: 'row',
+    gap: 4,
+    height: '35%',
+  },
+  personLeg: {
+    width: 8,
+    height: '100%',
+    backgroundColor: Colors.primary,
+    borderRadius: 4,
+  },
+  groundLine: {
+    width: 50,
+    height: 3,
+    backgroundColor: Colors.border,
+    borderRadius: 1.5,
+    marginTop: 4,
+  },
+  displayContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  display: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    backgroundColor: '#1a1a2e',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#2d2d44',
+  },
+  heightValue: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: Colors.primary,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
+  heightUnit: {
+    fontSize: 14,
+    color: Colors.primary,
+    marginLeft: 2,
+    marginRight: 8,
+    opacity: 0.7,
+  },
+  heightCm: {
+    fontSize: 14,
+    color: Colors.textMuted,
+    marginTop: 8,
+  },
+  rulerContainer: {
+    width: 60,
+    height: 200,
+    position: 'relative',
+    backgroundColor: '#FFF8E7',
+    borderRadius: 8,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#E8D5B7',
+  },
+  centerIndicator: {
+    position: 'absolute',
+    top: '50%',
+    left: 0,
+    marginTop: -2,
+    width: 35,
+    height: 4,
+    backgroundColor: '#FF4444',
+    borderRadius: 2,
+    zIndex: 10,
+  },
+  rulerScroll: {
+    flex: 1,
+    paddingLeft: 8,
+  },
+  tickWrapper: {
+    height: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  tick: {
+    width: 10,
+    height: 2,
+    backgroundColor: '#333',
+    borderRadius: 1,
+  },
+  tickFoot: {
+    width: 25,
+    height: 3,
+    backgroundColor: '#000',
+  },
+  tickHalf: {
+    width: 18,
+    backgroundColor: '#666',
+  },
+  tickSelected: {
+    backgroundColor: Colors.primary,
+  },
+  tickLabel: {
+    fontSize: 11,
+    color: '#333',
+    marginLeft: 4,
+    fontWeight: 'bold',
+  },
+  tickLabelSelected: {
+    color: Colors.primary,
+  },
+  rulerEdge: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    bottom: 0,
+    width: 8,
+    backgroundColor: '#D4A574',
+    borderLeftWidth: 1,
+    borderLeftColor: '#C49A6C',
+  },
+});
+
 const AICoachAssessmentScreen = ({ navigation }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [profileData, setProfileData] = useState({ ...DEFAULT_USER_PROFILE });
   const [loading, setLoading] = useState(false);
+  const [weightUnit, setWeightUnit] = useState('lbs'); // 'lbs' or 'kg'
 
   // Helper: Check if exercises are recognized from database
   const getRecognizedExercises = (exerciseString) => {
@@ -45,7 +614,7 @@ const AICoachAssessmentScreen = ({ navigation }) => {
   };
 
   // Total steps in the assessment
-  const TOTAL_STEPS = 10;
+  const TOTAL_STEPS = 11;
 
   const updateProfile = (field, value) => {
     setProfileData(prev => ({
@@ -250,6 +819,82 @@ const AICoachAssessmentScreen = ({ navigation }) => {
         return (
           <View style={styles.stepContainer}>
             <View style={styles.titleRow}>
+              <Ionicons name="body" size={32} color={Colors.primary} />
+              <Text style={styles.stepTitle}>About You</Text>
+            </View>
+            <Text style={styles.stepDescription}>
+              This helps me calculate calories burned, recommend weights, and personalize your experience.
+            </Text>
+
+            <Text style={styles.label}>Age</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="e.g., 25"
+              placeholderTextColor={Colors.textMuted}
+              keyboardType="numeric"
+              value={profileData.age?.toString() || ''}
+              onChangeText={text => updateProfile('age', parseInt(text) || null)}
+            />
+
+            <Text style={styles.label}>Gender</Text>
+            <View style={styles.genderRow}>
+              <OptionButton
+                label="Male"
+                selected={profileData.gender === 'male'}
+                onPress={() => updateProfile('gender', 'male')}
+              />
+              <OptionButton
+                label="Female"
+                selected={profileData.gender === 'female'}
+                onPress={() => updateProfile('gender', 'female')}
+              />
+              <OptionButton
+                label="Other"
+                selected={profileData.gender === 'other'}
+                onPress={() => updateProfile('gender', 'other')}
+              />
+            </View>
+
+            <Text style={styles.label}>Weight</Text>
+            <WeightScalePicker
+              value={
+                weightUnit === 'kg' && profileData.currentWeight
+                  ? Math.round(profileData.currentWeight * 0.453592 * 2) / 2
+                  : profileData.currentWeight
+              }
+              onChange={(weight) => {
+                // Always store in lbs for consistency
+                const weightInLbs = weightUnit === 'kg'
+                  ? Math.round(weight * 2.20462)
+                  : weight;
+                updateProfile('currentWeight', weightInLbs);
+              }}
+              unit={weightUnit}
+              onUnitChange={setWeightUnit}
+            />
+
+            <Text style={styles.label}>Height</Text>
+            <HeightRulerPicker
+              feet={profileData.heightFeet || 5}
+              inches={profileData.heightInches || 6}
+              onChangeFeet={(feet) => {
+                updateProfile('heightFeet', feet);
+                const inches = profileData.heightInches || 0;
+                updateProfile('height', (feet * 12) + inches);
+              }}
+              onChangeInches={(inches) => {
+                updateProfile('heightInches', inches);
+                const feet = profileData.heightFeet || 0;
+                updateProfile('height', (feet * 12) + inches);
+              }}
+            />
+          </View>
+        );
+
+      case 2:
+        return (
+          <View style={styles.stepContainer}>
+            <View style={styles.titleRow}>
               <Ionicons name="trophy" size={32} color={Colors.primary} />
               <Text style={styles.stepTitle}>What's Your Goal?</Text>
             </View>
@@ -295,7 +940,7 @@ const AICoachAssessmentScreen = ({ navigation }) => {
           </View>
         );
 
-      case 2:
+      case 3:
         return (
           <View style={styles.stepContainer}>
             <View style={styles.titleRow}>
@@ -361,7 +1006,7 @@ const AICoachAssessmentScreen = ({ navigation }) => {
           </View>
         );
 
-      case 3:
+      case 4:
         return (
           <View style={styles.stepContainer}>
             <View style={styles.titleRow}>
@@ -411,7 +1056,7 @@ const AICoachAssessmentScreen = ({ navigation }) => {
           </View>
         );
 
-      case 4:
+      case 5:
         return (
           <View style={styles.stepContainer}>
             <View style={styles.titleRow}>
@@ -488,7 +1133,7 @@ const AICoachAssessmentScreen = ({ navigation }) => {
           </View>
         );
 
-      case 5:
+      case 6:
         return (
           <View style={styles.stepContainer}>
             <View style={styles.titleRow}>
@@ -537,7 +1182,7 @@ const AICoachAssessmentScreen = ({ navigation }) => {
           </View>
         );
 
-      case 6:
+      case 7:
         return (
           <View style={styles.stepContainer}>
             <View style={styles.titleRow}>
@@ -621,7 +1266,7 @@ const AICoachAssessmentScreen = ({ navigation }) => {
           </View>
         );
 
-      case 7:
+      case 8:
         return (
           <View style={styles.stepContainer}>
             <View style={styles.titleRow}>
@@ -705,7 +1350,7 @@ const AICoachAssessmentScreen = ({ navigation }) => {
           </View>
         );
 
-      case 8:
+      case 9:
         return (
           <View style={styles.stepContainer}>
             <View style={styles.titleRow}>
@@ -787,7 +1432,7 @@ const AICoachAssessmentScreen = ({ navigation }) => {
           </View>
         );
 
-      case 9:
+      case 10:
         return (
           <View style={styles.stepContainer}>
             <View style={styles.titleRow}>
@@ -1077,6 +1722,36 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginBottom: 12,
     marginHorizontal: -4,
+  },
+  genderRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 8,
+  },
+  heightRow: {
+    flexDirection: 'row',
+    gap: 16,
+    marginTop: 8,
+  },
+  heightInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  heightInput: {
+    backgroundColor: Colors.card,
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 18,
+    color: Colors.text,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    width: 70,
+    textAlign: 'center',
+  },
+  heightLabel: {
+    fontSize: 16,
+    color: Colors.textSecondary,
   },
   infoText: {
     fontSize: 14,

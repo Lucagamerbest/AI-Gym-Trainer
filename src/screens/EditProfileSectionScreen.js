@@ -22,6 +22,13 @@ const EditProfileSectionScreen = ({ navigation, route }) => {
 
   function getInitialData(sectionKey, userProfile) {
     switch (sectionKey) {
+      case 'basicStats':
+        return {
+          currentWeight: userProfile.currentWeight?.toString() || '',
+          height: userProfile.height?.toString() || '',
+          age: userProfile.age?.toString() || '',
+          gender: userProfile.gender || '',
+        };
       case 'experience':
         return {
           experienceLevel: userProfile.experienceLevel || 'beginner',
@@ -82,6 +89,15 @@ const EditProfileSectionScreen = ({ navigation, route }) => {
     try {
       // Convert string numbers back to integers
       const processedData = { ...editedData };
+      if (processedData.currentWeight) {
+        processedData.currentWeight = parseFloat(processedData.currentWeight) || 0;
+      }
+      if (processedData.height) {
+        processedData.height = parseInt(processedData.height) || 0;
+      }
+      if (processedData.age) {
+        processedData.age = parseInt(processedData.age) || 0;
+      }
       if (processedData.yearsTraining) {
         processedData.yearsTraining = parseInt(processedData.yearsTraining) || 0;
       }
@@ -149,6 +165,63 @@ const EditProfileSectionScreen = ({ navigation, route }) => {
 
   const renderSectionFields = () => {
     switch (section) {
+      case 'basicStats':
+        return (
+          <>
+            <Text style={styles.label}>Weight (lbs)</Text>
+            <TextInput
+              style={styles.input}
+              value={editedData.currentWeight}
+              onChangeText={(val) => updateField('currentWeight', val)}
+              keyboardType="decimal-pad"
+              placeholder="e.g. 175"
+              placeholderTextColor={Colors.textMuted}
+            />
+
+            <Text style={[styles.label, { marginTop: Spacing.lg }]}>Height (total inches)</Text>
+            <Text style={styles.helperText}>Example: 5'10" = 70 inches</Text>
+            <TextInput
+              style={styles.input}
+              value={editedData.height}
+              onChangeText={(val) => updateField('height', val)}
+              keyboardType="numeric"
+              placeholder="e.g. 70"
+              placeholderTextColor={Colors.textMuted}
+            />
+
+            <Text style={[styles.label, { marginTop: Spacing.lg }]}>Age</Text>
+            <TextInput
+              style={styles.input}
+              value={editedData.age}
+              onChangeText={(val) => updateField('age', val)}
+              keyboardType="numeric"
+              placeholder="e.g. 25"
+              placeholderTextColor={Colors.textMuted}
+            />
+
+            <Text style={[styles.label, { marginTop: Spacing.lg }]}>Gender</Text>
+            <View style={styles.optionsRow}>
+              {['male', 'female', 'other'].map(g => (
+                <TouchableOpacity
+                  key={g}
+                  style={[
+                    styles.optionButton,
+                    editedData.gender === g && styles.optionButtonActive
+                  ]}
+                  onPress={() => updateField('gender', g)}
+                >
+                  <Text style={[
+                    styles.optionText,
+                    editedData.gender === g && styles.optionTextActive
+                  ]}>
+                    {g.charAt(0).toUpperCase() + g.slice(1)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </>
+        );
+
       case 'experience':
         return (
           <>
@@ -587,6 +660,7 @@ const EditProfileSectionScreen = ({ navigation, route }) => {
 
   const getSectionTitle = () => {
     const titles = {
+      basicStats: 'Basic Stats',
       experience: 'Experience',
       goals: 'Goals',
       training: 'Training Preferences',
@@ -662,6 +736,12 @@ const styles = StyleSheet.create({
     fontWeight: Typography.weights.semibold,
     color: Colors.text,
     marginBottom: Spacing.sm,
+  },
+  helperText: {
+    fontSize: Typography.sizes.sm,
+    color: Colors.textMuted,
+    marginBottom: Spacing.sm,
+    marginTop: -Spacing.xs,
   },
   input: {
     backgroundColor: Colors.surface,
