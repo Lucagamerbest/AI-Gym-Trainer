@@ -158,6 +158,15 @@ const isCardioExercise = (exercise) => {
   return cardioKeywords.some(keyword => id.includes(keyword) || name.includes(keyword));
 };
 
+// Dynamic font size for long exercise names
+const getExerciseNameFontSize = (name) => {
+  const length = name?.length || 0;
+  if (length > 35) return 13;
+  if (length > 28) return 14;
+  if (length > 22) return 15;
+  return 16; // default
+};
+
 // Helper function to detect if exercise is bodyweight
 const isBodyweightExercise = (exercise) => {
   if (!exercise) return false;
@@ -295,7 +304,7 @@ const ExerciseCard = ({ exercise, index, onDelete, onPress, isSelected, exercise
               <Text style={styles.exerciseListNumber}>
                 {index + 1}
               </Text>
-              <Text style={styles.exerciseListName}>
+              <Text style={[styles.exerciseListName, { fontSize: getExerciseNameFontSize(exercise.name) }]} numberOfLines={2}>
                 {exercise.name}
               </Text>
             </View>

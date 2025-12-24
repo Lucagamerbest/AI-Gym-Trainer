@@ -108,6 +108,28 @@ export const exerciseDatabase = {
             "Press forward smoothly without locking elbows",
             "Control the return, feeling stretch in chest"
           ]
+        },
+        {
+          "equipment": "Spoto Press (Barbell)",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Builds strength in the sticking point",
+            "Eliminates bounce/stretch reflex for true strength",
+            "Reduces shoulder stress by not going to full depth",
+            "Improves control and muscle tension"
+          ],
+          "cons": [
+            "Must use lighter weight than regular bench",
+            "Requires discipline to pause consistently",
+            "Can be mentally challenging to hold the pause"
+          ],
+          "setupTips": [
+            "Set up as for normal bench press",
+            "Lower bar with control to 1-2 inches above chest",
+            "Pause for 1-3 seconds without touching chest",
+            "Press back up explosively from the pause",
+            "Maintain tension throughout the pause"
+          ]
         }
       ]
     },
@@ -217,89 +239,6 @@ export const exerciseDatabase = {
       ]
     },
     {
-      "id": "chest-3",
-      "name": "Decline Bench Press",
-      "muscleGroup": "Chest",
-      "primaryMuscles": ["Chest", "Lower Chest"],
-      "secondaryMuscles": ["Triceps", "Front Deltoids"],
-      "equipment": "Barbell, Dumbbell, Smith Machine",
-      "difficulty": "Intermediate",
-      "instructions": "Performed on a decline bench (15-30 degrees below horizontal) to emphasize the lower chest. Requires securing feet under leg supports. Press weight upward from the declined position, focusing on lower chest contraction.",
-      "variants": [
-        {
-          "equipment": "Barbell",
-          "difficulty": "Intermediate",
-          "pros": [
-            "Targets lower chest for complete pec development",
-            "Often allows heavier weight than flat bench",
-            "Reduced shoulder strain compared to flat press",
-            "Good for building overall chest thickness",
-            "Stable movement with both hands on bar"
-          ],
-          "cons": [
-            "Requires spotter for safety",
-            "Can cause head rush from blood flow to head",
-            "Uncomfortable for some due to inverted position",
-            "Reracking can be awkward"
-          ],
-          "setupTips": [
-            "Secure feet firmly under leg support pads",
-            "Decline angle of 15-30 degrees is optimal",
-            "Position so bar lowers to lower chest area",
-            "Maintain retracted shoulders throughout movement",
-            "Press bar straight up, not toward face"
-          ]
-        },
-        {
-          "equipment": "Dumbbell",
-          "difficulty": "Intermediate",
-          "pros": [
-            "Greater range of motion than barbell",
-            "Each arm works independently",
-            "More natural pressing angle for shoulders",
-            "Easier to bail out safely if needed",
-            "Can bring dumbbells together for peak contraction"
-          ],
-          "cons": [
-            "Difficult to get into position from decline angle",
-            "Requires significant stabilization",
-            "Inverted position can be uncomfortable",
-            "Challenging to maintain balance with heavy weights"
-          ],
-          "setupTips": [
-            "Have spotter hand you dumbbells once positioned",
-            "Secure feet before accepting weight",
-            "Start with dumbbells at lower chest level",
-            "Press up and together, focusing on lower chest",
-            "Hand dumbbells to spotter before sitting up"
-          ]
-        },
-        {
-          "equipment": "Smith Machine",
-          "difficulty": "Beginner",
-          "pros": [
-            "Safer than free weight decline pressing",
-            "Can train without spotter using safety catches",
-            "Fixed path aids focus on lower chest contraction",
-            "Easy to rack at any point during set",
-            "Good for high-rep training"
-          ],
-          "cons": [
-            "Fixed bar path may not suit all users",
-            "Less stabilizer muscle activation",
-            "Still requires securing feet properly"
-          ],
-          "setupTips": [
-            "Set decline bench under Smith machine",
-            "Secure feet firmly before unracking",
-            "Position so bar lowers to lower chest",
-            "Set safety catches for protection",
-            "Press bar straight up and rotate to rack"
-          ]
-        }
-      ]
-    },
-    {
       "id": "chest-4",
       "name": "Chest Fly",
       "muscleGroup": "Chest",
@@ -390,7 +329,7 @@ export const exerciseDatabase = {
       "secondaryMuscles": ["Front Deltoids"],
       "equipment": "Cable",
       "difficulty": "Intermediate",
-      "instructions": "A versatile cable exercise that can target different areas of the chest depending on the angle. High to low emphasizes lower chest, low to high targets upper chest, and middle height works the entire chest. Provides constant tension throughout the movement.",
+      "instructions": "A versatile cable exercise that can target different areas of the chest depending on the angle. High to low emphasizes lower chest, low to high targets upper chest. Provides constant tension throughout the movement.",
       "variants": [
         {
           "equipment": "High to Low",
@@ -436,29 +375,6 @@ export const exerciseDatabase = {
             "Step forward, lean slightly forward at hips",
             "Bring handles up and together at upper chest level",
             "Focus on upper chest contraction at peak"
-          ]
-        },
-        {
-          "equipment": "Middle",
-          "difficulty": "Intermediate",
-          "pros": [
-            "Works entire chest evenly",
-            "Constant tension maximizes time under tension",
-            "Very safe and controllable",
-            "Great finishing exercise for chest workouts",
-            "Easy to adjust resistance on the fly"
-          ],
-          "cons": [
-            "Requires cable machine access",
-            "Setup can be time-consuming in busy gyms",
-            "Limited heavy loading potential"
-          ],
-          "setupTips": [
-            "Set pulleys at shoulder/chest height",
-            "Position yourself centered between pulleys",
-            "Step forward with staggered stance",
-            "Bring handles together at chest level with slight bend in elbows",
-            "Squeeze chest at center, control eccentric phase"
           ]
         }
       ]
@@ -574,7 +490,7 @@ export const exerciseDatabase = {
       "muscleGroup": "Chest",
       "primaryMuscles": ["Chest", "Lower Chest"],
       "secondaryMuscles": ["Triceps", "Front Deltoids"],
-      "equipment": "Bodyweight, Dip Belt, Assisted Machine",
+      "equipment": "Bodyweight, Dip Belt, Assisted Machine, Dip Machine",
       "difficulty": "Intermediate",
       "instructions": "A compound bodyweight exercise emphasizing the lower chest. Lean forward 20-30° during the movement to shift emphasis to chest (upright 90° targets triceps more). Lower body until slight stretch felt in chest, then press back up. Excellent for building lower chest mass and strength.",
       "variants": [
@@ -649,6 +565,30 @@ export const exerciseDatabase = {
             "Lower until chest stretch felt, press back up",
             "Gradually reduce assistance as strength improves"
           ]
+        },
+        {
+          "equipment": "Dip Machine",
+          "difficulty": "Beginner",
+          "pros": [
+            "Seated position is comfortable and stable",
+            "Easy to load heavy weight",
+            "No balance required",
+            "Great for isolating chest and triceps",
+            "Safe to train to failure"
+          ],
+          "cons": [
+            "Fixed movement path",
+            "Less core and stabilizer engagement",
+            "May not transfer to bodyweight dips",
+            "Machine availability varies"
+          ],
+          "setupTips": [
+            "Adjust seat height so handles are at shoulder level",
+            "Grip handles firmly, keep back against pad",
+            "Press down extending arms fully",
+            "Control the return, feel the stretch",
+            "Keep slight forward lean if possible"
+          ]
         }
       ]
     },
@@ -658,32 +598,52 @@ export const exerciseDatabase = {
       "muscleGroup": "Chest",
       "primaryMuscles": ["Chest", "Front Deltoids"],
       "secondaryMuscles": ["Triceps"],
-      "equipment": "Machine Seated",
+      "equipment": "Machine Horizontal Handle, Machine Vertical Handle",
       "difficulty": "Beginner",
-      "instructions": "A machine-based pressing movement that safely targets the chest muscles. The fixed movement path makes it excellent for beginners and for training to failure without a spotter. Great for isolating the chest when fatigued.",
+      "instructions": "A machine-based pressing movement that safely targets the chest muscles. The fixed movement path makes it excellent for beginners and for training to failure without a spotter. Different handle orientations target the chest from slightly different angles.",
       "variants": [
         {
-          "equipment": "Machine Seated",
+          "equipment": "Machine Horizontal Handle",
           "difficulty": "Beginner",
           "pros": [
+            "Wide grip emphasizes outer chest",
             "Very safe, no spotter needed",
             "Fixed path ensures consistent form",
-            "Easy to adjust weight quickly",
-            "Great for beginners learning pressing",
-            "Can safely train to failure"
+            "Great for beginners learning pressing"
           ],
           "cons": [
             "Fixed path may not suit all body types",
             "Less stabilizer muscle engagement",
-            "Doesn't build functional strength as well",
+            "May stress shoulders for some"
+          ],
+          "setupTips": [
+            "Adjust seat so handles align with mid-chest",
+            "Grip horizontal handles with overhand grip",
+            "Plant feet firmly on floor",
+            "Press forward until arms nearly locked",
+            "Lower with control, feel chest stretch"
+          ]
+        },
+        {
+          "equipment": "Machine Vertical Handle",
+          "difficulty": "Beginner",
+          "pros": [
+            "Neutral grip is easier on shoulders and wrists",
+            "Close grip targets inner chest more",
+            "Very safe, no spotter needed",
+            "Can safely train to failure"
+          ],
+          "cons": [
+            "Fixed path may not suit all body types",
+            "Less outer chest emphasis",
             "May create strength imbalances between sides"
           ],
           "setupTips": [
             "Adjust seat so handles align with mid-chest",
-            "Plant feet firmly on floor or platform",
-            "Grip handles with full hand, wrists straight",
+            "Grip vertical handles with neutral grip",
+            "Keep elbows closer to body",
             "Press forward until arms nearly locked",
-            "Lower with control, feel chest stretch"
+            "Lower with control, squeeze chest"
           ]
         }
       ]
@@ -1009,12 +969,12 @@ export const exerciseDatabase = {
       "muscleGroup": "Back",
       "primaryMuscles": ["Lats", "Chest"],
       "secondaryMuscles": ["Triceps", "Serratus Anterior", "Core"],
-      "equipment": "Cable, Dumbbell, Machine",
+      "equipment": "Cable Standing, Cable Lying, Dumbbell, Machine",
       "difficulty": "Intermediate",
       "instructions": "A unique exercise that bridges back and chest work. The pullover primarily targets the lats through shoulder extension while also engaging the chest and serratus anterior. Can be performed with various equipment for different resistance curves.",
       "variants": [
         {
-          "equipment": "Cable",
+          "equipment": "Cable Standing",
           "difficulty": "Intermediate",
           "pros": [
             "Constant tension throughout entire range of motion",
@@ -1034,6 +994,30 @@ export const exerciseDatabase = {
             "Start with arms extended overhead, slight elbow bend",
             "Pull down in arc motion to thighs, squeezing lats",
             "Control return to overhead stretch position"
+          ]
+        },
+        {
+          "equipment": "Cable Lying",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Targets chest more than standing version",
+            "Constant cable tension throughout movement",
+            "Great stretch for pecs and serratus",
+            "Lower back friendly compared to standing",
+            "Excellent for chest development and rib cage expansion"
+          ],
+          "cons": [
+            "Requires bench positioned near low cable",
+            "Setup can be awkward in busy gyms",
+            "Need to find right distance from cable"
+          ],
+          "setupTips": [
+            "Set cable to low position",
+            "Lie on bench with head toward the cable machine",
+            "Reach back and grab rope or bar attachment",
+            "Keep arms relatively straight with slight elbow bend",
+            "Pull cable over chest in arc motion, squeeze pecs at top",
+            "Lower slowly behind head feeling chest stretch"
           ]
         },
         {
@@ -1509,6 +1493,84 @@ export const exerciseDatabase = {
       ]
     },
     {
+      "id": "back-15",
+      "name": "Bent Over Row",
+      "muscleGroup": "Back",
+      "primaryMuscles": ["Middle Back", "Lats"],
+      "secondaryMuscles": ["Biceps", "Rear Deltoids", "Rhomboids", "Lower Back"],
+      "equipment": "Barbell Overhand, Barbell Underhand, Pendlay",
+      "difficulty": "Intermediate",
+      "instructions": "A fundamental barbell back exercise for building thickness and strength. Hinge at the hips with a flat back, pull the barbell to your lower chest/upper abdomen, squeezing your shoulder blades together. One of the best exercises for overall back development.",
+      "variants": [
+        {
+          "equipment": "Barbell Overhand",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Standard grip emphasizes upper back and rear delts",
+            "Allows heavy loading for strength",
+            "Builds back thickness effectively",
+            "Transfers well to deadlift strength"
+          ],
+          "cons": [
+            "Requires good hip hinge mechanics",
+            "Lower back fatigue can limit reps",
+            "Grip may fatigue before back"
+          ],
+          "setupTips": [
+            "Stand with feet hip-width, barbell over mid-foot",
+            "Hinge at hips until torso is 45-60° to floor",
+            "Grip barbell slightly wider than shoulder-width, palms down",
+            "Pull bar to lower chest, driving elbows back",
+            "Lower with control, maintain flat back throughout"
+          ]
+        },
+        {
+          "equipment": "Barbell Underhand",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Underhand grip increases bicep involvement",
+            "Allows better lat contraction",
+            "Can often lift slightly more weight",
+            "Popular Yates row variation"
+          ],
+          "cons": [
+            "More bicep fatigue may limit back work",
+            "Wrist strain for some lifters",
+            "Requires good bicep tendon health"
+          ],
+          "setupTips": [
+            "Same setup as overhand but grip palms up",
+            "Grip shoulder-width or slightly narrower",
+            "Pull bar to lower abdomen/belly button area",
+            "Keep elbows close to body",
+            "Can use slightly more upright torso (Yates style)"
+          ]
+        },
+        {
+          "equipment": "Pendlay",
+          "difficulty": "Advanced",
+          "pros": [
+            "Dead stop each rep builds explosive power",
+            "Eliminates momentum and cheating",
+            "Great for strength development",
+            "Forces strict form"
+          ],
+          "cons": [
+            "More demanding on lower back",
+            "Requires bumper plates or proper setup",
+            "Less time under tension than standard row"
+          ],
+          "setupTips": [
+            "Bar starts on floor each rep (dead stop)",
+            "Torso parallel or near-parallel to floor",
+            "Explosively pull bar to lower chest",
+            "Lower bar back to floor with control",
+            "Reset position between each rep"
+          ]
+        }
+      ]
+    },
+    {
       "id": "back-14",
       "name": "Assisted Pull-up",
       "muscleGroup": "Back",
@@ -1564,6 +1626,162 @@ export const exerciseDatabase = {
             "Start from full hang position",
             "Perform full range pull-ups with controlled tempo",
             "Progress to thinner bands as strength improves"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "back-16",
+      "name": "Seated Row Machine",
+      "muscleGroup": "Back",
+      "primaryMuscles": ["Middle Back", "Lats"],
+      "secondaryMuscles": ["Biceps", "Rear Deltoids", "Rhomboids"],
+      "equipment": "Machine 45° Handles, Machine Horizontal Handles, Machine Vertical Handles",
+      "difficulty": "Beginner",
+      "instructions": "A machine-based rowing exercise that provides guided movement and consistent resistance. Sit with chest against pad, grip handles, and pull toward your body squeezing shoulder blades together. Different handle positions target the back muscles from various angles.",
+      "variants": [
+        {
+          "equipment": "Machine 45° Handles",
+          "difficulty": "Beginner",
+          "pros": [
+            "Angled grip provides comfortable wrist position",
+            "Good balance of lat and mid-back activation",
+            "Natural pulling angle for most people",
+            "Reduces wrist and elbow strain"
+          ],
+          "cons": [
+            "Fixed path limits natural movement",
+            "May not fit all body types",
+            "Less core engagement than free weights"
+          ],
+          "setupTips": [
+            "Adjust seat so handles align with mid-chest",
+            "Sit with chest firmly against pad",
+            "Grip 45-degree angled handles",
+            "Pull handles toward lower chest, squeeze back",
+            "Control the return, don't let weight slam"
+          ]
+        },
+        {
+          "equipment": "Machine Horizontal Handles",
+          "difficulty": "Beginner",
+          "pros": [
+            "Wide grip emphasizes outer lats",
+            "Good for building back width",
+            "Mimics wide grip cable row",
+            "Easy to maintain proper form"
+          ],
+          "cons": [
+            "May stress shoulders for some",
+            "Less range of motion than other grips",
+            "Fixed path may feel restrictive"
+          ],
+          "setupTips": [
+            "Grip horizontal handles with wide overhand grip",
+            "Keep chest against pad throughout",
+            "Pull elbows out and back",
+            "Focus on squeezing shoulder blades together",
+            "Control the negative portion"
+          ]
+        },
+        {
+          "equipment": "Machine Vertical Handles",
+          "difficulty": "Beginner",
+          "pros": [
+            "Neutral grip is easy on wrists and elbows",
+            "Close grip targets inner back thickness",
+            "Good lat stretch at full extension",
+            "Natural arm path for pulling"
+          ],
+          "cons": [
+            "Less emphasis on outer lats",
+            "May limit weight due to grip position",
+            "Fixed movement pattern"
+          ],
+          "setupTips": [
+            "Grip vertical handles with neutral grip",
+            "Chest against pad, arms fully extended",
+            "Pull handles toward lower ribcage",
+            "Keep elbows close to body",
+            "Squeeze back muscles at contraction"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "back-17",
+      "name": "Back Extension",
+      "muscleGroup": "Back",
+      "primaryMuscles": ["Lower Back", "Erector Spinae"],
+      "secondaryMuscles": ["Glutes", "Hamstrings"],
+      "equipment": "Machine, Roman Chair, Bodyweight",
+      "difficulty": "Beginner",
+      "instructions": "An exercise targeting the lower back and posterior chain. From a bent-over position, extend your spine to raise your torso. Can be performed on a dedicated machine, Roman chair (45-degree hyperextension bench), or on the floor. Strengthens the erector spinae muscles essential for posture and spinal health.",
+      "variants": [
+        {
+          "equipment": "Machine",
+          "difficulty": "Beginner",
+          "pros": [
+            "Guided movement for consistent form",
+            "Easy to add resistance with weight stack",
+            "Comfortable pad positioning",
+            "Safe for beginners learning the movement"
+          ],
+          "cons": [
+            "Fixed range of motion",
+            "Machine may not fit all body sizes",
+            "Less core stabilization required"
+          ],
+          "setupTips": [
+            "Adjust pad to sit at hip level",
+            "Hook feet under foot pads securely",
+            "Cross arms over chest or behind head",
+            "Lower torso with control, then extend back up",
+            "Squeeze lower back at top without hyperextending"
+          ]
+        },
+        {
+          "equipment": "Roman Chair",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Greater range of motion than machine",
+            "Can hold weight plate for added resistance",
+            "Engages core and stabilizers more",
+            "Common equipment in most gyms"
+          ],
+          "cons": [
+            "Requires more balance and control",
+            "Can stress lower back if done incorrectly",
+            "45-degree angle is more challenging"
+          ],
+          "setupTips": [
+            "Position hips at top of pad",
+            "Lock ankles under foot pads",
+            "Cross arms over chest or hold plate",
+            "Lower torso toward floor with control",
+            "Raise back to parallel or slightly above"
+          ]
+        },
+        {
+          "equipment": "Bodyweight",
+          "difficulty": "Beginner",
+          "pros": [
+            "Can be done anywhere on the floor",
+            "No equipment needed",
+            "Good for beginners and warm-ups",
+            "Low risk of injury"
+          ],
+          "cons": [
+            "Limited range of motion on floor",
+            "Hard to add resistance",
+            "May not be challenging enough for advanced"
+          ],
+          "setupTips": [
+            "Lie face down on floor",
+            "Place hands behind head or extended forward",
+            "Lift chest off floor by contracting lower back",
+            "Hold briefly at top, lower with control",
+            "Keep legs on floor throughout"
           ]
         }
       ]
@@ -1676,7 +1894,7 @@ export const exerciseDatabase = {
       "muscleGroup": "Shoulders",
       "primaryMuscles": ["Side Deltoids"],
       "secondaryMuscles": ["Front Deltoids", "Traps"],
-      "equipment": "Dumbbell, Cable Single, Cable Both, Machine",
+      "equipment": "Dumbbell, Dumbbell Seated, Cable Single, Cable Both, Machine",
       "difficulty": "Beginner",
       "instructions": "An isolation exercise targeting the side deltoids for shoulder width. Raise weights out to sides until arms are parallel to ground, then lower with control. Focus on leading with elbows, not hands.",
       "variants": [
@@ -1700,6 +1918,28 @@ export const exerciseDatabase = {
             "Raise arms out to sides, leading with elbows",
             "Stop when arms are parallel to floor",
             "Lower slowly to maintain tension"
+          ]
+        },
+        {
+          "equipment": "Dumbbell Seated",
+          "difficulty": "Beginner",
+          "pros": [
+            "Eliminates leg drive and momentum",
+            "Stricter form for better isolation",
+            "Focuses purely on side delts",
+            "Good mind-muscle connection"
+          ],
+          "cons": [
+            "Cannot use as much weight as standing",
+            "More challenging on shoulders",
+            "Requires bench"
+          ],
+          "setupTips": [
+            "Sit on bench with back support at 90°",
+            "Hold dumbbells at sides with slight elbow bend",
+            "Keep torso upright, no leaning back",
+            "Raise arms out to sides until parallel",
+            "Lower with control, feel the burn"
           ]
         },
         {
@@ -1976,12 +2216,12 @@ export const exerciseDatabase = {
       "muscleGroup": "Shoulders",
       "primaryMuscles": ["Rear Deltoids"],
       "secondaryMuscles": ["Rhomboids", "Traps", "Rotator Cuff"],
-      "equipment": "Cable Bent, Machine Pec Deck Reverse, Dumbbell Bent",
+      "equipment": "Cable Cross, Machine Pec Deck Reverse, Machine Single Arm",
       "difficulty": "Beginner",
       "instructions": "An isolation exercise for the rear deltoids, important for shoulder health and balanced development. Raise weights out to sides while bent over or using machine, focusing on rear delt contraction.",
       "variants": [
         {
-          "equipment": "Cable Bent",
+          "equipment": "Cable Cross",
           "difficulty": "Intermediate",
           "pros": [
             "Constant tension throughout movement",
@@ -2025,25 +2265,25 @@ export const exerciseDatabase = {
           ]
         },
         {
-          "equipment": "Dumbbell Bent",
-          "difficulty": "Intermediate",
+          "equipment": "Machine Single Arm",
+          "difficulty": "Beginner",
           "pros": [
-            "Simple equipment requirement",
-            "Natural movement path",
-            "Each arm works independently",
-            "Can be done seated or standing"
+            "Isolates each rear delt independently",
+            "Identifies and corrects strength imbalances",
+            "Better mind-muscle connection",
+            "Can focus fully on weaker side"
           ],
           "cons": [
-            "Requires bent-over position (lower back fatigue)",
-            "Easy to use momentum and cheat",
-            "Hard to maintain proper position when heavy"
+            "Takes twice as long as bilateral version",
+            "May create torso rotation if not careful",
+            "Harder to stabilize with one arm"
           ],
           "setupTips": [
-            "Bend forward at hips 60-90° (closer to parallel = more isolation)",
-            "Let dumbbells hang with palms facing each other",
-            "Raise arms out to sides with slight elbow bend",
-            "Lead with elbows, not hands",
-            "Squeeze rear delts at top, lower with control"
+            "Sit sideways on pec deck machine",
+            "Grab one handle with arm at shoulder height",
+            "Keep chest against pad for stability",
+            "Pull handle back squeezing rear delt",
+            "Complete all reps then switch sides"
           ]
         }
       ]
@@ -2202,85 +2442,6 @@ export const exerciseDatabase = {
             "Pull band to face while separating hands",
             "Focus on squeezing rear delts and rotating externally",
             "Control return to maintain tension"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "shoulders-8",
-      "name": "Rear Delt Cable",
-      "muscleGroup": "Shoulders",
-      "primaryMuscles": ["Rear Deltoids"],
-      "secondaryMuscles": ["Rhomboids", "Traps", "Rotator Cuff"],
-      "equipment": "Cable High Single, Cable Low Single, Cable Cross",
-      "difficulty": "Beginner",
-      "instructions": "A cable isolation exercise specifically targeting the rear deltoids. The constant cable tension provides excellent muscle activation throughout the range of motion, making it superior to free weight variations for rear delt isolation.",
-      "variants": [
-        {
-          "equipment": "Cable High Single",
-          "difficulty": "Beginner",
-          "pros": [
-            "Constant tension throughout entire movement",
-            "Single arm allows maximum range of motion",
-            "Easy to adjust weight for drop sets",
-            "Natural pulling angle for rear delts",
-            "Can grip cable directly without attachment"
-          ],
-          "cons": [
-            "Takes twice as long to train both sides",
-            "Requires good mind-muscle connection",
-            "Easy to use body momentum"
-          ],
-          "setupTips": [
-            "Set cable to face height or slightly above",
-            "Stand sideways to machine, grab cable ball/stopper",
-            "Pull across body, leading with elbow",
-            "Keep arm nearly straight with slight bend",
-            "Squeeze rear delt at end, control return"
-          ]
-        },
-        {
-          "equipment": "Cable Low Single",
-          "difficulty": "Beginner",
-          "pros": [
-            "Different angle emphasizes rear delts differently",
-            "Upward pulling motion hits rear delts effectively",
-            "Easy to set up and execute",
-            "Good for beginners learning rear delt activation"
-          ],
-          "cons": [
-            "Requires good form to avoid trap involvement",
-            "Takes twice as long to train both sides",
-            "Less range of motion than high cable"
-          ],
-          "setupTips": [
-            "Set cable to lowest position",
-            "Stand sideways, reach across body for handle",
-            "Pull diagonally up and back",
-            "Lead with elbow, slight bend in arm",
-            "Focus on rear delt contraction at peak"
-          ]
-        },
-        {
-          "equipment": "Cable Cross",
-          "difficulty": "Intermediate",
-          "pros": [
-            "Works both arms simultaneously",
-            "Time efficient bilateral training",
-            "Great stretch at starting position",
-            "Constant tension from cable resistance"
-          ],
-          "cons": [
-            "Requires cable crossover machine",
-            "More complex setup and coordination",
-            "Fixed path may not suit all body types"
-          ],
-          "setupTips": [
-            "Set both cables to high position",
-            "Stand in center, grab opposite cables (cross grip)",
-            "Pull handles apart and back with straight arms",
-            "Squeeze shoulder blades at peak contraction",
-            "Control return to feel the stretch"
           ]
         }
       ]
@@ -2457,10 +2618,10 @@ export const exerciseDatabase = {
           ],
           "setupTips": [
             "Set cable to low position with D-handle attached",
-            "Stand facing or perpendicular to machine for different angles",
-            "Keep elbow pinned at side throughout movement",
-            "Curl handle up squeezing biceps at top",
-            "Control descent to maintain constant muscle tension"
+            "Stand facing AWAY from machine for best stretch",
+            "Arm starts slightly behind body, elbow pinned at side",
+            "Curl handle forward and up, squeezing biceps at top",
+            "Control descent to feel full stretch in bicep"
           ]
         }
       ]
@@ -2471,7 +2632,7 @@ export const exerciseDatabase = {
       "muscleGroup": "Biceps",
       "primaryMuscles": ["Biceps Long Head", "Biceps Short Head"],
       "secondaryMuscles": ["Brachialis", "Forearms"],
-      "equipment": "Cable Rope, Dumbbell, Dumbbell Seated",
+      "equipment": "Cable Rope, Dumbbell, Dumbbell Seated, Preacher Machine",
       "difficulty": "Beginner",
       "instructions": "A neutral-grip curl variation that targets the biceps and brachialis. Hold the weight with palms facing each other throughout the movement. This grip position reduces wrist stress and provides balanced development of the arm muscles.",
       "variants": [
@@ -2540,6 +2701,28 @@ export const exerciseDatabase = {
             "Curl dumbbells simultaneously or alternating",
             "Maintain neutral wrist position throughout"
           ]
+        },
+        {
+          "equipment": "Preacher Machine",
+          "difficulty": "Beginner",
+          "pros": [
+            "Combines preacher isolation with hammer grip",
+            "Eliminates momentum completely",
+            "Targets brachialis excellently",
+            "Safe to train to failure"
+          ],
+          "cons": [
+            "Requires machine with neutral grip handles",
+            "Fixed path may not fit all arm lengths",
+            "Less common machine setup"
+          ],
+          "setupTips": [
+            "Adjust seat so armpits rest on top of pad",
+            "Grip neutral/vertical handles with palms facing each other",
+            "Keep upper arms firmly on pad throughout",
+            "Curl handles up squeezing at the top",
+            "Lower with control, avoid hyperextending elbows"
+          ]
         }
       ]
     },
@@ -2549,7 +2732,7 @@ export const exerciseDatabase = {
       "muscleGroup": "Biceps",
       "primaryMuscles": ["Biceps Long Head", "Biceps Short Head"],
       "secondaryMuscles": ["Forearms"],
-      "equipment": "Machine, Dumbbell, Cable Single, Cable Rope, EZ Bar",
+      "equipment": "Machine, Dumbbell, EZ Bar",
       "difficulty": "Beginner",
       "instructions": "An isolation exercise performed on a preacher bench (typically 45° angle) that eliminates momentum and strictly targets the biceps. Position your upper arms on the pad and curl the weight up, focusing on peak contraction. The angled pad position emphasizes the lower portion of the biceps.",
       "variants": [
@@ -2598,50 +2781,6 @@ export const exerciseDatabase = {
           ]
         },
         {
-          "equipment": "Cable Single",
-          "difficulty": "Intermediate",
-          "pros": [
-            "Constant tension throughout entire range",
-            "Smooth resistance curve prevents cheating",
-            "Can adjust cable height for optimal angle",
-            "Excellent for high-rep isolation work"
-          ],
-          "cons": [
-            "Requires cable machine and preacher bench",
-            "Setup can be time-consuming",
-            "May need to experiment with positioning"
-          ],
-          "setupTips": [
-            "Position preacher bench in front of low cable",
-            "Attach D-handle to cable",
-            "Rest upper arm on pad with slight tension on cable",
-            "Curl handle up while maintaining arm contact with pad",
-            "Control descent maintaining constant cable tension"
-          ]
-        },
-        {
-          "equipment": "Cable Rope",
-          "difficulty": "Intermediate",
-          "pros": [
-            "Rope allows neutral to supinated grip transition",
-            "Constant cable tension prevents momentum",
-            "Can work both arms simultaneously",
-            "Comfortable grip reduces wrist stress"
-          ],
-          "cons": [
-            "Requires specific cable and bench setup",
-            "Learning curve for proper execution",
-            "May be awkward for some body types"
-          ],
-          "setupTips": [
-            "Position preacher bench facing low cable with rope",
-            "Grasp rope ends with both hands",
-            "Rest both upper arms on pad",
-            "Curl rope up, can supinate at top for peak contraction",
-            "Lower with control maintaining arm contact"
-          ]
-        },
-        {
           "equipment": "EZ Bar",
           "difficulty": "Beginner",
           "pros": [
@@ -2671,7 +2810,7 @@ export const exerciseDatabase = {
       "muscleGroup": "Biceps",
       "primaryMuscles": ["Biceps Long Head", "Biceps Short Head"],
       "secondaryMuscles": ["Forearms"],
-      "equipment": "Dumbbell Seated, Cable Kneeling, Cable Seated",
+      "equipment": "Dumbbell Seated",
       "difficulty": "Beginner",
       "instructions": "A highly focused isolation exercise performed by bracing your elbow against your inner thigh. This position prevents any momentum or body movement, forcing the biceps to do all the work. Excellent for developing peak biceps contraction and mind-muscle connection.",
       "variants": [
@@ -2695,128 +2834,6 @@ export const exerciseDatabase = {
             "Lean forward 15-30° with free hand on opposite thigh",
             "Curl dumbbell up focusing on peak biceps contraction",
             "Lower slowly with full control to starting position"
-          ]
-        },
-        {
-          "equipment": "Cable Kneeling",
-          "difficulty": "Beginner",
-          "pros": [
-            "Constant tension from cable throughout movement",
-            "Kneeling position provides stable base",
-            "Can adjust angle by moving closer or farther from machine",
-            "Smooth resistance curve"
-          ],
-          "cons": [
-            "Requires cable machine access",
-            "May be uncomfortable kneeling for extended time",
-            "Setup requires positioning and adjustment"
-          ],
-          "setupTips": [
-            "Kneel in front of low cable with D-handle attached",
-            "Brace working elbow against inner thigh",
-            "Grasp handle with palm up, arm extended",
-            "Curl handle up while keeping elbow stationary",
-            "Squeeze at top and lower with constant tension"
-          ]
-        },
-        {
-          "equipment": "Cable Seated",
-          "difficulty": "Beginner",
-          "pros": [
-            "Seated position more comfortable for longer sets",
-            "Constant cable tension prevents momentum",
-            "Easy to adjust weight between sets",
-            "Good for high-rep work"
-          ],
-          "cons": [
-            "Requires bench near cable station",
-            "May need to experiment with positioning",
-            "Cable angle may not feel optimal for everyone"
-          ],
-          "setupTips": [
-            "Sit on bench positioned in front of low cable",
-            "Attach D-handle and grasp with one hand",
-            "Brace elbow against inner thigh, lean forward 15-30°",
-            "Curl handle up focusing on biceps contraction",
-            "Maintain constant tension on cable throughout set"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "biceps-6",
-      "name": "Cross Body Hammer Curl",
-      "muscleGroup": "Biceps",
-      "primaryMuscles": ["Biceps Long Head", "Biceps Short Head"],
-      "secondaryMuscles": ["Brachialis", "Forearms"],
-      "equipment": "Dumbbell, Cable Low, Cable Rope",
-      "difficulty": "Intermediate",
-      "instructions": "A hammer curl variation where you curl across your body toward the opposite shoulder. This movement emphasizes the brachialis and provides a unique angle of resistance. Keep your palms facing inward throughout the entire range of motion.",
-      "variants": [
-        {
-          "equipment": "Dumbbell",
-          "difficulty": "Intermediate",
-          "pros": [
-            "Unique angle targets brachialis and long head",
-            "Reduces body English compared to standard curls",
-            "Simple equipment requirement",
-            "Good for developing arm thickness"
-          ],
-          "cons": [
-            "Requires practice to master movement pattern",
-            "May feel awkward initially",
-            "Cannot use as much weight as standard hammer curls"
-          ],
-          "setupTips": [
-            "Stand with dumbbell in one hand, neutral grip",
-            "Start with arm hanging at side, palm facing in",
-            "Curl dumbbell across body toward opposite shoulder",
-            "Keep elbow close to body throughout movement",
-            "Lower back to starting position with control"
-          ]
-        },
-        {
-          "equipment": "Cable Low",
-          "difficulty": "Intermediate",
-          "pros": [
-            "Constant tension throughout cross-body motion",
-            "Smooth resistance prevents momentum",
-            "Can adjust weight easily for drop sets",
-            "Cable angle enhances brachialis activation"
-          ],
-          "cons": [
-            "Requires cable machine access",
-            "Setup positioning may take practice",
-            "Need to switch cable sides between arms"
-          ],
-          "setupTips": [
-            "Stand perpendicular to low cable with D-handle",
-            "Grasp handle with hand farthest from machine",
-            "Curl handle across body in arc motion",
-            "Maintain neutral grip throughout movement",
-            "Control return to keep tension on cable"
-          ]
-        },
-        {
-          "equipment": "Cable Rope",
-          "difficulty": "Intermediate",
-          "pros": [
-            "Rope allows comfortable neutral grip",
-            "Can work both arms alternating or together",
-            "Constant cable tension prevents cheating",
-            "Versatile attachment for various angles"
-          ],
-          "cons": [
-            "Requires learning optimal rope positioning",
-            "May be less effective than single handle for true cross-body motion",
-            "Needs experimentation with setup"
-          ],
-          "setupTips": [
-            "Attach rope to low cable pulley",
-            "Stand at angle to cable, grasp one rope end",
-            "Curl rope across body toward opposite shoulder",
-            "Keep wrist in neutral position",
-            "Alternate arms or use both ends of rope"
           ]
         }
       ]
@@ -2883,7 +2900,7 @@ export const exerciseDatabase = {
       "muscleGroup": "Biceps",
       "primaryMuscles": ["Biceps Long Head", "Biceps Short Head"],
       "secondaryMuscles": ["Forearms"],
-      "equipment": "EZ Bar, Dumbbell, Cable",
+      "equipment": "EZ Bar, Dumbbell",
       "difficulty": "Intermediate",
       "instructions": "An intense biceps isolation exercise performed on the vertical side of a preacher bench. Lean over the bench with your chest against the pad and arms hanging vertically. This strict positioning eliminates all momentum and creates an intense peak contraction.",
       "variants": [
@@ -2930,28 +2947,6 @@ export const exerciseDatabase = {
             "Curl dumbbell up focusing on biceps contraction",
             "Complete all reps before switching arms"
           ]
-        },
-        {
-          "equipment": "Cable",
-          "difficulty": "Intermediate",
-          "pros": [
-            "Constant tension throughout entire range",
-            "Smooth resistance curve prevents momentum",
-            "Can position bench for optimal cable angle",
-            "Easy to adjust weight between sets"
-          ],
-          "cons": [
-            "Requires cable machine and bench setup",
-            "Positioning may take experimentation",
-            "Setup time longer than free weight versions"
-          ],
-          "setupTips": [
-            "Position bench in front of low cable",
-            "Lean over bench with arms hanging toward cable",
-            "Grasp cable bar or handle with arms extended",
-            "Curl up while maintaining upper arm vertical position",
-            "Lower with control keeping tension on cable"
-          ]
         }
       ]
     },
@@ -2961,7 +2956,7 @@ export const exerciseDatabase = {
       "muscleGroup": "Biceps",
       "primaryMuscles": ["Biceps Long Head", "Biceps Short Head"],
       "secondaryMuscles": ["Forearms", "Brachialis"],
-      "equipment": "Dumbbell, Cable",
+      "equipment": "Dumbbell",
       "difficulty": "Intermediate",
       "instructions": "A unique curl variation that combines both underhand and overhand grips in a single rep. Curl up with palms supinated (up), then rotate to pronated (down) at the top and lower with this grip. This exercise trains both the biceps and forearms effectively in one movement.",
       "variants": [
@@ -2985,28 +2980,6 @@ export const exerciseDatabase = {
             "At top of curl, rotate wrists so palms face down",
             "Lower dumbbells slowly with overhand (pronated) grip",
             "Rotate back to supinated grip at bottom and repeat"
-          ]
-        },
-        {
-          "equipment": "Cable",
-          "difficulty": "Intermediate",
-          "pros": [
-            "Constant tension throughout entire movement",
-            "Smooth resistance during grip rotation",
-            "Can adjust weight easily for drop sets",
-            "Cable tension enhances both phases of movement"
-          ],
-          "cons": [
-            "Requires cable machine with appropriate handles",
-            "May feel awkward compared to dumbbell version",
-            "Setup and positioning take practice"
-          ],
-          "setupTips": [
-            "Attach D-handles or straight bar to low cable",
-            "Stand facing cable with underhand grip",
-            "Curl cable up while maintaining supinated grip",
-            "Rotate to pronated grip at top of movement",
-            "Lower with overhand grip maintaining cable tension"
           ]
         }
       ]
@@ -3287,9 +3260,9 @@ export const exerciseDatabase = {
       "muscleGroup": "Triceps",
       "primaryMuscles": ["Triceps Long Head", "Triceps Lateral Head", "Triceps Medial Head"],
       "secondaryMuscles": ["Front Deltoids"],
-      "equipment": "EZ Bar, Barbell, Dumbbell",
+      "equipment": "EZ Bar, Barbell, Dumbbell, Overhead EZ Bar",
       "difficulty": "Intermediate",
-      "instructions": "Also known as lying triceps extension. Lie on a flat bench (or slight decline 10-15° for more long head stretch) with weight held above you. Lower the weight toward your forehead by bending elbows while keeping upper arms stationary. The EZ bar reduces wrist strain, barbell allows more weight, and dumbbells permit independent arm movement.",
+      "instructions": "Also known as lying triceps extension. Lie on a flat bench with weight held above you. Lower the weight toward your forehead by bending elbows. The Overhead variant extends the bar beyond and behind your head for increased range of motion and long head stretch.",
       "variants": [
         {
           "equipment": "EZ Bar",
@@ -3355,6 +3328,28 @@ export const exerciseDatabase = {
             "Maintain upper arms perpendicular to floor",
             "Lower dumbbells beside head by bending elbows",
             "Extend back up squeezing triceps at top"
+          ]
+        },
+        {
+          "equipment": "Overhead EZ Bar",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Extended range of motion beyond the head",
+            "Greater stretch on triceps long head",
+            "More muscle activation than standard version",
+            "Builds strength through full range"
+          ],
+          "cons": [
+            "Requires more shoulder mobility",
+            "Must use lighter weight than standard skull crusher",
+            "More demanding on elbow joints"
+          ],
+          "setupTips": [
+            "Lie on bench with EZ bar above chest",
+            "Lower bar beyond forehead, going past and behind head",
+            "Let upper arms angle back slightly for full stretch",
+            "Extend bar back up in arc motion",
+            "Feel the deep stretch on triceps long head"
           ]
         }
       ]
@@ -3857,7 +3852,7 @@ export const exerciseDatabase = {
       "muscleGroup": "Abs",
       "primaryMuscles": ["Obliques", "Abdominals"],
       "secondaryMuscles": ["Hip Flexors", "Lower Back"],
-      "equipment": "Bodyweight, Medicine Ball, Dumbbell, Cable",
+      "equipment": "Bodyweight, Medicine Ball, Dumbbell",
       "difficulty": "Intermediate",
       "instructions": "A rotational exercise that targets the obliques. Sit with knees bent and lean back slightly. Rotate your torso from side to side, touching the weight to the ground beside you. This exercise builds rotational strength and defines the obliques.",
       "variants": [
@@ -3925,28 +3920,6 @@ export const exerciseDatabase = {
             "Rotate dumbbell side to side touching floor",
             "Keep elbows slightly bent",
             "Focus on twisting through core, not just arms"
-          ]
-        },
-        {
-          "equipment": "Cable",
-          "difficulty": "Intermediate",
-          "pros": [
-            "Constant tension from cable",
-            "Smooth resistance throughout rotation",
-            "Can adjust weight easily",
-            "Good for resisting rotation in both directions"
-          ],
-          "cons": [
-            "Requires cable machine",
-            "Setup can be awkward",
-            "May feel unnatural initially"
-          ],
-          "setupTips": [
-            "Sit perpendicular to cable machine with handle",
-            "Set cable at chest height",
-            "Hold handle with both hands at chest",
-            "Rotate away from machine against cable resistance",
-            "Return with control and repeat both sides"
           ]
         }
       ]
@@ -4283,9 +4256,9 @@ export const exerciseDatabase = {
       "muscleGroup": "Legs",
       "primaryMuscles": ["Quadriceps"],
       "secondaryMuscles": [],
-      "equipment": "Machine, Cable",
+      "equipment": "Machine",
       "difficulty": "Beginner",
-      "instructions": "An isolation exercise targeting the quadriceps. Sit in the machine with pads against your shins and extend your legs by straightening your knees. The machine version is most common, while cable provides more freedom of movement. Focus on controlled movement throughout the range.",
+      "instructions": "An isolation exercise targeting the quadriceps. Sit in the machine with pads against your shins and extend your legs by straightening your knees. Focus on controlled movement throughout the range.",
       "variants": [
         {
           "equipment": "Machine",
@@ -4307,28 +4280,6 @@ export const exerciseDatabase = {
             "Extend legs fully squeezing quads at top",
             "Lower with control, don't let weight stack crash",
             "Keep back pressed against seat"
-          ]
-        },
-        {
-          "equipment": "Cable",
-          "difficulty": "Intermediate",
-          "pros": [
-            "More freedom of movement than machine",
-            "Can perform unilaterally",
-            "Constant tension from cable",
-            "Different angle of resistance"
-          ],
-          "cons": [
-            "Requires cable machine and ankle attachment",
-            "Less stable than machine version",
-            "May be awkward to set up"
-          ],
-          "setupTips": [
-            "Attach ankle cuff to low cable",
-            "Face away from machine, cuff on one ankle",
-            "Hold onto support for balance",
-            "Extend leg forward squeezing quad",
-            "Control return and complete both legs"
           ]
         }
       ]
@@ -4417,9 +4368,9 @@ export const exerciseDatabase = {
       "muscleGroup": "Legs",
       "primaryMuscles": ["Calves"],
       "secondaryMuscles": [],
-      "equipment": "Machine, Smith Machine, Barbell",
+      "equipment": "Machine, Smith Machine, Barbell, Leg Press, Horizontal Leg Press",
       "difficulty": "Beginner",
-      "instructions": "The primary exercise for building calf size and strength. Stand with balls of feet on elevated surface and press up through your toes to full extension. Machine provides stability, Smith machine allows free weight feel, and barbell is most challenging. Focus on full range of motion.",
+      "instructions": "The primary exercise for building calf size and strength. Stand with balls of feet on elevated surface and press up through your toes to full extension. Can also be performed on leg press machines by pressing through the toes. Focus on full range of motion.",
       "variants": [
         {
           "equipment": "Machine",
@@ -4486,6 +4437,50 @@ export const exerciseDatabase = {
             "Lower heels and press up through toes",
             "Maintain balance throughout set"
           ]
+        },
+        {
+          "equipment": "Leg Press",
+          "difficulty": "Beginner",
+          "pros": [
+            "Safe and stable seated position",
+            "Can use heavy weight",
+            "Good isolation of calves",
+            "No balance required"
+          ],
+          "cons": [
+            "Limited range of motion",
+            "Requires leg press machine",
+            "Not as effective as standing variations"
+          ],
+          "setupTips": [
+            "Sit in 45° leg press with legs extended",
+            "Place balls of feet on bottom edge of platform",
+            "Release safety and extend legs fully",
+            "Press through toes, extending ankles",
+            "Lower heels back down with control"
+          ]
+        },
+        {
+          "equipment": "Horizontal Leg Press",
+          "difficulty": "Beginner",
+          "pros": [
+            "Very stable horizontal position",
+            "Easy to load heavy weight",
+            "Accessible in most gyms",
+            "Good for high rep work"
+          ],
+          "cons": [
+            "Limited range of motion",
+            "Seated position less effective than standing",
+            "Machine may limit ankle movement"
+          ],
+          "setupTips": [
+            "Sit in horizontal leg press with legs extended",
+            "Place balls of feet on platform edge",
+            "Keep legs straight throughout",
+            "Press through toes to extend ankles",
+            "Control the return, feel calf stretch"
+          ]
         }
       ]
     },
@@ -4495,30 +4490,52 @@ export const exerciseDatabase = {
       "muscleGroup": "Legs",
       "primaryMuscles": ["Quadriceps", "Glutes"],
       "secondaryMuscles": ["Hamstrings", "Core", "Lower Back"],
-      "equipment": "Barbell Back, Smith Machine, Dumbbell Goblet",
+      "equipment": "Barbell High Bar, Barbell Low Bar, Smith Machine, Dumbbell Goblet",
       "difficulty": "Intermediate",
-      "instructions": "The king of leg exercises. Lower your body by bending knees and hips, then drive back up. Barbell back squat is the gold standard for leg development, Smith machine guides the movement, and goblet squat teaches proper form. This compound movement builds overall leg mass and strength.",
+      "instructions": "The king of leg exercises. Lower your body by bending knees and hips, then drive back up. High bar sits on upper traps for more upright torso and quad focus. Low bar sits on rear delts allowing more forward lean and posterior chain emphasis. This compound movement builds overall leg mass and strength.",
       "variants": [
         {
-          "equipment": "Barbell Back",
+          "equipment": "Barbell High Bar",
           "difficulty": "Intermediate",
           "pros": [
-            "Gold standard for leg mass and strength",
-            "Allows heaviest loading",
+            "Gold standard for quad development",
+            "More upright torso position",
             "Full body compound movement",
-            "Builds functional strength"
+            "Better for Olympic lifting carryover"
           ],
           "cons": [
-            "Requires proper technique to avoid injury",
+            "Requires good ankle mobility",
             "Needs squat rack and safety equipment",
-            "Can stress lower back"
+            "Can stress knees more than low bar"
           ],
           "setupTips": [
-            "Position bar on upper traps (high bar) or rear delts (low bar)",
+            "Position bar on upper traps",
             "Stand with feet shoulder-width, toes slightly out",
-            "Descend by breaking at hips and knees simultaneously",
-            "Keep chest up, core tight throughout",
-            "Drive through heels to stand back up"
+            "Descend by breaking at knees first",
+            "Keep torso as upright as possible",
+            "Drive through full foot to stand back up"
+          ]
+        },
+        {
+          "equipment": "Barbell Low Bar",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Allows heavier weight than high bar",
+            "More hip and posterior chain emphasis",
+            "Better for powerlifting",
+            "Less ankle mobility required"
+          ],
+          "cons": [
+            "More forward lean stresses lower back",
+            "Requires good shoulder mobility",
+            "Takes time to learn proper position"
+          ],
+          "setupTips": [
+            "Position bar on rear delts below spine of scapula",
+            "Wider grip to create shelf with rear delts",
+            "Break at hips first, then knees",
+            "Allow more forward torso lean",
+            "Drive hips up and forward to stand"
           ]
         },
         {
@@ -4763,7 +4780,7 @@ export const exerciseDatabase = {
       "muscleGroup": "Legs",
       "primaryMuscles": ["Glutes"],
       "secondaryMuscles": ["Hamstrings", "Core"],
-      "equipment": "Barbell, Dumbbell, Machine",
+      "equipment": "Barbell, Dumbbell, Machine, Smith Machine",
       "difficulty": "Intermediate",
       "instructions": "The premier exercise for glute development. With upper back on a bench, drive hips upward by squeezing glutes. Barbell allows heavy loading, dumbbell is more accessible, and machine provides guided movement. This exercise maximally activates the glutes through full hip extension.",
       "variants": [
@@ -4832,6 +4849,28 @@ export const exerciseDatabase = {
             "Squeeze glutes at lockout",
             "Control descent"
           ]
+        },
+        {
+          "equipment": "Smith Machine",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Easier setup than free barbell",
+            "Bar stays in place, no rolling",
+            "Can go heavier with stability",
+            "Great for solo training"
+          ],
+          "cons": [
+            "Fixed bar path may feel restrictive",
+            "Need to position bench correctly",
+            "Less core stabilization required"
+          ],
+          "setupTips": [
+            "Position bench under Smith bar",
+            "Sit with upper back on bench, bar across hips",
+            "Use bar pad for comfort",
+            "Unrack and drive hips up squeezing glutes",
+            "Lock out at top, lower with control"
+          ]
         }
       ]
     },
@@ -4897,7 +4936,7 @@ export const exerciseDatabase = {
       "muscleGroup": "Legs",
       "primaryMuscles": ["Quadriceps", "Glutes"],
       "secondaryMuscles": ["Hamstrings", "Core"],
-      "equipment": "Dumbbell Walking, Barbell Walking, Dumbbell Stationary, Bodyweight, Reverse Lunge",
+      "equipment": "Dumbbell Walking, Barbell Walking, Dumbbell Stationary, Bodyweight, Reverse Lunge, Smith Machine",
       "difficulty": "Intermediate",
       "instructions": "A unilateral leg exercise that builds strength and balance. Step forward or stay in place and lower your body until both knees are bent at 90 degrees. Walking lunges cover distance and increase coordination demand, stationary allows focus on each leg. Builds functional leg strength and corrects imbalances.",
       "variants": [
@@ -5009,6 +5048,28 @@ export const exerciseDatabase = {
             "Lower back knee toward ground",
             "Keep front knee over ankle, not past toes",
             "Push through front heel to return to standing"
+          ]
+        },
+        {
+          "equipment": "Smith Machine",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Guided bar path provides stability",
+            "Great for beginners learning form",
+            "Can focus on legs without balance concerns",
+            "Safe to go heavier"
+          ],
+          "cons": [
+            "Fixed path limits natural movement",
+            "Must position feet correctly under bar",
+            "Less functional than free weight version"
+          ],
+          "setupTips": [
+            "Position bar on upper back, unrack",
+            "Step one foot forward, one back (split stance)",
+            "Lower into lunge keeping torso upright",
+            "Drive through front heel to stand",
+            "Complete all reps then switch legs"
           ]
         }
       ]
@@ -5195,54 +5256,102 @@ export const exerciseDatabase = {
       "id": "legs-13",
       "name": "Leg Press",
       "muscleGroup": "Legs",
-      "primaryMuscles": ["Quadriceps", "Glutes"],
-      "secondaryMuscles": ["Hamstrings"],
-      "equipment": "45° Machine, Horizontal Machine",
+      "primaryMuscles": ["Quadriceps", "Glutes", "Hamstrings"],
+      "secondaryMuscles": [],
+      "equipment": "45° High Foot (Hamstring), 45° Low Foot (Quad), Horizontal High Foot (Hamstring), Horizontal Low Foot (Quad)",
       "difficulty": "Beginner",
-      "instructions": "A machine-based compound leg exercise that allows heavy loading with back support. Push the platform away by extending knees and hips. The 45-degree angle is most common and mimics squat pattern, horizontal provides different resistance curve. Excellent for building leg mass without spinal loading.",
+      "instructions": "A machine-based compound leg exercise that allows heavy loading with back support. Push the platform away by extending knees and hips. Foot placement changes muscle emphasis: high placement targets hamstrings and glutes, low placement emphasizes quads.",
       "variants": [
         {
-          "equipment": "45° Machine",
+          "equipment": "45° High Foot (Hamstring)",
           "difficulty": "Beginner",
+          "primaryMuscles": ["Hamstrings", "Glutes"],
           "pros": [
-            "Heavy loading without spinal stress",
-            "Mimics squat movement pattern",
-            "Safe for training to failure",
-            "Easy to adjust weight"
+            "Emphasizes hamstrings and glutes",
+            "Less stress on knees",
+            "Great for posterior chain development",
+            "Good stretch on hamstrings"
           ],
           "cons": [
-            "Fixed movement path",
-            "May not fit all body types",
-            "Can stress knees if feet positioned poorly"
+            "Less quad activation",
+            "May feel less stable",
+            "Reduced range of motion"
           ],
           "setupTips": [
-            "Sit with back and hips against pads",
-            "Place feet shoulder-width on platform",
-            "Release safety handles",
-            "Lower platform with control to 90-degree knee bend",
-            "Drive through heels to extend legs"
+            "Place feet HIGH on the platform near top edge",
+            "Feet shoulder-width apart",
+            "Push through heels, not toes",
+            "Focus on hip extension",
+            "Feel hamstrings and glutes working"
           ]
         },
         {
-          "equipment": "Horizontal Machine",
+          "equipment": "45° Low Foot (Quad)",
           "difficulty": "Beginner",
+          "primaryMuscles": ["Quadriceps"],
           "pros": [
-            "Different resistance curve than 45-degree",
-            "Comfortable seated position",
-            "Good quad and glute activation",
-            "Easy to use"
+            "Maximum quad activation",
+            "Greater range of motion at knee",
+            "Excellent for quad development",
+            "Good for building quad sweep"
           ],
           "cons": [
-            "Less common than 45-degree machine",
-            "Fixed horizontal path",
-            "May feel different than traditional leg press"
+            "More stress on knees",
+            "Less hamstring involvement",
+            "May require lighter weight"
           ],
           "setupTips": [
-            "Sit with back against pad",
-            "Position feet on platform",
-            "Push platform away horizontally",
-            "Keep knees tracking over toes",
-            "Control return without letting weight stack crash"
+            "Place feet LOW on the platform near bottom edge",
+            "Feet shoulder-width apart",
+            "Keep heels on platform throughout",
+            "Focus on deep knee bend",
+            "Feel quads burning on each rep"
+          ]
+        },
+        {
+          "equipment": "Horizontal High Foot (Hamstring)",
+          "difficulty": "Beginner",
+          "primaryMuscles": ["Hamstrings", "Glutes"],
+          "pros": [
+            "Emphasizes hamstrings and glutes",
+            "Comfortable horizontal position",
+            "Great posterior chain activation",
+            "Less knee stress"
+          ],
+          "cons": [
+            "Less quad involvement",
+            "May feel unstable at first",
+            "Limited ROM"
+          ],
+          "setupTips": [
+            "Place feet HIGH on platform near top",
+            "Drive through heels",
+            "Focus on hip extension movement",
+            "Squeeze glutes at full extension",
+            "Control the return"
+          ]
+        },
+        {
+          "equipment": "Horizontal Low Foot (Quad)",
+          "difficulty": "Beginner",
+          "primaryMuscles": ["Quadriceps"],
+          "pros": [
+            "Maximum quad focus",
+            "Greater knee flexion",
+            "Excellent for quad isolation",
+            "Comfortable seated position"
+          ],
+          "cons": [
+            "More knee stress",
+            "Less hamstring/glute work",
+            "May need to reduce weight"
+          ],
+          "setupTips": [
+            "Place feet LOW on platform near bottom",
+            "Keep heels down throughout",
+            "Allow deep knee bend",
+            "Push through full foot",
+            "Feel quads working each rep"
           ]
         }
       ]
@@ -5253,7 +5362,7 @@ export const exerciseDatabase = {
       "muscleGroup": "Legs",
       "primaryMuscles": ["Quadriceps", "Glutes"],
       "secondaryMuscles": ["Hamstrings", "Core"],
-      "equipment": "Dumbbell, Barbell, Bodyweight",
+      "equipment": "Dumbbell, Barbell, Bodyweight, Smith Machine",
       "difficulty": "Intermediate",
       "instructions": "An advanced single-leg squat variation with rear foot elevated. This challenging exercise builds unilateral leg strength and balance while allowing significant loading. Dumbbells are most common, barbell allows heavier weight, and bodyweight is good for learning. Highly effective for functional leg development.",
       "variants": [
@@ -5321,6 +5430,28 @@ export const exerciseDatabase = {
             "Lower until front thigh parallel to ground",
             "Keep chest up throughout movement",
             "Complete all reps before switching legs"
+          ]
+        },
+        {
+          "equipment": "Smith Machine",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Stability allows focus on leg muscles",
+            "Safer than barbell version",
+            "Can go heavier without balance worries",
+            "Great for building strength"
+          ],
+          "cons": [
+            "Fixed bar path restricts natural movement",
+            "Must position bench and feet correctly",
+            "Less core engagement than free weight"
+          ],
+          "setupTips": [
+            "Position bench behind Smith bar",
+            "Place bar on upper back, rear foot on bench",
+            "Unrack and find stable foot position",
+            "Lower into split squat keeping torso upright",
+            "Drive through front heel to stand"
           ]
         }
       ]
@@ -5399,84 +5530,6 @@ export const exerciseDatabase = {
             "Unrack and keep torso upright",
             "Descend with control",
             "Drive up through quads"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "legs-16",
-      "name": "Step-Ups",
-      "muscleGroup": "Legs",
-      "primaryMuscles": ["Quadriceps", "Glutes"],
-      "secondaryMuscles": ["Hamstrings", "Core"],
-      "equipment": "Dumbbell, Barbell, Bodyweight",
-      "difficulty": "Beginner",
-      "instructions": "A functional single-leg exercise that mimics climbing stairs. Step up onto an elevated platform, driving through the working leg. Dumbbells allow natural arm position, barbell increases difficulty, and bodyweight is accessible anywhere. Builds unilateral leg strength and improves balance and coordination.",
-      "variants": [
-        {
-          "equipment": "Dumbbell",
-          "difficulty": "Beginner",
-          "pros": [
-            "Natural arm position",
-            "Easy to control and balance",
-            "Functional movement pattern",
-            "Can be done with various box heights"
-          ],
-          "cons": [
-            "Grip may fatigue",
-            "Limited by dumbbell weight",
-            "Requires sturdy elevated surface"
-          ],
-          "setupTips": [
-            "Hold dumbbells at sides",
-            "Step one foot onto box or bench",
-            "Drive through elevated foot to stand on box",
-            "Step down with control",
-            "Alternate legs or complete reps per side"
-          ]
-        },
-        {
-          "equipment": "Barbell",
-          "difficulty": "Intermediate",
-          "pros": [
-            "Can load heavier than dumbbells",
-            "Builds significant leg strength",
-            "Forces upright posture",
-            "Good for progressive overload"
-          ],
-          "cons": [
-            "More challenging to balance",
-            "Requires rack and box setup",
-            "Difficult to bail safely"
-          ],
-          "setupTips": [
-            "Position barbell on upper back as in squat",
-            "Step one foot onto elevated surface",
-            "Drive through elevated leg to step up",
-            "Keep torso upright throughout",
-            "Step down under control"
-          ]
-        },
-        {
-          "equipment": "Bodyweight",
-          "difficulty": "Beginner",
-          "pros": [
-            "No equipment needed besides box",
-            "Very accessible",
-            "Good for learning movement",
-            "Can adjust height for difficulty"
-          ],
-          "cons": [
-            "Limited resistance",
-            "May become too easy",
-            "Progression requires adding weight"
-          ],
-          "setupTips": [
-            "Use sturdy box or bench",
-            "Step up driving through elevated foot",
-            "Don't push off back leg",
-            "Stand fully on box",
-            "Control descent and repeat"
           ]
         }
       ]
@@ -6725,23 +6778,61 @@ export const getExercisesByMuscleGroup = async (muscleGroup) => {
     const targetMuscle = legSubRegions[muscleGroup];
     const allLegExercises = exerciseDatabase.legs || [];
 
-    // Filter exercises where primaryMuscles includes the target muscle
-    const filteredExercises = allLegExercises.filter(exercise => {
-      const primaryMuscles = exercise.primaryMuscles || [];
-      // Check if any primary muscle matches (case-insensitive, partial match for variations like "Glute Medius")
-      return primaryMuscles.some(muscle =>
+    console.log(`🔍 [MuscleFilter] Filtering for: ${muscleGroup} -> ${targetMuscle}`);
+
+    // Helper to check if muscles match target
+    const muscleMatches = (muscles) => {
+      return muscles.some(muscle =>
         muscle.toLowerCase().includes(targetMuscle.toLowerCase()) ||
         targetMuscle.toLowerCase().includes(muscle.toLowerCase())
       );
-    });
+    };
+
+    // Filter exercises where primaryMuscles includes the target muscle
+    // Also filter variants if they have their own primaryMuscles defined
+    const filteredExercises = allLegExercises
+      .filter(exercise => {
+        const primaryMuscles = exercise.primaryMuscles || [];
+        return muscleMatches(primaryMuscles);
+      })
+      .map(exercise => {
+        // If exercise has variants with primaryMuscles, filter to only matching variants
+        if (exercise.variants && exercise.variants.some(v => v.primaryMuscles)) {
+          const filteredVariants = exercise.variants.filter(variant => {
+            // If variant has its own primaryMuscles, use that for filtering
+            if (variant.primaryMuscles) {
+              const matches = muscleMatches(variant.primaryMuscles);
+              console.log(`   📋 ${exercise.name} - "${variant.equipment}": primaryMuscles=${JSON.stringify(variant.primaryMuscles)} -> ${matches ? '✅' : '❌'}`);
+              return matches;
+            }
+            // Otherwise include (variant inherits from exercise)
+            return true;
+          });
+
+          // Only include exercise if it has matching variants
+          if (filteredVariants.length > 0) {
+            // Update equipment string to only include filtered variants
+            const filteredEquipment = filteredVariants.map(v => v.equipment).join(', ');
+            console.log(`   ✅ ${exercise.name}: Showing ${filteredVariants.length} variants: ${filteredEquipment}`);
+            return {
+              ...exercise,
+              variants: filteredVariants,
+              equipment: filteredEquipment
+            };
+          }
+          console.log(`   ❌ ${exercise.name}: No matching variants`);
+          return null;
+        }
+        return exercise;
+      })
+      .filter(Boolean); // Remove nulls
+
+    console.log(`🔍 [MuscleFilter] Found ${filteredExercises.length} exercises for ${muscleGroup}`);
 
     // Get custom exercises for this leg sub-region
     const customLegExercises = customExercises.filter(ex => {
       const primaryMuscles = ex.primaryMuscles || [];
-      return primaryMuscles.some(muscle =>
-        muscle.toLowerCase().includes(targetMuscle.toLowerCase()) ||
-        targetMuscle.toLowerCase().includes(muscle.toLowerCase())
-      );
+      return muscleMatches(primaryMuscles);
     });
 
     return [...customLegExercises, ...filteredExercises];

@@ -228,20 +228,22 @@ export default function EquipmentVariantSelectionScreen({ navigation, route }) {
                 </View>
 
                 <View style={styles.equipmentRow}>
-                  <Text style={styles.equipmentName} numberOfLines={2} ellipsizeMode="tail">{variant.equipment}</Text>
+                  <Text style={[styles.equipmentName, { fontSize: getEquipmentNameFontSize(variant.equipment) }]} numberOfLines={3}>{variant.equipment}</Text>
+                  {/* Difficulty indicator inline */}
+                  <View style={styles.difficultyRow}>
+                    {variant.difficulty === 'Beginner' && (
+                      <View style={[styles.difficultyDot, { backgroundColor: '#4CAF50' }]} />
+                    )}
+                    {variant.difficulty === 'Intermediate' && (
+                      <View style={[styles.difficultyDot, { backgroundColor: '#FF9800' }]} />
+                    )}
+                    {variant.difficulty === 'Advanced' && (
+                      <View style={[styles.difficultyDot, { backgroundColor: '#F44336' }]} />
+                    )}
+                    <Text style={styles.difficultyLabel}>{variant.difficulty}</Text>
+                  </View>
                 </View>
-                <View style={styles.headerRight}>
-                  {variant.difficulty === 'Beginner' && (
-                    <View style={[styles.difficultyShape, styles.beginnerCircle]} />
-                  )}
-                  {variant.difficulty === 'Intermediate' && (
-                    <View style={[styles.difficultyShape, styles.intermediateTriangle]} />
-                  )}
-                  {variant.difficulty === 'Advanced' && (
-                    <View style={[styles.difficultyShape, styles.advancedSquare]} />
-                  )}
-                  <Text style={styles.expandIcon}>{isExpanded ? '▲' : '▼'}</Text>
-                </View>
+                <Text style={styles.expandIcon}>{isExpanded ? '▲' : '▼'}</Text>
               </TouchableOpacity>
 
               {/* Expanded Content */}
@@ -337,6 +339,15 @@ export default function EquipmentVariantSelectionScreen({ navigation, route }) {
 }
 
 // Helper Functions
+function getEquipmentNameFontSize(equipment) {
+  const length = equipment?.length || 0;
+  if (length > 32) return 12;
+  if (length > 28) return 13;
+  if (length > 24) return 14;
+  if (length > 20) return 15;
+  return 16; // default - normal size for short names
+}
+
 function getEquipmentIcon(equipment) {
   const equipmentLower = equipment?.toLowerCase() || '';
   if (equipmentLower.includes('barbell')) return '🏋️';
@@ -417,8 +428,8 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
   },
   imageThumbnailContainer: {
-    width: 80,
-    height: 80,
+    width: 70,
+    height: 70,
     borderRadius: BorderRadius.md,
     overflow: 'hidden',
     backgroundColor: Colors.border,
@@ -448,15 +459,11 @@ const styles = StyleSheet.create({
   equipmentIconLarge: {
     fontSize: 40,
   },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-  },
   expandIcon: {
     fontSize: 16,
     color: Colors.primary,
     fontWeight: 'bold',
+    marginLeft: Spacing.xs,
   },
   expandedContent: {
     paddingHorizontal: Spacing.lg,
@@ -469,6 +476,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'center',
     flex: 1,
+    marginRight: Spacing.sm,
   },
   equipmentIcon: {
     fontSize: 24,
@@ -476,10 +484,26 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   equipmentName: {
-    fontSize: Typography.fontSize.lg,
+    fontSize: 16,
     fontWeight: 'bold',
     color: Colors.text,
     flexWrap: 'wrap',
+    marginBottom: 4,
+  },
+  difficultyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2,
+  },
+  difficultyDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 6,
+  },
+  difficultyLabel: {
+    fontSize: 11,
+    color: Colors.textSecondary,
   },
   difficultyBadge: {
     paddingHorizontal: Spacing.md,

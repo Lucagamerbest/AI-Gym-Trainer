@@ -283,7 +283,8 @@ export default function ExerciseDetailScreen({ navigation, route }) {
             overflow: 'hidden',
           }}>
             <ExerciseVideoPlayer
-              exerciseName={getDisplayName()}
+              exerciseName={exercise?.name}
+              variant={exercise?.selectedVariant?.equipment}
               equipment={getDisplayEquipment()}
               muscleGroup={exercise?.primaryMuscles?.[0] || exercise?.muscleGroup}
               fallbackImage={getExerciseImage()}

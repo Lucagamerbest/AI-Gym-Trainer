@@ -466,6 +466,19 @@ export default function ExerciseListScreen({ navigation, route }) {
     }
   };
 
+  // Dynamic font size for long exercise names
+  const getExerciseNameStyle = (name) => {
+    const length = name?.length || 0;
+    if (length > 35) {
+      return { fontSize: 12, lineHeight: 16 };
+    } else if (length > 28) {
+      return { fontSize: 13, lineHeight: 17 };
+    } else if (length > 22) {
+      return { fontSize: 14, lineHeight: 18 };
+    }
+    return {}; // Use default style
+  };
+
   const getMuscleGroupLabel = (muscleGroup) => {
     if (!muscleGroup) return '';
     const str = String(muscleGroup);
@@ -828,7 +841,7 @@ export default function ExerciseListScreen({ navigation, route }) {
 
                             {/* Equipment badge */}
                             <View style={styles.pinnedBadge}>
-                              <Text style={styles.pinnedBadgeText}>{pinned.equipment}</Text>
+                              <Text style={[styles.pinnedBadgeText, pinned.equipment?.length > 25 ? { fontSize: 9 } : {}]} numberOfLines={1}>{pinned.equipment}</Text>
                             </View>
 
                             {/* Action buttons */}
@@ -889,7 +902,7 @@ export default function ExerciseListScreen({ navigation, route }) {
                 <View style={styles.titleRow}>
                   <View style={{ flex: 1 }}>
                     {item.isCustom && <Text style={styles.customBadge}>⭐ CUSTOM</Text>}
-                    <Text style={styles.exerciseName} numberOfLines={2} ellipsizeMode="tail">{item.name}</Text>
+                    <Text style={[styles.exerciseName, getExerciseNameStyle(item.name)]} numberOfLines={2} ellipsizeMode="tail">{item.name}</Text>
                     {/* Show matched variant when searching */}
                     {item.matchedEquipment && (
                       <View style={styles.matchedVariantBadge}>
@@ -1005,7 +1018,7 @@ export default function ExerciseListScreen({ navigation, route }) {
                   <View style={styles.titleZone}>
                     <View style={styles.titleRow}>
                       {item.isCustom && <Text style={styles.customBadge}>⭐ CUSTOM</Text>}
-                      <Text style={[styles.exerciseName, { flex: 1 }]} numberOfLines={2} ellipsizeMode="tail">{item.name}</Text>
+                      <Text style={[styles.exerciseName, { flex: 1 }, getExerciseNameStyle(item.name)]} numberOfLines={2} ellipsizeMode="tail">{item.name}</Text>
                     </View>
                     {/* Show matched variant when searching */}
                     {item.matchedEquipment && (
