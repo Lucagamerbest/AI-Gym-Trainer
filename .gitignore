@@ -36,4 +36,4 @@ google-services.json
 GoogleService-Info.plist
 
 # VS Code settings
-.vscode/
+.vscode/service-account.json

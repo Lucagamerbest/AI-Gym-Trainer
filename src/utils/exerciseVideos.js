@@ -1,95 +1,98 @@
 /**
  * Exercise Video Mapping
- * Maps exercises and variants to local video files
- * Updated: 2025-12-23
+ * Streams videos from GitHub (full quality, free hosting)
+ * Updated: 2025-12-24
  */
 
-// Local exercise videos - use require() for bundled assets
-const LOCAL_VIDEOS = {
+// GitHub raw URL base
+const VIDEO_BASE_URL = 'https://raw.githubusercontent.com/Lucagamerbest/AI-Gym-Trainer/main/assets/exercise-videos/';
+
+// Video filename mapping
+const VIDEO_FILES = {
   // CHEST
-  'bench_press_barbell': require('../../assets/exercise-videos/barbell_bench_press_chest.mp4'),
-  'bench_press_dumbbell': require('../../assets/exercise-videos/dumbbell_bench_press.mp4'),
-  'bench_press_machine': require('../../assets/exercise-videos/bench_press_machine.mp4'),
-  'chest_press_horizontal': require('../../assets/exercise-videos/horizontal_handle_chest_press_machine.mp4'),
-  'chest_press_vertical': require('../../assets/exercise-videos/vertical_handle_chest_press_machine.mp4'),
-  'incline_bench_dumbbell': require('../../assets/exercise-videos/incline_dumbell_bench_press.mp4'),
-  'chest_fly_dumbbell': require('../../assets/exercise-videos/dumbbel_chest_flyes.mp4'),
-  'chest_fly_machine': require('../../assets/exercise-videos/machine_fly.mp4'),
-  'chest_fly_cable': require('../../assets/exercise-videos/cable_chest_fly.mp4'),
-  'cable_crossover_low_high': require('../../assets/exercise-videos/cable_fly_low_to_high.mp4'),
-  'cable_crossover_high_low': require('../../assets/exercise-videos/chest_fly_high_to_low.mp4'),
-  'dips_bodyweight': require('../../assets/exercise-videos/dips.mp4'),
-  'dips_assisted': require('../../assets/exercise-videos/assisted_dips.mp4'),
-  'dips_machine': require('../../assets/exercise-videos/dip_machine.mp4'),
-  'close_grip_bench': require('../../assets/exercise-videos/close_grip__barbell_bench_press.mp4'),
-  'spoto_press': require('../../assets/exercise-videos/spoto__barbell_press.mp4'),
+  'bench_press_barbell': 'barbell_bench_press_chest.mp4',
+  'bench_press_dumbbell': 'dumbbell_bench_press.mp4',
+  'bench_press_machine': 'bench_press_machine.mp4',
+  'chest_press_horizontal': 'horizontal_handle_chest_press_machine.mp4',
+  'chest_press_vertical': 'vertical_handle_chest_press_machine.mp4',
+  'incline_bench_dumbbell': 'incline_dumbell_bench_press.mp4',
+  'chest_fly_dumbbell': 'dumbbel_chest_flyes.mp4',
+  'chest_fly_machine': 'machine_fly.mp4',
+  'chest_fly_cable': 'cable_chest_fly.mp4',
+  'cable_crossover_low_high': 'cable_fly_low_to_high.mp4',
+  'cable_crossover_high_low': 'chest_fly_high_to_low.mp4',
+  'dips_bodyweight': 'dips.mp4',
+  'dips_assisted': 'assisted_dips.mp4',
+  'dips_machine': 'dip_machine.mp4',
+  'close_grip_bench': 'close_grip__barbell_bench_press.mp4',
+  'spoto_press': 'spoto__barbell_press.mp4',
 
   // BACK
-  'bent_over_row_overhand': require('../../assets/exercise-videos/barbell_bent_over_row.mp4'),
-  'bent_over_row_pendlay': require('../../assets/exercise-videos/pendlay_barbell_row.mp4'),
-  'one_arm_row_dumbbell': require('../../assets/exercise-videos/dumbbell_bent_over_row_single.mp4'),
-  'lat_pulldown': require('../../assets/exercise-videos/machine_lat_pulldown_.mp4'),
-  'chin_up_assisted': require('../../assets/exercise-videos/assisted_chin_up.mp4'),
-  'pull_up_assisted': require('../../assets/exercise-videos/assisted_wide_grip_pull_up.mp4'),
-  'seated_row_45deg': require('../../assets/exercise-videos/45-degree_angled_handles_row_machine.mp4'),
-  'seated_row_horizontal': require('../../assets/exercise-videos/horizontal_handles_row_machine.mp4'),
-  'seated_row_vertical': require('../../assets/exercise-videos/vertical_handles_row_machine.mp4'),
-  'back_extension_machine': require('../../assets/exercise-videos/lower_back_extension_machine.mp4'),
+  'bent_over_row_overhand': 'barbell_bent_over_row.mp4',
+  'bent_over_row_pendlay': 'pendlay_barbell_row.mp4',
+  'one_arm_row_dumbbell': 'dumbbell_bent_over_row_single.mp4',
+  'lat_pulldown': 'machine_lat_pulldown_.mp4',
+  'chin_up_assisted': 'assisted_chin_up.mp4',
+  'pull_up_assisted': 'assisted_wide_grip_pull_up.mp4',
+  'seated_row_45deg': '45-degree_angled_handles_row_machine.mp4',
+  'seated_row_horizontal': 'horizontal_handles_row_machine.mp4',
+  'seated_row_vertical': 'vertical_handles_row_machine.mp4',
+  'back_extension_machine': 'lower_back_extension_machine.mp4',
 
   // SHOULDERS
-  'shoulder_press_machine': require('../../assets/exercise-videos/shoulder_press_machine.mp4'),
-  'shoulder_press_dumbbell': require('../../assets/exercise-videos/shoulder_press_dumbbel.mp4'),
-  'shoulder_press_barbell_seated': require('../../assets/exercise-videos/seated_barbell_shoulder_press.mp4'),
-  'shoulder_press_barbell_standing': require('../../assets/exercise-videos/standing_barbell_shoulder_press.mp4'),
-  'lateral_raise_dumbbell': require('../../assets/exercise-videos/dumbbell_lateral_raises.mp4'),
-  'lateral_raise_seated': require('../../assets/exercise-videos/seated_dumbbell_lateral_raises.mp4'),
-  'lateral_raise_machine': require('../../assets/exercise-videos/lateral_raise_machine.mp4'),
-  'lateral_raise_cable_single': require('../../assets/exercise-videos/single_cable_lateral_raise.mp4'),
-  'lateral_raise_cable_both': require('../../assets/exercise-videos/dual_cable_lateral_raise.mp4'),
-  'front_raise_dumbbell': require('../../assets/exercise-videos/dumbbell_font_raises.mp4'),
-  'rear_delt_fly_cable': require('../../assets/exercise-videos/cable_rear_delt_fly.mp4'),
-  'rear_delt_fly_machine': require('../../assets/exercise-videos/rear_delt_pec_dec_machine.mp4'),
-  'rear_delt_fly_single': require('../../assets/exercise-videos/single_rear_delt_pec_dec_machine.mp4'),
+  'shoulder_press_machine': 'shoulder_press_machine.mp4',
+  'shoulder_press_dumbbell': 'shoulder_press_dumbbel.mp4',
+  'shoulder_press_barbell_seated': 'seated_barbell_shoulder_press.mp4',
+  'shoulder_press_barbell_standing': 'standing_barbell_shoulder_press.mp4',
+  'lateral_raise_dumbbell': 'dumbbell_lateral_raises.mp4',
+  'lateral_raise_seated': 'seated_dumbbell_lateral_raises.mp4',
+  'lateral_raise_machine': 'lateral_raise_machine.mp4',
+  'lateral_raise_cable_single': 'single_cable_lateral_raise.mp4',
+  'lateral_raise_cable_both': 'dual_cable_lateral_raise.mp4',
+  'front_raise_dumbbell': 'dumbbell_font_raises.mp4',
+  'rear_delt_fly_cable': 'cable_rear_delt_fly.mp4',
+  'rear_delt_fly_machine': 'rear_delt_pec_dec_machine.mp4',
+  'rear_delt_fly_single': 'single_rear_delt_pec_dec_machine.mp4',
 
   // BICEPS
-  'bicep_curl_dumbbell': require('../../assets/exercise-videos/dumbbell_bicep_curl.mp4'),
-  'bicep_curl_ez_bar': require('../../assets/exercise-videos/ez_bar_standing_bicep_curl.mp4'),
-  'bicep_curl_one_arm': require('../../assets/exercise-videos/one_arm_dumbbell_bicep_curl.mp4'),
-  'hammer_curl_dumbbell': require('../../assets/exercise-videos/hammer_curl.mp4'),
-  'hammer_curl_preacher': require('../../assets/exercise-videos/preacher_hammer_curl_machine.mp4'),
-  'bicep_curl_supinated': require('../../assets/exercise-videos/supinated_dumbbell_curls.mp4'),
-  'preacher_curl_ez_bar': require('../../assets/exercise-videos/ez-bar_preacher_curl.mp4'),
-  'preacher_curl_machine': require('../../assets/exercise-videos/preacher_curl_machine.mp4'),
-  'concentration_curl': require('../../assets/exercise-videos/dumbbell_concentration_curl.mp4'),
-  'high_cable_curl': require('../../assets/exercise-videos/dual_cable_bicep_curl.mp4'),
-  'cable_crossover_curl': require('../../assets/exercise-videos/cable_crossover_curl.mp4'),
-  'incline_dumbbell_curl': require('../../assets/exercise-videos/incline_dumbbel_bicep_curl.mp4'),
+  'bicep_curl_dumbbell': 'dumbbell_bicep_curl.mp4',
+  'bicep_curl_ez_bar': 'ez_bar_standing_bicep_curl.mp4',
+  'bicep_curl_one_arm': 'one_arm_dumbbell_bicep_curl.mp4',
+  'hammer_curl_dumbbell': 'hammer_curl.mp4',
+  'hammer_curl_preacher': 'preacher_hammer_curl_machine.mp4',
+  'bicep_curl_supinated': 'supinated_dumbbell_curls.mp4',
+  'preacher_curl_ez_bar': 'ez-bar_preacher_curl.mp4',
+  'preacher_curl_machine': 'preacher_curl_machine.mp4',
+  'concentration_curl': 'dumbbell_concentration_curl.mp4',
+  'high_cable_curl': 'dual_cable_bicep_curl.mp4',
+  'cable_crossover_curl': 'cable_crossover_curl.mp4',
+  'incline_dumbbell_curl': 'incline_dumbbel_bicep_curl.mp4',
 
   // TRICEPS
-  'skull_crusher': require('../../assets/exercise-videos/skullcrusher.mp4'),
-  'skull_crusher_overhead': require('../../assets/exercise-videos/overhead_skullcrusher.mp4'),
-  'overhead_tricep_extension': require('../../assets/exercise-videos/seated_dumbbell_triceps_extension.mp4'),
+  'skull_crusher': 'skullcrusher.mp4',
+  'skull_crusher_overhead': 'overhead_skullcrusher.mp4',
+  'overhead_tricep_extension': 'seated_dumbbell_triceps_extension.mp4',
 
   // LEGS
-  'squat_high_bar': require('../../assets/exercise-videos/high-bar_squat.mp4'),
-  'squat_low_bar': require('../../assets/exercise-videos/low-bar_squat.mp4'),
-  'front_squat': require('../../assets/exercise-videos/front_barbell_squat.mp4'),
-  'deadlift_conventional': require('../../assets/exercise-videos/conventional_deadlift_barbell.mp4'),
-  'deadlift_sumo': require('../../assets/exercise-videos/sumo_deadlift_barbell.mp4'),
-  'deadlift_romanian': require('../../assets/exercise-videos/romanian_deadlift.mp4'),
-  'leg_extension': require('../../assets/exercise-videos/leg_extension_machine.mp4'),
-  'leg_curl_lying': require('../../assets/exercise-videos/lying_leg_curl.mp4'),
-  'leg_curl_seated': require('../../assets/exercise-videos/seated_leg_curl_machine.mp4'),
-  'hip_abduction': require('../../assets/exercise-videos/hip_abduction_machine.mp4'),
-  'hip_adduction': require('../../assets/exercise-videos/hip_adductor_machine.mp4'),
-  'hip_thrust_machine': require('../../assets/exercise-videos/hip_thrust_machine.mp4'),
-  'calf_raise_machine': require('../../assets/exercise-videos/calf_extension_machine.mp4'),
-  'calf_raise_leg_press': require('../../assets/exercise-videos/leg_press_calf_extension.mp4'),
-  'calf_raise_horizontal_press': require('../../assets/exercise-videos/calf_extenstion_horizontal_leg_press_machine.mp4'),
-  'leg_press_high_foot': require('../../assets/exercise-videos/high_foot_placement_leg_press_(hamstring).mp4'),
-  'leg_press_low_foot': require('../../assets/exercise-videos/low_foot_placement_leg_press_(quads).mp4'),
-  'leg_press_horizontal_high': require('../../assets/exercise-videos/high_foot_placement_horizontal_leg_press_machine_(hamstring).mp4'),
-  'leg_press_horizontal_low': require('../../assets/exercise-videos/low_foot_placement_horizontal_leg_press_machine_(quads).mp4'),
+  'squat_high_bar': 'high-bar_squat.mp4',
+  'squat_low_bar': 'low-bar_squat.mp4',
+  'front_squat': 'front_barbell_squat.mp4',
+  'deadlift_conventional': 'conventional_deadlift_barbell.mp4',
+  'deadlift_sumo': 'sumo_deadlift_barbell.mp4',
+  'deadlift_romanian': 'romanian_deadlift.mp4',
+  'leg_extension': 'leg_extension_machine.mp4',
+  'leg_curl_lying': 'lying_leg_curl.mp4',
+  'leg_curl_seated': 'seated_leg_curl_machine.mp4',
+  'hip_abduction': 'hip_abduction_machine.mp4',
+  'hip_adduction': 'hip_adductor_machine.mp4',
+  'hip_thrust_machine': 'hip_thrust_machine.mp4',
+  'calf_raise_machine': 'calf_extension_machine.mp4',
+  'calf_raise_leg_press': 'leg_press_calf_extension.mp4',
+  'calf_raise_horizontal_press': 'calf_extenstion_horizontal_leg_press_machine.mp4',
+  'leg_press_high_foot': 'high_foot_placement_leg_press_(hamstring).mp4',
+  'leg_press_low_foot': 'low_foot_placement_leg_press_(quads).mp4',
+  'leg_press_horizontal_high': 'high_foot_placement_horizontal_leg_press_machine_(hamstring).mp4',
+  'leg_press_horizontal_low': 'low_foot_placement_horizontal_leg_press_machine_(quads).mp4',
 };
 
 // Map exercise names and variants to video keys
@@ -210,6 +213,7 @@ const EXERCISE_VIDEO_MAPPING = {
     '_default': 'high_cable_curl',
     'Double Cable': 'high_cable_curl',
   },
+
   // TRICEPS
   'Skull Crusher': {
     'EZ Bar': 'skull_crusher',
@@ -267,43 +271,37 @@ const EXERCISE_VIDEO_MAPPING = {
 };
 
 /**
- * Get video for an exercise and variant
+ * Get video URL for an exercise and variant
  * @param {string} exerciseName - The exercise name
  * @param {string} variantName - The variant name (optional)
- * @returns {object|null} - The require() video source or null
+ * @returns {string|null} - The video URL or null if not available
  */
 export function getExerciseVideo(exerciseName, variantName = null) {
-  // Strip equipment suffix like "(Barbell)" or nested "(Machine (Pec Deck))" from exercise name
+  // Strip equipment suffix like "(Barbell)" from exercise name
   const cleanName = exerciseName?.replace(/\s*\(.*$/, '').trim();
-
-  console.log(`🎬 [VideoLookup] Exercise: "${exerciseName}" -> Clean: "${cleanName}", Variant: "${variantName}"`);
 
   const exerciseMapping = EXERCISE_VIDEO_MAPPING[cleanName];
   if (!exerciseMapping) {
-    console.log(`🎬 [VideoLookup] No mapping found for "${cleanName}"`);
     return null;
   }
 
-  console.log(`🎬 [VideoLookup] Found mapping:`, Object.keys(exerciseMapping));
-
   // Try exact variant match first
+  let videoKey = null;
   if (variantName && exerciseMapping[variantName]) {
-    const videoKey = exerciseMapping[variantName];
-    console.log(`🎬 [VideoLookup] Exact match! Variant "${variantName}" -> Key "${videoKey}"`);
-    return LOCAL_VIDEOS[videoKey] || null;
+    videoKey = exerciseMapping[variantName];
+  } else if (exerciseMapping['_default']) {
+    videoKey = exerciseMapping['_default'];
+  } else {
+    videoKey = Object.values(exerciseMapping)[0];
   }
 
-  console.log(`🎬 [VideoLookup] No exact match for variant "${variantName}"`);
-
-  // Try default
-  if (exerciseMapping['_default']) {
-    const videoKey = exerciseMapping['_default'];
-    return LOCAL_VIDEOS[videoKey] || null;
+  if (!videoKey || !VIDEO_FILES[videoKey]) {
+    return null;
   }
 
-  // Return first available video for this exercise
-  const firstKey = Object.values(exerciseMapping)[0];
-  return LOCAL_VIDEOS[firstKey] || null;
+  // Return GitHub raw URL
+  const filename = VIDEO_FILES[videoKey];
+  return `${VIDEO_BASE_URL}${encodeURIComponent(filename)}`;
 }
 
 /**
@@ -316,4 +314,5 @@ export function hasExerciseVideo(exerciseName, variantName = null) {
   return getExerciseVideo(exerciseName, variantName) !== null;
 }
 
-export { LOCAL_VIDEOS, EXERCISE_VIDEO_MAPPING };
+// Export for reference
+export { VIDEO_FILES, EXERCISE_VIDEO_MAPPING, VIDEO_BASE_URL };

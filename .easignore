@@ -1,0 +1,23 @@
+# Large video files - too large for APK bundle
+# Videos should be streamed from external hosting
+assets/exercise-videos/
+
+# Large temp files
+ffmpeg_temp/
+
+# Development files
+*.log
+.claude/
+
+# Screenshots (not needed for build)
+docs/screenshots/
+assets/exercise-screenshots/
+
+# Large 3D models - optional feature
+assets/models/
+
+# Node modules (should already be excluded by default)
+node_modules/
+
+# Dist folder
+dist/
