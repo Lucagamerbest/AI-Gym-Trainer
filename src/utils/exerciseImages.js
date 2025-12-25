@@ -15,90 +15,175 @@ const LOCAL_IMAGES = {
   'weighted_chest_dip': require('../../assets/exercises/weighted_chest_dip.jpg'),
   'machine_chest_press': require('../../assets/exercises/machine_chest_press.jpg'),
 
-  // NEW - From video screenshots (73 images)
+  // NEW - From video screenshots (150+ images)
   // CHEST
   'bench_press_barbell': require('../../assets/exercises/bench_press_barbell.jpg'),
   'bench_press_dumbbell': require('../../assets/exercises/bench_press_dumbbell.jpg'),
   'bench_press_machine': require('../../assets/exercises/bench_press_machine.jpg'),
+  'bench_press_smith': require('../../assets/exercises/bench_press_smith.jpg'),
   'chest_press_horizontal': require('../../assets/exercises/chest_press_horizontal.jpg'),
   'chest_press_vertical': require('../../assets/exercises/chest_press_vertical.jpg'),
   'incline_bench_dumbbell': require('../../assets/exercises/incline_bench_dumbbell.jpg'),
+  'incline_bench_barbell': require('../../assets/exercises/incline_bench_barbell.jpg'),
+  'incline_bench_smith': require('../../assets/exercises/incline_bench_smith.jpg'),
   'chest_fly_dumbbell': require('../../assets/exercises/chest_fly_dumbbell.jpg'),
   'chest_fly_machine': require('../../assets/exercises/chest_fly_machine.jpg'),
   'chest_fly_cable': require('../../assets/exercises/chest_fly_cable.jpg'),
   'cable_crossover_low_high': require('../../assets/exercises/cable_crossover_low_high.jpg'),
   'cable_crossover_high_low': require('../../assets/exercises/cable_crossover_high_low.jpg'),
   'dips_bodyweight': require('../../assets/exercises/dips_bodyweight.jpg'),
+  'dips_weighted': require('../../assets/exercises/dips_weighted.jpg'),
   'dips_assisted': require('../../assets/exercises/dips_assisted.jpg'),
   'dips_machine': require('../../assets/exercises/dips_machine.jpg'),
   'close_grip_bench': require('../../assets/exercises/close_grip_bench.jpg'),
+  'close_grip_bench_smith': require('../../assets/exercises/close_grip_bench_smith.jpg'),
   'spoto_press': require('../../assets/exercises/spoto_press.jpg'),
+  'pushup_standard': require('../../assets/exercises/pushup_standard.jpg'),
+  'pushup_decline': require('../../assets/exercises/pushup_decline.jpg'),
+  'pushup_incline': require('../../assets/exercises/pushup_incline.jpg'),
+  'pushup_wide': require('../../assets/exercises/pushup_wide.jpg'),
+  'pushup_diamond': require('../../assets/exercises/pushup_diamond.jpg'),
 
   // BACK
   'bent_over_row_overhand': require('../../assets/exercises/bent_over_row_overhand.jpg'),
   'bent_over_row_pendlay': require('../../assets/exercises/bent_over_row_pendlay.jpg'),
+  'bent_over_row_dumbbell': require('../../assets/exercises/bent_over_row_dumbbell.jpg'),
+  'bent_over_row_smith': require('../../assets/exercises/bent_over_row_smith.jpg'),
   'one_arm_row_dumbbell': require('../../assets/exercises/one_arm_row_dumbbell.jpg'),
   'lat_pulldown': require('../../assets/exercises/lat_pulldown.jpg'),
+  'lat_pulldown_wide': require('../../assets/exercises/lat_pulldown_wide.jpg'),
+  'lat_pulldown_close': require('../../assets/exercises/lat_pulldown_close.jpg'),
+  'lat_pulldown_parallel': require('../../assets/exercises/lat_pulldown_parallel.jpg'),
+  'lat_pulldown_reverse': require('../../assets/exercises/lat_pulldown_reverse.jpg'),
+  'lat_pulldown_vbar': require('../../assets/exercises/lat_pulldown_vbar.jpg'),
+  'lat_pulldown_single': require('../../assets/exercises/lat_pulldown_single.jpg'),
   'chin_up_assisted': require('../../assets/exercises/chin_up_assisted.jpg'),
+  'chin_up_bodyweight': require('../../assets/exercises/chin_up_bodyweight.jpg'),
+  'chin_up_weighted': require('../../assets/exercises/chin_up_weighted.jpg'),
   'pull_up_assisted': require('../../assets/exercises/pull_up_assisted.jpg'),
+  'pull_up_bodyweight': require('../../assets/exercises/pull_up_bodyweight.jpg'),
+  'pull_up_weighted': require('../../assets/exercises/pull_up_weighted.jpg'),
+  'muscle_up': require('../../assets/exercises/muscle_up.jpg'),
+  'tbar_row_landmine': require('../../assets/exercises/tbar_row_landmine.jpg'),
+  'tbar_row_vbar': require('../../assets/exercises/tbar_row_vbar.jpg'),
+  'trx_row': require('../../assets/exercises/trx_row.jpg'),
   'seated_row_45deg': require('../../assets/exercises/seated_row_45deg.jpg'),
   'seated_row_horizontal': require('../../assets/exercises/seated_row_horizontal.jpg'),
   'seated_row_vertical': require('../../assets/exercises/seated_row_vertical.jpg'),
   'back_extension_machine': require('../../assets/exercises/back_extension_machine.jpg'),
+  'back_extension_bodyweight': require('../../assets/exercises/back_extension_bodyweight.jpg'),
+  'back_extension_weighted': require('../../assets/exercises/back_extension_weighted.jpg'),
 
   // SHOULDERS
   'shoulder_press_machine': require('../../assets/exercises/shoulder_press_machine.jpg'),
   'shoulder_press_dumbbell': require('../../assets/exercises/shoulder_press_dumbbell.jpg'),
   'shoulder_press_barbell_seated': require('../../assets/exercises/shoulder_press_barbell_seated.jpg'),
   'shoulder_press_barbell_standing': require('../../assets/exercises/shoulder_press_barbell_standing.jpg'),
+  'shoulder_press_smith': require('../../assets/exercises/shoulder_press_smith.jpg'),
   'lateral_raise_dumbbell': require('../../assets/exercises/lateral_raise_dumbbell.jpg'),
   'lateral_raise_seated': require('../../assets/exercises/lateral_raise_seated.jpg'),
   'lateral_raise_machine': require('../../assets/exercises/lateral_raise_machine.jpg'),
   'lateral_raise_cable_single': require('../../assets/exercises/lateral_raise_cable_single.jpg'),
   'lateral_raise_cable_both': require('../../assets/exercises/lateral_raise_cable_both.jpg'),
   'front_raise_dumbbell': require('../../assets/exercises/front_raise_dumbbell.jpg'),
+  'front_raise_cable': require('../../assets/exercises/front_raise_cable.jpg'),
   'rear_delt_fly_cable': require('../../assets/exercises/rear_delt_fly_cable.jpg'),
   'rear_delt_fly_machine': require('../../assets/exercises/rear_delt_fly_machine.jpg'),
   'rear_delt_fly_single': require('../../assets/exercises/rear_delt_fly_single.jpg'),
+  'rear_delt_fly_trx': require('../../assets/exercises/rear_delt_fly_trx.jpg'),
+  'shrugs_barbell': require('../../assets/exercises/shrugs_barbell.jpg'),
+  'shrugs_smith': require('../../assets/exercises/shrugs_smith.jpg'),
+  'shrugs_machine': require('../../assets/exercises/shrugs_machine.jpg'),
+  'upright_row_barbell': require('../../assets/exercises/upright_row_barbell.jpg'),
+  'upright_row_cable': require('../../assets/exercises/upright_row_cable.jpg'),
+  'face_pull_rear_delt': require('../../assets/exercises/face_pull_rear_delt.jpg'),
+  'face_pull_lats': require('../../assets/exercises/face_pull_lats.jpg'),
 
   // BICEPS
   'bicep_curl_dumbbell': require('../../assets/exercises/bicep_curl_dumbbell.jpg'),
   'bicep_curl_ez_bar': require('../../assets/exercises/bicep_curl_ez_bar.jpg'),
+  'bicep_curl_cable': require('../../assets/exercises/bicep_curl_cable.jpg'),
   'bicep_curl_one_arm': require('../../assets/exercises/bicep_curl_one_arm.jpg'),
+  'bicep_curl_one_arm_cable': require('../../assets/exercises/bicep_curl_one_arm_cable.jpg'),
   'hammer_curl_dumbbell': require('../../assets/exercises/hammer_curl_dumbbell.jpg'),
+  'hammer_curl_cable': require('../../assets/exercises/hammer_curl_cable.jpg'),
   'hammer_curl_preacher': require('../../assets/exercises/hammer_curl_preacher.jpg'),
+  'hammer_curl_incline': require('../../assets/exercises/hammer_curl_incline.jpg'),
   'bicep_curl_supinated': require('../../assets/exercises/bicep_curl_supinated.jpg'),
   'preacher_curl_ez_bar': require('../../assets/exercises/preacher_curl_ez_bar.jpg'),
   'preacher_curl_machine': require('../../assets/exercises/preacher_curl_machine.jpg'),
   'concentration_curl': require('../../assets/exercises/concentration_curl.jpg'),
   'high_cable_curl': require('../../assets/exercises/high_cable_curl.jpg'),
   'incline_dumbbell_curl': require('../../assets/exercises/incline_dumbbell_curl.jpg'),
+  'spider_curl_dumbbell': require('../../assets/exercises/spider_curl_dumbbell.jpg'),
+  'spider_curl_ez_bar': require('../../assets/exercises/spider_curl_ez_bar.jpg'),
+  'reverse_curl_cable': require('../../assets/exercises/reverse_curl_cable.jpg'),
 
   // TRICEPS
   'skull_crusher': require('../../assets/exercises/skull_crusher.jpg'),
   'skull_crusher_overhead': require('../../assets/exercises/skull_crusher_overhead.jpg'),
   'overhead_tricep_extension': require('../../assets/exercises/overhead_tricep_extension.jpg'),
+  'overhead_tricep_extension_cable': require('../../assets/exercises/overhead_tricep_extension_cable.jpg'),
+  'one_arm_overhead_extension_cable': require('../../assets/exercises/one_arm_overhead_extension_cable.jpg'),
+  'tricep_pushdown_rope': require('../../assets/exercises/tricep_pushdown_rope.jpg'),
+  'tricep_pushdown_straight': require('../../assets/exercises/tricep_pushdown_straight.jpg'),
+  'tricep_pushdown_one_arm': require('../../assets/exercises/tricep_pushdown_one_arm.jpg'),
 
   // LEGS
   'squat_high_bar': require('../../assets/exercises/squat_high_bar.jpg'),
   'squat_low_bar': require('../../assets/exercises/squat_low_bar.jpg'),
+  'squat_smith': require('../../assets/exercises/squat_smith.jpg'),
+  'squat_goblet': require('../../assets/exercises/squat_goblet.jpg'),
   'front_squat': require('../../assets/exercises/front_squat.jpg'),
   'deadlift_conventional': require('../../assets/exercises/deadlift_conventional.jpg'),
   'deadlift_sumo': require('../../assets/exercises/deadlift_sumo.jpg'),
   'deadlift_romanian': require('../../assets/exercises/deadlift_romanian.jpg'),
+  'deadlift_dumbbell': require('../../assets/exercises/deadlift_dumbbell.jpg'),
   'leg_extension': require('../../assets/exercises/leg_extension.jpg'),
   'leg_curl_lying': require('../../assets/exercises/leg_curl_lying.jpg'),
   'leg_curl_seated': require('../../assets/exercises/leg_curl_seated.jpg'),
   'hip_abduction': require('../../assets/exercises/hip_abduction.jpg'),
   'hip_adduction': require('../../assets/exercises/hip_adduction.jpg'),
   'hip_thrust_machine': require('../../assets/exercises/hip_thrust_machine.jpg'),
+  'hip_thrust_barbell': require('../../assets/exercises/hip_thrust_barbell.jpg'),
+  'hip_thrust_dumbbell': require('../../assets/exercises/hip_thrust_dumbbell.jpg'),
   'calf_raise_machine': require('../../assets/exercises/calf_raise_machine.jpg'),
   'calf_raise_leg_press': require('../../assets/exercises/calf_raise_leg_press.jpg'),
   'calf_raise_horizontal_press': require('../../assets/exercises/calf_raise_horizontal_press.jpg'),
+  'calf_raise_smith': require('../../assets/exercises/calf_raise_smith.jpg'),
+  'calf_raise_smith_elevated': require('../../assets/exercises/calf_raise_smith_elevated.jpg'),
   'leg_press_high_foot': require('../../assets/exercises/leg_press_high_foot.jpg'),
   'leg_press_low_foot': require('../../assets/exercises/leg_press_low_foot.jpg'),
   'leg_press_horizontal_high': require('../../assets/exercises/leg_press_horizontal_high.jpg'),
   'leg_press_horizontal_low': require('../../assets/exercises/leg_press_horizontal_low.jpg'),
+  'lunges_bodyweight': require('../../assets/exercises/lunges_bodyweight.jpg'),
+  'lunges_dumbbell': require('../../assets/exercises/lunges_dumbbell.jpg'),
+  'bulgarian_split_squat_dumbbell': require('../../assets/exercises/bulgarian_split_squat_dumbbell.jpg'),
+  'bulgarian_split_squat_single': require('../../assets/exercises/bulgarian_split_squat_single.jpg'),
+  'hang_clean': require('../../assets/exercises/hang_clean.jpg'),
+  'glute_kickback_cable': require('../../assets/exercises/glute_kickback_cable.jpg'),
+
+  // CORE
+  'crunches_bodyweight': require('../../assets/exercises/crunches_bodyweight.jpg'),
+  'crunches_cable': require('../../assets/exercises/crunches_cable.jpg'),
+  'crunches_machine': require('../../assets/exercises/crunches_machine.jpg'),
+  'plank': require('../../assets/exercises/plank.jpg'),
+  'russian_twist': require('../../assets/exercises/russian_twist.jpg'),
+  'russian_twist_weighted': require('../../assets/exercises/russian_twist_weighted.jpg'),
+
+  // FOREARMS
+  'wrist_curl_cable': require('../../assets/exercises/wrist_curl_cable.jpg'),
+  'wrist_curl_cable_single': require('../../assets/exercises/wrist_curl_cable_single.jpg'),
+
+  // CARDIO
+  'treadmill': require('../../assets/exercises/treadmill.jpg'),
+  'bike_upright': require('../../assets/exercises/bike_upright.jpg'),
+  'bike_recumbent': require('../../assets/exercises/bike_recumbent.jpg'),
+  'elliptical': require('../../assets/exercises/elliptical.jpg'),
+  'elliptical_horizontal': require('../../assets/exercises/elliptical_horizontal.jpg'),
+  'stair_climber': require('../../assets/exercises/stair_climber.jpg'),
+  'rowing_machine': require('../../assets/exercises/rowing_machine.jpg'),
+  'burpees': require('../../assets/exercises/burpees.jpg'),
 };
 
 const EXERCISE_IMAGE_MAPPING = {
@@ -106,15 +191,15 @@ const EXERCISE_IMAGE_MAPPING = {
   "Bench Press": {
     "Barbell": "LOCAL:bench_press_barbell",
     "Dumbbell": "LOCAL:bench_press_dumbbell",
-    "Smith Machine": "Smith_Machine_Bench_Press",
+    "Smith Machine": "LOCAL:bench_press_smith",
     "Machine": "LOCAL:bench_press_machine",
     "Spoto Press (Barbell)": "LOCAL:spoto_press"
   },
 
   "Incline Bench Press": {
-    "Barbell": "Barbell_Incline_Bench_Press_-_Medium_Grip",
+    "Barbell": "LOCAL:incline_bench_barbell",
     "Dumbbell": "LOCAL:incline_bench_dumbbell",
-    "Smith Machine": "Smith_Machine_Incline_Bench_Press",
+    "Smith Machine": "LOCAL:incline_bench_smith",
     "Machine": "Leverage_Incline_Chest_Press"
   },
 
@@ -131,15 +216,17 @@ const EXERCISE_IMAGE_MAPPING = {
   },
 
   "Push-ups": {
-    "Standard": "Pushups",
-    "Wide Grip": "Push-Up_Wide",
-    "Diamond": "Push-Ups_-_Close_Triceps_Position",
-    "Decline": "Decline_Push-Up"
+    "Standard": "LOCAL:pushup_standard",
+    "Wide Grip": "LOCAL:pushup_wide",
+    "Diamond": "LOCAL:pushup_diamond",
+    "Decline": "LOCAL:pushup_decline",
+    "Incline": "LOCAL:pushup_incline"
   },
 
   "Chest Dips": {
     "Bodyweight": "LOCAL:dips_bodyweight",
-    "Weighted (Dip Belt)": "LOCAL:weighted_chest_dip",
+    "Weighted": "LOCAL:dips_weighted",
+    "Weighted (Dip Belt)": "LOCAL:dips_weighted",
     "Assisted Machine": "LOCAL:dips_assisted",
     "Dip Machine": "LOCAL:dips_machine"
   },
@@ -151,13 +238,17 @@ const EXERCISE_IMAGE_MAPPING = {
 
   // ============ BACK ============
   "Lat Pulldown": {
-    "Wide Grip": "LOCAL:lat_pulldown",
-    "Close Grip": "Close-Grip_Front_Lat_Pulldown",
-    "Reverse Grip (Supinated)": "Underhand_Cable_Pulldowns",
-    "V-Bar (Neutral Grip)": "V-Bar_Pulldown",
+    "Wide Grip": "LOCAL:lat_pulldown_wide",
+    "Close Grip": "LOCAL:lat_pulldown_close",
+    "Parallel Grip": "LOCAL:lat_pulldown_parallel",
+    "Reverse Grip": "LOCAL:lat_pulldown_reverse",
+    "Reverse Grip (Supinated)": "LOCAL:lat_pulldown_reverse",
+    "V-Bar": "LOCAL:lat_pulldown_vbar",
+    "V-Bar (Neutral Grip)": "LOCAL:lat_pulldown_vbar",
     "Wide Neutral Grip": "LOCAL:lat_pulldown",
-    "Single Arm": "One_Arm_Lat_Pulldown",
-    "Dual Handles": "Full_Range-Of-Motion_Lat_Pulldown"
+    "Single Arm": "LOCAL:lat_pulldown_single",
+    "Machine": "LOCAL:lat_pulldown",
+    "Dual Handles": "LOCAL:lat_pulldown"
   },
 
   "Cable Row": {
@@ -174,7 +265,9 @@ const EXERCISE_IMAGE_MAPPING = {
   "Bent Over Row": {
     "Barbell Overhand": "LOCAL:bent_over_row_overhand",
     "Barbell Underhand": "LOCAL:bent_over_row_overhand",
-    "Pendlay": "LOCAL:bent_over_row_pendlay"
+    "Pendlay": "LOCAL:bent_over_row_pendlay",
+    "Dumbbell": "LOCAL:bent_over_row_dumbbell",
+    "Smith Machine": "LOCAL:bent_over_row_smith"
   },
 
   "Pullover": {
@@ -194,29 +287,41 @@ const EXERCISE_IMAGE_MAPPING = {
   },
 
   "Chin Up": {
-    "Shoulder Width": "LOCAL:chin_up_assisted",
-    "Narrow Grip": "LOCAL:chin_up_assisted"
+    "Bodyweight": "LOCAL:chin_up_bodyweight",
+    "Weighted": "LOCAL:chin_up_weighted",
+    "Assisted": "LOCAL:chin_up_assisted",
+    "Shoulder Width": "LOCAL:chin_up_bodyweight",
+    "Narrow Grip": "LOCAL:chin_up_bodyweight"
   },
 
   "Muscle Up": {
-    "Bar": "Muscle_Up",
-    "Ring": "Muscle_Up"
+    "Bar": "LOCAL:muscle_up",
+    "Ring": "LOCAL:muscle_up"
   },
 
   "Pull Ups": {
-    "Wide Grip": "Wide-Grip_Rear_Pull-Up",
-    "Shoulder Width": "Pullups"
+    "Bodyweight": "LOCAL:pull_up_bodyweight",
+    "Weighted": "LOCAL:pull_up_weighted",
+    "Assisted": "LOCAL:pull_up_assisted",
+    "Wide Grip": "LOCAL:pull_up_bodyweight",
+    "Shoulder Width": "LOCAL:pull_up_bodyweight"
   },
 
   "Weighted Pull Ups": {
-    "Dip Belt with Plates": "Pullups",
-    "Dumbbell Between Feet": "Pullups",
-    "Weight Vest": "Pullups"
+    "Dip Belt with Plates": "LOCAL:pull_up_weighted",
+    "Dumbbell Between Feet": "LOCAL:pull_up_weighted",
+    "Weight Vest": "LOCAL:pull_up_weighted"
   },
 
   "T-Bar Row": {
-    "T-Bar Machine": "Lying_T-Bar_Row",
-    "Landmine Barbell": "Lying_T-Bar_Row"
+    "T-Bar Machine": "LOCAL:tbar_row_landmine",
+    "Landmine": "LOCAL:tbar_row_landmine",
+    "Landmine Barbell": "LOCAL:tbar_row_landmine",
+    "V-Bar": "LOCAL:tbar_row_vbar"
+  },
+
+  "TRX Row": {
+    "TRX": "LOCAL:trx_row"
   },
 
   "Assisted Pull-up": {
@@ -232,16 +337,20 @@ const EXERCISE_IMAGE_MAPPING = {
 
   "Back Extension": {
     "Machine": "LOCAL:back_extension_machine",
-    "Roman Chair": "LOCAL:back_extension_machine",
-    "Bodyweight": "LOCAL:back_extension_machine"
+    "Roman Chair": "LOCAL:back_extension_bodyweight",
+    "Bodyweight": "LOCAL:back_extension_bodyweight",
+    "Weighted": "LOCAL:back_extension_weighted"
   },
 
   // ============ SHOULDERS ============
   "Shoulder Press": {
     "Barbell": "LOCAL:shoulder_press_barbell_seated",
+    "Barbell Seated": "LOCAL:shoulder_press_barbell_seated",
+    "Barbell Standing": "LOCAL:shoulder_press_barbell_standing",
+    "Dumbbell": "LOCAL:shoulder_press_dumbbell",
     "Dumbbell Seated": "LOCAL:shoulder_press_dumbbell",
     "Machine": "LOCAL:shoulder_press_machine",
-    "Smith Machine": "Smith_Machine_Overhead_Shoulder_Press"
+    "Smith Machine": "LOCAL:shoulder_press_smith"
   },
 
   "Lateral Raise": {
@@ -255,33 +364,37 @@ const EXERCISE_IMAGE_MAPPING = {
   "Front Raise": {
     "Barbell": "Standing_Front_Barbell_Raise_Over_Head",
     "Dumbbell": "LOCAL:front_raise_dumbbell",
-    "Cable": "Front_Cable_Raise",
+    "Cable": "LOCAL:front_raise_cable",
     "Plate": "Front_Plate_Raise"
   },
 
   "Shrugs": {
-    "Barbell": "Barbell_Shrug",
+    "Barbell": "LOCAL:shrugs_barbell",
     "Dumbbell": "Dumbbell_Shrug",
-    "Smith Machine": "Smith_Machine_Behind_the_Back_Shrug",
+    "Smith Machine": "LOCAL:shrugs_smith",
+    "Machine": "LOCAL:shrugs_machine",
     "Trap Bar": null
   },
 
   "Rear Delt Fly": {
     "Cable Cross": "LOCAL:rear_delt_fly_cable",
     "Machine Pec Deck Reverse": "LOCAL:rear_delt_fly_machine",
-    "Machine Single Arm": "LOCAL:rear_delt_fly_single"
+    "Machine Single Arm": "LOCAL:rear_delt_fly_single",
+    "TRX": "LOCAL:rear_delt_fly_trx"
   },
 
   "Upright Row": {
-    "Barbell": "Upright_Barbell_Row",
+    "Barbell": "LOCAL:upright_row_barbell",
     "Dumbbell": "Standing_Dumbbell_Upright_Row",
-    "Cable": "Upright_Cable_Row",
+    "Cable": "LOCAL:upright_row_cable",
     "EZ Bar": "Upright_Row_-_With_Bands"
   },
 
   "Face Pull": {
-    "Cable Rope": "Face_Pull",
-    "Resistance Band": "Face_Pull"
+    "Cable Rope": "LOCAL:face_pull_rear_delt",
+    "Cable Rear Delt": "LOCAL:face_pull_rear_delt",
+    "Cable Lat Focus": "LOCAL:face_pull_lats",
+    "Resistance Band": "LOCAL:face_pull_rear_delt"
   },
 
   // ============ BICEPS ============
@@ -289,22 +402,27 @@ const EXERCISE_IMAGE_MAPPING = {
     "Incline Dumbbell": "LOCAL:incline_dumbbell_curl",
     "Barbell": "Barbell_Curl",
     "EZ Bar": "LOCAL:bicep_curl_ez_bar",
+    "Dumbbell": "LOCAL:bicep_curl_dumbbell",
     "Dumbbell Standing": "LOCAL:bicep_curl_dumbbell",
-    "Cable Standing": "Standing_Biceps_Cable_Curl"
+    "Cable": "LOCAL:bicep_curl_cable",
+    "Cable Standing": "LOCAL:bicep_curl_cable"
   },
 
   "One Arm Bicep Curl": {
     "Dumbbell": "LOCAL:bicep_curl_one_arm",
-    "Cable Low": "Standing_One-Arm_Cable_Curl",
-    "Cable Mid": "Standing_One-Arm_Cable_Curl",
-    "Cable Front": "Standing_One-Arm_Cable_Curl",
-    "Cable Back": "Standing_One-Arm_Cable_Curl"
+    "Cable": "LOCAL:bicep_curl_one_arm_cable",
+    "Cable Low": "LOCAL:bicep_curl_one_arm_cable",
+    "Cable Mid": "LOCAL:bicep_curl_one_arm_cable",
+    "Cable Front": "LOCAL:bicep_curl_one_arm_cable",
+    "Cable Back": "LOCAL:bicep_curl_one_arm_cable"
   },
 
   "Hammer Curl": {
-    "Cable Rope": "Cable_Hammer_Curls_-_Rope_Attachment",
+    "Cable Rope": "LOCAL:hammer_curl_cable",
+    "Cable": "LOCAL:hammer_curl_cable",
     "Dumbbell": "LOCAL:hammer_curl_dumbbell",
-    "Dumbbell Seated": "Incline_Hammer_Curls",
+    "Dumbbell Seated": "LOCAL:hammer_curl_incline",
+    "Incline Seated": "LOCAL:hammer_curl_incline",
     "Preacher Machine": "LOCAL:hammer_curl_preacher"
   },
 
@@ -329,8 +447,15 @@ const EXERCISE_IMAGE_MAPPING = {
   },
 
   "Spider Curl": {
-    "EZ Bar": "Spider_Curl",
-    "Dumbbell": "Dumbbell_Prone_Incline_Curl"
+    "EZ Bar": "LOCAL:spider_curl_ez_bar",
+    "Dumbbell": "LOCAL:spider_curl_dumbbell"
+  },
+
+  "Reverse Curl": {
+    "Barbell": "Reverse_Barbell_Curl",
+    "EZ Bar": "Reverse_Cable_Curl",
+    "Dumbbell": "Standing_Dumbbell_Reverse_Curl",
+    "Cable": "LOCAL:reverse_curl_cable"
   },
 
   "Zottman Curl": {
@@ -339,25 +464,28 @@ const EXERCISE_IMAGE_MAPPING = {
 
   // ============ TRICEPS ============
   "Tricep Pushdown": {
-    "Cable Rope": "Triceps_Pushdown_-_Rope_Attachment",
-    "Straight Bar": "Triceps_Pushdown",
-    "V-Bar": "Triceps_Pushdown_-_V-Bar_Attachment"
+    "Cable Rope": "LOCAL:tricep_pushdown_rope",
+    "Rope": "LOCAL:tricep_pushdown_rope",
+    "Straight Bar": "LOCAL:tricep_pushdown_straight",
+    "V-Bar": "LOCAL:tricep_pushdown_straight"
   },
 
   "One Arm Tricep Pushdown": {
-    "Single Handle": "Cable_One_Arm_Tricep_Extension",
-    "Rope": "Standing_Low-Pulley_One-Arm_Triceps_Extension"
+    "Single Handle": "LOCAL:tricep_pushdown_one_arm",
+    "Cable": "LOCAL:tricep_pushdown_one_arm",
+    "Rope": "LOCAL:tricep_pushdown_one_arm"
   },
 
   "Overhead Tricep Extension": {
-    "Cable Rope": "Cable_Rope_Overhead_Triceps_Extension",
+    "Cable Rope": "LOCAL:overhead_tricep_extension_cable",
     "Dumbbell Two-Handed": "LOCAL:overhead_tricep_extension",
+    "Dumbbell": "LOCAL:overhead_tricep_extension",
     "EZ Bar": "Incline_Barbell_Triceps_Extension"
   },
 
   "One Arm Overhead Extension": {
     "Dumbbell": "Dumbbell_One-Arm_Triceps_Extension",
-    "Cable": "Kneeling_Cable_Triceps_Extension"
+    "Cable": "LOCAL:one_arm_overhead_extension_cable"
   },
 
   "Skull Crusher": {
@@ -369,13 +497,16 @@ const EXERCISE_IMAGE_MAPPING = {
 
   "Dips": {
     "Parallel Bars": "LOCAL:dips_bodyweight",
+    "Bodyweight": "LOCAL:dips_bodyweight",
+    "Weighted": "LOCAL:dips_weighted",
     "Assisted Machine": "LOCAL:dips_assisted",
+    "Machine": "LOCAL:dips_machine",
     "Bench Dips": "Bench_Dips"
   },
 
   "Close Grip Bench Press": {
     "Barbell": "LOCAL:close_grip_bench",
-    "Smith Machine": "Smith_Machine_Close-Grip_Bench_Press",
+    "Smith Machine": "LOCAL:close_grip_bench_smith",
     "Dumbbell": "Close-Grip_Dumbbell_Press"
   },
 
@@ -398,15 +529,17 @@ const EXERCISE_IMAGE_MAPPING = {
 
   // ============ ABS ============
   "Crunches": {
-    "Bodyweight Floor": "Crunches",
-    "Cable Kneeling": "Cable_Crunch",
-    "Machine": "Ab_Crunch_Machine"
+    "Bodyweight Floor": "LOCAL:crunches_bodyweight",
+    "Bodyweight": "LOCAL:crunches_bodyweight",
+    "Cable Kneeling": "LOCAL:crunches_cable",
+    "Cable": "LOCAL:crunches_cable",
+    "Machine": "LOCAL:crunches_machine"
   },
 
   "Plank": {
-    "Bodyweight": "Plank",
-    "Weighted": "Weighted_Ball_Side_Bend",
-    "Elevated Feet": null
+    "Bodyweight": "LOCAL:plank",
+    "Weighted": "LOCAL:plank",
+    "Elevated Feet": "LOCAL:plank"
   },
 
   "Leg Raises": {
@@ -416,9 +549,10 @@ const EXERCISE_IMAGE_MAPPING = {
   },
 
   "Russian Twist": {
-    "Bodyweight": "Russian_Twist",
-    "Medicine Ball": "Russian_Twist",
-    "Dumbbell": "Russian_Twist"
+    "Bodyweight": "LOCAL:russian_twist",
+    "Medicine Ball": "LOCAL:russian_twist_weighted",
+    "Dumbbell": "LOCAL:russian_twist_weighted",
+    "Weighted": "LOCAL:russian_twist_weighted"
   },
 
   "Ab Wheel Rollout": {
@@ -461,7 +595,8 @@ const EXERCISE_IMAGE_MAPPING = {
 
   "Standing Calf Raise": {
     "Machine": "LOCAL:calf_raise_machine",
-    "Smith Machine": "Smith_Machine_Calf_Raise",
+    "Smith Machine": "LOCAL:calf_raise_smith",
+    "Smith Machine Elevated": "LOCAL:calf_raise_smith_elevated",
     "Barbell": "Standing_Barbell_Calf_Raise",
     "Leg Press": "LOCAL:calf_raise_leg_press",
     "Horizontal Leg Press": "LOCAL:calf_raise_horizontal_press"
@@ -470,8 +605,9 @@ const EXERCISE_IMAGE_MAPPING = {
   "Squat": {
     "Barbell High Bar": "LOCAL:squat_high_bar",
     "Barbell Low Bar": "LOCAL:squat_low_bar",
-    "Smith Machine": "Smith_Machine_Squat",
-    "Dumbbell Goblet": "Dumbbell_Squat"
+    "Smith Machine": "LOCAL:squat_smith",
+    "Goblet": "LOCAL:squat_goblet",
+    "Dumbbell Goblet": "LOCAL:squat_goblet"
   },
 
   "Hip Abduction": {
@@ -480,19 +616,19 @@ const EXERCISE_IMAGE_MAPPING = {
   },
 
   "Glute Kickback": {
-    "Cable": "Glute_Kickback",
-    "Machine": null,
+    "Cable": "LOCAL:glute_kickback_cable",
+    "Machine": "LOCAL:glute_kickback_cable",
     "Bodyweight": "Glute_Kickback"
   },
 
   "Hang Clean": {
-    "Barbell": "Hang_Clean",
+    "Barbell": "LOCAL:hang_clean",
     "Dumbbell": "Dumbbell_Clean"
   },
 
   "Hip Thrust": {
-    "Barbell": "Barbell_Hip_Thrust",
-    "Dumbbell": "Dumbbell_Bench_Press",
+    "Barbell": "LOCAL:hip_thrust_barbell",
+    "Dumbbell": "LOCAL:hip_thrust_dumbbell",
     "Machine": "LOCAL:hip_thrust_machine",
     "Smith Machine": "LOCAL:hip_thrust_machine"
   },
@@ -503,12 +639,13 @@ const EXERCISE_IMAGE_MAPPING = {
   },
 
   "Lunges": {
-    "Dumbbell Walking": "Dumbbell_Lunges",
+    "Dumbbell Walking": "LOCAL:lunges_dumbbell",
+    "Dumbbell": "LOCAL:lunges_dumbbell",
     "Barbell Walking": "Barbell_Walking_Lunge",
-    "Dumbbell Stationary": "Dumbbell_Lunges",
-    "Bodyweight": "Bodyweight_Walking_Lunge",
+    "Dumbbell Stationary": "LOCAL:lunges_dumbbell",
+    "Bodyweight": "LOCAL:lunges_bodyweight",
     "Reverse Lunge": "Dumbbell_Rear_Lunge",
-    "Smith Machine": "Bodyweight_Walking_Lunge"
+    "Smith Machine": "LOCAL:lunges_bodyweight"
   },
 
   "Seated Calf Raise": {
@@ -520,6 +657,7 @@ const EXERCISE_IMAGE_MAPPING = {
     "Barbell Conventional": "LOCAL:deadlift_conventional",
     "Barbell Sumo": "LOCAL:deadlift_sumo",
     "Trap Bar": "Barbell_Deadlift",
+    "Dumbbell": "LOCAL:deadlift_dumbbell",
     "Dumbbell Romanian": "Stiff-Legged_Dumbbell_Deadlift",
     "Barbell Romanian": "LOCAL:deadlift_romanian"
   },
@@ -534,10 +672,11 @@ const EXERCISE_IMAGE_MAPPING = {
   },
 
   "Bulgarian Split Squat": {
-    "Dumbbell": "Split_Squat_with_Dumbbells",
+    "Dumbbell": "LOCAL:bulgarian_split_squat_dumbbell",
+    "Single Dumbbell": "LOCAL:bulgarian_split_squat_single",
     "Barbell": "Barbell_Side_Split_Squat",
-    "Bodyweight": "Single-Leg_Leg_Extension",
-    "Smith Machine": "Split_Squat_with_Dumbbells"
+    "Bodyweight": "LOCAL:bulgarian_split_squat_dumbbell",
+    "Smith Machine": "LOCAL:bulgarian_split_squat_dumbbell"
   },
 
   "Front Squat": {
@@ -599,30 +738,34 @@ const EXERCISE_IMAGE_MAPPING = {
     "Dumbbell": "Standing_Dumbbell_Reverse_Curl"
   },
 
-  // ============ CARDIO - NO IMAGES ============
+  // ============ CARDIO ============
   "Treadmill": {
-    "Walking": null,
-    "Jogging": null,
-    "Running": null,
-    "Incline Walking": null,
-    "HIIT Intervals": null
+    "Walking": "LOCAL:treadmill",
+    "Jogging": "LOCAL:treadmill",
+    "Running": "LOCAL:treadmill",
+    "Incline Walking": "LOCAL:treadmill",
+    "HIIT Intervals": "LOCAL:treadmill"
   },
 
   "Stationary Bike": {
-    "Steady State": null,
-    "HIIT": null,
-    "Spin Class": null
+    "Upright": "LOCAL:bike_upright",
+    "Recumbent": "LOCAL:bike_recumbent",
+    "Steady State": "LOCAL:bike_upright",
+    "HIIT": "LOCAL:bike_upright",
+    "Spin Class": "LOCAL:bike_upright"
   },
 
   "Rowing Machine": {
-    "Steady State": null,
-    "HIIT Intervals": null
+    "Steady State": "LOCAL:rowing_machine",
+    "HIIT Intervals": "LOCAL:rowing_machine"
   },
 
   "Elliptical": {
-    "Forward": null,
-    "Reverse": null,
-    "HIIT": null
+    "Standard": "LOCAL:elliptical",
+    "Horizontal": "LOCAL:elliptical_horizontal",
+    "Forward": "LOCAL:elliptical",
+    "Reverse": "LOCAL:elliptical",
+    "HIIT": "LOCAL:elliptical"
   },
 
   "Jump Rope": {
@@ -632,15 +775,15 @@ const EXERCISE_IMAGE_MAPPING = {
   },
 
   "Stair Climber": {
-    "Steady Pace": null,
-    "HIIT": null,
-    "Skip-a-Step": null
+    "Steady Pace": "LOCAL:stair_climber",
+    "HIIT": "LOCAL:stair_climber",
+    "Skip-a-Step": "LOCAL:stair_climber"
   },
 
   "Burpees": {
-    "Bodyweight": null,
-    "Push-up Burpees": null,
-    "Box Jump Burpees": null
+    "Bodyweight": "LOCAL:burpees",
+    "Push-up Burpees": "LOCAL:burpees",
+    "Box Jump Burpees": "LOCAL:burpees"
   }
 };
 

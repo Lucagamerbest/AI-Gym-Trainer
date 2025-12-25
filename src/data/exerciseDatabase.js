@@ -1785,6 +1785,42 @@ export const exerciseDatabase = {
           ]
         }
       ]
+    },
+    {
+      "id": "back-18",
+      "name": "TRX Row",
+      "muscleGroup": "Back",
+      "primaryMuscles": ["Lats", "Middle Back", "Rhomboids"],
+      "secondaryMuscles": ["Biceps", "Rear Deltoids", "Core"],
+      "equipment": "TRX, Suspension Trainer",
+      "difficulty": "Intermediate",
+      "instructions": "A bodyweight pulling exercise using suspension straps. Grab the TRX handles, lean back with arms extended, and pull your chest toward the handles by squeezing your shoulder blades together. The difficulty can be adjusted by changing your body angle - more horizontal is harder.",
+      "variants": [
+        {
+          "equipment": "TRX",
+          "difficulty": "Intermediate",
+          "pros": [
+            "Adjustable difficulty by changing body angle",
+            "Engages core throughout the movement",
+            "Joint-friendly pulling motion",
+            "Great for developing mind-muscle connection",
+            "Can be done anywhere with anchor point"
+          ],
+          "cons": [
+            "Limited loading compared to weighted rows",
+            "Requires TRX or suspension trainer",
+            "Can be challenging to maintain consistent form"
+          ],
+          "setupTips": [
+            "Anchor TRX at head height or above",
+            "Grip handles with palms facing each other",
+            "Walk feet forward to increase difficulty",
+            "Keep body straight like a plank throughout",
+            "Pull handles to chest, squeeze shoulder blades",
+            "Lower with control, fully extending arms"
+          ]
+        }
+      ]
     }
   ],
   "shoulders": [
@@ -2206,6 +2242,28 @@ export const exerciseDatabase = {
             "Shrug shoulders straight up",
             "Focus on trap contraction",
             "Lower slowly to maximize muscle time under tension"
+          ]
+        },
+        {
+          "equipment": "Machine",
+          "difficulty": "Beginner",
+          "pros": [
+            "Chest support removes lower back strain",
+            "Stable position allows focus on traps",
+            "Easy to progressively overload",
+            "Great for high volume training"
+          ],
+          "cons": [
+            "Requires specific machine (not in all gyms)",
+            "Fixed movement path",
+            "Less functional than free weights"
+          ],
+          "setupTips": [
+            "Adjust chest pad to comfortable height",
+            "Grip handles with arms hanging straight",
+            "Shrug shoulders straight up toward ears",
+            "Squeeze traps hard at the top",
+            "Lower with control for full stretch"
           ]
         }
       ]
