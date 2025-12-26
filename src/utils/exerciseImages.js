@@ -226,7 +226,7 @@ const EXERCISE_IMAGE_MAPPING = {
   "Chest Dips": {
     "Bodyweight": "LOCAL:dips_bodyweight",
     "Weighted": "LOCAL:dips_weighted",
-    "Weighted (Dip Belt)": "LOCAL:dips_weighted",
+    "Weighted (Dumbbell)": "LOCAL:dips_weighted",
     "Assisted Machine": "LOCAL:dips_assisted",
     "Dip Machine": "LOCAL:dips_machine"
   },
@@ -245,10 +245,8 @@ const EXERCISE_IMAGE_MAPPING = {
     "Reverse Grip (Supinated)": "LOCAL:lat_pulldown_reverse",
     "V-Bar": "LOCAL:lat_pulldown_vbar",
     "V-Bar (Neutral Grip)": "LOCAL:lat_pulldown_vbar",
-    "Wide Neutral Grip": "LOCAL:lat_pulldown",
     "Single Arm": "LOCAL:lat_pulldown_single",
-    "Machine": "LOCAL:lat_pulldown",
-    "Dual Handles": "LOCAL:lat_pulldown"
+    "Machine": "LOCAL:lat_pulldown"
   },
 
   "Cable Row": {
@@ -271,14 +269,8 @@ const EXERCISE_IMAGE_MAPPING = {
   },
 
   "Pullover": {
-    "Cable Standing": null,
-    "Cable Lying": null,
-    "Dumbbell": "Bent-Arm_Dumbbell_Pullover",
+    "Cable Standing": "LOCAL:face_pull_lats",
     "Machine": null
-  },
-
-  "Band Assisted Pull-up": {
-    "Resistance Band": "Band_Assisted_Pull-Up"
   },
 
   "Cable Incline Pushdown": {
@@ -288,29 +280,17 @@ const EXERCISE_IMAGE_MAPPING = {
 
   "Chin Up": {
     "Bodyweight": "LOCAL:chin_up_bodyweight",
-    "Weighted": "LOCAL:chin_up_weighted",
-    "Assisted": "LOCAL:chin_up_assisted",
-    "Shoulder Width": "LOCAL:chin_up_bodyweight",
-    "Narrow Grip": "LOCAL:chin_up_bodyweight"
+    "Weighted": "LOCAL:chin_up_weighted"
   },
 
   "Muscle Up": {
     "Bar": "LOCAL:muscle_up",
-    "Ring": "LOCAL:muscle_up"
+    "_default": "LOCAL:muscle_up"
   },
 
   "Pull Ups": {
     "Bodyweight": "LOCAL:pull_up_bodyweight",
-    "Weighted": "LOCAL:pull_up_weighted",
-    "Assisted": "LOCAL:pull_up_assisted",
-    "Wide Grip": "LOCAL:pull_up_bodyweight",
-    "Shoulder Width": "LOCAL:pull_up_bodyweight"
-  },
-
-  "Weighted Pull Ups": {
-    "Dip Belt with Plates": "LOCAL:pull_up_weighted",
-    "Dumbbell Between Feet": "LOCAL:pull_up_weighted",
-    "Weight Vest": "LOCAL:pull_up_weighted"
+    "Weighted": "LOCAL:pull_up_weighted"
   },
 
   "T-Bar Row": {
@@ -499,6 +479,7 @@ const EXERCISE_IMAGE_MAPPING = {
     "Parallel Bars": "LOCAL:dips_bodyweight",
     "Bodyweight": "LOCAL:dips_bodyweight",
     "Weighted": "LOCAL:dips_weighted",
+    "Weighted (Dumbbell)": "LOCAL:dips_weighted",
     "Assisted Machine": "LOCAL:dips_assisted",
     "Machine": "LOCAL:dips_machine",
     "Bench Dips": "Bench_Dips"

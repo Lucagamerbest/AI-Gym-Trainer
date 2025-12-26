@@ -9,10 +9,27 @@ import { useAuth } from '../context/AuthContext';
 import { useAICoach } from '../context/AICoachContext';
 import { WorkoutStorageService } from '../services/workoutStorage';
 import { loadUserProfile } from '../services/userProfileAssessment';
-import * as WebBrowser from 'expo-web-browser';
-import * as Google from 'expo-auth-session/providers/google';
 
-WebBrowser.maybeCompleteAuthSession();
+// Conditionally import Google Sign-In (not available in Expo Go)
+let GoogleSignin = null;
+let statusCodes = null;
+let isGoogleSignInAvailable = false;
+
+try {
+  const googleSignIn = require('@react-native-google-signin/google-signin');
+  GoogleSignin = googleSignIn.GoogleSignin;
+  statusCodes = googleSignIn.statusCodes;
+
+  // Configure Google Sign-In once when module loads
+  GoogleSignin.configure({
+    // Web client ID (not Android client ID!) - required for getting idToken
+    webClientId: '1011295206743-8jkfemcg0fcss02fgm14b9lhv282uk33.apps.googleusercontent.com',
+    offlineAccess: true,
+  });
+  isGoogleSignInAvailable = true;
+} catch (e) {
+  console.log('Google Sign-In not available (Expo Go mode)');
+}
 
 export default function ProfileScreen({ navigation }) {
   const { user, signIn, signInWithGoogle, signOut } = useAuth();
@@ -45,30 +62,28 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
-  // Google Sign-In configuration with YOUR credentials
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    expoClientId: '1011295206743-8jkfemcg0fcss02fgm14b9lhv282uk33.apps.googleusercontent.com',
-    iosClientId: '1011295206743-rl70k9ibahkkgkf41j8qr6vfneedgb8s.apps.googleusercontent.com',
-    androidClientId: '1011295206743-ab4i5hlk0qoh9ojqm9itmp932peacv4q.apps.googleusercontent.com',
-    webClientId: '1011295206743-8jkfemcg0fcss02fgm14b9lhv282uk33.apps.googleusercontent.com',
-    scopes: ['openid', 'profile', 'email'],
-  });
-
-  useEffect(() => {
-    if (response?.type === 'success') {
-      handleGoogleSignIn(response);
+  // Native Google Sign-In handler
+  const handleNativeGoogleSignIn = async () => {
+    if (!isGoogleSignInAvailable) {
+      Alert.alert('Not Available', 'Google Sign-In is not available in Expo Go. Please use email sign-in or build a development version.');
+      return;
     }
-  }, [response]);
 
-  const handleGoogleSignIn = async (response) => {
     try {
       setIsLoading(true);
 
-      const { authentication } = response;
+      // Check if device supports Google Play Services
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
 
-      if (authentication?.idToken) {
+      // Sign in with Google
+      const userInfo = await GoogleSignin.signIn();
+
+      // Get the ID token
+      const idToken = userInfo?.data?.idToken;
+
+      if (idToken) {
         // Sign in with Firebase Auth using Google credential
-        const result = await signInWithGoogle({ idToken: authentication.idToken });
+        const result = await signInWithGoogle({ idToken });
 
         if (result.success) {
           Alert.alert('Success', 'Signed in with Google!');
@@ -79,7 +94,15 @@ export default function ProfileScreen({ navigation }) {
         Alert.alert('Sign In Failed', 'Failed to get Google credentials');
       }
     } catch (error) {
-      Alert.alert('Sign In Error', 'Something went wrong. Please try again.');
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        // User cancelled the sign-in flow - do nothing
+      } else if (error.code === statusCodes.IN_PROGRESS) {
+        Alert.alert('Please Wait', 'Sign in is already in progress');
+      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        Alert.alert('Error', 'Google Play Services is not available on this device');
+      } else {
+        Alert.alert('Sign In Error', error.message || 'Something went wrong. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -126,14 +149,8 @@ export default function ProfileScreen({ navigation }) {
             size="lg"
             variant="primary"
             fullWidth
-            onPress={() => {
-              if (request) {
-                promptAsync();
-              } else {
-                Alert.alert('Loading', 'Please wait while Google Sign-In loads...');
-              }
-            }}
-            disabled={!request || isLoading}
+            onPress={handleNativeGoogleSignIn}
+            disabled={isLoading}
             style={styles.googleButton}
           />
           {isLoading && (

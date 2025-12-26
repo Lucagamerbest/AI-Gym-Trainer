@@ -1,12 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  TouchableOpacity, 
-  Animated, 
-  Dimensions, 
-  Alert, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Animated,
+  Dimensions,
+  Alert,
   ActivityIndicator,
   TextInput,
   KeyboardAvoidingView,
@@ -16,59 +16,45 @@ import {
 import AnimatedBackground from '../components/AnimatedBackground';
 import { Colors, Spacing, Typography, BorderRadius, Shadows } from '../constants/theme';
 import { useAuth } from '../context/AuthContext';
-import * as WebBrowser from 'expo-web-browser';
-import * as Google from 'expo-auth-session/providers/google';
 
 const { width } = Dimensions.get('window');
 
-WebBrowser.maybeCompleteAuthSession();
+// Conditionally import Google Sign-In (not available in Expo Go)
+let GoogleSignin = null;
+let statusCodes = null;
+let isGoogleSignInAvailable = false;
+
+try {
+  const googleSignIn = require('@react-native-google-signin/google-signin');
+  GoogleSignin = googleSignIn.GoogleSignin;
+  statusCodes = googleSignIn.statusCodes;
+
+  // Configure Google Sign-In once when module loads
+  GoogleSignin.configure({
+    // Web client ID (not Android client ID!) - required for getting idToken
+    webClientId: '1011295206743-8jkfemcg0fcss02fgm14b9lhv282uk33.apps.googleusercontent.com',
+    offlineAccess: true,
+  });
+  isGoogleSignInAvailable = true;
+} catch (e) {
+  console.log('Google Sign-In not available (Expo Go mode)');
+}
 
 export default function SignInScreen({ navigation }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
-  
+
   const { signIn, signInWithGoogle, signInWithEmail, createAccountWithEmail } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  
+
   // Form fields
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
-
-  // Check if we're on Android emulator
-  const isAndroidEmulator = Platform.OS === 'web' &&
-    typeof window !== 'undefined' &&
-    (window.location.hostname === '10.0.2.2' || window.location.hostname === '10.0.3.2');
-
-  // Google Sign-In configuration - same as ProfileScreen (which works)
-  const [request, response, promptAsync] = isAndroidEmulator ? [null, null, null] : Google.useAuthRequest({
-    expoClientId: '1011295206743-8jkfemcg0fcss02fgm14b9lhv282uk33.apps.googleusercontent.com',
-    iosClientId: '1011295206743-rl70k9ibahkkgkf41j8qr6vfneedgb8s.apps.googleusercontent.com',
-    androidClientId: '1011295206743-ab4i5hlk0qoh9ojqm9itmp932peacv4q.apps.googleusercontent.com',
-    webClientId: '1011295206743-8jkfemcg0fcss02fgm14b9lhv282uk33.apps.googleusercontent.com',
-    scopes: ['openid', 'profile', 'email'],
-  });
-
-  // Debug: Log request state
-  useEffect(() => {
-    if (request) {
-    }
-  }, [request]);
-
-  // Debug: Log response changes
-  useEffect(() => {
-    if (response) {
-      if (response.type === 'error') {
-        Alert.alert('Google Auth Error', `Type: ${response.type}\nError: ${JSON.stringify(response.error)}\nParams: ${JSON.stringify(response.params)}`);
-      } else if (response.type === 'dismiss') {
-      } else if (response.type === 'success') {
-      }
-    }
-  }, [response]);
 
   useEffect(() => {
     Animated.parallel([
@@ -89,12 +75,6 @@ export default function SignInScreen({ navigation }) {
       }),
     ]).start();
   }, []);
-
-  useEffect(() => {
-    if (response?.type === 'success') {
-      handleGoogleSignIn(response);
-    }
-  }, [response]);
 
   const validateEmail = (email) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -182,15 +162,28 @@ export default function SignInScreen({ navigation }) {
     await signIn(guestData);
   };
 
-  const handleGoogleSignIn = async (response) => {
+  // Native Google Sign-In handler
+  const handleNativeGoogleSignIn = async () => {
+    if (!isGoogleSignInAvailable) {
+      Alert.alert('Not Available', 'Google Sign-In is not available in Expo Go. Please use email sign-in or build a development version.');
+      return;
+    }
+
     try {
       setIsGoogleLoading(true);
 
-      const { authentication } = response;
+      // Check if device supports Google Play Services
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
 
-      if (authentication?.idToken) {
+      // Sign in with Google
+      const userInfo = await GoogleSignin.signIn();
+
+      // Get the ID token
+      const idToken = userInfo?.data?.idToken;
+
+      if (idToken) {
         // Sign in with Firebase Auth using Google credential
-        const result = await signInWithGoogle({ idToken: authentication.idToken });
+        const result = await signInWithGoogle({ idToken });
 
         if (!result.success) {
           Alert.alert('Sign In Failed', result.error || 'Please try again');
@@ -200,7 +193,15 @@ export default function SignInScreen({ navigation }) {
         Alert.alert('Sign In Failed', 'Failed to get Google credentials');
       }
     } catch (error) {
-      Alert.alert('Sign In Error', 'Something went wrong. Please try again.');
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        // User cancelled the sign-in flow - do nothing
+      } else if (error.code === statusCodes.IN_PROGRESS) {
+        Alert.alert('Please Wait', 'Sign in is already in progress');
+      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        Alert.alert('Error', 'Google Play Services is not available on this device');
+      } else {
+        Alert.alert('Sign In Error', error.message || 'Something went wrong. Please try again.');
+      }
     } finally {
       setIsGoogleLoading(false);
     }
@@ -359,48 +360,11 @@ export default function SignInScreen({ navigation }) {
           </View>
 
           <View style={styles.socialButtons}>
-            <TouchableOpacity 
-              style={styles.socialButton} 
+            <TouchableOpacity
+              style={styles.socialButton}
               activeOpacity={0.8}
-              onPress={async () => {
-
-                // Development bypass for Android emulator
-                if (isAndroidEmulator) {
-                  Alert.alert(
-                    'Android Emulator Detected',
-                    'Google Sign-In is not available on the Android emulator due to redirect URI restrictions.\n\nPlease use one of these options:',
-                    [
-                      { text: 'Cancel', style: 'cancel' },
-                      {
-                        text: 'Use Demo Account',
-                        onPress: () => {
-                          setShowEmailForm(true);
-                          setEmail('demo@gymtrainer.com');
-                          setPassword('demo123');
-                          setTimeout(() => {
-                            Alert.alert('Demo Account', 'Email: demo@gymtrainer.com\nPassword: demo123\n\nThese credentials are pre-filled. Click Sign In to continue.');
-                          }, 100);
-                        }
-                      },
-                      {
-                        text: 'Use Email Sign In',
-                        onPress: () => setShowEmailForm(true)
-                      }
-                    ]
-                  );
-                  return;
-                }
-                if (request) {
-                  try {
-                    const result = await promptAsync();
-                  } catch (error) {
-                    Alert.alert('Google Auth Error', `promptAsync failed: ${error.message}`);
-                  }
-                } else {
-                  Alert.alert('Debug Info', `Request: ${request}\nPlatform: ${Platform.OS}\nCheck console for more details`);
-                }
-              }}
-              disabled={!request || isGoogleLoading}
+              onPress={handleNativeGoogleSignIn}
+              disabled={isGoogleLoading}
             >
               {isGoogleLoading ? (
                 <ActivityIndicator color={Colors.primary} size="small" />

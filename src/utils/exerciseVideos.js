@@ -97,7 +97,7 @@ const VIDEO_FILES = {
   'bicep_curl_ez_bar': 'ez_bar_standing_bicep_curl.mp4',
   'bicep_curl_cable': 'cable bicep curl.MP4',
   'bicep_curl_one_arm': 'one_arm_dumbbell_bicep_curl.mp4',
-  'bicep_curl_one_arm_cable': 'cable curl single arm .mp4',
+  'bicep_curl_one_arm_cable': 'single arm bicep curl cable.MP4',
   'bicep_curl_single_arm_cable_alt': 'single arm bicep curl cable.MP4',
   'hammer_curl_dumbbell': 'hammer_curl.mp4',
   'hammer_curl_cable': 'cable hammer curl.MP4',
@@ -217,6 +217,7 @@ const EXERCISE_VIDEO_MAPPING = {
   'Chest Dips': {
     'Bodyweight': 'dips_bodyweight',
     'Weighted': 'dips_weighted',
+    'Weighted (Dumbbell)': 'dips_weighted',
     'Assisted Machine': 'dips_assisted',
     'Dip Machine': 'dips_machine',
     '_default': 'dips_bodyweight',
@@ -224,6 +225,7 @@ const EXERCISE_VIDEO_MAPPING = {
   'Dips': {
     'Bodyweight': 'dips_bodyweight',
     'Weighted': 'dips_weighted',
+    'Weighted (Dumbbell)': 'dips_weighted',
     'Assisted Machine': 'dips_assisted',
     'Machine': 'dips_machine',
     '_default': 'dips_bodyweight',
@@ -259,8 +261,8 @@ const EXERCISE_VIDEO_MAPPING = {
     'Wide Grip': 'lat_pulldown_wide',
     'Close Grip': 'lat_pulldown_close',
     'Parallel Grip': 'lat_pulldown_parallel',
-    'Reverse Grip': 'lat_pulldown_reverse',
-    'V-Bar': 'lat_pulldown_vbar',
+    'Reverse Grip (Supinated)': 'lat_pulldown_reverse',
+    'V-Bar (Neutral Grip)': 'lat_pulldown_vbar',
     'Single Arm': 'lat_pulldown_single',
     'Machine': 'lat_pulldown',
     '_default': 'lat_pulldown',
@@ -277,15 +279,10 @@ const EXERCISE_VIDEO_MAPPING = {
     'Assisted': 'pull_up_assisted',
     '_default': 'pull_up_bodyweight',
   },
-  'Weighted Pull Ups': {
-    '_default': 'pull_up_weighted',
-  },
   'Assisted Pull-up': {
     '_default': 'pull_up_assisted',
     'Assisted Pull-up Machine': 'pull_up_assisted',
-  },
-  'Band Assisted Pull-up': {
-    '_default': 'pull_up_assisted',
+    'Resistance Band': 'pull_up_assisted',
   },
   'Muscle Up': {
     '_default': 'muscle_up',
@@ -302,6 +299,10 @@ const EXERCISE_VIDEO_MAPPING = {
   },
   'TRX Row': {
     '_default': 'trx_row',
+  },
+  'Pullover': {
+    'Cable Standing': 'face_pull_lats',
+    '_default': 'face_pull_lats',
   },
   'Back Extension': {
     'Machine': 'back_extension_machine',
@@ -377,7 +378,9 @@ const EXERCISE_VIDEO_MAPPING = {
   },
   'Hammer Curl': {
     'Dumbbell': 'hammer_curl_dumbbell',
+    'Dumbbell Seated': 'hammer_curl_incline',
     'Cable': 'hammer_curl_cable',
+    'Cable Rope': 'hammer_curl_cable',
     'Preacher Machine': 'hammer_curl_preacher',
     'Incline Seated': 'hammer_curl_incline',
     '_default': 'hammer_curl_dumbbell',

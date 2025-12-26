@@ -490,7 +490,7 @@ export const exerciseDatabase = {
       "muscleGroup": "Chest",
       "primaryMuscles": ["Chest", "Lower Chest"],
       "secondaryMuscles": ["Triceps", "Front Deltoids"],
-      "equipment": "Bodyweight, Dip Belt, Assisted Machine, Dip Machine",
+      "equipment": "Bodyweight, Dumbbell, Assisted Machine, Dip Machine",
       "difficulty": "Intermediate",
       "instructions": "A compound bodyweight exercise emphasizing the lower chest. Lean forward 20-30° during the movement to shift emphasis to chest (upright 90° targets triceps more). Lower body until slight stretch felt in chest, then press back up. Excellent for building lower chest mass and strength.",
       "variants": [
@@ -519,7 +519,7 @@ export const exerciseDatabase = {
           ]
         },
         {
-          "equipment": "Weighted (Dip Belt)",
+          "equipment": "Weighted (Dumbbell)",
           "difficulty": "Advanced",
           "pros": [
             "Progressive overload for continued growth",
@@ -529,13 +529,13 @@ export const exerciseDatabase = {
             "Compound movement for overall development"
           ],
           "cons": [
-            "Requires dip belt and weight plates",
+            "Requires dumbbell held between legs",
             "Higher injury risk with heavy loads",
             "Can be hard on shoulders and elbows",
             "Difficult to bail out if form breaks down"
           ],
           "setupTips": [
-            "Attach weight securely to dip belt",
+            "Hold dumbbell securely between feet or thighs",
             "Start with small weight increments (5-10 lbs)",
             "Maintain same forward lean as bodyweight dips",
             "Control descent carefully with added weight",
@@ -753,29 +753,6 @@ export const exerciseDatabase = {
           ]
         },
         {
-          "equipment": "Wide Neutral Grip",
-          "difficulty": "Intermediate",
-          "pros": [
-            "Combines width targeting with shoulder-friendly grip",
-            "Excellent lat stretch at top of movement",
-            "Reduces shoulder and wrist strain vs pronated wide",
-            "Good for high-volume training",
-            "Targets both lat width and thickness"
-          ],
-          "cons": [
-            "Requires specific wide neutral grip bar attachment",
-            "Not available in all gyms",
-            "Less common so may require adjustment period"
-          ],
-          "setupTips": [
-            "Use wide neutral-grip bar attachment (parallel handles)",
-            "Grip handles with palms facing each other",
-            "Pull bar to upper chest with elbows wide",
-            "Drive elbows down and back throughout movement",
-            "Maintain upright posture with slight lean"
-          ]
-        },
-        {
           "equipment": "Single Arm",
           "difficulty": "Intermediate",
           "pros": [
@@ -799,27 +776,26 @@ export const exerciseDatabase = {
           ]
         },
         {
-          "equipment": "Dual Handles",
-          "difficulty": "Intermediate",
+          "equipment": "Machine",
+          "difficulty": "Beginner",
           "pros": [
-            "Independent arm movement for balanced development",
-            "Greater range of motion than fixed bar",
-            "Natural arc path feels comfortable on shoulders",
-            "Can rotate wrists during movement for better contraction",
-            "Identifies and corrects strength imbalances bilaterally"
+            "Stable guided movement path",
+            "Easy to learn and execute",
+            "Consistent resistance throughout",
+            "Great for beginners and muscle isolation",
+            "Safe for training to failure"
           ],
           "cons": [
-            "Requires more stabilization than bar variations",
-            "Harder to maintain symmetrical movement",
-            "May use less weight than fixed bar",
-            "Requires dual cable setup or two handles"
+            "Fixed movement path may not suit everyone",
+            "Less stabilizer muscle engagement",
+            "Machine availability varies by gym"
           ],
           "setupTips": [
-            "Attach D-handles to both high pulleys or dual cable station",
+            "Adjust seat height so handles are at arm's length overhead",
             "Grip handles with palms facing forward or neutral",
-            "Pull handles down in an arc toward outer chest",
-            "Focus on equal effort from both arms",
-            "Squeeze lats at bottom, control the release evenly"
+            "Pull handles down toward upper chest",
+            "Drive elbows down and back, squeeze lats",
+            "Control the return to full stretch"
           ]
         }
       ]
@@ -969,7 +945,7 @@ export const exerciseDatabase = {
       "muscleGroup": "Back",
       "primaryMuscles": ["Lats", "Chest"],
       "secondaryMuscles": ["Triceps", "Serratus Anterior", "Core"],
-      "equipment": "Cable Standing, Cable Lying, Dumbbell, Machine",
+      "equipment": "Cable Standing, Machine",
       "difficulty": "Intermediate",
       "instructions": "A unique exercise that bridges back and chest work. The pullover primarily targets the lats through shoulder extension while also engaging the chest and serratus anterior. Can be performed with various equipment for different resistance curves.",
       "variants": [
@@ -997,54 +973,6 @@ export const exerciseDatabase = {
           ]
         },
         {
-          "equipment": "Cable Lying",
-          "difficulty": "Intermediate",
-          "pros": [
-            "Targets chest more than standing version",
-            "Constant cable tension throughout movement",
-            "Great stretch for pecs and serratus",
-            "Lower back friendly compared to standing",
-            "Excellent for chest development and rib cage expansion"
-          ],
-          "cons": [
-            "Requires bench positioned near low cable",
-            "Setup can be awkward in busy gyms",
-            "Need to find right distance from cable"
-          ],
-          "setupTips": [
-            "Set cable to low position",
-            "Lie on bench with head toward the cable machine",
-            "Reach back and grab rope or bar attachment",
-            "Keep arms relatively straight with slight elbow bend",
-            "Pull cable over chest in arc motion, squeeze pecs at top",
-            "Lower slowly behind head feeling chest stretch"
-          ]
-        },
-        {
-          "equipment": "Dumbbell",
-          "difficulty": "Intermediate",
-          "pros": [
-            "Classic movement with proven effectiveness",
-            "Deep stretch at bottom of movement",
-            "Can be performed on flat or decline bench",
-            "Minimal equipment needed",
-            "Good for chest expansion and rib cage development"
-          ],
-          "cons": [
-            "Shoulder strain possible if too much weight used",
-            "Difficult to maintain proper elbow position",
-            "Resistance curve less optimal than cable",
-            "Risk of dropping weight overhead"
-          ],
-          "setupTips": [
-            "Lie perpendicular on bench, only upper back supported",
-            "Hold single dumbbell with both hands under top plate",
-            "Start with dumbbell over chest, slight elbow bend",
-            "Lower in arc behind head until stretch felt in lats",
-            "Pull back over chest, maintaining elbow angle"
-          ]
-        },
-        {
           "equipment": "Machine",
           "difficulty": "Beginner",
           "pros": [
@@ -1066,43 +994,6 @@ export const exerciseDatabase = {
             "Grip handles with arms extended overhead",
             "Pull down in smooth arc to lap",
             "Squeeze lats at bottom, control return"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "back-5",
-      "name": "Band Assisted Pull-up",
-      "muscleGroup": "Back",
-      "primaryMuscles": ["Lats", "Upper Back"],
-      "secondaryMuscles": ["Biceps", "Rear Deltoids", "Core"],
-      "equipment": "Resistance Band",
-      "difficulty": "Beginner",
-      "instructions": "A progression tool for building towards unassisted pull-ups. The resistance band provides assistance at the bottom of the movement where you're weakest, allowing you to perform full range pull-ups and build the necessary strength.",
-      "variants": [
-        {
-          "equipment": "Resistance Band",
-          "difficulty": "Beginner",
-          "pros": [
-            "Perfect for beginners building towards unassisted pull-ups",
-            "Allows full range of motion practice",
-            "More effective than assisted pull-up machines",
-            "Adjustable resistance by changing band thickness",
-            "Helps groove proper pulling mechanics"
-          ],
-          "cons": [
-            "Can become a crutch if not progressed properly",
-            "Band may snap if worn or misused",
-            "Band tension varies throughout movement",
-            "Awkward to get into and out of band"
-          ],
-          "setupTips": [
-            "Loop resistance band over pull-up bar and secure",
-            "Choose band thickness based on your strength level",
-            "Place knee or foot in band loop",
-            "Grip bar slightly wider than shoulders",
-            "Pull chin over bar, lower with control to full hang",
-            "Progress by using thinner bands over time"
           ]
         }
       ]
@@ -1177,7 +1068,7 @@ export const exerciseDatabase = {
       "instructions": "A compound pulling exercise using an underhand (supinated) grip. The chin-up places more emphasis on the biceps compared to pull-ups, while still effectively targeting the lats. Pull your body until your chin clears the bar.",
       "variants": [
         {
-          "equipment": "Shoulder Width",
+          "equipment": "Bodyweight",
           "difficulty": "Intermediate",
           "pros": [
             "Maximum bicep engagement for arm development",
@@ -1200,27 +1091,25 @@ export const exerciseDatabase = {
           ]
         },
         {
-          "equipment": "Narrow Grip",
-          "difficulty": "Intermediate",
+          "equipment": "Weighted",
+          "difficulty": "Advanced",
           "pros": [
-            "Maximum bicep activation possible",
-            "Greater range of motion than shoulder-width",
-            "Emphasizes lower lat development",
-            "Mechanical advantage allows more reps",
-            "Excellent for arm and back combo work"
+            "Progressive overload for continued strength gains",
+            "Builds serious pulling power",
+            "Excellent for muscle mass development",
+            "Clear strength progression metric"
           ],
           "cons": [
-            "Can feel cramped at top of movement",
-            "Higher stress on elbow joints",
-            "May cause wrist discomfort if too narrow",
-            "Less overall back development than wider grips"
+            "Requires dumbbell or weight belt",
+            "Higher injury risk with added weight",
+            "Need solid bodyweight chin-up base first"
           ],
           "setupTips": [
-            "Grip bar with hands 6-8 inches apart",
-            "Maintain neutral wrist position throughout",
-            "Pull up while keeping elbows close to torso",
-            "Aim to touch bar with upper chest",
-            "Focus on bicep and lat contraction at top"
+            "Hold dumbbell between feet or use dip belt",
+            "Grip bar with palms facing you, shoulder-width apart",
+            "Start from dead hang, pull chest toward bar",
+            "Control descent carefully with added weight",
+            "Start light and progress gradually"
           ]
         }
       ]
@@ -1231,7 +1120,7 @@ export const exerciseDatabase = {
       "muscleGroup": "Back",
       "primaryMuscles": ["Lats", "Chest", "Triceps"],
       "secondaryMuscles": ["Core", "Shoulders", "Forearms"],
-      "equipment": "Pull-up Bar, Gymnastic Rings",
+      "equipment": "Pull-up Bar",
       "difficulty": "Advanced",
       "instructions": "An advanced calisthenics movement combining a pull-up with a dip. Requires significant upper body strength, explosive power, and technique. The transition phase from pull to push is the most challenging aspect.",
       "variants": [
@@ -1259,31 +1148,6 @@ export const exerciseDatabase = {
             "Lean back then snap forward at transition",
             "Press out forcefully at top to lockout position"
           ]
-        },
-        {
-          "equipment": "Ring",
-          "difficulty": "Advanced",
-          "pros": [
-            "More natural movement pattern than bar version",
-            "Allows hands to rotate during transition",
-            "Easier on wrists and shoulders",
-            "True test of strength without momentum tricks",
-            "Superior functional strength development"
-          ],
-          "cons": [
-            "Even harder than bar muscle-up",
-            "Requires ring stability skills first",
-            "Need access to gymnastic rings",
-            "Much longer learning curve",
-            "High risk of failure and falling"
-          ],
-          "setupTips": [
-            "Master ring dips and ring pull-ups first",
-            "Use false grip for better transition",
-            "Pull rings to chest while keeping them close",
-            "Transition by driving rings down and forward",
-            "Press out to support position at top"
-          ]
         }
       ]
     },
@@ -1298,7 +1162,7 @@ export const exerciseDatabase = {
       "instructions": "The king of bodyweight back exercises using an overhand (pronated) grip. Pull-ups primarily target the lats and build impressive back width. Pull your body until your chin clears the bar, then lower with control.",
       "variants": [
         {
-          "equipment": "Wide Grip",
+          "equipment": "Bodyweight",
           "difficulty": "Intermediate",
           "pros": [
             "Maximum lat width development",
@@ -1308,127 +1172,38 @@ export const exerciseDatabase = {
             "Excellent for upper back thickness"
           ],
           "cons": [
-            "Harder than shoulder-width grip",
-            "Can cause shoulder discomfort if too wide",
-            "Reduced range of motion compared to narrow grip",
-            "More difficult to reach high rep counts"
+            "Can cause shoulder discomfort if grip too wide",
+            "May be too difficult for beginners",
+            "Requires good shoulder mobility"
           ],
           "setupTips": [
-            "Grip bar 6-8 inches wider than shoulders",
+            "Grip bar slightly wider than shoulders, palms away",
             "Start from dead hang with arms fully extended",
-            "Pull chest toward bar, driving elbows down and out",
+            "Pull chest toward bar, driving elbows down",
             "Think about pulling elbows to hips",
             "Lower slowly to full extension between reps"
           ]
         },
         {
-          "equipment": "Shoulder Width",
-          "difficulty": "Intermediate",
-          "pros": [
-            "Most balanced grip for overall back development",
-            "Natural pulling position for most people",
-            "Allows greater range of motion than wide grip",
-            "Good balance of lat and bicep involvement",
-            "Easier to progress and add reps"
-          ],
-          "cons": [
-            "Less specific to pure lat width than wide grip",
-            "More bicep involvement may fatigue arms first",
-            "May not provide enough training stimulus if too easy"
-          ],
-          "setupTips": [
-            "Grip bar at shoulder width, palms facing away",
-            "Engage lats from dead hang before pulling",
-            "Pull chest to bar, not just chin over",
-            "Keep core tight to prevent swinging",
-            "Squeeze lats hard at top of movement"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "back-12",
-      "name": "Weighted Pull Ups",
-      "muscleGroup": "Back",
-      "primaryMuscles": ["Lats", "Upper Back"],
-      "secondaryMuscles": ["Biceps", "Core", "Forearms"],
-      "equipment": "Pull-up Bar, Weight Belt, Dumbbell, Weight Vest",
-      "difficulty": "Advanced",
-      "instructions": "The progression from bodyweight pull-ups when additional resistance is needed. Adding weight increases strength and muscle mass development. Various methods exist for adding resistance, each with unique benefits and challenges.",
-      "variants": [
-        {
-          "equipment": "Dip Belt with Plates",
+          "equipment": "Weighted",
           "difficulty": "Advanced",
           "pros": [
-            "Easy to incrementally increase weight (2.5-5 lb jumps)",
-            "Weight hangs naturally without interfering",
-            "Can load very heavy for maximum strength gains",
-            "Most common and accessible weighted option",
-            "Weight is secure and won't shift during set"
+            "Progressive overload for continued strength gains",
+            "Builds serious lat mass and pulling power",
+            "Excellent for muscle mass development",
+            "Clear strength progression metric"
           ],
           "cons": [
-            "Belt can be uncomfortable on hips/groin",
-            "Requires dip belt purchase",
-            "Plates swinging can throw off balance",
-            "Can be awkward getting on/off pull-up bar",
-            "May need assistance attaching heavy weight"
+            "Requires dumbbell held between feet",
+            "Higher injury risk with added weight",
+            "Need solid bodyweight pull-up base first"
           ],
           "setupTips": [
-            "Attach weight plates to dip belt chain",
-            "Secure belt around hips, not too tight",
-            "Step onto box/bench to reach bar comfortably",
-            "Let weights settle before starting first rep",
-            "Maintain strict form, no swinging or kipping"
-          ]
-        },
-        {
-          "equipment": "Dumbbell Between Feet",
-          "difficulty": "Advanced",
-          "pros": [
-            "No special equipment needed beyond dumbbell",
-            "Good for lighter weight additions (5-25 lbs)",
-            "Forces you to stay tight to hold weight",
-            "Convenient option when dip belt not available",
-            "Inexpensive method for adding resistance"
-          ],
-          "cons": [
-            "Constant focus required to hold dumbbell",
-            "Can't load as heavy as belt method",
-            "Risk of dropping weight on yourself or others",
-            "Fatiguing to calves and feet",
-            "Awkward to get into starting position"
-          ],
-          "setupTips": [
-            "Secure dumbbell between crossed ankles",
-            "Start from box or bench at hang position",
-            "Squeeze ankles tight throughout entire set",
-            "Perform reps with controlled tempo",
-            "Have somewhere safe to release weight when done"
-          ]
-        },
-        {
-          "equipment": "Weight Vest",
-          "difficulty": "Advanced",
-          "pros": [
-            "Weight distributed evenly across torso",
-            "Most natural feeling of weighted options",
-            "Hands completely free for optimal grip",
-            "Can wear for multiple exercises in workout",
-            "No swinging weight to throw off balance"
-          ],
-          "cons": [
-            "Expensive investment ($100-300+)",
-            "Limited to vest's maximum weight capacity",
-            "Can't easily adjust weight between sets",
-            "Bulky and hot to wear during workout",
-            "Difficult to make small weight increments"
-          ],
-          "setupTips": [
-            "Ensure vest fits snugly without restricting breathing",
-            "Distribute weight pockets evenly front and back",
-            "Start with lighter loads to adapt to vest feel",
-            "Focus on same form as bodyweight pull-ups",
-            "Consider removable weight vest for progression"
+            "Hold dumbbell securely between feet",
+            "Grip bar slightly wider than shoulders",
+            "Start from dead hang, pull chest toward bar",
+            "Control descent carefully with added weight",
+            "Start light and progress gradually"
           ]
         }
       ]
@@ -1498,7 +1273,7 @@ export const exerciseDatabase = {
       "muscleGroup": "Back",
       "primaryMuscles": ["Middle Back", "Lats"],
       "secondaryMuscles": ["Biceps", "Rear Deltoids", "Rhomboids", "Lower Back"],
-      "equipment": "Barbell Overhand, Barbell Underhand, Pendlay",
+      "equipment": "Barbell Overhand, Pendlay",
       "difficulty": "Intermediate",
       "instructions": "A fundamental barbell back exercise for building thickness and strength. Hinge at the hips with a flat back, pull the barbell to your lower chest/upper abdomen, squeezing your shoulder blades together. One of the best exercises for overall back development.",
       "variants": [
@@ -1522,28 +1297,6 @@ export const exerciseDatabase = {
             "Grip barbell slightly wider than shoulder-width, palms down",
             "Pull bar to lower chest, driving elbows back",
             "Lower with control, maintain flat back throughout"
-          ]
-        },
-        {
-          "equipment": "Barbell Underhand",
-          "difficulty": "Intermediate",
-          "pros": [
-            "Underhand grip increases bicep involvement",
-            "Allows better lat contraction",
-            "Can often lift slightly more weight",
-            "Popular Yates row variation"
-          ],
-          "cons": [
-            "More bicep fatigue may limit back work",
-            "Wrist strain for some lifters",
-            "Requires good bicep tendon health"
-          ],
-          "setupTips": [
-            "Same setup as overhand but grip palms up",
-            "Grip shoulder-width or slightly narrower",
-            "Pull bar to lower abdomen/belly button area",
-            "Keep elbows close to body",
-            "Can use slightly more upright torso (Yates style)"
           ]
         },
         {
@@ -2902,7 +2655,7 @@ export const exerciseDatabase = {
       "muscleGroup": "Biceps",
       "primaryMuscles": ["Biceps Long Head", "Biceps Short Head"],
       "secondaryMuscles": ["Forearms"],
-      "equipment": "Double Cable, Single Cable",
+      "equipment": "Double Cable",
       "difficulty": "Intermediate",
       "instructions": "An advanced cable curl performed with arms elevated and parallel to the ground. Stand between high pulleys and curl the handles toward your head. This position mimics a front double biceps pose and creates constant tension throughout the movement.",
       "variants": [
@@ -2926,28 +2679,6 @@ export const exerciseDatabase = {
             "Keep upper arms parallel to ground throughout",
             "Curl both handles toward head, squeezing biceps",
             "Extend arms back out maintaining upper arm position"
-          ]
-        },
-        {
-          "equipment": "Single Cable",
-          "difficulty": "Intermediate",
-          "pros": [
-            "Can focus on one arm at a time",
-            "More accessible than dual cable setup",
-            "Better mind-muscle connection unilaterally",
-            "Can identify and correct imbalances"
-          ],
-          "cons": [
-            "Need to complete both arms separately",
-            "May be harder to maintain position one-sided",
-            "Requires good shoulder stability"
-          ],
-          "setupTips": [
-            "Set single cable to high position",
-            "Stand with one arm extended toward high pulley",
-            "Keep upper arm elevated parallel to ground",
-            "Curl handle toward head while maintaining arm position",
-            "Complete all reps before switching to other arm"
           ]
         }
       ]
@@ -3318,7 +3049,7 @@ export const exerciseDatabase = {
       "muscleGroup": "Triceps",
       "primaryMuscles": ["Triceps Long Head", "Triceps Lateral Head", "Triceps Medial Head"],
       "secondaryMuscles": ["Front Deltoids"],
-      "equipment": "EZ Bar, Barbell, Dumbbell, Overhead EZ Bar",
+      "equipment": "EZ Bar, Overhead EZ Bar",
       "difficulty": "Intermediate",
       "instructions": "Also known as lying triceps extension. Lie on a flat bench with weight held above you. Lower the weight toward your forehead by bending elbows. The Overhead variant extends the bar beyond and behind your head for increased range of motion and long head stretch.",
       "variants": [
@@ -3342,50 +3073,6 @@ export const exerciseDatabase = {
             "Keep upper arms perpendicular to floor",
             "Lower bar toward forehead by bending elbows only",
             "Extend back up without moving upper arms"
-          ]
-        },
-        {
-          "equipment": "Barbell",
-          "difficulty": "Intermediate",
-          "pros": [
-            "Allows heaviest loading possible",
-            "Simple and straightforward setup",
-            "Good for building maximum triceps strength",
-            "Easy to progressively overload"
-          ],
-          "cons": [
-            "Straight bar can strain wrists and elbows",
-            "Higher risk if weight is dropped",
-            "Fixed grip width may be uncomfortable"
-          ],
-          "setupTips": [
-            "Lie on bench with barbell held above chest",
-            "Use close to medium grip width",
-            "Keep upper arms stationary and perpendicular to floor",
-            "Lower bar toward forehead with controlled tempo",
-            "Press back up focusing on triceps contraction"
-          ]
-        },
-        {
-          "equipment": "Dumbbell",
-          "difficulty": "Intermediate",
-          "pros": [
-            "Each arm works independently",
-            "Natural movement path reduces joint stress",
-            "Can identify and correct imbalances",
-            "Safer if control is lost"
-          ],
-          "cons": [
-            "Cannot load as heavy as barbell",
-            "Requires more stability and control",
-            "Takes practice to coordinate both arms"
-          ],
-          "setupTips": [
-            "Lie on bench with dumbbells held above chest",
-            "Keep palms facing each other or slightly pronated",
-            "Maintain upper arms perpendicular to floor",
-            "Lower dumbbells beside head by bending elbows",
-            "Extend back up squeezing triceps at top"
           ]
         },
         {
@@ -3418,7 +3105,7 @@ export const exerciseDatabase = {
       "muscleGroup": "Triceps",
       "primaryMuscles": ["Triceps Lateral Head", "Triceps Medial Head", "Triceps Long Head"],
       "secondaryMuscles": ["Chest", "Front Deltoids"],
-      "equipment": "Parallel Bars, Assisted Machine, Bench Dips, Weighted (Dip Belt)",
+      "equipment": "Parallel Bars, Assisted Machine, Bench Dips, Weighted (Dumbbell)",
       "difficulty": "Intermediate",
       "instructions": "A compound bodyweight exercise excellent for building triceps mass and strength. Lower your body by bending elbows, then push back up. Keep torso upright (90°) to emphasize triceps, or lean forward 20-30° to target chest more. Parallel bars is the standard, assisted machine helps beginners, bench dips are accessible, and weighted dips with a dip belt allow progressive overload.",
       "variants": [
@@ -3489,21 +3176,21 @@ export const exerciseDatabase = {
           ]
         },
         {
-          "equipment": "Weighted (Dip Belt)",
+          "equipment": "Weighted (Dumbbell)",
           "difficulty": "Advanced",
           "pros": [
             "Allows heaviest loading for progressive overload",
-            "Weight hangs below body maintaining natural movement",
-            "Easy to adjust weight with plate changes",
+            "Weight held between legs maintains natural movement",
+            "Easy to adjust weight with different dumbbells",
             "Professional standard for building serious triceps mass"
           ],
           "cons": [
-            "Requires dip belt equipment",
+            "Requires dumbbell held between legs",
             "Can be uncomfortable with heavy weight",
             "Need strong base of bodyweight dip strength first"
           ],
           "setupTips": [
-            "Secure dip belt around waist with weight attached",
+            "Hold dumbbell securely between feet or thighs",
             "Mount parallel bars with weight hanging below",
             "Keep torso upright, weight shouldn't swing",
             "Lower to 90-degree elbow bend with control",
