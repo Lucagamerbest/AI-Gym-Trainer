@@ -17,6 +17,7 @@ import AIBadge from './src/components/AIBadge';
 import ProactiveAIService from './src/services/ai/ProactiveAIService';
 import { navigationRef } from './src/services/NavigationService';
 import FreeRecipeService from './src/services/FreeRecipeService';
+import PreloadService from './src/services/preloadService';
 import * as QuickActions from 'expo-quick-actions';
 import * as Notifications from 'expo-notifications';
 import { defineBackgroundTask } from './src/services/GymReminderTask';
@@ -222,7 +223,7 @@ function AppNavigator() {
   const { isSignedIn, isLoading, user } = useAuth();
   const [recipeCacheProgress, setRecipeCacheProgress] = useState(null);
 
-  // Initialize SyncManager and Gemini AI when app starts
+  // Initialize SyncManager, Gemini AI, and PreloadService when app starts
   useEffect(() => {
     console.log('Initializing SyncManager...');
     SyncManager.initialize();
@@ -233,6 +234,11 @@ function AppNavigator() {
     } catch (error) {
       console.log('Gemini initialization skipped:', error.message);
     }
+
+    // Preload heavy assets (exercises, 3D model HTML) for instant loading
+    PreloadService.preloadAll().catch(err => {
+      console.log('PreloadService warning:', err.message);
+    });
 
     // Cleanup on unmount
     return () => {

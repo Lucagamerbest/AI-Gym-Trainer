@@ -193,7 +193,7 @@ const EXERCISE_IMAGE_MAPPING = {
     "Dumbbell": "LOCAL:bench_press_dumbbell",
     "Smith Machine": "LOCAL:bench_press_smith",
     "Machine": "LOCAL:bench_press_machine",
-    "Spoto Press (Barbell)": "LOCAL:spoto_press"
+    "Spoto Press": "LOCAL:spoto_press"
   },
 
   "Incline Bench Press": {
@@ -226,14 +226,14 @@ const EXERCISE_IMAGE_MAPPING = {
   "Chest Dips": {
     "Bodyweight": "LOCAL:dips_bodyweight",
     "Weighted": "LOCAL:dips_weighted",
-    "Weighted (Dumbbell)": "LOCAL:dips_weighted",
     "Assisted Machine": "LOCAL:dips_assisted",
+    "Assisted": "LOCAL:dips_assisted",
     "Dip Machine": "LOCAL:dips_machine"
   },
 
   "Machine Chest Press": {
-    "Machine Horizontal Handle": "LOCAL:chest_press_horizontal",
-    "Machine Vertical Handle": "LOCAL:chest_press_vertical"
+    "Horizontal Handle": "LOCAL:chest_press_horizontal",
+    "Vertical Handle": "LOCAL:chest_press_vertical"
   },
 
   // ============ BACK ============
@@ -242,17 +242,16 @@ const EXERCISE_IMAGE_MAPPING = {
     "Close Grip": "LOCAL:lat_pulldown_close",
     "Parallel Grip": "LOCAL:lat_pulldown_parallel",
     "Reverse Grip": "LOCAL:lat_pulldown_reverse",
-    "Reverse Grip (Supinated)": "LOCAL:lat_pulldown_reverse",
     "V-Bar": "LOCAL:lat_pulldown_vbar",
-    "V-Bar (Neutral Grip)": "LOCAL:lat_pulldown_vbar",
+    "V-Bar Neutral": "LOCAL:lat_pulldown_vbar",
     "Single Arm": "LOCAL:lat_pulldown_single",
     "Machine": "LOCAL:lat_pulldown"
   },
 
   "Cable Row": {
-    "Low Angle (lats focus)": "Seated_Cable_Rows",
-    "Mid Angle (rhomboids/traps focus)": "Seated_Cable_Rows",
-    "High Angle (upper back/rear delts focus)": "Leverage_High_Row"
+    "Low Angle": "Seated_Cable_Rows",
+    "Mid Angle": "Seated_Cable_Rows",
+    "High Angle": "Leverage_High_Row"
   },
 
   "One Arm Row": {
@@ -261,15 +260,12 @@ const EXERCISE_IMAGE_MAPPING = {
   },
 
   "Bent Over Row": {
-    "Barbell Overhand": "LOCAL:bent_over_row_overhand",
-    "Barbell Underhand": "LOCAL:bent_over_row_overhand",
-    "Pendlay": "LOCAL:bent_over_row_pendlay",
-    "Dumbbell": "LOCAL:bent_over_row_dumbbell",
-    "Smith Machine": "LOCAL:bent_over_row_smith"
+    "Overhand": "LOCAL:bent_over_row_overhand",
+    "Pendlay": "LOCAL:bent_over_row_pendlay"
   },
 
   "Pullover": {
-    "Cable Standing": "LOCAL:face_pull_lats",
+    "Standing": "LOCAL:face_pull_lats",
     "Machine": null
   },
 
@@ -305,14 +301,14 @@ const EXERCISE_IMAGE_MAPPING = {
   },
 
   "Assisted Pull-up": {
-    "Assisted Pull-up Machine": "LOCAL:pull_up_assisted",
+    "Assisted Machine": "LOCAL:pull_up_assisted",
     "Resistance Band": "Band_Assisted_Pull-Up"
   },
 
   "Seated Row Machine": {
-    "Machine 45° Handles": "LOCAL:seated_row_45deg",
-    "Machine Horizontal Handles": "LOCAL:seated_row_horizontal",
-    "Machine Vertical Handles": "LOCAL:seated_row_vertical"
+    "45° Handles": "LOCAL:seated_row_45deg",
+    "Horizontal Handles": "LOCAL:seated_row_horizontal",
+    "Vertical Handles": "LOCAL:seated_row_vertical"
   },
 
   "Back Extension": {
@@ -325,19 +321,18 @@ const EXERCISE_IMAGE_MAPPING = {
   // ============ SHOULDERS ============
   "Shoulder Press": {
     "Barbell": "LOCAL:shoulder_press_barbell_seated",
-    "Barbell Seated": "LOCAL:shoulder_press_barbell_seated",
-    "Barbell Standing": "LOCAL:shoulder_press_barbell_standing",
+    "Seated": "LOCAL:shoulder_press_barbell_seated",
+    "Standing": "LOCAL:shoulder_press_barbell_standing",
     "Dumbbell": "LOCAL:shoulder_press_dumbbell",
-    "Dumbbell Seated": "LOCAL:shoulder_press_dumbbell",
     "Machine": "LOCAL:shoulder_press_machine",
     "Smith Machine": "LOCAL:shoulder_press_smith"
   },
 
   "Lateral Raise": {
     "Dumbbell": "LOCAL:lateral_raise_dumbbell",
-    "Dumbbell Seated": "LOCAL:lateral_raise_seated",
-    "Cable Single": "LOCAL:lateral_raise_cable_single",
-    "Cable Both": "LOCAL:lateral_raise_cable_both",
+    "Seated": "LOCAL:lateral_raise_seated",
+    "Single Arm": "LOCAL:lateral_raise_cable_single",
+    "Dual Cable": "LOCAL:lateral_raise_cable_both",
     "Machine": "LOCAL:lateral_raise_machine"
   },
 
@@ -357,8 +352,8 @@ const EXERCISE_IMAGE_MAPPING = {
   },
 
   "Rear Delt Fly": {
-    "Cable Cross": "LOCAL:rear_delt_fly_cable",
-    "Machine Pec Deck Reverse": "LOCAL:rear_delt_fly_machine",
+    "Cross": "LOCAL:rear_delt_fly_cable",
+    "Pec Deck Reverse": "LOCAL:rear_delt_fly_machine",
     "Machine Single Arm": "LOCAL:rear_delt_fly_single",
     "TRX": "LOCAL:rear_delt_fly_trx"
   },
@@ -371,21 +366,18 @@ const EXERCISE_IMAGE_MAPPING = {
   },
 
   "Face Pull": {
-    "Cable Rope": "LOCAL:face_pull_rear_delt",
-    "Cable Rear Delt": "LOCAL:face_pull_rear_delt",
-    "Cable Lat Focus": "LOCAL:face_pull_lats",
+    "Rope": "LOCAL:face_pull_rear_delt",
     "Resistance Band": "LOCAL:face_pull_rear_delt"
   },
 
   // ============ BICEPS ============
   "Bicep Curl": {
-    "Incline Dumbbell": "LOCAL:incline_dumbbell_curl",
+    "Incline": "LOCAL:incline_dumbbell_curl",
     "Barbell": "Barbell_Curl",
     "EZ Bar": "LOCAL:bicep_curl_ez_bar",
     "Dumbbell": "LOCAL:bicep_curl_dumbbell",
-    "Dumbbell Standing": "LOCAL:bicep_curl_dumbbell",
-    "Cable": "LOCAL:bicep_curl_cable",
-    "Cable Standing": "LOCAL:bicep_curl_cable"
+    "Standing": "LOCAL:bicep_curl_dumbbell",
+    "Cable": "LOCAL:bicep_curl_cable"
   },
 
   "One Arm Bicep Curl": {
@@ -398,12 +390,11 @@ const EXERCISE_IMAGE_MAPPING = {
   },
 
   "Hammer Curl": {
-    "Cable Rope": "LOCAL:hammer_curl_cable",
+    "Rope": "LOCAL:hammer_curl_cable",
     "Cable": "LOCAL:hammer_curl_cable",
     "Dumbbell": "LOCAL:hammer_curl_dumbbell",
-    "Dumbbell Seated": "LOCAL:hammer_curl_incline",
-    "Incline Seated": "LOCAL:hammer_curl_incline",
-    "Preacher Machine": "LOCAL:hammer_curl_preacher"
+    "Seated": "LOCAL:hammer_curl_incline",
+    "Preacher": "LOCAL:hammer_curl_preacher"
   },
 
   "Preacher Curl": {
@@ -413,7 +404,8 @@ const EXERCISE_IMAGE_MAPPING = {
   },
 
   "Concentration Curl": {
-    "Dumbbell Seated": "LOCAL:concentration_curl"
+    "Seated": "LOCAL:concentration_curl",
+    "Dumbbell": "LOCAL:concentration_curl"
   },
 
   "High Cable Curl": {
@@ -444,7 +436,6 @@ const EXERCISE_IMAGE_MAPPING = {
 
   // ============ TRICEPS ============
   "Tricep Pushdown": {
-    "Cable Rope": "LOCAL:tricep_pushdown_rope",
     "Rope": "LOCAL:tricep_pushdown_rope",
     "Straight Bar": "LOCAL:tricep_pushdown_straight",
     "V-Bar": "LOCAL:tricep_pushdown_straight"
@@ -457,8 +448,8 @@ const EXERCISE_IMAGE_MAPPING = {
   },
 
   "Overhead Tricep Extension": {
-    "Cable Rope": "LOCAL:overhead_tricep_extension_cable",
-    "Dumbbell Two-Handed": "LOCAL:overhead_tricep_extension",
+    "Rope": "LOCAL:overhead_tricep_extension_cable",
+    "Two-Handed": "LOCAL:overhead_tricep_extension",
     "Dumbbell": "LOCAL:overhead_tricep_extension",
     "EZ Bar": "Incline_Barbell_Triceps_Extension"
   },
@@ -472,15 +463,15 @@ const EXERCISE_IMAGE_MAPPING = {
     "EZ Bar": "LOCAL:skull_crusher",
     "Barbell": "Lying_Triceps_Press",
     "Dumbbell": "Decline_Dumbbell_Triceps_Extension",
-    "Overhead EZ Bar": "LOCAL:skull_crusher_overhead"
+    "Overhead": "LOCAL:skull_crusher_overhead"
   },
 
   "Dips": {
     "Parallel Bars": "LOCAL:dips_bodyweight",
     "Bodyweight": "LOCAL:dips_bodyweight",
     "Weighted": "LOCAL:dips_weighted",
-    "Weighted (Dumbbell)": "LOCAL:dips_weighted",
     "Assisted Machine": "LOCAL:dips_assisted",
+    "Assisted": "LOCAL:dips_assisted",
     "Machine": "LOCAL:dips_machine",
     "Bench Dips": "Bench_Dips"
   },
@@ -510,9 +501,9 @@ const EXERCISE_IMAGE_MAPPING = {
 
   // ============ ABS ============
   "Crunches": {
-    "Bodyweight Floor": "LOCAL:crunches_bodyweight",
+    "Floor": "LOCAL:crunches_bodyweight",
     "Bodyweight": "LOCAL:crunches_bodyweight",
-    "Cable Kneeling": "LOCAL:crunches_cable",
+    "Kneeling": "LOCAL:crunches_cable",
     "Cable": "LOCAL:crunches_cable",
     "Machine": "LOCAL:crunches_machine"
   },
@@ -539,7 +530,7 @@ const EXERCISE_IMAGE_MAPPING = {
   "Ab Wheel Rollout": {
     "Knees": "Ab_Roller",
     "Standing": "Ab_Roller",
-    "Barbell Rollout": "Barbell_Ab_Rollout"
+    "Rollout": "Barbell_Ab_Rollout"
   },
 
   "Bicycle Crunches": {
@@ -558,9 +549,9 @@ const EXERCISE_IMAGE_MAPPING = {
   },
 
   "Sit-Ups": {
-    "Bodyweight Floor": "Sit-Up",
-    "Decline Bench": "Decline_Crunch",
-    "Weighted Plate": "Weighted_Sit-Ups_-_With_Bands"
+    "Floor": "Sit-Up",
+    "Decline": "Decline_Crunch",
+    "Weighted": "Weighted_Sit-Ups_-_With_Bands"
   },
 
   // ============ LEGS ============
@@ -577,18 +568,16 @@ const EXERCISE_IMAGE_MAPPING = {
   "Standing Calf Raise": {
     "Machine": "LOCAL:calf_raise_machine",
     "Smith Machine": "LOCAL:calf_raise_smith",
-    "Smith Machine Elevated": "LOCAL:calf_raise_smith_elevated",
     "Barbell": "Standing_Barbell_Calf_Raise",
     "Leg Press": "LOCAL:calf_raise_leg_press",
-    "Horizontal Leg Press": "LOCAL:calf_raise_horizontal_press"
+    "Horizontal": "LOCAL:calf_raise_horizontal_press"
   },
 
   "Squat": {
-    "Barbell High Bar": "LOCAL:squat_high_bar",
-    "Barbell Low Bar": "LOCAL:squat_low_bar",
+    "High Bar": "LOCAL:squat_high_bar",
+    "Low Bar": "LOCAL:squat_low_bar",
     "Smith Machine": "LOCAL:squat_smith",
-    "Goblet": "LOCAL:squat_goblet",
-    "Dumbbell Goblet": "LOCAL:squat_goblet"
+    "Goblet": "LOCAL:squat_goblet"
   },
 
   "Hip Abduction": {
@@ -616,16 +605,15 @@ const EXERCISE_IMAGE_MAPPING = {
 
   "Hack Squat": {
     "Machine": "Hack_Squat",
-    "Barbell Reverse": "Barbell_Hack_Squat"
+    "Reverse": "Barbell_Hack_Squat"
   },
 
   "Lunges": {
-    "Dumbbell Walking": "LOCAL:lunges_dumbbell",
+    "Walking": "LOCAL:lunges_dumbbell",
     "Dumbbell": "LOCAL:lunges_dumbbell",
-    "Barbell Walking": "Barbell_Walking_Lunge",
-    "Dumbbell Stationary": "LOCAL:lunges_dumbbell",
+    "Stationary": "LOCAL:lunges_dumbbell",
     "Bodyweight": "LOCAL:lunges_bodyweight",
-    "Reverse Lunge": "Dumbbell_Rear_Lunge",
+    "Reverse": "Dumbbell_Rear_Lunge",
     "Smith Machine": "LOCAL:lunges_bodyweight"
   },
 
@@ -635,21 +623,21 @@ const EXERCISE_IMAGE_MAPPING = {
   },
 
   "Deadlift": {
-    "Barbell Conventional": "LOCAL:deadlift_conventional",
-    "Barbell Sumo": "LOCAL:deadlift_sumo",
+    "Conventional": "LOCAL:deadlift_conventional",
+    "Sumo": "LOCAL:deadlift_sumo",
     "Trap Bar": "Barbell_Deadlift",
     "Dumbbell": "LOCAL:deadlift_dumbbell",
-    "Dumbbell Romanian": "Stiff-Legged_Dumbbell_Deadlift",
-    "Barbell Romanian": "LOCAL:deadlift_romanian"
+    "Romanian": "LOCAL:deadlift_romanian"
   },
 
   "Leg Press": {
     "45° Machine": "Leg_Press",
-    "45° High Foot (Hamstring)": "LOCAL:leg_press_high_foot",
-    "45° Low Foot (Quad)": "LOCAL:leg_press_low_foot",
+    "45° High": "LOCAL:leg_press_high_foot",
+    "45° Low": "LOCAL:leg_press_low_foot",
     "Horizontal Machine": "Leg_Press",
-    "Horizontal High Foot (Hamstring)": "LOCAL:leg_press_horizontal_high",
-    "Horizontal Low Foot (Quad)": "LOCAL:leg_press_horizontal_low"
+    "Horizontal High": "LOCAL:leg_press_horizontal_high",
+    "Horizontal Low": "LOCAL:leg_press_horizontal_low",
+    "Horizontal": "LOCAL:leg_press_horizontal_low"
   },
 
   "Bulgarian Split Squat": {

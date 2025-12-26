@@ -15,9 +15,7 @@ import { getExercisesByMuscleGroup } from '../data/exerciseDatabase';
 import { useWorkout } from '../context/WorkoutContext';
 import { PinnedExerciseStorage } from '../services/pinnedExerciseStorage';
 import { getVariantImage } from '../utils/exerciseImages';
-
-// Cache for loaded exercises to make subsequent loads instant
-const exerciseCache = new Map();
+import PreloadService from '../services/preloadService';
 export default function ExerciseListScreen({ navigation, route }) {
   const { isWorkoutActive, activeWorkout, updateWorkout } = useWorkout();
   const {
@@ -155,19 +153,17 @@ export default function ExerciseListScreen({ navigation, route }) {
       // Use activeMuscleFilters for loading exercises
       const muscleGroupsToLoad = activeMuscleFilters;
 
-      // Load all muscle groups in parallel for speed, using cache when available
+      // Load all muscle groups using PreloadService (instant if preloaded) or fallback to database
       const promises = muscleGroupsToLoad.map(async (muscleGroup) => {
         try {
-          // Check cache first for instant loading
-          if (exerciseCache.has(muscleGroup)) {
-            return exerciseCache.get(muscleGroup);
+          // Try PreloadService first (instant access to pre-cached data)
+          const preloadedExercises = PreloadService.getExercisesByMuscle(muscleGroup);
+          if (preloadedExercises && preloadedExercises.length > 0) {
+            return preloadedExercises;
           }
 
-          // Load from database and cache it
+          // Fallback to database if PreloadService doesn't have data yet
           const groupExercises = await getExercisesByMuscleGroup(muscleGroup);
-          if (groupExercises) {
-            exerciseCache.set(muscleGroup, groupExercises);
-          }
           return groupExercises || [];
         } catch (error) {
           return [];
