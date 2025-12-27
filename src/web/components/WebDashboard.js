@@ -313,6 +313,7 @@ const TABS = [
   { id: 'nutrition', label: 'Nutrition', icon: 'M12 6v6m0 0v6m0-6h6m-6 0H6' },
   { id: 'progress', label: 'Progress', icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6' },
   { id: 'goals', label: 'Goals', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
+  { id: 'exercises', label: 'Exercises', icon: 'M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4', isExternal: true },
   { id: 'import', label: 'Import', icon: 'M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12' },
 ];
 
@@ -3699,8 +3700,17 @@ const ImportSection = ({ user, onImportSuccess, isMobile = false }) => {
 };
 
 // Main Dashboard Component
-export default function WebDashboard({ user, onSignOut, onGoHome }) {
+export default function WebDashboard({ user, onSignOut, onGoHome, onGoToExercises }) {
   const [activeTab, setActiveTab] = useState('workouts');
+
+  // Handle tab click - exercises navigates externally
+  const handleTabClick = (tab) => {
+    if (tab.id === 'exercises' && onGoToExercises) {
+      onGoToExercises();
+    } else {
+      setActiveTab(tab.id);
+    }
+  };
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [syncStatus, setSyncStatus] = useState('');
@@ -3881,7 +3891,7 @@ export default function WebDashboard({ user, onSignOut, onGoHome }) {
           {TABS.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => handleTabClick(tab)}
               style={{
                 background: 'transparent',
                 border: 'none',
@@ -4157,7 +4167,7 @@ export default function WebDashboard({ user, onSignOut, onGoHome }) {
           {TABS.map((tab) => (
             <motion.button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => handleTabClick(tab)}
               whileHover={{ x: 4 }}
               style={{
                 width: '100%',
